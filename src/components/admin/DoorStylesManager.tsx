@@ -10,13 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { DoorStyle, Brand } from '@/types/cabinet';
 import { useToast } from '@/hooks/use-toast';
-import { DoorStyleFinishesManager } from './DoorStyleFinishesManager';
-
 export function DoorStylesManager() {
   const { toast } = useToast();
   const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
-  
-  const [selectedDoorStyle, setSelectedDoorStyle] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -108,9 +104,6 @@ export function DoorStylesManager() {
     }
 
     setDoorStyles(doorStyles.filter(style => style.id !== id));
-    if (selectedDoorStyle === id) {
-      setSelectedDoorStyle(null);
-    }
   };
 
   if (loading) {
@@ -119,112 +112,84 @@ export function DoorStylesManager() {
 
   return (
     <div className="space-y-6">
-      <Tabs value={selectedDoorStyle || "list"} onValueChange={setSelectedDoorStyle}>
-        <TabsList>
-          <TabsTrigger value="list">Door Styles</TabsTrigger>
-          {selectedDoorStyle && (
-            <TabsTrigger value={selectedDoorStyle}>
-              Manage Finishes
-            </TabsTrigger>
-          )}
-        </TabsList>
-
-        <TabsContent value="list">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Door Styles</CardTitle>
-              <Button onClick={addDoorStyle} size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Door Style
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Base Rate ($/sqm)</TableHead>
-                    <TableHead>Active</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {doorStyles.map((style) => (
-                    <TableRow key={style.id}>
-                      <TableCell>
-                        <Input
-                          value={style.name}
-                          onChange={(e) => updateDoorStyle(style.id, { name: e.target.value })}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={style.description || ""}
-                          onChange={(e) => updateDoorStyle(style.id, { description: e.target.value })}
-                        />
-                      </TableCell>
-                      <TableCell>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={style.base_rate_per_sqm}
-                        onChange={(e) => {
-                          const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                          setDoorStyles((prev) => prev.map((s) => s.id === style.id ? { ...s, base_rate_per_sqm: Number.isNaN(val) ? 0 : val } : s));
-                        }}
-                        onBlur={(e) => {
-                          const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                          updateDoorStyle(style.id, { base_rate_per_sqm: Number.isNaN(val) ? 0 : val });
-                        }}
-                      />
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={style.active ? "true" : "false"}
-                          onValueChange={(value) => updateDoorStyle(style.id, { active: value === "true" })}
-                        >
-                          <SelectTrigger className="w-20">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="true">Yes</SelectItem>
-                            <SelectItem value="false">No</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            onClick={() => setSelectedDoorStyle(style.id)}
-                            variant="outline"
-                            size="sm"
-                          >
-                            <Settings className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            onClick={() => deleteDoorStyle(style.id)}
-                            variant="destructive"
-                            size="sm"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {selectedDoorStyle && (
-          <TabsContent value={selectedDoorStyle}>
-            <DoorStyleFinishesManager doorStyleId={selectedDoorStyle} />
-          </TabsContent>
-        )}
-      </Tabs>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Door Styles</CardTitle>
+          <Button onClick={addDoorStyle} size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Door Style
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Base Rate ($/sqm)</TableHead>
+                <TableHead>Active</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {doorStyles.map((style) => (
+                <TableRow key={style.id}>
+                  <TableCell>
+                    <Input
+                      value={style.name}
+                      onChange={(e) => updateDoorStyle(style.id, { name: e.target.value })}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      value={style.description || ""}
+                      onChange={(e) => updateDoorStyle(style.id, { description: e.target.value })}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={style.base_rate_per_sqm}
+                      onChange={(e) => {
+                        const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                        setDoorStyles((prev) => prev.map((s) => s.id === style.id ? { ...s, base_rate_per_sqm: Number.isNaN(val) ? 0 : val } : s));
+                      }}
+                      onBlur={(e) => {
+                        const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                        updateDoorStyle(style.id, { base_rate_per_sqm: Number.isNaN(val) ? 0 : val });
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={style.active ? "true" : "false"}
+                      onValueChange={(value) => updateDoorStyle(style.id, { active: value === "true" })}
+                    >
+                      <SelectTrigger className="w-20">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">Yes</SelectItem>
+                        <SelectItem value="false">No</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      onClick={() => deleteDoorStyle(style.id)}
+                      variant="destructive"
+                      size="sm"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -18,17 +18,7 @@ import CabinetTypeEditDialog from "@/components/admin/CabinetTypeEditDialog";
 import GlobalSettingsEditDialog from "@/components/admin/GlobalSettingsEditDialog";
 import { DoorStylesManager } from "@/components/admin/DoorStylesManager";
 import HardwareEditDialog from "@/components/admin/HardwareEditDialog";
-import ColorEditDialog from "@/components/admin/ColorEditDialog";
-
-interface Color {
-  id: string;
-  name: string;
-  hex_code: string;
-  image_url: string;
-  active: boolean;
-  door_style_id: string;
-  surcharge_rate_per_sqm: number;
-}
+import { ColorsManager } from "@/components/admin/ColorsManager";
 
 interface GlobalSetting {
   id: string;
@@ -77,7 +67,6 @@ interface CabinetType {
 }
 
 const Admin = () => {
-  const [colors, setColors] = useState<Color[]>([]);
   const [cabinetTypes, setCabinetTypes] = useState<CabinetType[]>([]);
   const [globalSettings, setGlobalSettings] = useState<GlobalSetting[]>([]);
   const [hardwareTypes, setHardwareTypes] = useState<HardwareType[]>([]);
@@ -86,7 +75,6 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   
   // Edit states
-  const [editingColor, setEditingColor] = useState<Color | null>(null);
   const [editingCabinetType, setEditingCabinetType] = useState<CabinetType | null>(null);
   const [editingGlobalSetting, setEditingGlobalSetting] = useState<GlobalSetting | null>(null);
   const [editingHardware, setEditingHardware] = useState<{ type: 'hardware_type' | 'hardware_brand' | 'hardware_product' | 'product_range', item: any } | null>(null);
@@ -104,14 +92,12 @@ const Admin = () => {
     try {
       setLoading(true);
       const [
-        colorsRes,
         cabinetTypesRes,
         globalSettingsRes,
         hardwareTypesRes,
         hardwareBrandsRes,
         hardwareProductsRes
       ] = await Promise.all([
-        supabase.from('colors').select('*').order('name'),
         supabase.from('cabinet_types').select('*').order('name'),
         supabase.from('global_settings').select('*').order('setting_key'),
         supabase.from('hardware_types').select('*').order('name'),
@@ -119,7 +105,6 @@ const Admin = () => {
         supabase.from('hardware_products').select('*').order('name')
       ]);
 
-      if (colorsRes.data) setColors(colorsRes.data);
       if (cabinetTypesRes.data) {
         // Ensure the cabinet types have door_count and drawer_count (may be null in old records)
         const cabinetTypesWithDefaults = cabinetTypesRes.data.map(ct => ({
@@ -141,33 +126,6 @@ const Admin = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const saveColor = async (color: Partial<Color>) => {
-    try {
-      if (!color.name || !color.door_style_id) {
-        toast({ title: "Error", description: "Name and door style are required", variant: "destructive" });
-        return;
-      }
-      
-      if (color.id) {
-        await supabase.from('colors').update(color).eq('id', color.id);
-      } else {
-        await supabase.from('colors').insert({
-          name: color.name,
-          door_style_id: color.door_style_id,
-          hex_code: color.hex_code || "",
-          image_url: color.image_url || null,
-          surcharge_rate_per_sqm: color.surcharge_rate_per_sqm || 0,
-          active: color.active ?? true
-        });
-      }
-      loadAllData();
-      setEditingColor(null);
-      toast({ title: "Success", description: "Color saved!" });
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to save color", variant: "destructive" });
     }
   };
 
@@ -310,46 +268,7 @@ const Admin = () => {
             </TabsContent>
 
             <TabsContent value="colors">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Colors Management</CardTitle>
-                  <CardDescription>
-                    Manage color options and surcharges for door styles
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <Button className="w-full" onClick={() => setEditingColor({} as Color)}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add New Color
-                    </Button>
-                    
-                    <div className="space-y-2">
-                      {colors.map((color) => (
-                        <div key={color.id} className="flex items-center justify-between p-4 border rounded">
-                          <div className="flex items-center space-x-3">
-                            <div 
-                              className="w-8 h-8 rounded border"
-                              style={{ backgroundColor: color.hex_code }}
-                            />
-                            <div>
-                              <h4 className="font-medium">{color.name}</h4>
-                              <p className="text-sm text-muted-foreground">{color.hex_code}</p>
-                              <p className="text-sm">+${color.surcharge_rate_per_sqm}/sqm</p>
-                              <span className={`text-xs px-2 py-1 rounded ${color.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                {color.active ? 'Active' : 'Inactive'}
-                              </span>
-                            </div>
-                          </div>
-                          <Button variant="outline" size="sm" onClick={() => setEditingColor(color)}>
-                            Edit
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <ColorsManager />
             </TabsContent>
 
             <TabsContent value="cabinet-types">
@@ -460,13 +379,6 @@ const Admin = () => {
             open={!!editingGlobalSetting}
             onOpenChange={(open) => !open && setEditingGlobalSetting(null)}
             onSave={saveGlobalSetting}
-          />
-
-          <ColorEditDialog
-            color={editingColor}
-            open={!!editingColor}
-            onOpenChange={(open) => !open && setEditingColor(null)}
-            onSave={saveColor}
           />
 
           <HardwareEditDialog

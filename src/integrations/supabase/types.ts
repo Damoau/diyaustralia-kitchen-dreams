@@ -473,6 +473,36 @@ export type Database = {
         }
         Relationships: []
       }
+      color_finishes: {
+        Row: {
+          active: boolean
+          color_id: string
+          created_at: string
+          door_style_finish_type_id: string
+          id: string
+          rate_per_sqm: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          color_id: string
+          created_at?: string
+          door_style_finish_type_id: string
+          id?: string
+          rate_per_sqm?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          color_id?: string
+          created_at?: string
+          door_style_finish_type_id?: string
+          id?: string
+          rate_per_sqm?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       colors: {
         Row: {
           active: boolean
@@ -513,6 +543,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      door_style_finish_types: {
+        Row: {
+          active: boolean
+          created_at: string
+          door_style_id: string
+          finish_name: string
+          id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          door_style_id: string
+          finish_name: string
+          id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          door_style_id?: string
+          finish_name?: string
+          id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       door_style_finishes: {
         Row: {
