@@ -204,7 +204,7 @@ export function ColorsManager() {
   return (
     <div className="space-y-6">
       <Tabs value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
-        <TabsList className="grid w-full grid-cols-auto">
+        <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${doorStyles.length}, 1fr)` }}>
           {doorStyles.map(doorStyle => (
             <TabsTrigger key={doorStyle.id} value={doorStyle.id}>
               {doorStyle.name}
