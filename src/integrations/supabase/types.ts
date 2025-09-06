@@ -299,6 +299,7 @@ export type Database = {
           default_height_mm: number
           default_width_mm: number
           door_count: number
+          door_qty: number | null
           drawer_count: number
           id: string
           name: string
@@ -315,6 +316,7 @@ export type Database = {
           default_height_mm: number
           default_width_mm: number
           door_count?: number
+          door_qty?: number | null
           drawer_count?: number
           id?: string
           name: string
@@ -331,6 +333,7 @@ export type Database = {
           default_height_mm?: number
           default_width_mm?: number
           door_count?: number
+          door_qty?: number | null
           drawer_count?: number
           id?: string
           name?: string

@@ -34,7 +34,6 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
     default_width_mm: 300,
     default_height_mm: 720,
     default_depth_mm: 560,
-    door_count: 0,
     drawer_count: 0,
     active: true
   });
@@ -47,7 +46,6 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
         default_width_mm: cabinetType.default_width_mm,
         default_height_mm: cabinetType.default_height_mm,
         default_depth_mm: cabinetType.default_depth_mm,
-        door_count: cabinetType.door_count,
         drawer_count: cabinetType.drawer_count,
         active: cabinetType.active
       });
@@ -58,7 +56,6 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
         default_width_mm: 300,
         default_height_mm: 720,
         default_depth_mm: 560,
-        door_count: 0,
         drawer_count: 0,
         active: true
       });
@@ -149,16 +146,7 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label htmlFor="door_count">Door Count</Label>
-                  <Input
-                    id="door_count"
-                    type="number"
-                    value={formData.door_count}
-                    onChange={(e) => setFormData({ ...formData, door_count: parseInt(e.target.value) || 0 })}
-                  />
-                </div>
+              <div className="grid grid-cols-1 gap-2">
                 <div>
                   <Label htmlFor="drawer_count">Drawer Count</Label>
                   <Input

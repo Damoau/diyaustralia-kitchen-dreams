@@ -55,6 +55,7 @@ export interface CabinetType {
   backs_qty?: number;
   bottoms_qty?: number;
   sides_qty?: number;
+  door_qty?: number;
 }
 
 export interface CabinetTypePriceRange {

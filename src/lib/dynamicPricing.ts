@@ -20,7 +20,7 @@ export function calculateCabinetPrice(
   let qtyBacks = cabinetType.backs_qty || 1;
   let qtyBottoms = cabinetType.bottoms_qty || 1; 
   let qtySides = cabinetType.sides_qty || 2;
-  let qtyDoors = cabinetType.door_count || 0;
+  let qtyDoors = cabinetType.door_qty || 0;
   
   // If we have cabinet parts data, use actual quantities
   if (cabinetParts.length > 0) {

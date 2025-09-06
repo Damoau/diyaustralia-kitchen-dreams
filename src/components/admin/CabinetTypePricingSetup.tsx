@@ -226,7 +226,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
     setCabinetTypeFinishes(cabinetTypeFinishes.filter(ctf => ctf.id !== id));
   };
 
-  const updateCabinetTypeQuantities = async (updates: { backs_qty?: number; bottoms_qty?: number; sides_qty?: number }) => {
+  const updateCabinetTypeQuantities = async (updates: { backs_qty?: number; bottoms_qty?: number; sides_qty?: number; door_qty?: number }) => {
     const { error } = await supabase
       .from('cabinet_types')
       .update(updates)
@@ -264,7 +264,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
             <CardTitle>Part Quantities</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               <div>
                 <Label htmlFor="backs_qty">Backs Quantity</Label>
                 <Input
@@ -290,6 +290,15 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                   type="number"
                   value={cabinetType.sides_qty || 2}
                   onChange={(e) => updateCabinetTypeQuantities({ sides_qty: parseInt(e.target.value) })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="door_qty">Doors Quantity</Label>
+                <Input
+                  id="door_qty"
+                  type="number"
+                  value={cabinetType.door_qty || 0}
+                  onChange={(e) => updateCabinetTypeQuantities({ door_qty: parseInt(e.target.value) })}
                 />
               </div>
             </div>
