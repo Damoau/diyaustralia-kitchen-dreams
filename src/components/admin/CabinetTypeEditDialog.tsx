@@ -167,8 +167,13 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
           </TabsContent>
           
           <TabsContent value="pricing">
-            {cabinetType && (
+            {cabinetType && cabinetType.id ? (
               <CabinetTypePricingSetup cabinetTypeId={cabinetType.id} />
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Please save the cabinet type first to configure pricing settings.</p>
+                <p className="text-sm mt-2">Click "Save" in the Basic Info tab, then return here to set up pricing.</p>
+              </div>
             )}
           </TabsContent>
         </Tabs>
