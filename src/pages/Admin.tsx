@@ -20,14 +20,10 @@ import ColorEditDialog from "@/components/admin/ColorEditDialog";
 import DoorStyleEditDialog from "@/components/admin/DoorStyleEditDialog";
 import CabinetTypeEditDialog from "@/components/admin/CabinetTypeEditDialog";
 import GlobalSettingsEditDialog from "@/components/admin/GlobalSettingsEditDialog";
+import { DoorStylesManager } from "@/components/admin/DoorStylesManager";
+import { CabinetTypePricingSetup } from "@/components/admin/CabinetTypePricingSetup";
 import HardwareEditDialog from "@/components/admin/HardwareEditDialog";
 
-interface Brand {
-  id: string;
-  name: string;
-  description: string;
-  active: boolean;
-}
 
 interface Finish {
   id: string;
@@ -48,13 +44,6 @@ interface Color {
   surcharge_rate_per_sqm: number;
 }
 
-interface DoorStyle {
-  id: string;
-  name: string;
-  description: string;
-  base_rate_per_sqm: number;
-  active: boolean;
-}
 
 interface GlobalSetting {
   id: string;
@@ -111,10 +100,10 @@ interface CabinetType {
 }
 
 const Admin = () => {
-  const [brands, setBrands] = useState<Brand[]>([]);
+  
   const [finishes, setFinishes] = useState<Finish[]>([]);
   const [colors, setColors] = useState<Color[]>([]);
-  const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
+  
   const [cabinetTypes, setCabinetTypes] = useState<CabinetType[]>([]);
   const [globalSettings, setGlobalSettings] = useState<GlobalSetting[]>([]);
   const [hardwareTypes, setHardwareTypes] = useState<HardwareType[]>([]);
@@ -124,10 +113,10 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   
   // Edit states
-  const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
+  
   const [editingFinish, setEditingFinish] = useState<Finish | null>(null);
   const [editingColor, setEditingColor] = useState<Color | null>(null);
-  const [editingDoorStyle, setEditingDoorStyle] = useState<DoorStyle | null>(null);
+  
   const [editingCabinetType, setEditingCabinetType] = useState<CabinetType | null>(null);
   const [editingGlobalSetting, setEditingGlobalSetting] = useState<GlobalSetting | null>(null);
   const [editingHardware, setEditingHardware] = useState<{ type: 'hardware_type' | 'hardware_brand' | 'hardware_product' | 'product_range', item: any } | null>(null);
@@ -145,33 +134,25 @@ const Admin = () => {
     try {
       setLoading(true);
       const [
-        brandsRes, 
         finishesRes, 
         colorsRes, 
-        doorStylesRes, 
         cabinetTypesRes,
         globalSettingsRes,
         hardwareTypesRes,
         hardwareBrandsRes,
-        hardwareProductsRes,
-        productRangesRes
+        hardwareProductsRes
       ] = await Promise.all([
-        supabase.from('brands').select('*').order('name'),
         supabase.from('finishes').select('*').order('name'),
         supabase.from('colors').select('*').order('name'),
-        supabase.from('door_styles').select('*').order('name'),
         supabase.from('cabinet_types').select('*').order('name'),
         supabase.from('global_settings').select('*').order('setting_key'),
         supabase.from('hardware_types').select('*').order('name'),
         supabase.from('hardware_brands').select('*').order('name'),
-        supabase.from('hardware_products').select('*').order('name'),
-        supabase.from('product_ranges').select('*').order('sort_order'),
+        supabase.from('hardware_products').select('*').order('name')
       ]);
 
-      if (brandsRes.data) setBrands(brandsRes.data);
       if (finishesRes.data) setFinishes(finishesRes.data);
       if (colorsRes.data) setColors(colorsRes.data);
-      if (doorStylesRes.data) setDoorStyles(doorStylesRes.data);
       if (cabinetTypesRes.data) {
         // Ensure the cabinet types have door_count and drawer_count (may be null in old records)
         const cabinetTypesWithDefaults = cabinetTypesRes.data.map(ct => ({
@@ -185,7 +166,6 @@ const Admin = () => {
       if (hardwareTypesRes.data) setHardwareTypes(hardwareTypesRes.data);
       if (hardwareBrandsRes.data) setHardwareBrands(hardwareBrandsRes.data);
       if (hardwareProductsRes.data) setHardwareProducts(hardwareProductsRes.data);
-      if (productRangesRes.data) setProductRanges(productRangesRes.data);
     } catch (error) {
       toast({ 
         title: "Error", 
@@ -197,30 +177,6 @@ const Admin = () => {
     }
   };
 
-  // Save functions
-  const saveBrand = async (brand: Partial<Brand>) => {
-    try {
-      if (!brand.name) {
-        toast({ title: "Error", description: "Brand name is required", variant: "destructive" });
-        return;
-      }
-      
-      if (brand.id) {
-        await supabase.from('brands').update(brand).eq('id', brand.id);
-      } else {
-        await supabase.from('brands').insert({
-          name: brand.name,
-          description: brand.description || "",
-          active: brand.active ?? true
-        });
-      }
-      loadAllData();
-      setEditingBrand(null);
-      toast({ title: "Success", description: "Brand saved!" });
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to save brand", variant: "destructive" });
-    }
-  };
 
   const saveFinish = async (finish: Partial<Finish>) => {
     try {
@@ -275,30 +231,6 @@ const Admin = () => {
     }
   };
 
-  const saveDoorStyle = async (doorStyle: Partial<DoorStyle>) => {
-    try {
-      if (!doorStyle.name) {
-        toast({ title: "Error", description: "Name is required", variant: "destructive" });
-        return;
-      }
-      
-      if (doorStyle.id) {
-        await supabase.from('door_styles').update(doorStyle).eq('id', doorStyle.id);
-      } else {
-        await supabase.from('door_styles').insert({
-          name: doorStyle.name,
-          description: doorStyle.description || "",
-          base_rate_per_sqm: doorStyle.base_rate_per_sqm || 0,
-          active: doorStyle.active ?? true
-        });
-      }
-      loadAllData();
-      setEditingDoorStyle(null);
-      toast({ title: "Success", description: "Door style saved!" });
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to save door style", variant: "destructive" });
-    }
-  };
 
   const saveCabinetType = async (cabinetType: Partial<CabinetType>) => {
     try {
@@ -425,57 +357,18 @@ const Admin = () => {
             </p>
           </div>
 
-          <Tabs defaultValue="brands" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-8">
-              <TabsTrigger value="brands">Brands</TabsTrigger>
+          <Tabs defaultValue="door-styles" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="door-styles">Door Styles</TabsTrigger>
               <TabsTrigger value="finishes">Finishes</TabsTrigger>
               <TabsTrigger value="colors">Colors</TabsTrigger>
-              <TabsTrigger value="door-styles">Door Styles</TabsTrigger>
               <TabsTrigger value="cabinet-types">Cabinet Types</TabsTrigger>
               <TabsTrigger value="hardware">Hardware</TabsTrigger>
-              <TabsTrigger value="ranges">Ranges</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="brands">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Brands Management</CardTitle>
-                  <CardDescription>
-                    Add, edit, and manage cabinet brands
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <Button className="w-full" onClick={() => setEditingBrand({} as Brand)}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add New Brand
-                    </Button>
-                    
-                    <div className="space-y-2">
-                      {brands.map((brand) => (
-                        <div key={brand.id} className="flex items-center justify-between p-4 border rounded">
-                          <div>
-                            <h4 className="font-medium">{brand.name}</h4>
-                            <p className="text-sm text-muted-foreground">{brand.description}</p>
-                            <span className={`text-xs px-2 py-1 rounded ${brand.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                              {brand.active ? 'Active' : 'Inactive'}
-                            </span>
-                          </div>
-                          <div className="space-x-2">
-                            <Button variant="outline" size="sm" onClick={() => setEditingBrand(brand)}>
-                              Edit
-                            </Button>
-                            <Button variant="destructive" size="sm">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="door-styles">
+              <DoorStylesManager />
             </TabsContent>
 
             <TabsContent value="finishes">
@@ -559,79 +452,56 @@ const Admin = () => {
             </TabsContent>
 
             <TabsContent value="door-styles">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Door Styles Management</CardTitle>
-                  <CardDescription>
-                    Manage door styles and base pricing
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <Button className="w-full" onClick={() => setEditingDoorStyle({} as DoorStyle)}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add New Door Style
-                    </Button>
-                    
-                    <div className="space-y-2">
-                      {doorStyles.map((doorStyle) => (
-                        <div key={doorStyle.id} className="flex items-center justify-between p-4 border rounded">
-                          <div>
-                            <h4 className="font-medium">{doorStyle.name}</h4>
-                            <p className="text-sm text-muted-foreground">{doorStyle.description}</p>
-                            <p className="text-sm">${doorStyle.base_rate_per_sqm}/sqm base rate</p>
-                            <span className={`text-xs px-2 py-1 rounded ${doorStyle.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                              {doorStyle.active ? 'Active' : 'Inactive'}
-                            </span>
-                          </div>
-                          <Button variant="outline" size="sm" onClick={() => setEditingDoorStyle(doorStyle)}>
-                            Edit
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <DoorStylesManager />
             </TabsContent>
 
             <TabsContent value="cabinet-types">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Cabinet Types Management</CardTitle>
-                  <CardDescription>
-                    Manage cabinet types and default dimensions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <Button className="w-full" onClick={() => setEditingCabinetType({} as CabinetType)}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add New Cabinet Type
-                    </Button>
-                    
-                    <div className="space-y-2">
-                      {cabinetTypes.map((cabinetType) => (
-                        <div key={cabinetType.id} className="flex items-center justify-between p-4 border rounded">
-                          <div>
-                            <h4 className="font-medium">{cabinetType.name}</h4>
-                            <p className="text-sm text-muted-foreground">{cabinetType.category}</p>
-                            <p className="text-sm">
-                              {cabinetType.default_width_mm}×{cabinetType.default_height_mm}×{cabinetType.default_depth_mm}mm
-                            </p>
-                            <span className={`text-xs px-2 py-1 rounded ${cabinetType.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                              {cabinetType.active ? 'Active' : 'Inactive'}
-                            </span>
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Cabinet Types Management</CardTitle>
+                    <CardDescription>
+                      Manage cabinet types and default dimensions
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <Button className="w-full" onClick={() => setEditingCabinetType({} as CabinetType)}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add New Cabinet Type
+                      </Button>
+                      
+                      <div className="space-y-2">
+                        {cabinetTypes.map((cabinetType) => (
+                          <div key={cabinetType.id} className="border rounded">
+                            <div className="flex items-center justify-between p-4">
+                              <div>
+                                <h4 className="font-medium">{cabinetType.name}</h4>
+                                <p className="text-sm text-muted-foreground">{cabinetType.category}</p>
+                                <p className="text-sm">
+                                  {cabinetType.default_width_mm}×{cabinetType.default_height_mm}×{cabinetType.default_depth_mm}mm
+                                </p>
+                                <span className={`text-xs px-2 py-1 rounded ${cabinetType.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                  {cabinetType.active ? 'Active' : 'Inactive'}
+                                </span>
+                              </div>
+                              <Button variant="outline" size="sm" onClick={() => setEditingCabinetType(cabinetType)}>
+                                Edit
+                              </Button>
+                            </div>
+                            {cabinetType.active && (
+                              <div className="border-t p-4 bg-muted/20">
+                                <h5 className="font-medium mb-4">Pricing Configuration</h5>
+                                <CabinetTypePricingSetup cabinetTypeId={cabinetType.id} />
+                              </div>
+                            )}
                           </div>
-                          <Button variant="outline" size="sm" onClick={() => setEditingCabinetType(cabinetType)}>
-                            Edit
-                          </Button>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             <TabsContent value="hardware">
@@ -667,37 +537,6 @@ const Admin = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="ranges">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Product Ranges</CardTitle>
-                  <CardDescription>Organize cabinet types into ranges</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="mb-4" onClick={() => setEditingHardware({ type: 'product_range', item: {} })}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Product Range
-                  </Button>
-                  <div className="space-y-2">
-                    {productRanges.map((range) => (
-                      <div key={range.id} className="flex items-center justify-between p-4 border rounded">
-                        <div>
-                          <h4 className="font-medium">{range.name}</h4>
-                          <p className="text-sm text-muted-foreground">{range.description}</p>
-                          <p className="text-sm">Sort Order: {range.sort_order}</p>
-                          <span className={`text-xs px-2 py-1 rounded ${range.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                            {range.active ? 'Active' : 'Inactive'}
-                          </span>
-                        </div>
-                        <Button variant="outline" size="sm" onClick={() => setEditingHardware({ type: 'product_range', item: range })}>
-                          Edit
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             <TabsContent value="settings">
               <Card>
@@ -730,13 +569,6 @@ const Admin = () => {
           </Tabs>
 
           {/* Edit Dialogs */}
-          <BrandEditDialog
-            brand={editingBrand}
-            open={!!editingBrand}
-            onOpenChange={(open) => !open && setEditingBrand(null)}
-            onSave={saveBrand}
-          />
-          
           <GlobalSettingsEditDialog
             setting={editingGlobalSetting}
             open={!!editingGlobalSetting}
@@ -744,28 +576,7 @@ const Admin = () => {
             onSave={saveGlobalSetting}
           />
 
-          <FinishEditDialog
-            finish={editingFinish}
-            brands={brands}
-            open={!!editingFinish}
-            onOpenChange={(open) => !open && setEditingFinish(null)}
-            onSave={saveFinish}
-          />
 
-          <ColorEditDialog
-            color={editingColor}
-            doorStyles={doorStyles}
-            open={!!editingColor}
-            onOpenChange={(open) => !open && setEditingColor(null)}
-            onSave={saveColor}
-          />
-
-          <DoorStyleEditDialog
-            doorStyle={editingDoorStyle}
-            open={!!editingDoorStyle}
-            onOpenChange={(open) => !open && setEditingDoorStyle(null)}
-            onSave={saveDoorStyle}
-          />
 
           <HardwareEditDialog
             type={editingHardware?.type || 'hardware_type'}
