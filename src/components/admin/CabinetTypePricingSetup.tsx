@@ -384,8 +384,8 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
             </Table>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              <p>No width ranges generated yet.</p>
-              <p className="text-sm">Use the auto-generate controls above to create width ranges.</p>
+              <p>No width ranges created yet.</p>
+              <p className="text-sm">Use the auto-generate button above to create width ranges.</p>
             </div>
           )}
         </CardContent>
