@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { CabinetType, Brand, Finish, Color, DoorStyle, CabinetPart, GlobalSettings, HardwareBrand } from '@/types/cabinet';
 import { generateCutlist, parseGlobalSettings, formatPrice } from '@/lib/pricing';
 import { useCart } from '@/hooks/useCart';
+import { HardwareCostPreview } from './HardwareCostPreview';
 
 interface ConfiguratorDialogProps {
   isOpen: boolean;
@@ -156,24 +157,48 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
   };
 
   const calculatePrice = () => {
-    if (!selectedFinish || !selectedDoorStyle || cabinetParts.length === 0) {
+    if (!selectedFinish || !selectedDoorStyle || cabinetParts.length === 0 || !selectedHardwareBrand) {
       return 0;
     }
 
     const configuration = getCurrentConfiguration();
     const settings = parseGlobalSettings(globalSettings);
+    
+    // Calculate hardware cost based on selected brand
+    const blumBrandId = hardwareBrands.find(b => b.name === 'Blum')?.id;
+    const isBlumSelected = selectedHardwareBrand === blumBrandId;
+    
+    // Simple calculation based on our hardware setup:
+    // Blum: 8 hinges × $10 + 4 handles × $15 = $140 per cabinet
+    // Titus: 8 hinges × $5 + 4 handles × $8 = $72 per cabinet
+    const baseHardwareCost = isBlumSelected ? 140 : 72;
+    const hardwareCost = baseHardwareCost * quantity;
+    
     const cutlist = generateCutlist(configuration, cabinetParts, settings);
     
-    return cutlist.totalCost;
+    // Add hardware cost to the total
+    return cutlist.totalCost + hardwareCost;
   };
 
   const handleAddToCart = async () => {
-    if (!selectedFinish || !selectedDoorStyle) return;
+    if (!selectedFinish || !selectedDoorStyle || !selectedHardwareBrand) return;
     
     const configuration = getCurrentConfiguration();
     const settings = parseGlobalSettings(globalSettings);
     
-    await addToCart(configuration, cabinetParts, settings);
+    // Calculate hardware cost for this configuration
+    const blumBrandId = hardwareBrands.find(b => b.name === 'Blum')?.id;
+    const isBlumSelected = selectedHardwareBrand === blumBrandId;
+    const hardwareCost = isBlumSelected ? 140 : 72;
+    
+    // Add hardware cost info to configuration
+    const configWithHardware = {
+      ...configuration,
+      hardwareCost: hardwareCost * quantity,
+      hardwareBrandName: hardwareBrands.find(b => b.id === selectedHardwareBrand)?.name
+    };
+    
+    await addToCart(configWithHardware, cabinetParts, settings);
     onClose();
   };
 
@@ -334,7 +359,7 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
                 <CardHeader>
                   <CardTitle className="text-lg">Hardware Brand</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   <Select value={selectedHardwareBrand} onValueChange={setSelectedHardwareBrand}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select hardware brand" />
@@ -343,10 +368,22 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
                       {hardwareBrands.map(brand => (
                         <SelectItem key={brand.id} value={brand.id}>
                           {brand.name}
+                          {brand.description && (
+                            <span className="text-xs text-muted-foreground ml-2">
+                              - {brand.description}
+                            </span>
+                          )}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  
+                  {/* Hardware Cost Preview */}
+                  <HardwareCostPreview 
+                    cabinetType={cabinetType}
+                    selectedHardwareBrand={selectedHardwareBrand}
+                    quantity={quantity}
+                  />
                 </CardContent>
               </Card>
             </div>
