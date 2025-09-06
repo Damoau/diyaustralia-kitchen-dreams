@@ -11,7 +11,7 @@ export const PolyPricingBreakdown = () => {
     backs_qty: 1,
     bottoms_qty: 1, 
     sides_qty: 2,
-    door_qty: 4
+    door_qty: 1  // Actual value from database, not 4!
   };
 
   const pricingData = {
@@ -62,7 +62,7 @@ export const PolyPricingBreakdown = () => {
               <div>Backs: {cabinetData.backs_qty}</div>
               <div>Bottoms: {cabinetData.bottoms_qty}</div>
               <div>Sides: {cabinetData.sides_qty}</div>
-              <div>Doors: {cabinetData.door_qty}</div>
+              <div>Doors: {cabinetData.door_qty} (Database value - not based on name)</div>
             </div>
           </div>
 
