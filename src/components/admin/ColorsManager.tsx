@@ -104,6 +104,27 @@ export function ColorsManager() {
       return;
     }
 
+    // Auto-select all finish types for the new color
+    if (data) {
+      const availableFinishTypes = getFinishTypesForDoorStyle(doorStyleId);
+      if (availableFinishTypes.length > 0) {
+        const colorFinishInserts = availableFinishTypes.map(finishType => ({
+          color_id: data.id,
+          door_style_finish_type_id: finishType.id,
+          rate_per_sqm: 0,
+          active: true
+        }));
+
+        const { error: finishError } = await supabase
+          .from('color_finishes')
+          .insert(colorFinishInserts);
+
+        if (finishError) {
+          console.error('Error auto-selecting finishes:', finishError);
+        }
+      }
+    }
+
     fetchData();
   };
 
