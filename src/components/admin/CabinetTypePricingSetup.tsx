@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { PricingFormulaBreakdown } from './PricingFormulaBreakdown';
 import { PolyPricingBreakdown } from './PolyPricingBreakdown';
 import { PriceDiscrepancyAnalysis } from './PriceDiscrepancyAnalysis';
+import { ActualFrontendCalculation } from './ActualFrontendCalculation';
 
 interface DoorStyle {
   id: string;
@@ -50,6 +51,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const [showFormula, setShowFormula] = useState(false);
   const [showPolyExample, setShowPolyExample] = useState(false);
   const [showDiscrepancyAnalysis, setShowDiscrepancyAnalysis] = useState(false);
+  const [showFrontendCalc, setShowFrontendCalc] = useState(false);
 
   useEffect(() => {
     if (cabinetTypeId && user && !authLoading) {
@@ -430,7 +432,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                   Configure the number of each part type for this cabinet
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button
                   variant="outline"
                   size="sm"
@@ -457,6 +459,15 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                 >
                   <Calculator className="h-4 w-4" />
                   🚨 Price Debug
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setShowFrontendCalc(!showFrontendCalc)}
+                  className="flex items-center gap-2"
+                >
+                  <Calculator className="h-4 w-4" />
+                  📊 Frontend Table
                 </Button>
               </div>
             </div>
@@ -517,6 +528,11 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
       {/* Price Discrepancy Analysis */}
       {showDiscrepancyAnalysis && (
         <PriceDiscrepancyAnalysis />
+      )}
+
+      {/* Frontend Table Calculation */}
+      {showFrontendCalc && (
+        <ActualFrontendCalculation />
       )}
 
       {/* Poly 750-799 Example */}

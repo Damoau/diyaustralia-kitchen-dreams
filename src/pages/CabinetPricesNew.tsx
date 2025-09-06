@@ -116,54 +116,59 @@ const CabinetPricesNew = () => {
           .filter((ctf: any) => ctf.cabinet_type_id === cabinetType.id && ctf.active)
           .sort((a: any, b: any) => a.sort_order - b.sort_order);
 
-        console.log(`Processing ${cabinetType.name}: ${typeRanges.length} ranges, ${typeFinishes.length} finishes`);
+            console.log(`Processing ${cabinetType.name}: ${typeRanges.length} ranges, ${typeFinishes.length} finishes`);
 
-        if (typeFinishes.length > 0) {
-          // Use default ranges if no specific ranges configured
-          const ranges = typeRanges.length > 0 ? typeRanges : [
-            { id: 'default-1', label: '300 - 400mm', min_width_mm: 300, max_width_mm: 400 },
-            { id: 'default-2', label: '400 - 500mm', min_width_mm: 400, max_width_mm: 500 },
-            { id: 'default-3', label: '500 - 600mm', min_width_mm: 500, max_width_mm: 600 }
-          ];
+            if (typeFinishes.length > 0) {
+              // Use default ranges if no specific ranges configured
+              const ranges = typeRanges.length > 0 ? typeRanges : [
+                { id: 'default-1', label: '300 - 400mm', min_width_mm: 300, max_width_mm: 400 },
+                { id: 'default-2', label: '400 - 500mm', min_width_mm: 400, max_width_mm: 500 },
+                { id: 'default-3', label: '500 - 600mm', min_width_mm: 500, max_width_mm: 600 }
+              ];
 
-          const hardwareCost = selectedHardwareBrand ? 
-            await calculateHardwareCost(cabinetType, selectedHardwareBrand, 1) : 
-            45;
+              const hardwareCost = selectedHardwareBrand ? 
+                await calculateHardwareCost(cabinetType, selectedHardwareBrand, 1) : 
+                45;
 
-          newPriceData[cabinetType.name] = {
-            name: cabinetType.name,
-            id: cabinetType.id,
-            hasConfiguredRanges: typeRanges.length > 0,
-            sizes: ranges.map((range: any) => {
-              const width = range.min_width_mm;
-              const prices = typeFinishes.map((ctf: any) => {
-                const relevantParts = cabinetParts.filter((p: any) => p.cabinet_type_id === cabinetType.id);
-                
-                // Create a mock door style finish if not present
-                const doorStyleFinish = ctf.door_style_finish || {
-                  id: `mock-${ctf.id}`,
-                  door_style_id: ctf.door_style_id,
-                  name: 'Standard Finish',
-                  rate_per_sqm: 0,
-                  sort_order: 0,
-                  active: true,
-                  created_at: new Date().toISOString(),
-                  door_style: ctf.door_style
-                };
+              newPriceData[cabinetType.name] = {
+                name: cabinetType.name,
+                id: cabinetType.id,
+                hasConfiguredRanges: typeRanges.length > 0,
+                sizes: ranges.map((range: any) => {
+                  const width = range.min_width_mm;
+                  console.log(`Using width ${width}mm for range "${range.label}" in ${cabinetType.name}`);
+                  
+                  const prices = typeFinishes.map((ctf: any) => {
+                    const relevantParts = cabinetParts.filter((p: any) => p.cabinet_type_id === cabinetType.id);
+                    
+                    // Create a mock door style finish if not present
+                    const doorStyleFinish = ctf.door_style_finish || {
+                      id: `mock-${ctf.id}`,
+                      door_style_id: ctf.door_style_id,
+                      name: 'Standard Finish',
+                      rate_per_sqm: 0,
+                      sort_order: 0,
+                      active: true,
+                      created_at: new Date().toISOString(),
+                      door_style: ctf.door_style
+                    };
 
-                return calculateCabinetPrice(
-                  cabinetType,
-                  width,
-                  cabinetType.default_height_mm || 720,
-                  cabinetType.default_depth_mm || 560,
-                  doorStyleFinish,
-                  ctf.color,
-                  relevantParts,
-                  globalSettings,
-                  hardwareCost,
-                  ctf
-                );
-              });
+                    const calculatedPrice = calculateCabinetPrice(
+                      cabinetType,
+                      width,
+                      cabinetType.default_height_mm || 720,
+                      cabinetType.default_depth_mm || 560,
+                      doorStyleFinish,
+                      ctf.color,
+                      relevantParts,
+                      globalSettings,
+                      hardwareCost,
+                      ctf
+                    );
+                    
+                    console.log(`${cabinetType.name} ${range.label}: Width=${width}mm, Price=${calculatedPrice}`);
+                    return calculatedPrice;
+                  });
               
               return {
                 range: range.label,
