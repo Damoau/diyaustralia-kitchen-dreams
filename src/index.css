@@ -9,51 +9,54 @@ All colors MUST be HSL.
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 30 8% 15%;
+    --foreground: 0 0% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 30 8% 15%;
+    --card-foreground: 0 0% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 30 8% 15%;
+    --popover-foreground: 0 0% 8%;
 
-    --primary: 28 85% 35%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 45 25% 85%;
-    --secondary-foreground: 30 8% 15%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 0 0% 8%;
 
-    --muted: 45 15% 92%;
-    --muted-foreground: 30 5% 45%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 28 65% 55%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 45 15% 88%;
-    --input: 45 15% 88%;
-    --ring: 28 85% 35%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
 
     --radius: 0.75rem;
 
-    /* Custom design tokens */
-    --wood-warm: 25 35% 65%;
-    --wood-dark: 30 25% 25%;
-    --cream: 45 25% 95%;
-    --stone: 210 10% 50%;
+    /* Modern design tokens */
+    --blue-light: 217 91% 95%;
+    --blue-dark: 217 91% 35%;
+    --gray-light: 210 20% 96%;
+    --gray-dark: 0 0% 15%;
     
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
-    --gradient-section: linear-gradient(180deg, hsl(var(--cream)), hsl(var(--background)));
+    /* Modern gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--blue-dark)));
+    --gradient-section: linear-gradient(180deg, hsl(var(--blue-light)), hsl(var(--background)));
+    --gradient-card: linear-gradient(135deg, hsl(var(--background)), hsl(var(--gray-light)));
     
-    /* Shadows */
-    --shadow-elegant: 0 10px 40px -10px hsl(var(--primary) / 0.2);
-    --shadow-card: 0 4px 20px -4px hsl(var(--stone) / 0.15);
+    /* Modern shadows */
+    --shadow-modern: 0 10px 40px -10px hsl(var(--primary) / 0.15);
+    --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.08);
+    --shadow-elevated: 0 25px 50px -12px hsl(0 0% 0% / 0.15);
     
-    /* Transitions */
+    /* Smooth transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     --sidebar-background: 0 0% 98%;
 
