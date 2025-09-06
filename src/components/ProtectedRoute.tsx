@@ -15,13 +15,22 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoading) {
-      if (!isAuthenticated) {
-        navigate('/auth', { replace: true });
-      } else if (requireAdmin && !isAdmin) {
-        navigate('/', { replace: true });
+    console.log('ProtectedRoute useEffect - isLoading:', isLoading, 'isAuthenticated:', isAuthenticated, 'isAdmin:', isAdmin, 'requireAdmin:', requireAdmin);
+    
+    // Add a small delay to prevent race conditions
+    const timeoutId = setTimeout(() => {
+      if (!isLoading) {
+        if (!isAuthenticated) {
+          console.log('Redirecting to auth - not authenticated');
+          navigate('/auth', { replace: true });
+        } else if (requireAdmin && !isAdmin) {
+          console.log('Redirecting to home - not admin');
+          navigate('/', { replace: true });
+        }
       }
-    }
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [isAuthenticated, isAdmin, isLoading, navigate, requireAdmin]);
 
   if (isLoading) {

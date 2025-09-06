@@ -16,10 +16,8 @@ export const useAuth = () => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Check admin role after a brief delay to avoid auth state conflicts
-          setTimeout(() => {
-            checkAdminRole(session.user.id);
-          }, 100);
+          // Check admin role immediately, not with setTimeout
+          checkAdminRole(session.user.id);
         } else {
           setIsAdmin(false);
         }
