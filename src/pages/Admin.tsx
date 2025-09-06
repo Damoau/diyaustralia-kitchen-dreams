@@ -280,30 +280,56 @@ const Admin = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <Button className="w-full" onClick={() => setEditingCabinetType({} as CabinetType)}>
+                  <div className="space-y-6">
+                    <Button className="w-full max-w-sm" onClick={() => setEditingCabinetType({} as CabinetType)}>
                       <Plus className="mr-2 h-4 w-4" />
                       Add New Cabinet Type
                     </Button>
                     
-                    <div className="space-y-2">
-                      {cabinetTypes.map((cabinetType) => (
-                        <div key={cabinetType.id} className="flex items-center justify-between p-4 border rounded">
-                          <div>
-                            <h4 className="font-medium">{cabinetType.name}</h4>
-                            <p className="text-sm text-muted-foreground">{cabinetType.category}</p>
-                            <p className="text-sm">
-                              {cabinetType.default_width_mm}×{cabinetType.default_height_mm}×{cabinetType.default_depth_mm}mm
-                            </p>
-                            <span className={`text-xs px-2 py-1 rounded ${cabinetType.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                              {cabinetType.active ? 'Active' : 'Inactive'}
-                            </span>
+                    <div className="bg-gradient-to-br from-background to-muted/20 rounded-xl border border-border/50 overflow-hidden">
+                      <div className="grid grid-cols-5 gap-4 p-4 bg-muted/30 border-b border-border/50 font-semibold text-sm text-muted-foreground">
+                        <div>Cabinet Name</div>
+                        <div>Category</div>
+                        <div>Dimensions (mm)</div>
+                        <div>Status</div>
+                        <div>Actions</div>
+                      </div>
+                      <div className="divide-y divide-border/30">
+                        {cabinetTypes.map((cabinetType, index) => (
+                          <div key={cabinetType.id} className="grid grid-cols-5 gap-4 p-4 hover:bg-muted/20 transition-all duration-200 group animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                            <div className="flex flex-col">
+                              <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">{cabinetType.name}</h4>
+                            </div>
+                            <div className="flex items-center">
+                              <span className="px-3 py-1 bg-secondary/50 rounded-full text-sm font-medium">{cabinetType.category}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <span className="font-mono text-sm bg-background/50 px-2 py-1 rounded border">
+                                {cabinetType.default_width_mm}×{cabinetType.default_height_mm}×{cabinetType.default_depth_mm}
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <span className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                                cabinetType.active 
+                                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+                                  : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                              }`}>
+                                {cabinetType.active ? 'Active' : 'Inactive'}
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => setEditingCabinetType(cabinetType)}
+                                className="hover:bg-primary/10 hover:border-primary/20 hover:text-primary transition-all"
+                              >
+                                Edit
+                              </Button>
+                            </div>
                           </div>
-                          <Button variant="outline" size="sm" onClick={() => setEditingCabinetType(cabinetType)}>
-                            Edit
-                          </Button>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -318,25 +344,51 @@ const Admin = () => {
                     <CardDescription>Manage hardware categories</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button className="mb-4" onClick={() => setEditingHardware({ type: 'hardware_type', item: {} })}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Hardware Type
-                    </Button>
-                    <div className="space-y-2">
-                      {hardwareTypes.map((type) => (
-                        <div key={type.id} className="flex items-center justify-between p-4 border rounded">
-                          <div>
-                            <h4 className="font-medium">{type.name}</h4>
-                            <p className="text-sm text-muted-foreground">{type.category}</p>
-                            <span className={`text-xs px-2 py-1 rounded ${type.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                              {type.active ? 'Active' : 'Inactive'}
-                            </span>
-                          </div>
-                          <Button variant="outline" size="sm" onClick={() => setEditingHardware({ type: 'hardware_type', item: type })}>
-                            Edit
-                          </Button>
+                    <div className="space-y-6">
+                      <Button className="w-full max-w-sm" onClick={() => setEditingHardware({ type: 'hardware_type', item: {} })}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Hardware Type
+                      </Button>
+                      
+                      <div className="bg-gradient-to-br from-background to-muted/20 rounded-xl border border-border/50 overflow-hidden">
+                        <div className="grid grid-cols-4 gap-4 p-4 bg-muted/30 border-b border-border/50 font-semibold text-sm text-muted-foreground">
+                          <div>Hardware Name</div>
+                          <div>Category</div>
+                          <div>Status</div>
+                          <div>Actions</div>
                         </div>
-                      ))}
+                        <div className="divide-y divide-border/30">
+                          {hardwareTypes.map((type, index) => (
+                            <div key={type.id} className="grid grid-cols-4 gap-4 p-4 hover:bg-muted/20 transition-all duration-200 group animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                              <div className="flex flex-col">
+                                <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">{type.name}</h4>
+                              </div>
+                              <div className="flex items-center">
+                                <span className="px-3 py-1 bg-secondary/50 rounded-full text-sm font-medium">{type.category}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <span className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                                  type.active 
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+                                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                }`}>
+                                  {type.active ? 'Active' : 'Inactive'}
+                                </span>
+                              </div>
+                              <div className="flex items-center">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => setEditingHardware({ type: 'hardware_type', item: type })}
+                                  className="hover:bg-primary/10 hover:border-primary/20 hover:text-primary transition-all"
+                                >
+                                  Edit
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -350,23 +402,47 @@ const Admin = () => {
                   <CardDescription>Manage pricing and system settings</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="mb-4" onClick={() => setEditingGlobalSetting({} as GlobalSetting)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Global Setting
-                  </Button>
-                  <div className="space-y-2">
-                    {globalSettings.map((setting) => (
-                      <div key={setting.id} className="flex items-center justify-between p-4 border rounded">
-                        <div>
-                          <h4 className="font-medium">{setting.setting_key}</h4>
-                          <p className="text-sm font-mono">{setting.setting_value}</p>
-                          <p className="text-sm text-muted-foreground">{setting.description}</p>
-                        </div>
-                        <Button variant="outline" size="sm" onClick={() => setEditingGlobalSetting(setting)}>
-                          Edit
-                        </Button>
+                  <div className="space-y-6">
+                    <Button className="w-full max-w-sm" onClick={() => setEditingGlobalSetting({} as GlobalSetting)}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Global Setting
+                    </Button>
+                    
+                    <div className="bg-gradient-to-br from-background to-muted/20 rounded-xl border border-border/50 overflow-hidden">
+                      <div className="grid grid-cols-4 gap-4 p-4 bg-muted/30 border-b border-border/50 font-semibold text-sm text-muted-foreground">
+                        <div>Setting Key</div>
+                        <div>Value</div>
+                        <div>Description</div>
+                        <div>Actions</div>
                       </div>
-                    ))}
+                      <div className="divide-y divide-border/30">
+                        {globalSettings.map((setting, index) => (
+                          <div key={setting.id} className="grid grid-cols-4 gap-4 p-4 hover:bg-muted/20 transition-all duration-200 group animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                            <div className="flex flex-col">
+                              <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">{setting.setting_key}</h4>
+                            </div>
+                            <div className="flex items-center">
+                              <span className="font-mono text-sm bg-background/50 px-3 py-1 rounded border border-border/30 max-w-xs truncate">
+                                {setting.setting_value}
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <span className="text-sm text-muted-foreground line-clamp-2">{setting.description}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => setEditingGlobalSetting(setting)}
+                                className="hover:bg-primary/10 hover:border-primary/20 hover:text-primary transition-all"
+                              >
+                                Edit
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
