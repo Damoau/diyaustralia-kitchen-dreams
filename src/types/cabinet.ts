@@ -32,6 +32,7 @@ export interface Color {
   name: string;
   hex_code?: string;
   image_url?: string;
+  surcharge_rate_per_sqm: number;
   active: boolean;
   created_at: string;
   door_style?: DoorStyle;
@@ -51,6 +52,9 @@ export interface CabinetType {
   range_id?: string;
   pricing_formula?: any;
   default_hardware_brand_id?: string;
+  backs_qty?: number;
+  bottoms_qty?: number;
+  sides_qty?: number;
 }
 
 export interface CabinetTypePriceRange {
@@ -69,11 +73,13 @@ export interface CabinetTypeFinish {
   cabinet_type_id: string;
   finish_id: string;
   door_style_id?: string;
+  color_id?: string;
   sort_order: number;
   active: boolean;
   created_at: string;
   finish?: Finish;
   door_style?: DoorStyle;
+  color?: Color;
 }
 
 export interface CabinetPart {

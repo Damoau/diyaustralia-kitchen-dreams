@@ -179,9 +179,120 @@ export type Database = {
           },
         ]
       }
+      cabinet_type_finishes: {
+        Row: {
+          active: boolean
+          cabinet_type_id: string
+          color_id: string | null
+          created_at: string
+          door_style_id: string | null
+          finish_id: string
+          id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          cabinet_type_id: string
+          color_id?: string | null
+          created_at?: string
+          door_style_id?: string | null
+          finish_id: string
+          id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          cabinet_type_id?: string
+          color_id?: string | null
+          created_at?: string
+          door_style_id?: string | null
+          finish_id?: string
+          id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cabinet_type_finishes_cabinet_type_id_fkey"
+            columns: ["cabinet_type_id"]
+            isOneToOne: false
+            referencedRelation: "cabinet_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cabinet_type_finishes_color_id_fkey"
+            columns: ["color_id"]
+            isOneToOne: false
+            referencedRelation: "colors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cabinet_type_finishes_door_style_id_fkey"
+            columns: ["door_style_id"]
+            isOneToOne: false
+            referencedRelation: "door_styles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cabinet_type_finishes_finish_id_fkey"
+            columns: ["finish_id"]
+            isOneToOne: false
+            referencedRelation: "finishes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cabinet_type_price_ranges: {
+        Row: {
+          active: boolean
+          cabinet_type_id: string
+          created_at: string
+          id: string
+          label: string
+          max_width_mm: number
+          min_width_mm: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          cabinet_type_id: string
+          created_at?: string
+          id?: string
+          label: string
+          max_width_mm: number
+          min_width_mm: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          cabinet_type_id?: string
+          created_at?: string
+          id?: string
+          label?: string
+          max_width_mm?: number
+          min_width_mm?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cabinet_type_price_ranges_cabinet_type_id_fkey"
+            columns: ["cabinet_type_id"]
+            isOneToOne: false
+            referencedRelation: "cabinet_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cabinet_types: {
         Row: {
           active: boolean
+          backs_qty: number | null
+          bottoms_qty: number | null
           category: string
           created_at: string
           default_depth_mm: number
@@ -192,9 +303,12 @@ export type Database = {
           id: string
           name: string
           range_id: string | null
+          sides_qty: number | null
         }
         Insert: {
           active?: boolean
+          backs_qty?: number | null
+          bottoms_qty?: number | null
           category: string
           created_at?: string
           default_depth_mm: number
@@ -205,9 +319,12 @@ export type Database = {
           id?: string
           name: string
           range_id?: string | null
+          sides_qty?: number | null
         }
         Update: {
           active?: boolean
+          backs_qty?: number | null
+          bottoms_qty?: number | null
           category?: string
           created_at?: string
           default_depth_mm?: number
@@ -218,6 +335,7 @@ export type Database = {
           id?: string
           name?: string
           range_id?: string | null
+          sides_qty?: number | null
         }
         Relationships: [
           {

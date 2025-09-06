@@ -16,10 +16,10 @@ export function calculateCabinetPrice(
 ): number {
   const settings = parseGlobalSettings(globalSettings);
   
-  // Get part quantities from cabinet parts or use defaults
-  let qtyBacks = 1;
-  let qtyBottoms = 1; 
-  let qtySides = 2;
+  // Get part quantities from cabinet type or parts data or defaults
+  let qtyBacks = cabinetType.backs_qty || 1;
+  let qtyBottoms = cabinetType.bottoms_qty || 1; 
+  let qtySides = cabinetType.sides_qty || 2;
   let qtyDoors = cabinetType.door_count || 0;
   
   // If we have cabinet parts data, use actual quantities
@@ -53,7 +53,7 @@ export function calculateCabinetPrice(
   // (Width/1000 * height/1000) * Qty of door parts * door price Price
   const finishRate = finish.rate_per_sqm || 0;
   const doorStyleRate = doorStyle?.base_rate_per_sqm || 0;
-  const colorSurcharge = 0; // Color surcharge will be handled separately if needed
+  const colorSurcharge = color?.surcharge_rate_per_sqm || 0;
   const totalDoorRate = finishRate + doorStyleRate + colorSurcharge;
   const doorCost = (widthM * heightM) * qtyDoors * totalDoorRate;
   
@@ -108,7 +108,7 @@ export async function generatePriceTableData(
             cabinetType.default_depth_mm,
             ctf.finish,
             ctf.door_style,
-            null, // No color for now
+            ctf.color, // Now include color in calculation
             relevantParts,
             globalSettings,
             hardwareCost

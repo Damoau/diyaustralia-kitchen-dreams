@@ -192,7 +192,7 @@ const CabinetPricesNew = () => {
                         </th>
                         {typeFinishes.map((ctf: any) => (
                           <th key={ctf.id} className="border border-gray-300 px-4 py-3 text-center font-medium min-w-[120px]">
-                            {ctf.finish?.name}
+                            {ctf.finish?.brand?.name} - {ctf.door_style?.name}
                           </th>
                         ))}
                       </tr>
