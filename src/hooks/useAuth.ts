@@ -46,15 +46,15 @@ export const useAuth = () => {
   const checkAdminRole = async (userId: string) => {
     try {
       console.log('Checking admin role for user:', userId);
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
         .eq('role', 'admin')
-        .single();
+        .maybeSingle();
       
-      console.log('Admin role query result:', data);
-      setIsAdmin(!!data);
+      console.log('Admin role query result:', data, 'error:', error);
+      setIsAdmin(!!data && !error);
     } catch (error) {
       console.log('Error checking admin role:', error);
       setIsAdmin(false);
