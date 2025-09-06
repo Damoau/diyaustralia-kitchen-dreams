@@ -49,6 +49,16 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   useEffect(() => {
     if (cabinetTypeId && user && !authLoading) {
       console.log('Fetching data for authenticated user:', user.id);
+      // Test simple query first
+      const testQuery = async () => {
+        console.log('Testing simple door styles query...');
+        const { data: testData, error: testError } = await supabase
+          .from('door_styles')
+          .select('id, name, active')
+          .limit(3);
+        console.log('Test query result:', testData?.length || 0, 'items, error:', testError);
+      };
+      testQuery();
       fetchData();
     } else if (!authLoading) {
       console.log('Cannot fetch data - cabinetTypeId:', cabinetTypeId, 'user:', !!user, 'authLoading:', authLoading);
@@ -58,7 +68,9 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
 
   const fetchData = async () => {
     setLoading(true);
+    console.log('CabinetTypePricingSetup: Starting fetchData...');
     try {
+      console.log('CabinetTypePricingSetup: Making database queries...');
       const [rangesRes, cabinetTypeRes, doorStylesRes, finishesRes] = await Promise.all([
         supabase
           .from('cabinet_type_price_ranges' as any)
@@ -81,6 +93,12 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
           .eq('cabinet_type_id', cabinetTypeId)
           .eq('active', true)
       ]);
+
+      console.log('CabinetTypePricingSetup: Database queries completed');
+      console.log('- Ranges result:', rangesRes.data?.length || 0, 'items, error:', rangesRes.error);
+      console.log('- Cabinet type result:', !!cabinetTypeRes?.data, 'error:', cabinetTypeRes?.error);
+      console.log('- Door styles result:', doorStylesRes.data?.length || 0, 'items, error:', doorStylesRes.error);
+      console.log('- Finishes result:', finishesRes.data?.length || 0, 'items, error:', finishesRes.error);
 
       if (rangesRes.error) {
         console.error('Error loading ranges:', rangesRes.error);
