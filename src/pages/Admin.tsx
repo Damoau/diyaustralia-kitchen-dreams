@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2, Plus, Save } from "lucide-react";
+// Admin page imports
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
