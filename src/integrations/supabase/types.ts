@@ -186,8 +186,8 @@ export type Database = {
           color_id: string | null
           created_at: string
           depth_mm: number | null
+          door_style_finish_id: string | null
           door_style_id: string | null
-          finish_id: string
           id: string
           sort_order: number
           updated_at: string
@@ -198,8 +198,8 @@ export type Database = {
           color_id?: string | null
           created_at?: string
           depth_mm?: number | null
+          door_style_finish_id?: string | null
           door_style_id?: string | null
-          finish_id: string
           id?: string
           sort_order?: number
           updated_at?: string
@@ -210,8 +210,8 @@ export type Database = {
           color_id?: string | null
           created_at?: string
           depth_mm?: number | null
+          door_style_finish_id?: string | null
           door_style_id?: string | null
-          finish_id?: string
           id?: string
           sort_order?: number
           updated_at?: string
@@ -232,17 +232,17 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "cabinet_type_finishes_door_style_finish_id_fkey"
+            columns: ["door_style_finish_id"]
+            isOneToOne: false
+            referencedRelation: "door_style_finishes"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "cabinet_type_finishes_door_style_id_fkey"
             columns: ["door_style_id"]
             isOneToOne: false
             referencedRelation: "door_styles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cabinet_type_finishes_finish_id_fkey"
-            columns: ["finish_id"]
-            isOneToOne: false
-            referencedRelation: "finishes"
             referencedColumns: ["id"]
           },
         ]
@@ -507,6 +507,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "colors_door_style_id_fkey"
+            columns: ["door_style_id"]
+            isOneToOne: false
+            referencedRelation: "door_styles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      door_style_finishes: {
+        Row: {
+          active: boolean
+          created_at: string
+          door_style_id: string
+          id: string
+          name: string
+          rate_per_sqm: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          door_style_id: string
+          id?: string
+          name: string
+          rate_per_sqm?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          door_style_id?: string
+          id?: string
+          name?: string
+          rate_per_sqm?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "door_style_finishes_door_style_id_fkey"
             columns: ["door_style_id"]
             isOneToOne: false
             referencedRelation: "door_styles"

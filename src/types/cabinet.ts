@@ -69,17 +69,28 @@ export interface CabinetTypePriceRange {
   created_at: string;
 }
 
+export interface DoorStyleFinish {
+  id: string;
+  door_style_id: string;
+  name: string;
+  rate_per_sqm: number;
+  sort_order: number;
+  active: boolean;
+  created_at: string;
+  door_style?: DoorStyle;
+}
+
 export interface CabinetTypeFinish {
   id: string;
   cabinet_type_id: string;
-  finish_id: string;
+  door_style_finish_id?: string;
   door_style_id?: string;
   color_id?: string;
   depth_mm?: number;
   sort_order: number;
   active: boolean;
   created_at: string;
-  finish?: Finish;
+  door_style_finish?: DoorStyleFinish;
   door_style?: DoorStyle;
   color?: Color;
 }

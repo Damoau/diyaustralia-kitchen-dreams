@@ -1,20 +1,60 @@
-import { CabinetType, CabinetPart, Finish, DoorStyle, Color, GlobalSettings } from '@/types/cabinet';
+import { CabinetType, CabinetPart, Finish, DoorStyle, DoorStyleFinish, Color, GlobalSettings } from '@/types/cabinet';
 import { PricingSettings, parseGlobalSettings } from './pricing';
 
-// Calculate dynamic cabinet price using your specific formula
+// Compatibility function to convert old Finish to DoorStyleFinish structure
+function createCompatibilityDoorStyleFinish(finish: Finish, doorStyle?: DoorStyle): DoorStyleFinish {
+  return {
+    id: finish.id,
+    door_style_id: doorStyle?.id || '',
+    name: finish.name,
+    rate_per_sqm: finish.rate_per_sqm,
+    sort_order: 0,
+    active: finish.active,
+    created_at: finish.created_at,
+    door_style: doorStyle
+  };
+}
+
+// Calculate dynamic cabinet price using your specific formula  
 export function calculateCabinetPrice(
   cabinetType: CabinetType,
   width: number,
   height: number = 720,
   depth: number = 560,
-  finish: Finish,
-  doorStyle?: DoorStyle,
-  color?: Color,
-  cabinetParts: CabinetPart[] = [],
-  globalSettings: GlobalSettings[] = [],
-  hardwareCost: number = 0,
+  finishOrDoorStyleFinish?: Finish | DoorStyleFinish,
+  doorStyleOrColor?: DoorStyle | Color,
+  colorOrParts?: Color | CabinetPart[],
+  cabinetPartsOrGlobalSettings?: CabinetPart[] | GlobalSettings[],
+  globalSettingsOrHardwareCost?: GlobalSettings[] | number,
+  hardwareCostOrCabinetTypeFinish?: number | any,
   cabinetTypeFinish?: any // Include finish mapping for depth override
 ): number {
+  // Handle legacy function signature
+  let doorStyleFinish: DoorStyleFinish;
+  let color: Color | undefined;
+  let cabinetParts: CabinetPart[] = [];
+  let globalSettings: GlobalSettings[] = [];
+  let hardwareCost: number = 0;
+  
+  if (finishOrDoorStyleFinish && 'door_style_id' in finishOrDoorStyleFinish) {
+    // New signature: DoorStyleFinish provided
+    doorStyleFinish = finishOrDoorStyleFinish as DoorStyleFinish;
+    color = doorStyleOrColor as Color;
+    cabinetParts = (colorOrParts as CabinetPart[]) || [];
+    globalSettings = (cabinetPartsOrGlobalSettings as GlobalSettings[]) || [];
+    hardwareCost = (globalSettingsOrHardwareCost as number) || 0;
+    cabinetTypeFinish = hardwareCostOrCabinetTypeFinish;
+  } else {
+    // Legacy signature: Finish provided, convert to DoorStyleFinish
+    const finish = finishOrDoorStyleFinish as Finish;
+    const doorStyle = doorStyleOrColor as DoorStyle;
+    doorStyleFinish = createCompatibilityDoorStyleFinish(finish, doorStyle);
+    color = colorOrParts as Color;
+    cabinetParts = (cabinetPartsOrGlobalSettings as CabinetPart[]) || [];
+    globalSettings = (globalSettingsOrHardwareCost as GlobalSettings[]) || [];
+    hardwareCost = (hardwareCostOrCabinetTypeFinish as number) || 0;
+    cabinetTypeFinish = cabinetTypeFinish;
+  }
   const settings = parseGlobalSettings(globalSettings);
   
   // Get part quantities from cabinet type or parts data or defaults
@@ -55,10 +95,10 @@ export function calculateCabinetPrice(
   const sideCost = (widthM * depthM) * qtySides * settings.hmrRate;
   
   // (Width/1000 * height/1000) * Qty of door parts * door price Price
-  const finishRate = finish.rate_per_sqm || 0;
-  const doorStyleRate = doorStyle?.base_rate_per_sqm || 0;
+  const doorStyleBaseRate = doorStyleFinish?.door_style?.base_rate_per_sqm || 0;
+  const finishRate = doorStyleFinish?.rate_per_sqm || 0;
   const colorSurcharge = color?.surcharge_rate_per_sqm || 0;
-  const totalDoorRate = finishRate + doorStyleRate + colorSurcharge;
+  const totalDoorRate = doorStyleBaseRate + finishRate + colorSurcharge;
   const doorCost = (widthM * heightM) * qtyDoors * totalDoorRate;
   
   // Sum all costs
@@ -110,9 +150,8 @@ export async function generatePriceTableData(
             width,
             cabinetType.default_height_mm,
             cabinetType.default_depth_mm,
-            ctf.finish,
-            ctf.door_style,
-            ctf.color, // Now include color in calculation
+            ctf.door_style_finish, // DoorStyleFinish
+            ctf.color, // Color
             relevantParts,
             globalSettings,
             hardwareCost,

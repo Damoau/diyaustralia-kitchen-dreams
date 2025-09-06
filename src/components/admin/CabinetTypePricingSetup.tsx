@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trash2, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { CabinetTypePriceRange, CabinetTypeFinish, Finish, DoorStyle, Color, CabinetType } from '@/types/cabinet';
+import { CabinetTypePriceRange, CabinetTypeFinish, DoorStyle, DoorStyleFinish, Color, CabinetType } from '@/types/cabinet';
 import { useToast } from '@/hooks/use-toast';
 
 interface CabinetTypePricingSetupProps {
@@ -18,8 +18,8 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const { toast } = useToast();
   const [priceRanges, setPriceRanges] = useState<CabinetTypePriceRange[]>([]);
   const [cabinetTypeFinishes, setCabinetTypeFinishes] = useState<CabinetTypeFinish[]>([]);
-  const [allFinishes, setAllFinishes] = useState<Finish[]>([]);
   const [allDoorStyles, setAllDoorStyles] = useState<DoorStyle[]>([]);
+  const [allDoorStyleFinishes, setAllDoorStyleFinishes] = useState<DoorStyleFinish[]>([]);
   const [allColors, setAllColors] = useState<Color[]>([]);
   const [cabinetType, setCabinetType] = useState<CabinetType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,28 +33,28 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [rangesRes, finishesRes, allFinishesRes, doorStylesRes, colorsRes, cabinetTypeRes] = await Promise.all([
+      const [rangesRes, finishesRes, doorStylesRes, doorStyleFinishesRes, colorsRes, cabinetTypeRes] = await Promise.all([
         supabase
           .from('cabinet_type_price_ranges' as any)
           .select('*')
           .eq('cabinet_type_id', cabinetTypeId)
           .order('sort_order'),
+          supabase
+            .from('cabinet_type_finishes' as any)
+            .select(`
+              *,
+              door_style_finish:door_style_finishes!inner(*),
+              door_style:door_styles!inner(*),
+              color:colors(*)
+            `)
+            .eq('cabinet_type_id', cabinetTypeId)
+            .order('sort_order'),
         supabase
-          .from('cabinet_type_finishes' as any)
-          .select(`
-            *,
-            finish:finishes(*),
-            door_style:door_styles(*),
-            color:colors(*)
-          `)
-          .eq('cabinet_type_id', cabinetTypeId)
-          .order('sort_order'),
-        supabase
-          .from('finishes')
+          .from('door_styles')
           .select('*')
           .eq('active', true),
         supabase
-          .from('door_styles')
+          .from('door_style_finishes')
           .select('*')
           .eq('active', true),
         supabase
@@ -70,8 +70,8 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
 
       if (rangesRes.data) setPriceRanges(rangesRes.data as any);
       if (finishesRes.data) setCabinetTypeFinishes(finishesRes.data as any);
-      if (allFinishesRes.data) setAllFinishes(allFinishesRes.data);
       if (doorStylesRes.data) setAllDoorStyles(doorStylesRes.data);
+      if (doorStyleFinishesRes.data) setAllDoorStyleFinishes(doorStyleFinishesRes.data as DoorStyleFinish[]);
       if (colorsRes.data) setAllColors(colorsRes.data);
       if (cabinetTypeRes.data) setCabinetType(cabinetTypeRes.data as CabinetType);
     } catch (error) {
@@ -153,11 +153,10 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
     setPriceRanges(priceRanges.filter(range => range.id !== id));
   };
 
-  const addFinishMapping = async (finishId: string) => {
+  const addFinishCombination = async () => {
     const newMapping = {
       cabinet_type_id: cabinetTypeId,
-      finish_id: finishId,
-      depth_mm: cabinetType?.default_depth_mm || 560, // Default to cabinet type depth
+      depth_mm: cabinetType?.default_depth_mm || 560,
       sort_order: cabinetTypeFinishes.length,
       active: true
     };
@@ -167,7 +166,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
       .insert(newMapping)
       .select(`
         *,
-        finish:finishes(*),
+        door_style_finish:door_style_finishes(*),
         door_style:door_styles(*),
         color:colors(*)
       `)
@@ -176,7 +175,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
     if (error) {
       toast({
         title: "Error",
-        description: "Failed to add finish mapping",
+        description: "Failed to add finish combination",
         variant: "destructive",
       });
       return;
@@ -187,8 +186,9 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
     }
   };
 
-  const updateFinishMapping = async (id: string, updates: { doorStyleId?: string | null; colorId?: string | null; depthMm?: number | null }) => {
+  const updateFinishMapping = async (id: string, updates: { doorStyleFinishId?: string | null; doorStyleId?: string | null; colorId?: string | null; depthMm?: number | null }) => {
     const updateData: any = {};
+    if (updates.doorStyleFinishId !== undefined) updateData.door_style_finish_id = updates.doorStyleFinishId;
     if (updates.doorStyleId !== undefined) updateData.door_style_id = updates.doorStyleId;
     if (updates.colorId !== undefined) updateData.color_id = updates.colorId;
     if (updates.depthMm !== undefined) updateData.depth_mm = updates.depthMm;
@@ -201,7 +201,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
     if (error) {
       toast({
         title: "Error",
-        description: "Failed to update finish mapping",
+        description: "Failed to update finish combination",
         variant: "destructive",
       });
       return;
@@ -219,7 +219,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
     if (error) {
       toast({
         title: "Error",
-        description: "Failed to delete finish mapping",
+        description: "Failed to delete finish combination",
         variant: "destructive",
       });
       return;
@@ -246,6 +246,11 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
     if (cabinetType) {
       setCabinetType({ ...cabinetType, ...updates });
     }
+  };
+
+  const getAvailableFinishes = (doorStyleId?: string) => {
+    if (!doorStyleId) return [];
+    return allDoorStyleFinishes.filter(finish => finish.door_style_id === doorStyleId);
   };
 
   const getAvailableColors = (doorStyleId?: string) => {
@@ -366,31 +371,21 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
         </CardContent>
       </Card>
 
-      {/* Finish Mappings */}
+      {/* Finish Combinations */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Finish Columns</CardTitle>
-          <Select onValueChange={addFinishMapping}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Add finish" />
-            </SelectTrigger>
-            <SelectContent>
-              {allFinishes
-                .filter(f => !cabinetTypeFinishes.some(ctf => ctf.finish_id === f.id))
-                .map(finish => (
-                  <SelectItem key={finish.id} value={finish.id}>
-                    {finish.name}
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
+          <CardTitle>Finish Combinations</CardTitle>
+          <Button onClick={addFinishCombination} size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Combination
+          </Button>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Finish</TableHead>
                 <TableHead>Door Style</TableHead>
+                <TableHead>Finish</TableHead>
                 <TableHead>Color</TableHead>
                 <TableHead>Depth (mm)</TableHead>
                 <TableHead>Actions</TableHead>
@@ -398,10 +393,10 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
             </TableHeader>
             <TableBody>
               {cabinetTypeFinishes.map((ctf) => {
+                const availableFinishes = getAvailableFinishes(ctf.door_style_id || undefined);
                 const availableColors = getAvailableColors(ctf.door_style_id || undefined);
                 return (
                   <TableRow key={ctf.id}>
-                    <TableCell>{ctf.finish?.name}</TableCell>
                     <TableCell>
                       <Select
                         value={ctf.door_style_id || ""}
@@ -422,6 +417,25 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                     </TableCell>
                     <TableCell>
                       <Select
+                        value={ctf.door_style_finish_id || ""}
+                        onValueChange={(value) => updateFinishMapping(ctf.id, { doorStyleFinishId: value || null })}
+                        disabled={!ctf.door_style_id}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select finish" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">No finish</SelectItem>
+                          {availableFinishes.map(finish => (
+                            <SelectItem key={finish.id} value={finish.id}>
+                              {finish.name} (${finish.rate_per_sqm}/sqm)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Select
                         value={ctf.color_id || ""}
                         onValueChange={(value) => updateFinishMapping(ctf.id, { colorId: value || null })}
                         disabled={!ctf.door_style_id}
@@ -433,7 +447,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                           <SelectItem value="">No color</SelectItem>
                           {availableColors.map(color => (
                             <SelectItem key={color.id} value={color.id}>
-                              {color.name}
+                              {color.name} (+${color.surcharge_rate_per_sqm}/sqm)
                             </SelectItem>
                           ))}
                         </SelectContent>
