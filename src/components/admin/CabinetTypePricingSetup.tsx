@@ -338,45 +338,40 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
         </CardHeader>
         <CardContent>
           {priceRanges.length > 0 ? (
-            <div className="space-y-4">
-              <div className="text-sm text-muted-foreground">
-                Generated width ranges for pricing:
-              </div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Width Range</TableHead>
-                    <TableHead>Min Width (mm)</TableHead>
-                    <TableHead>Max Width (mm)</TableHead>
-                    <TableHead>Actions</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Width Range</TableHead>
+                  <TableHead>Min Width (mm)</TableHead>
+                  <TableHead>Max Width (mm)</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {priceRanges.map((range) => (
+                  <TableRow key={range.id}>
+                    <TableCell className="font-medium">
+                      {range.label}mm
+                    </TableCell>
+                    <TableCell>
+                      {range.min_width_mm}
+                    </TableCell>
+                    <TableCell>
+                      {range.max_width_mm}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        onClick={() => deletePriceRange(range.id)}
+                        variant="destructive"
+                        size="sm"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {priceRanges.map((range) => (
-                    <TableRow key={range.id}>
-                      <TableCell className="font-medium">
-                        {range.label}mm
-                      </TableCell>
-                      <TableCell>
-                        {range.min_width_mm}
-                      </TableCell>
-                      <TableCell>
-                        {range.max_width_mm}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          onClick={() => deletePriceRange(range.id)}
-                          variant="destructive"
-                          size="sm"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                ))}
+              </TableBody>
+            </Table>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <p>No width ranges generated yet.</p>
