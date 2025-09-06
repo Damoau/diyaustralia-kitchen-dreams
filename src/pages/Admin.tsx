@@ -14,6 +14,8 @@ import { Trash2, Plus, Save } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import BrandEditDialog from "@/components/admin/BrandEditDialog";
+import FinishEditDialog from "@/components/admin/FinishEditDialog";
 
 interface Brand {
   id: string;
@@ -66,6 +68,14 @@ const Admin = () => {
   const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
   const [cabinetTypes, setCabinetTypes] = useState<CabinetType[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Edit states
+  const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
+  const [editingFinish, setEditingFinish] = useState<Finish | null>(null);
+  const [editingColor, setEditingColor] = useState<Color | null>(null);
+  const [editingDoorStyle, setEditingDoorStyle] = useState<DoorStyle | null>(null);
+  const [editingCabinetType, setEditingCabinetType] = useState<CabinetType | null>(null);
+  
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -99,6 +109,136 @@ const Admin = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Save functions
+  const saveBrand = async (brand: Partial<Brand>) => {
+    try {
+      if (!brand.name) {
+        toast({ title: "Error", description: "Brand name is required", variant: "destructive" });
+        return;
+      }
+      
+      if (brand.id) {
+        await supabase.from('brands').update(brand).eq('id', brand.id);
+      } else {
+        await supabase.from('brands').insert({
+          name: brand.name,
+          description: brand.description || "",
+          active: brand.active ?? true
+        });
+      }
+      loadAllData();
+      setEditingBrand(null);
+      toast({ title: "Success", description: "Brand saved!" });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to save brand", variant: "destructive" });
+    }
+  };
+
+  const saveFinish = async (finish: Partial<Finish>) => {
+    try {
+      if (!finish.name || !finish.finish_type || !finish.brand_id) {
+        toast({ title: "Error", description: "Name, finish type, and brand are required", variant: "destructive" });
+        return;
+      }
+      
+      if (finish.id) {
+        await supabase.from('finishes').update(finish).eq('id', finish.id);
+      } else {
+        await supabase.from('finishes').insert({
+          name: finish.name,
+          finish_type: finish.finish_type,
+          brand_id: finish.brand_id,
+          rate_per_sqm: finish.rate_per_sqm || 0,
+          active: finish.active ?? true
+        });
+      }
+      loadAllData();
+      setEditingFinish(null);
+      toast({ title: "Success", description: "Finish saved!" });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to save finish", variant: "destructive" });
+    }
+  };
+
+  const saveColor = async (color: Partial<Color>) => {
+    try {
+      if (!color.name || !color.finish_id) {
+        toast({ title: "Error", description: "Name and finish are required", variant: "destructive" });
+        return;
+      }
+      
+      if (color.id) {
+        await supabase.from('colors').update(color).eq('id', color.id);
+      } else {
+        await supabase.from('colors').insert({
+          name: color.name,
+          finish_id: color.finish_id,
+          hex_code: color.hex_code || "",
+          image_url: color.image_url || null,
+          surcharge_rate_per_sqm: color.surcharge_rate_per_sqm || 0,
+          active: color.active ?? true
+        });
+      }
+      loadAllData();
+      setEditingColor(null);
+      toast({ title: "Success", description: "Color saved!" });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to save color", variant: "destructive" });
+    }
+  };
+
+  const saveDoorStyle = async (doorStyle: Partial<DoorStyle>) => {
+    try {
+      if (!doorStyle.name) {
+        toast({ title: "Error", description: "Name is required", variant: "destructive" });
+        return;
+      }
+      
+      if (doorStyle.id) {
+        await supabase.from('door_styles').update(doorStyle).eq('id', doorStyle.id);
+      } else {
+        await supabase.from('door_styles').insert({
+          name: doorStyle.name,
+          description: doorStyle.description || "",
+          base_rate_per_sqm: doorStyle.base_rate_per_sqm || 0,
+          active: doorStyle.active ?? true
+        });
+      }
+      loadAllData();
+      setEditingDoorStyle(null);
+      toast({ title: "Success", description: "Door style saved!" });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to save door style", variant: "destructive" });
+    }
+  };
+
+  const saveCabinetType = async (cabinetType: Partial<CabinetType>) => {
+    try {
+      if (!cabinetType.name || !cabinetType.category) {
+        toast({ title: "Error", description: "Name and category are required", variant: "destructive" });
+        return;
+      }
+      
+      if (cabinetType.id) {
+        await supabase.from('cabinet_types').update(cabinetType).eq('id', cabinetType.id);
+      } else {
+        await supabase.from('cabinet_types').insert({
+          name: cabinetType.name,
+          category: cabinetType.category,
+          default_width_mm: cabinetType.default_width_mm || 300,
+          default_height_mm: cabinetType.default_height_mm || 720,
+          default_depth_mm: cabinetType.default_depth_mm || 560,
+          active: cabinetType.active ?? true
+        });
+      }
+      loadAllData();
+      setEditingCabinetType(null);
+      toast({ title: "Success", description: "Cabinet type saved!" });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to save cabinet type", variant: "destructive" });
     }
   };
 
@@ -146,7 +286,7 @@ const Admin = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <Button className="w-full">
+                    <Button className="w-full" onClick={() => setEditingBrand({} as Brand)}>
                       <Plus className="mr-2 h-4 w-4" />
                       Add New Brand
                     </Button>
@@ -162,7 +302,7 @@ const Admin = () => {
                             </span>
                           </div>
                           <div className="space-x-2">
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={() => setEditingBrand(brand)}>
                               Edit
                             </Button>
                             <Button variant="destructive" size="sm">
@@ -187,7 +327,7 @@ const Admin = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <Button className="w-full">
+                    <Button className="w-full" onClick={() => setEditingFinish({} as Finish)}>
                       <Plus className="mr-2 h-4 w-4" />
                       Add New Finish
                     </Button>
@@ -203,7 +343,7 @@ const Admin = () => {
                               {finish.active ? 'Active' : 'Inactive'}
                             </span>
                           </div>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => setEditingFinish(finish)}>
                             Edit
                           </Button>
                         </div>
@@ -333,6 +473,22 @@ const Admin = () => {
               </Card>
             </TabsContent>
           </Tabs>
+
+          {/* Edit Dialogs */}
+          <BrandEditDialog
+            brand={editingBrand}
+            open={!!editingBrand}
+            onOpenChange={(open) => !open && setEditingBrand(null)}
+            onSave={saveBrand}
+          />
+          
+          <FinishEditDialog
+            finish={editingFinish}
+            brands={brands}
+            open={!!editingFinish}
+            onOpenChange={(open) => !open && setEditingFinish(null)}
+            onSave={saveFinish}
+          />
         </main>
         <Footer />
       </div>
