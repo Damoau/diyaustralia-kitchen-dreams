@@ -1,11 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, ShoppingCart } from "lucide-react";
+import { Menu, ShoppingCart, Settings, LogOut, LogIn } from "lucide-react";
 import { CartDrawer } from "@/components/cabinet/CartDrawer";
 import { useCart } from "@/hooks/useCart";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const { totalItems } = useCart();
+  const { isAuthenticated, isAdmin, user, signOut } = useAuth();
+  const navigate = useNavigate();
   
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-border/50">
@@ -47,6 +52,36 @@ const Header = () => {
               )}
             </Button>
           </CartDrawer>
+          
+          {isAuthenticated ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="hidden sm:flex">
+                  {user?.email?.split('@')[0] || 'Account'}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {isAdmin && (
+                  <>
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      Admin Panel
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                <DropdownMenuItem onClick={signOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => navigate('/auth')} className="hidden sm:flex">
+              <LogIn className="mr-2 h-4 w-4" />
+              Sign In
+            </Button>
+          )}
           
           <Button variant="hero" size="sm" className="px-6 hidden sm:flex">
             Get Quote
@@ -105,7 +140,26 @@ const Header = () => {
                   </a>
                 </nav>
                 
-                <div className="mt-8">
+                <div className="mt-8 space-y-4">
+                  {isAuthenticated ? (
+                    <>
+                      {isAdmin && (
+                        <Button variant="outline" size="lg" className="w-full" onClick={() => navigate('/admin')}>
+                          <Settings className="mr-2 h-4 w-4" />
+                          Admin Panel
+                        </Button>
+                      )}
+                      <Button variant="outline" size="lg" className="w-full" onClick={signOut}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign Out
+                      </Button>
+                    </>
+                  ) : (
+                    <Button variant="outline" size="lg" className="w-full" onClick={() => navigate('/auth')}>
+                      <LogIn className="mr-2 h-4 w-4" />
+                      Sign In
+                    </Button>
+                  )}
                   <Button variant="hero" size="lg" className="w-full">
                     Get Free Quote
                   </Button>
