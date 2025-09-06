@@ -32,6 +32,7 @@ interface CabinetTypePricingSetupProps {
 }
 
 export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSetupProps) {
+  console.log('CabinetTypePricingSetup component loading - no Select components should be used');
   const { toast } = useToast();
   const [priceRanges, setPriceRanges] = useState<CabinetTypePriceRange[]>([]);
   const [cabinetType, setCabinetType] = useState<CabinetType | null>(null);
@@ -302,8 +303,11 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   };
 
   if (loading) {
+    console.log('CabinetTypePricingSetup: Loading pricing configuration...');
     return <div>Loading pricing configuration...</div>;
   }
+
+  console.log('CabinetTypePricingSetup: Rendering with doorStyles:', doorStyles.length, 'cabinetTypeFinishes:', cabinetTypeFinishes.length);
 
   return (
     <div className="space-y-6">
