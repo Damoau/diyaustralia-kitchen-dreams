@@ -146,18 +146,6 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 gap-2">
-                <div>
-                  <Label htmlFor="drawer_count">Drawer Count</Label>
-                  <Input
-                    id="drawer_count"
-                    type="number"
-                    value={formData.drawer_count}
-                    onChange={(e) => setFormData({ ...formData, drawer_count: parseInt(e.target.value) || 0 })}
-                  />
-                </div>
-              </div>
-              
               <div className="flex items-center space-x-2">
                 <Switch
                   id="active"

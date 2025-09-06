@@ -4,10 +4,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, Plus, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { CabinetTypePriceRange, CabinetType } from '@/types/cabinet';
 import { useToast } from '@/hooks/use-toast';
+
+interface DoorStyle {
+  id: string;
+  name: string;
+  description?: string;
+  base_rate_per_sqm: number;
+}
 
 interface CabinetTypePricingSetupProps {
   cabinetTypeId: string;
@@ -17,6 +25,8 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const { toast } = useToast();
   const [priceRanges, setPriceRanges] = useState<CabinetTypePriceRange[]>([]);
   const [cabinetType, setCabinetType] = useState<CabinetType | null>(null);
+  const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
+  const [selectedDoorStyle, setSelectedDoorStyle] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [autoGenMin, setAutoGenMin] = useState(300);
   const [autoGenMax, setAutoGenMax] = useState(600);
@@ -34,7 +44,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [rangesRes, cabinetTypeRes] = await Promise.all([
+      const [rangesRes, cabinetTypeRes, doorStylesRes] = await Promise.all([
         supabase
           .from('cabinet_type_price_ranges' as any)
           .select('*')
@@ -44,7 +54,12 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
           .from('cabinet_types')
           .select('*')
           .eq('id', cabinetTypeId)
-          .maybeSingle()
+          .maybeSingle(),
+        supabase
+          .from('door_styles')
+          .select('*')
+          .eq('active', true)
+          .order('name')
       ]);
 
       if (rangesRes.error) {
@@ -53,9 +68,18 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
       if (cabinetTypeRes?.error) {
         console.error('Error loading cabinet type:', cabinetTypeRes.error);
       }
+      if (doorStylesRes.error) {
+        console.error('Error loading door styles:', doorStylesRes.error);
+      }
 
       if (rangesRes.data) setPriceRanges(rangesRes.data as any);
       if (cabinetTypeRes?.data) setCabinetType(cabinetTypeRes.data as CabinetType);
+      if (doorStylesRes.data) {
+        setDoorStyles(doorStylesRes.data as DoorStyle[]);
+        if (doorStylesRes.data.length > 0 && !selectedDoorStyle) {
+          setSelectedDoorStyle(doorStylesRes.data[0].id);
+        }
+      }
     } catch (error) {
       console.error('Error fetching pricing data:', error);
       toast({
@@ -239,6 +263,30 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
 
   return (
     <div className="space-y-6">
+      {/* Door Style Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Door Style for Pricing Table</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-2">
+            <Label htmlFor="doorStyle">Select Door Style</Label>
+            <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a door style" />
+              </SelectTrigger>
+              <SelectContent>
+                {doorStyles.map((style) => (
+                  <SelectItem key={style.id} value={style.id}>
+                    {style.name} - ${style.base_rate_per_sqm}/m²
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Part Quantities */}
       {cabinetType && (
         <Card>
