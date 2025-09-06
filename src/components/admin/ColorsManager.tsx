@@ -276,89 +276,71 @@ export function ColorsManager() {
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex gap-3 overflow-x-auto pb-2">
+                  <div className="flex gap-2 overflow-x-auto pb-2">
                     {getColorsForDoorStyle(doorStyle.id).map(color => (
-                      <div key={color.id} className="border rounded-lg p-3 space-y-2 bg-card flex-shrink-0 w-64">
-                        {/* Color Header */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div 
-                              className="w-6 h-6 rounded border flex-shrink-0"
-                              style={{ backgroundColor: color.hex_code || '#ccc' }}
-                            />
-                            <Input
-                              value={color.name}
-                              onChange={(e) => {
-                                setColors(prev => prev.map(c => c.id === color.id ? { ...c, name: e.target.value } : c));
-                              }}
-                              onBlur={(e) => updateColor(color.id, { name: e.target.value })}
-                              className="h-7 text-sm font-medium flex-1 min-w-0"
-                            />
-                          </div>
-                          <Button
-                            onClick={() => deleteColor(color.id)}
-                            variant="destructive"
-                            size="sm"
-                            className="h-6 w-6 p-0 flex-shrink-0"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-
-                        {/* Color Details */}
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <Label className="text-xs">Hex Code</Label>
-                            <Input
-                              value={color.hex_code || ''}
-                              onChange={(e) => {
-                                setColors(prev => prev.map(c => c.id === color.id ? { ...c, hex_code: e.target.value } : c));
-                              }}
-                              onBlur={(e) => updateColor(color.id, { hex_code: e.target.value })}
-                              placeholder="#FFFFFF"
-                              className="h-7 text-xs"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs">Surcharge ($/sqm)</Label>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              value={color.surcharge_rate_per_sqm}
-                              onChange={(e) => {
-                                const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                                setColors(prev => prev.map(c => c.id === color.id ? { ...c, surcharge_rate_per_sqm: Number.isNaN(val) ? 0 : val } : c));
-                              }}
-                              onBlur={(e) => {
-                                const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                                updateColor(color.id, { surcharge_rate_per_sqm: Number.isNaN(val) ? 0 : val });
-                              }}
-                              className="h-7 text-xs"
-                            />
-                          </div>
-                        </div>
-                        
-                        {/* Available Finishes - Compact */}
+                      <div key={color.id} className="flex items-center space-x-2 p-2 border rounded bg-muted/30 flex-shrink-0">
+                        <div 
+                          className="w-6 h-6 rounded border flex-shrink-0"
+                          style={{ backgroundColor: color.hex_code || '#ccc' }}
+                        />
+                        <Input
+                          value={color.name}
+                          onChange={(e) => {
+                            setColors(prev => prev.map(c => c.id === color.id ? { ...c, name: e.target.value } : c));
+                          }}
+                          onBlur={(e) => updateColor(color.id, { name: e.target.value })}
+                          className="h-7 text-xs w-20"
+                          placeholder="Color"
+                        />
+                        <Input
+                          value={color.hex_code || ''}
+                          onChange={(e) => {
+                            setColors(prev => prev.map(c => c.id === color.id ? { ...c, hex_code: e.target.value } : c));
+                          }}
+                          onBlur={(e) => updateColor(color.id, { hex_code: e.target.value })}
+                          placeholder="#FFFFFF"
+                          className="h-7 text-xs w-20"
+                        />
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={color.surcharge_rate_per_sqm}
+                          onChange={(e) => {
+                            const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                            setColors(prev => prev.map(c => c.id === color.id ? { ...c, surcharge_rate_per_sqm: Number.isNaN(val) ? 0 : val } : c));
+                          }}
+                          onBlur={(e) => {
+                            const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                            updateColor(color.id, { surcharge_rate_per_sqm: Number.isNaN(val) ? 0 : val });
+                          }}
+                          className="h-7 text-xs w-16"
+                          placeholder="$"
+                        />
                         {getFinishTypesForDoorStyle(doorStyle.id).length > 0 && (
-                          <div>
-                            <Label className="text-xs font-medium">Finishes</Label>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {getFinishTypesForDoorStyle(doorStyle.id).map(finishType => (
-                                <div key={finishType.id} className="flex items-center space-x-1">
-                                  <Checkbox
-                                    id={`${color.id}-${finishType.id}`}
-                                    checked={isColorFinishEnabled(color.id, finishType.id)}
-                                    onCheckedChange={(checked) => toggleColorFinish(color.id, finishType.id, checked as boolean)}
-                                    className="h-3 w-3"
-                                  />
-                                  <Label htmlFor={`${color.id}-${finishType.id}`} className="text-xs">
-                                    {finishType.finish_name}
-                                  </Label>
-                                </div>
-                              ))}
-                            </div>
+                          <div className="flex gap-1">
+                            {getFinishTypesForDoorStyle(doorStyle.id).map(finishType => (
+                              <div key={finishType.id} className="flex items-center space-x-1">
+                                <Checkbox
+                                  id={`${color.id}-${finishType.id}`}
+                                  checked={isColorFinishEnabled(color.id, finishType.id)}
+                                  onCheckedChange={(checked) => toggleColorFinish(color.id, finishType.id, checked as boolean)}
+                                  className="h-3 w-3"
+                                />
+                                <Label htmlFor={`${color.id}-${finishType.id}`} className="text-xs">
+                                  {finishType.finish_name}
+                                </Label>
+                              </div>
+                            ))}
                           </div>
                         )}
+                        <Button
+                          onClick={() => deleteColor(color.id)}
+                          variant="destructive"
+                          size="sm"
+                          className="h-6 w-6 p-0 flex-shrink-0"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       </div>
                     ))}
                   </div>
