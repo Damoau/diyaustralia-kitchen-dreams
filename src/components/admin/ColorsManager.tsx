@@ -276,9 +276,9 @@ export function ColorsManager() {
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  <div className="flex gap-3 overflow-x-auto pb-2">
                     {getColorsForDoorStyle(doorStyle.id).map(color => (
-                      <div key={color.id} className="border rounded-lg p-3 space-y-2 bg-card">
+                      <div key={color.id} className="border rounded-lg p-3 space-y-2 bg-card flex-shrink-0 w-64">
                         {/* Color Header */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
