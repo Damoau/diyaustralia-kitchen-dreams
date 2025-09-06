@@ -11,6 +11,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ConfiguratorDialog } from "@/components/cabinet/ConfiguratorDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { CabinetType, Finish, Color, CabinetPart, GlobalSettings, HardwareBrand } from "@/types/cabinet";
+import { calculateCabinetPrice } from "@/lib/dynamicPricing";
+import { calculateHardwareCost } from "@/lib/hardwarePricing";
 import { useCart } from "@/hooks/useCart";
 import { generateCutlist, parseGlobalSettings } from "@/lib/pricing";
 import { useToast } from "@/hooks/use-toast";
@@ -59,6 +61,36 @@ const CabinetPrices = () => {
     loadGlobalSettings();
     loadHardwareBrands();
   }, []);
+
+  // Update price when hardware brand or color changes
+  useEffect(() => {
+    if (popupConfig.hardwareBrandId && popupConfig.cabinetType && popupOpen) {
+      const cabinetType = cabinetTypes.find(ct => ct.name === popupConfig.cabinetType);
+      const finish = finishes.find(f => f.id === popupConfig.finishId);
+      
+      if (cabinetType && finish) {
+        const relevantParts = cabinetParts.filter(p => p.cabinet_type_id === cabinetType.id);
+        
+        // Calculate hardware cost for selected brand
+        calculateHardwareCost(cabinetType, popupConfig.hardwareBrandId, 1).then(hwCost => {
+          const updatedPrice = calculateCabinetPrice(
+            cabinetType,
+            popupConfig.width,
+            popupConfig.height,
+            popupConfig.depth,
+            finish,
+            undefined, // no door style selected yet
+            undefined, // no color selected yet  
+            relevantParts,
+            globalSettings,
+            hwCost
+          );
+          
+          setPopupConfig(prev => ({ ...prev, price: updatedPrice }));
+        });
+      }
+    }
+  }, [popupConfig.hardwareBrandId, popupConfig.colorId, popupOpen, cabinetTypes, finishes, cabinetParts, globalSettings]);
 
   const loadCabinetTypes = async () => {
     try {
@@ -117,6 +149,19 @@ const CabinetPrices = () => {
     }
   };
 
+  const loadGlobalSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('global_settings')
+        .select('*');
+
+      if (error) throw error;
+      setGlobalSettings((data || []) as GlobalSettings[]);
+    } catch (error) {
+      console.error('Error loading global settings:', error);
+    }
+  };
+
   const loadHardwareBrands = async () => {
     try {
       const { data, error } = await supabase
@@ -134,19 +179,6 @@ const CabinetPrices = () => {
     }
   };
 
-  const loadGlobalSettings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('global_settings')
-        .select('*');
-
-      if (error) throw error;
-      setGlobalSettings((data || []) as GlobalSettings[]);
-    } catch (error) {
-      console.error('Error loading global settings:', error);
-    }
-  };
-
   const handleConfigure = (cabinetTypeName: string, width: number) => {
     const cabinetType = cabinetTypes.find(ct => ct.name === cabinetTypeName);
     if (cabinetType) {
@@ -156,65 +188,33 @@ const CabinetPrices = () => {
     }
   };
 
-  const finishColumns = [
-    { name: "Standard Formica", index: 0 },
-    { name: "Standard Laminex", index: 1 },
-    { name: "Laminex Impressions", index: 4 },
-    { name: "Poly (Matt/Satin/Gloss)", index: 5 },
-    { name: "Shaker 86° - Satin", index: 8 }
-  ];
-
-  const cabinetSizes = {
-    "1door": {
-      name: "1 Door Base Cabinet",
-      image: cabinet1DoorImg,
-      sizes: [
-        { range: "150-199mm", price: [114, 120, 120, 139, 164, 139, 139, 147, 215, 277, 314] },
-        { range: "200-249mm", price: [132, 139, 139, 164, 164, 164, 164, 175, 253, 322, 398] },
-        { range: "250-299mm", price: [149, 158, 158, 190, 190, 190, 190, 203, 291, 367, 482] },
-        { range: "300-349mm", price: [167, 177, 177, 215, 215, 215, 215, 231, 328, 412, 566] },
-        { range: "350-399mm", price: [184, 197, 197, 241, 241, 241, 241, 260, 366, 456, 650] },
-        { range: "400-449mm", price: [202, 216, 216, 267, 267, 267, 267, 288, 404, 501, 734] },
-        { range: "450-499mm", price: [219, 235, 235, 292, 292, 292, 292, 316, 442, 546, 818] },
-        { range: "500-549mm", price: [237, 255, 255, 318, 318, 318, 318, 344, 479, 591, 902] },
-        { range: "550-599mm", price: [254, 274, 274, 344, 344, 344, 344, 373, 517, 636, 986] },
-        { range: "600mm", price: [272, 293, 293, 369, 369, 369, 369, 401, 555, 680, 1070] }
-      ]
-    },
-    "2door": {
-      name: "2 Door Base Cabinet",
-      image: cabinet2DoorImg,
-      sizes: [
-        { range: "400-449mm", price: [222, 237, 237, 289, 289, 289, 316, 337, 469, 609, 769] },
-        { range: "450-499mm", price: [234, 251, 251, 310, 310, 310, 337, 361, 503, 649, 850] },
-        { range: "500-549mm", price: [247, 266, 266, 331, 331, 331, 358, 385, 536, 690, 931] },
-        { range: "600-649mm", price: [272, 295, 295, 373, 373, 373, 400, 432, 603, 772, 1094] },
-        { range: "700-749mm", price: [298, 324, 324, 415, 415, 415, 442, 480, 670, 853, 1256] },
-        { range: "800-849mm", price: [323, 353, 353, 457, 457, 457, 484, 527, 737, 935, 1418] },
-        { range: "900-949mm", price: [348, 382, 382, 499, 499, 499, 526, 575, 804, 1016, 1580] },
-        { range: "1000-1049mm", price: [374, 411, 411, 541, 541, 541, 568, 622, 871, 1098, 1742] },
-        { range: "1200mm", price: [424, 469, 469, 625, 625, 625, 652, 717, 1005, 1261, 2067] }
-      ]
-    },
-    "drawers": {
-      name: "Pot Drawer Base",
-      image: cabinetDrawersImg,
-      sizes: [
-        { range: "600-800mm", price: [450, 480, 480, 550, 550, 550, 580, 620, 800, 950, 1200] },
-        { range: "800-1000mm", price: [550, 580, 580, 650, 650, 650, 680, 720, 900, 1050, 1400] },
-        { range: "1000-1200mm", price: [650, 680, 680, 750, 750, 750, 780, 820, 1000, 1150, 1600] }
-      ]
-    }
-  };
-
   const parseWidthRange = (rangeStr: string): number => {
     const match = rangeStr.match(/\d+/);
     return match ? parseInt(match[0]) : 300;
   };
 
-  const handlePriceClick = (cabinetName: string, sizeRange: string, price: number, finishName: string) => {
+  const handlePriceClick = async (cabinetName: string, sizeRange: string, price: number, finishName: string) => {
     const width = parseWidthRange(sizeRange);
     const matchedFinish = finishes.find(f => f.name === finishName);
+    const cabinetType = cabinetTypes.find(ct => ct.name === cabinetName);
+    
+    // Calculate dynamic price using your formula
+    let calculatedPrice = price; // fallback to static price
+    if (matchedFinish && cabinetType) {
+      const relevantParts = cabinetParts.filter(p => p.cabinet_type_id === cabinetType.id);
+      calculatedPrice = calculateCabinetPrice(
+        cabinetType,
+        width,
+        cabinetType.default_height_mm,
+        cabinetType.default_depth_mm,
+        matchedFinish,
+        undefined, // no door style selected yet
+        undefined, // no color selected yet
+        relevantParts,
+        globalSettings,
+        45 // default hardware cost - will be updated when hardware brand is selected
+      );
+    }
     
     setPopupConfig({
       cabinetType: cabinetName,
@@ -225,7 +225,7 @@ const CabinetPrices = () => {
       finishId: matchedFinish?.id || "",
       colorId: "",
       hardwareBrandId: selectedHardwareBrand,
-      price: price
+      price: calculatedPrice
     });
     
     if (matchedFinish?.id) {
@@ -309,6 +309,57 @@ const CabinetPrices = () => {
         description: "Failed to add item to cart",
         variant: "destructive"
       });
+    }
+  };
+
+  const finishColumns = [
+    { name: "Standard Formica", index: 0 },
+    { name: "Standard Laminex", index: 1 },
+    { name: "Laminex Impressions", index: 4 },
+    { name: "Poly (Matt/Satin/Gloss)", index: 5 },
+    { name: "Shaker 86° - Satin", index: 8 }
+  ];
+
+  const cabinetSizes = {
+    "1door": {
+      name: "1 Door Base Cabinet",
+      image: cabinet1DoorImg,
+      sizes: [
+        { range: "150-199mm", price: [114, 120, 120, 139, 164, 139, 139, 147, 215, 277, 314] },
+        { range: "200-249mm", price: [132, 139, 139, 164, 164, 164, 164, 175, 253, 322, 398] },
+        { range: "250-299mm", price: [149, 158, 158, 190, 190, 190, 190, 203, 291, 367, 482] },
+        { range: "300-349mm", price: [167, 177, 177, 215, 215, 215, 215, 231, 328, 412, 566] },
+        { range: "350-399mm", price: [184, 197, 197, 241, 241, 241, 241, 260, 366, 456, 650] },
+        { range: "400-449mm", price: [202, 216, 216, 267, 267, 267, 267, 288, 404, 501, 734] },
+        { range: "450-499mm", price: [219, 235, 235, 292, 292, 292, 292, 316, 442, 546, 818] },
+        { range: "500-549mm", price: [237, 255, 255, 318, 318, 318, 318, 344, 479, 591, 902] },
+        { range: "550-599mm", price: [254, 274, 274, 344, 344, 344, 344, 373, 517, 636, 986] },
+        { range: "600mm", price: [272, 293, 293, 369, 369, 369, 369, 401, 555, 680, 1070] }
+      ]
+    },
+    "2door": {
+      name: "2 Door Base Cabinet",
+      image: cabinet2DoorImg,
+      sizes: [
+        { range: "400-449mm", price: [222, 237, 237, 289, 289, 289, 316, 337, 469, 609, 769] },
+        { range: "450-499mm", price: [234, 251, 251, 310, 310, 310, 337, 361, 503, 649, 850] },
+        { range: "500-549mm", price: [247, 266, 266, 331, 331, 331, 358, 385, 536, 690, 931] },
+        { range: "600-649mm", price: [272, 295, 295, 373, 373, 373, 400, 432, 603, 772, 1094] },
+        { range: "700-749mm", price: [298, 324, 324, 415, 415, 415, 442, 480, 670, 853, 1256] },
+        { range: "800-849mm", price: [323, 353, 353, 457, 457, 457, 484, 527, 737, 935, 1418] },
+        { range: "900-949mm", price: [348, 382, 382, 499, 499, 499, 526, 575, 804, 1016, 1580] },
+        { range: "1000-1049mm", price: [374, 411, 411, 541, 541, 541, 568, 622, 871, 1098, 1742] },
+        { range: "1200mm", price: [424, 469, 469, 625, 625, 625, 652, 717, 1005, 1261, 2067] }
+      ]
+    },
+    "drawers": {
+      name: "Pot Drawer Base",
+      image: cabinetDrawersImg,
+      sizes: [
+        { range: "600-800mm", price: [450, 480, 480, 550, 550, 550, 580, 620, 800, 950, 1200] },
+        { range: "800-1000mm", price: [550, 580, 580, 650, 650, 650, 680, 720, 900, 1050, 1400] },
+        { range: "1000-1200mm", price: [650, 680, 680, 750, 750, 750, 780, 820, 1000, 1150, 1600] }
+      ]
     }
   };
 
@@ -405,51 +456,51 @@ const CabinetPrices = () => {
                                       <p className="mt-1 p-2 bg-muted rounded text-foreground">{popupConfig.finish}</p>
                                     </div>
 
-                    <div>
-                      <Label className="text-sm font-medium text-foreground">Hardware Brand</Label>
-                      <Select 
-                        value={popupConfig.hardwareBrandId} 
-                        onValueChange={(value) => setPopupConfig(prev => ({ ...prev, hardwareBrandId: value }))}
-                      >
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select hardware brand" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {hardwareBrands.map((brand) => (
-                            <SelectItem key={brand.id} value={brand.id}>
-                              {brand.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                                    <div>
+                                      <Label className="text-sm font-medium text-foreground">Hardware Brand</Label>
+                                      <Select 
+                                        value={popupConfig.hardwareBrandId} 
+                                        onValueChange={(value) => setPopupConfig(prev => ({ ...prev, hardwareBrandId: value }))}
+                                      >
+                                        <SelectTrigger className="mt-1">
+                                          <SelectValue placeholder="Select hardware brand" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {hardwareBrands.map((brand) => (
+                                            <SelectItem key={brand.id} value={brand.id}>
+                                              {brand.name}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
 
-                    <div>
-                      <Label className="text-sm font-medium text-foreground">Color</Label>
-                      <Select 
-                        value={popupConfig.colorId} 
-                        onValueChange={(value) => setPopupConfig(prev => ({ ...prev, colorId: value }))}
-                      >
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select a color" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {colors.map((color) => (
-                            <SelectItem key={color.id} value={color.id}>
-                              <div className="flex items-center gap-2">
-                                {color.hex_code && (
-                                  <div 
-                                    className="w-4 h-4 rounded border border-border"
-                                    style={{ backgroundColor: color.hex_code }}
-                                  />
-                                )}
-                                {color.name}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                                    <div>
+                                      <Label className="text-sm font-medium text-foreground">Color</Label>
+                                      <Select 
+                                        value={popupConfig.colorId} 
+                                        onValueChange={(value) => setPopupConfig(prev => ({ ...prev, colorId: value }))}
+                                      >
+                                        <SelectTrigger className="mt-1">
+                                          <SelectValue placeholder="Select a color" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {colors.map((color) => (
+                                            <SelectItem key={color.id} value={color.id}>
+                                              <div className="flex items-center gap-2">
+                                                {color.hex_code && (
+                                                  <div 
+                                                    className="w-4 h-4 rounded border border-border"
+                                                    style={{ backgroundColor: color.hex_code }}
+                                                  />
+                                                )}
+                                                {color.name}
+                                              </div>
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
 
                                     <div className="text-center">
                                       <p className="text-lg font-bold text-primary mb-3">Price: ${popupConfig.price}</p>
@@ -462,14 +513,14 @@ const CabinetPrices = () => {
                                         >
                                           Cancel
                                         </Button>
-                        <Button
-                          onClick={handleAddToQuote}
-                          size="sm"
-                          className="flex-1"
-                          disabled={isAddingToCart || !popupConfig.colorId || !popupConfig.hardwareBrandId}
-                        >
-                          {isAddingToCart ? "Adding..." : "Add to Quote"}
-                        </Button>
+                                        <Button
+                                          onClick={handleAddToQuote}
+                                          size="sm"
+                                          className="flex-1"
+                                          disabled={isAddingToCart || !popupConfig.colorId || !popupConfig.hardwareBrandId}
+                                        >
+                                          {isAddingToCart ? "Adding..." : "Add to Quote"}
+                                        </Button>
                                       </div>
                                     </div>
                                   </div>

@@ -66,23 +66,10 @@ export function generateCutlist(
     };
   });
 
-  // Calculate costs
-  const carcassParts = parts.filter(p => !p.isDoor && !p.isHardware);
-  const doorParts = parts.filter(p => p.isDoor);
-  const hardwareParts = parts.filter(p => p.isHardware);
-
-  // Carcass cost (HMR rate)
-  const carcassArea = carcassParts.reduce((sum, part) => sum + part.area, 0);
-  const carcassCostBeforeWastage = carcassArea * settings.hmrRate;
-  const carcassCost = carcassCostBeforeWastage * (1 + settings.wastageFactor);
-
-  // Door cost (finish rate + door style rate)
-  const doorArea = doorParts.reduce((sum, part) => sum + part.area, 0);
-  const finishRate = configuration.finish?.rate_per_sqm || 0;
-  const doorStyleRate = configuration.doorStyle?.base_rate_per_sqm || 0;
-  const doorCostBeforeWastage = doorArea * (finishRate + doorStyleRate);
-  const doorCost = doorCostBeforeWastage * (1 + settings.wastageFactor);
-
+  // Calculate costs using your specific formula
+  const carcassCost = calculateCarcassCost(width, height, depth, parts, settings, quantity);
+  const doorCost = calculateDoorCost(width, height, parts, configuration, settings, quantity);
+  
   // Hardware cost - calculate based on door/drawer count and selected brand
   let hardwareCost = 0;
   if (configuration.hardwareBrand && hardwareRequirements && hardwareOptions) {
@@ -113,7 +100,7 @@ export function generateCutlist(
     });
   } else {
     // Fallback to base hardware cost calculation
-    const hardwareQuantity = hardwareParts.reduce((sum, part) => sum + part.quantity, 0);
+    const hardwareQuantity = parts.filter(p => p.isHardware).reduce((sum, part) => sum + part.quantity, 0);
     hardwareCost = hardwareQuantity * settings.hardwareBaseCost;
   }
 
@@ -129,6 +116,73 @@ export function generateCutlist(
     hardwareCost,
     totalCost,
   };
+}
+
+// Calculate carcass cost using your specific formula
+function calculateCarcassCost(
+  width: number, 
+  height: number, 
+  depth: number, 
+  parts: PartCutlist[], 
+  settings: PricingSettings, 
+  quantity: number
+): number {
+  // Get quantities for each part type
+  const backParts = parts.filter(p => p.partName.toLowerCase().includes('back') && !p.isDoor);
+  const bottomParts = parts.filter(p => p.partName.toLowerCase().includes('bottom') && !p.isDoor);
+  const sideParts = parts.filter(p => p.partName.toLowerCase().includes('side') && !p.isDoor);
+  
+  const qtyBacks = backParts.reduce((sum, part) => sum + part.quantity, 0);
+  const qtyBottoms = bottomParts.reduce((sum, part) => sum + part.quantity, 0);
+  const qtySides = sideParts.reduce((sum, part) => sum + part.quantity, 0);
+  
+  // Convert dimensions to meters
+  const widthM = width / 1000;
+  const heightM = height / 1000;
+  const depthM = depth / 1000;
+  
+  // Apply your formula:
+  // (Width/1000 * height/1000) * Qty of back parts * HMR Price +
+  // (Width/1000 * Depth/1000) * Qty Bottoms * HMR Price +
+  // (Width/1000 * Depth/1000) * Qty sides * HMR Price
+  
+  const backCost = (widthM * heightM) * qtyBacks * settings.hmrRate;
+  const bottomCost = (widthM * depthM) * qtyBottoms * settings.hmrRate;
+  const sideCost = (widthM * depthM) * qtySides * settings.hmrRate;
+  
+  const totalCarcassCost = backCost + bottomCost + sideCost;
+  
+  // Apply wastage factor
+  return totalCarcassCost * (1 + settings.wastageFactor);
+}
+
+// Calculate door cost using your specific formula
+function calculateDoorCost(
+  width: number, 
+  height: number, 
+  parts: PartCutlist[], 
+  configuration: CabinetConfiguration, 
+  settings: PricingSettings, 
+  quantity: number
+): number {
+  // Get door parts
+  const doorParts = parts.filter(p => p.isDoor);
+  const qtyDoors = doorParts.reduce((sum, part) => sum + part.quantity, 0);
+  
+  // Convert dimensions to meters
+  const widthM = width / 1000;
+  const heightM = height / 1000;
+  
+  // Apply your formula: (Width/1000 * height/1000) * Qty of door parts * door price
+  const finishRate = configuration.finish?.rate_per_sqm || 0;
+  const doorStyleRate = configuration.doorStyle?.base_rate_per_sqm || 0;
+  const colorSurcharge = 0; // Color surcharge will be handled separately if needed
+  const totalDoorRate = finishRate + doorStyleRate + colorSurcharge;
+  
+  const doorCost = (widthM * heightM) * qtyDoors * totalDoorRate;
+  
+  // Apply wastage factor
+  return doorCost * (1 + settings.wastageFactor);
 }
 
 export function formatPrice(price: number): string {
