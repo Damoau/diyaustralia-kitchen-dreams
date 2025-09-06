@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CabinetTypePricingSetup } from "./CabinetTypePricingSetup";
+import { CabinetHardwareSetup } from "./CabinetHardwareSetup";
 
 interface CabinetType {
   id: string;
@@ -81,8 +82,9 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
         </DialogHeader>
         
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
+            <TabsTrigger value="hardware" disabled={!cabinetType}>Hardware</TabsTrigger>
             <TabsTrigger value="pricing" disabled={!cabinetType}>Pricing Setup</TabsTrigger>
           </TabsList>
           
@@ -164,6 +166,17 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
                 Save
               </Button>
             </div>
+          </TabsContent>
+          
+          <TabsContent value="hardware">
+            {cabinetType && cabinetType.id ? (
+              <CabinetHardwareSetup cabinetTypeId={cabinetType.id} />
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Please save the cabinet type first to configure hardware requirements.</p>
+                <p className="text-sm mt-2">Click "Save" in the Basic Info tab, then return here to set up hardware.</p>
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="pricing">
