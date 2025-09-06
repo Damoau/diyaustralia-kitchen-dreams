@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Color {
   id: string;
@@ -23,13 +24,13 @@ interface DoorStyle {
 
 interface ColorEditDialogProps {
   color: Color | null;
-  doorStyles: DoorStyle[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (color: Partial<Color>) => void;
 }
 
-const ColorEditDialog = ({ color, doorStyles, open, onOpenChange, onSave }: ColorEditDialogProps) => {
+const ColorEditDialog = ({ color, open, onOpenChange, onSave }: ColorEditDialogProps) => {
+  const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     hex_code: "",
@@ -38,6 +39,22 @@ const ColorEditDialog = ({ color, doorStyles, open, onOpenChange, onSave }: Colo
     door_style_id: "",
     surcharge_rate_per_sqm: 0
   });
+
+  useEffect(() => {
+    if (open) {
+      fetchDoorStyles();
+    }
+  }, [open]);
+
+  const fetchDoorStyles = async () => {
+    const { data } = await supabase
+      .from('door_styles')
+      .select('id, name')
+      .eq('active', true)
+      .order('name');
+    
+    if (data) setDoorStyles(data);
+  };
 
   useEffect(() => {
     if (color) {
