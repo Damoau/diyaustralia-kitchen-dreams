@@ -4,16 +4,22 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ConfiguratorDialog } from "@/components/cabinet/ConfiguratorDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { CabinetType } from "@/types/cabinet";
+
+// Import cabinet images
+import cabinet1DoorImg from "@/assets/cabinet-1-door.jpg";
+import cabinet2DoorImg from "@/assets/cabinet-2-door.jpg";
+import cabinetDrawersImg from "@/assets/cabinet-drawers.jpg";
 
 const CabinetPrices = () => {
   const [cabinetTypes, setCabinetTypes] = useState<CabinetType[]>([]);
   const [selectedCabinetType, setSelectedCabinetType] = useState<CabinetType | null>(null);
   const [selectedWidth, setSelectedWidth] = useState<number>(300);
   const [isConfiguratorOpen, setIsConfiguratorOpen] = useState(false);
+  const [selectedFinish, setSelectedFinish] = useState<string>("formica");
 
   // Load cabinet types
   useEffect(() => {
@@ -44,49 +50,64 @@ const CabinetPrices = () => {
     }
   };
 
-  const parseWidthRange = (widthStr: string): number => {
-    // Extract the first number from width ranges like "150-199" or "600"
-    const match = widthStr.match(/\d+/);
+  const finishTypes = {
+    formica: { name: "Standard Formica", priceIndex: 0, note: "Add 10% for Gloss" },
+    laminex: { name: "Standard Laminex", priceIndex: 1, note: "Add 10% for Gloss" },
+    polytec: { name: "Standard Poly Tec", priceIndex: 2, note: "Add 10% for Standard Gloss" },
+    impressions: { name: "Laminex Impressions", priceIndex: 4, note: "" },
+    poly: { name: "Poly (Matt, Satin, Gloss)", priceIndex: 5, note: "" },
+    shaker: { name: "Shaker 86 degree - Satin", priceIndex: 8, note: "" },
+  };
+
+  const cabinetSizes = {
+    "1door": {
+      name: "1 Door Base Cabinet",
+      image: cabinet1DoorImg,
+      sizes: [
+        { range: "150-199mm", price: [114, 120, 120, 139, 164, 139, 139, 147, 215, 277, 314] },
+        { range: "200-249mm", price: [132, 139, 139, 164, 164, 164, 164, 175, 253, 322, 398] },
+        { range: "250-299mm", price: [149, 158, 158, 190, 190, 190, 190, 203, 291, 367, 482] },
+        { range: "300-349mm", price: [167, 177, 177, 215, 215, 215, 215, 231, 328, 412, 566] },
+        { range: "350-399mm", price: [184, 197, 197, 241, 241, 241, 241, 260, 366, 456, 650] },
+        { range: "400-449mm", price: [202, 216, 216, 267, 267, 267, 267, 288, 404, 501, 734] },
+        { range: "450-499mm", price: [219, 235, 235, 292, 292, 292, 292, 316, 442, 546, 818] },
+        { range: "500-549mm", price: [237, 255, 255, 318, 318, 318, 318, 344, 479, 591, 902] },
+        { range: "550-599mm", price: [254, 274, 274, 344, 344, 344, 344, 373, 517, 636, 986] },
+        { range: "600mm", price: [272, 293, 293, 369, 369, 369, 369, 401, 555, 680, 1070] }
+      ]
+    },
+    "2door": {
+      name: "2 Door Base Cabinet",
+      image: cabinet2DoorImg,
+      sizes: [
+        { range: "400-449mm", price: [222, 237, 237, 289, 289, 289, 316, 337, 469, 609, 769] },
+        { range: "450-499mm", price: [234, 251, 251, 310, 310, 310, 337, 361, 503, 649, 850] },
+        { range: "500-549mm", price: [247, 266, 266, 331, 331, 331, 358, 385, 536, 690, 931] },
+        { range: "600-649mm", price: [272, 295, 295, 373, 373, 373, 400, 432, 603, 772, 1094] },
+        { range: "700-749mm", price: [298, 324, 324, 415, 415, 415, 442, 480, 670, 853, 1256] },
+        { range: "800-849mm", price: [323, 353, 353, 457, 457, 457, 484, 527, 737, 935, 1418] },
+        { range: "900-949mm", price: [348, 382, 382, 499, 499, 499, 526, 575, 804, 1016, 1580] },
+        { range: "1000-1049mm", price: [374, 411, 411, 541, 541, 541, 568, 622, 871, 1098, 1742] },
+        { range: "1200mm", price: [424, 469, 469, 625, 625, 625, 652, 717, 1005, 1261, 2067] }
+      ]
+    },
+    "drawers": {
+      name: "Pot Drawer Base",
+      image: cabinetDrawersImg,
+      sizes: [
+        { range: "600-800mm", price: [450, 480, 480, 550, 550, 550, 580, 620, 800, 950, 1200] },
+        { range: "800-1000mm", price: [550, 580, 580, 650, 650, 650, 680, 720, 900, 1050, 1400] },
+        { range: "1000-1200mm", price: [650, 680, 680, 750, 750, 750, 780, 820, 1000, 1150, 1600] }
+      ]
+    }
+  };
+
+  const parseWidthRange = (rangeStr: string): number => {
+    const match = rangeStr.match(/\d+/);
     return match ? parseInt(match[0]) : 300;
   };
-  const finishTypes = [
-    { name: "Standard Formica", note: "Add 10% for Gloss" },
-    { name: "Standard Laminex", note: "Add 10% for Gloss" },
-    { name: "Standard Poly Tec", note: "Add 10% for Standard Gloss" },
-    { name: "Poly Tec Ravine & Nuance", note: "" },
-    { name: "Laminex Impressions", note: "" },
-    { name: "Poly (Matt, Satin, Gloss)", note: "" },
-    { name: "Shadowline (Matt, Satin, Gloss)", note: "" },
-    { name: "Ultra Glaze", note: "" },
-    { name: "Shaker 86 degree - Satin", note: "" },
-    { name: "Hampton & Provincial - Satin", note: "" },
-    { name: "Outdoor BBQ Area", note: "" }
-  ];
 
-  const oneDoorPrices = [
-    { width: "150-199", prices: [114, 120, 120, 139, 139, 139, 139, 147, 215, 277, 314] },
-    { width: "200-249", prices: [132, 139, 139, 164, 164, 164, 164, 175, 253, 322, 398] },
-    { width: "250-299", prices: [149, 158, 158, 190, 190, 190, 190, 203, 291, 367, 482] },
-    { width: "300-349", prices: [167, 177, 177, 215, 215, 215, 215, 231, 328, 412, 566] },
-    { width: "350-399", prices: [184, 197, 197, 241, 241, 241, 241, 260, 366, 456, 650] },
-    { width: "400-449", prices: [202, 216, 216, 267, 267, 267, 267, 288, 404, 501, 734] },
-    { width: "450-499", prices: [219, 235, 235, 292, 292, 292, 292, 316, 442, 546, 818] },
-    { width: "500-549", prices: [237, 255, 255, 318, 318, 318, 318, 344, 479, 591, 902] },
-    { width: "550-599", prices: [254, 274, 274, 344, 344, 344, 344, 373, 517, 636, 986] },
-    { width: "600", prices: [272, 293, 293, 369, 369, 369, 369, 401, 555, 680, 1070] }
-  ];
-
-  const twoDoorPrices = [
-    { width: "400-449", prices: [222, 237, 237, 289, 289, 289, 316, 337, 469, 609, 769] },
-    { width: "450-499", prices: [234, 251, 251, 310, 310, 310, 337, 361, 503, 649, 850] },
-    { width: "500-549", prices: [247, 266, 266, 331, 331, 331, 358, 385, 536, 690, 931] },
-    { width: "600-649", prices: [272, 295, 295, 373, 373, 373, 400, 432, 603, 772, 1094] },
-    { width: "700-749", prices: [298, 324, 324, 415, 415, 415, 442, 480, 670, 853, 1256] },
-    { width: "800-849", prices: [323, 353, 353, 457, 457, 457, 484, 527, 737, 935, 1418] },
-    { width: "900-949", prices: [348, 382, 382, 499, 499, 499, 526, 575, 804, 1016, 1580] },
-    { width: "1000-1049", prices: [374, 411, 411, 541, 541, 541, 568, 622, 871, 1098, 1742] },
-    { width: "1200", prices: [424, 469, 469, 625, 625, 625, 652, 717, 1005, 1261, 2067] }
-  ];
+  const getSelectedFinish = () => finishTypes[selectedFinish as keyof typeof finishTypes];
 
   return (
     <div className="min-h-screen bg-background">
@@ -102,20 +123,103 @@ const CabinetPrices = () => {
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
               Custom made base cabinets at low prices. All our cabinets are Australian made and custom made to order with premium materials and finishes.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="hero" size="lg" className="px-8">
-                Get Custom Quote
-              </Button>
-              <Button variant="outline" size="lg" className="px-8">
-                View Kitchen Styles
-              </Button>
-            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Finish Selector */}
+      <section className="py-8 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="max-w-md mx-auto">
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Select Your Finish Type
+            </label>
+            <Select value={selectedFinish} onValueChange={setSelectedFinish}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Choose finish type" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(finishTypes).map(([key, finish]) => (
+                  <SelectItem key={key} value={key}>
+                    {finish.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {getSelectedFinish()?.note && (
+              <p className="text-sm text-muted-foreground mt-2">
+                {getSelectedFinish().note}
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Cabinet Cards */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {Object.entries(cabinetSizes).map(([key, cabinet]) => (
+              <Card key={key} className="overflow-hidden">
+                <CardHeader className="text-center pb-4">
+                  <CardTitle className="text-xl text-foreground">{cabinet.name}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {/* Cabinet Image */}
+                  <div className="aspect-square w-full bg-muted/20 flex items-center justify-center mb-4">
+                    <img 
+                      src={cabinet.image} 
+                      alt={cabinet.name}
+                      className="w-full h-full object-cover rounded-t-none"
+                    />
+                  </div>
+
+                  {/* Price Ranges */}
+                  <div className="px-6 pb-6 space-y-3">
+                    <h4 className="font-semibold text-foreground text-center mb-4">
+                      {getSelectedFinish()?.name} Prices
+                    </h4>
+                    
+                    {cabinet.sizes.map((size, idx) => {
+                      const price = size.price[getSelectedFinish()?.priceIndex || 0];
+                      return (
+                        <div key={idx} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                          <div className="flex-1">
+                            <span className="text-sm font-medium text-foreground">{size.range}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg font-bold text-primary">${price}</span>
+                            <Button
+                              size="sm"
+                              onClick={() => handleConfigure(cabinet.name, parseWidthRange(size.range))}
+                              className="text-xs px-3"
+                            >
+                              Configure
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* Main Configure Button */}
+                    <Button 
+                      variant="outline" 
+                      size="lg" 
+                      className="w-full mt-4"
+                      onClick={() => handleConfigure(cabinet.name, parseWidthRange(cabinet.sizes[0].range))}
+                    >
+                      Configure {cabinet.name}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Cabinet Specifications */}
-      <section className="py-16">
+      <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
             <Card className="text-center">
@@ -153,145 +257,6 @@ const CabinetPrices = () => {
             </Card>
           </div>
 
-          {/* Pricing Tables */}
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold text-foreground text-center mb-8">Cabinet Pricing</h2>
-            
-            <Tabs defaultValue="1door" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-8">
-                <TabsTrigger value="1door">1 Door Cabinets</TabsTrigger>
-                <TabsTrigger value="2door">2 Door Cabinets</TabsTrigger>
-                <TabsTrigger value="drawers">Pot Drawers</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="1door">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>1 Door Base Cabinet Prices</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-border">
-                            <th className="text-left py-4 px-2 font-semibold text-foreground">Width</th>
-                            <th className="text-left py-4 px-3 font-semibold text-foreground text-sm">Standard Formica</th>
-                            <th className="text-left py-4 px-3 font-semibold text-foreground text-sm">Standard Laminex</th>
-                            <th className="text-left py-4 px-3 font-semibold text-foreground text-sm">Poly Tec</th>
-                            <th className="text-left py-4 px-3 font-semibold text-foreground text-sm">Impressions</th>
-                            <th className="text-center py-4 px-2 font-semibold text-foreground">Action</th>
-                          </tr>
-                        </thead>
-                         <tbody className="divide-y divide-border">
-                           {oneDoorPrices.map((row, idx) => (
-                             <tr key={idx} className="hover:bg-muted/30 transition-colors">
-                               <td className="py-4 px-2 font-medium text-foreground">{row.width}mm</td>
-                               <td className="py-4 px-3 text-foreground">${row.prices[0]}</td>
-                               <td className="py-4 px-3 text-foreground">${row.prices[1]}</td>
-                               <td className="py-4 px-3 text-foreground">${row.prices[2]}</td>
-                               <td className="py-4 px-3 text-foreground">${row.prices[4]}</td>
-                               <td className="py-4 px-2 text-center">
-                                 <Button
-                                   size="sm"
-                                   variant="outline"
-                                   onClick={() => handleConfigure('1 Door Base Cabinet', parseWidthRange(row.width))}
-                                   className="text-xs px-3"
-                                 >
-                                   Configure
-                                 </Button>
-                               </td>
-                             </tr>
-                           ))}
-                         </tbody>
-                      </table>
-                    </div>
-                    <div className="mt-6 p-4 bg-muted/30 rounded-lg">
-                      <p className="text-sm text-muted-foreground">
-                        <strong>Note:</strong> Standard Formica and Laminex add 10% for gloss finish. Poly Tec add 10% for standard gloss. 
-                        <Button variant="link" className="p-0 h-auto text-sm text-primary">View all finishes & pricing</Button>
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="2door">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>2 Door Base Cabinet Prices</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-border">
-                            <th className="text-left py-4 px-2 font-semibold text-foreground">Width</th>
-                            <th className="text-left py-4 px-3 font-semibold text-foreground text-sm">Standard Formica</th>
-                            <th className="text-left py-4 px-3 font-semibold text-foreground text-sm">Standard Laminex</th>
-                            <th className="text-left py-4 px-3 font-semibold text-foreground text-sm">Poly Tec</th>
-                            <th className="text-left py-4 px-3 font-semibold text-foreground text-sm">Impressions</th>
-                            <th className="text-center py-4 px-2 font-semibold text-foreground">Action</th>
-                          </tr>
-                        </thead>
-                         <tbody className="divide-y divide-border">
-                           {twoDoorPrices.map((row, idx) => (
-                             <tr key={idx} className="hover:bg-muted/30 transition-colors">
-                               <td className="py-4 px-2 font-medium text-foreground">{row.width}mm</td>
-                               <td className="py-4 px-3 text-foreground">${row.prices[0]}</td>
-                               <td className="py-4 px-3 text-foreground">${row.prices[1]}</td>
-                               <td className="py-4 px-3 text-foreground">${row.prices[2]}</td>
-                               <td className="py-4 px-3 text-foreground">${row.prices[4]}</td>
-                               <td className="py-4 px-2 text-center">
-                                 <Button
-                                   size="sm"
-                                   variant="outline"
-                                   onClick={() => handleConfigure('2 Door Base Cabinet', parseWidthRange(row.width))}
-                                   className="text-xs px-3"
-                                 >
-                                   Configure
-                                 </Button>
-                               </td>
-                             </tr>
-                           ))}
-                         </tbody>
-                      </table>
-                    </div>
-                    <div className="mt-6 p-4 bg-muted/30 rounded-lg">
-                      <p className="text-sm text-muted-foreground">
-                        <strong>Note:</strong> Standard Formica and Laminex add 10% for gloss finish. Poly Tec add 10% for standard gloss. 
-                        <Button variant="link" className="p-0 h-auto text-sm text-primary">View all finishes & pricing</Button>
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="drawers">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>2 Pot Drawers Prices</CardTitle>
-                  </CardHeader>
-                   <CardContent>
-                     <div className="space-y-4">
-                       <p className="text-muted-foreground">
-                         Pot drawer prices vary by width and finish. Contact us for detailed pricing on drawer configurations.
-                       </p>
-                       <div className="flex gap-4">
-                         <Button variant="hero">Get Drawer Pricing</Button>
-                         <Button 
-                           variant="outline"
-                           onClick={() => handleConfigure('Pot Drawer Base', 900)}
-                         >
-                           Configure Pot Drawers
-                         </Button>
-                       </div>
-                     </div>
-                   </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-
           {/* Additional Information */}
           <Card className="mb-8">
             <CardHeader>
@@ -324,7 +289,7 @@ const CabinetPrices = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-muted/30">
+      <section className="py-16 bg-background">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
             Ready to Get Started?
