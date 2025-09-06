@@ -14,6 +14,7 @@ import { calculateHardwareCost } from "@/lib/hardwarePricing";
 import { useCart } from "@/hooks/useCart";
 import { formatPrice } from "@/lib/pricing";
 import { useToast } from "@/hooks/use-toast";
+import { HardwareBreakdown } from "@/components/cabinet/HardwareBreakdown";
 
 const CabinetPricesNew = () => {
   const [selectedHardwareBrand, setSelectedHardwareBrand] = useState<string>('');
@@ -268,9 +269,15 @@ const CabinetPricesNew = () => {
                       (Using default ranges - configure in admin for custom ranges)
                     </span>
                   )}
-                </h2>
-                
-                <div className="overflow-x-auto">
+                 </h2>
+                 
+                 {/* Hardware Breakdown */}
+                 <HardwareBreakdown 
+                   cabinetType={cabinetType} 
+                   selectedHardwareBrand={selectedHardwareBrand}
+                 />
+                 
+                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse border border-gray-300">
                     <thead>
                       <tr className="bg-muted">
