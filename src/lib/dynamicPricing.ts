@@ -12,7 +12,8 @@ export function calculateCabinetPrice(
   color?: Color,
   cabinetParts: CabinetPart[] = [],
   globalSettings: GlobalSettings[] = [],
-  hardwareCost: number = 0
+  hardwareCost: number = 0,
+  cabinetTypeFinish?: any // Include finish mapping for depth override
 ): number {
   const settings = parseGlobalSettings(globalSettings);
   
@@ -35,10 +36,13 @@ export function calculateCabinetPrice(
     qtyDoors = doorParts.reduce((sum, part) => sum + part.quantity, qtyDoors);
   }
   
+  // Use finish-specific depth if available, otherwise use provided depth
+  const actualDepth = cabinetTypeFinish?.depth_mm || depth;
+  
   // Convert dimensions to meters
   const widthM = width / 1000;
   const heightM = height / 1000;
-  const depthM = depth / 1000;
+  const depthM = actualDepth / 1000;
   
   // Apply your formula:
   // (Width/1000 * height/1000) * Qty of back parts * HMR Price
@@ -111,7 +115,8 @@ export async function generatePriceTableData(
             ctf.color, // Now include color in calculation
             relevantParts,
             globalSettings,
-            hardwareCost
+            hardwareCost,
+            ctf // Pass the cabinet type finish for depth override
           );
         });
         

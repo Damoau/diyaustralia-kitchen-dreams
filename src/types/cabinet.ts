@@ -75,6 +75,7 @@ export interface CabinetTypeFinish {
   finish_id: string;
   door_style_id?: string;
   color_id?: string;
+  depth_mm?: number;
   sort_order: number;
   active: boolean;
   created_at: string;

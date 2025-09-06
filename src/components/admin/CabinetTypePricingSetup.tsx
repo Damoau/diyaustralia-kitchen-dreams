@@ -157,6 +157,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
     const newMapping = {
       cabinet_type_id: cabinetTypeId,
       finish_id: finishId,
+      depth_mm: cabinetType?.default_depth_mm || 560, // Default to cabinet type depth
       sort_order: cabinetTypeFinishes.length,
       active: true
     };
@@ -186,10 +187,11 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
     }
   };
 
-  const updateFinishMapping = async (id: string, updates: { doorStyleId?: string | null; colorId?: string | null }) => {
+  const updateFinishMapping = async (id: string, updates: { doorStyleId?: string | null; colorId?: string | null; depthMm?: number | null }) => {
     const updateData: any = {};
     if (updates.doorStyleId !== undefined) updateData.door_style_id = updates.doorStyleId;
     if (updates.colorId !== undefined) updateData.color_id = updates.colorId;
+    if (updates.depthMm !== undefined) updateData.depth_mm = updates.depthMm;
 
     const { error } = await supabase
       .from('cabinet_type_finishes' as any)
@@ -359,6 +361,104 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                   </TableCell>
                 </TableRow>
               ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Finish Mappings */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Finish Columns</CardTitle>
+          <Select onValueChange={addFinishMapping}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Add finish" />
+            </SelectTrigger>
+            <SelectContent>
+              {allFinishes
+                .filter(f => !cabinetTypeFinishes.some(ctf => ctf.finish_id === f.id))
+                .map(finish => (
+                  <SelectItem key={finish.id} value={finish.id}>
+                    {finish.name}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Finish</TableHead>
+                <TableHead>Door Style</TableHead>
+                <TableHead>Color</TableHead>
+                <TableHead>Depth (mm)</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {cabinetTypeFinishes.map((ctf) => {
+                const availableColors = getAvailableColors(ctf.door_style_id || undefined);
+                return (
+                  <TableRow key={ctf.id}>
+                    <TableCell>{ctf.finish?.name}</TableCell>
+                    <TableCell>
+                      <Select
+                        value={ctf.door_style_id || ""}
+                        onValueChange={(value) => updateFinishMapping(ctf.id, { doorStyleId: value || null })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select door style" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">No door style</SelectItem>
+                          {allDoorStyles.map(style => (
+                            <SelectItem key={style.id} value={style.id}>
+                              {style.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={ctf.color_id || ""}
+                        onValueChange={(value) => updateFinishMapping(ctf.id, { colorId: value || null })}
+                        disabled={!ctf.door_style_id}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select color" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">No color</SelectItem>
+                          {availableColors.map(color => (
+                            <SelectItem key={color.id} value={color.id}>
+                              {color.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        type="number"
+                        value={ctf.depth_mm || cabinetType?.default_depth_mm || 560}
+                        onChange={(e) => updateFinishMapping(ctf.id, { depthMm: parseInt(e.target.value) })}
+                        placeholder="Depth in mm"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        onClick={() => deleteFinishMapping(ctf.id)}
+                        variant="destructive"
+                        size="sm"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>

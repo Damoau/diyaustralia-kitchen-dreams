@@ -185,6 +185,7 @@ export type Database = {
           cabinet_type_id: string
           color_id: string | null
           created_at: string
+          depth_mm: number | null
           door_style_id: string | null
           finish_id: string
           id: string
@@ -196,6 +197,7 @@ export type Database = {
           cabinet_type_id: string
           color_id?: string | null
           created_at?: string
+          depth_mm?: number | null
           door_style_id?: string | null
           finish_id: string
           id?: string
@@ -207,6 +209,7 @@ export type Database = {
           cabinet_type_id?: string
           color_id?: string | null
           created_at?: string
+          depth_mm?: number | null
           door_style_id?: string | null
           finish_id?: string
           id?: string
