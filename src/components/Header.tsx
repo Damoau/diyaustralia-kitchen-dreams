@@ -1,8 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { Menu, ShoppingCart } from "lucide-react";
+import { CartDrawer } from "@/components/cabinet/CartDrawer";
+import { useCart } from "@/hooks/useCart";
 
 const Header = () => {
+  const { totalItems } = useCart();
+  
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-border/50">
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
@@ -33,6 +37,17 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center space-x-4">
+          <CartDrawer>
+            <Button variant="outline" size="sm" className="relative">
+              <ShoppingCart className="h-4 w-4" />
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {totalItems}
+                </span>
+              )}
+            </Button>
+          </CartDrawer>
+          
           <Button variant="hero" size="sm" className="px-6 hidden sm:flex">
             Get Quote
           </Button>

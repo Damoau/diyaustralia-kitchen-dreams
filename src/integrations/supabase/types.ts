@@ -14,7 +14,381 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      brands: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      cabinet_parts: {
+        Row: {
+          cabinet_type_id: string
+          created_at: string
+          height_formula: string | null
+          id: string
+          is_door: boolean
+          is_hardware: boolean
+          part_name: string
+          quantity: number
+          width_formula: string | null
+        }
+        Insert: {
+          cabinet_type_id: string
+          created_at?: string
+          height_formula?: string | null
+          id?: string
+          is_door?: boolean
+          is_hardware?: boolean
+          part_name: string
+          quantity?: number
+          width_formula?: string | null
+        }
+        Update: {
+          cabinet_type_id?: string
+          created_at?: string
+          height_formula?: string | null
+          id?: string
+          is_door?: boolean
+          is_hardware?: boolean
+          part_name?: string
+          quantity?: number
+          width_formula?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cabinet_parts_cabinet_type_id_fkey"
+            columns: ["cabinet_type_id"]
+            isOneToOne: false
+            referencedRelation: "cabinet_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cabinet_types: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          default_depth_mm: number
+          default_height_mm: number
+          default_width_mm: number
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          created_at?: string
+          default_depth_mm: number
+          default_height_mm: number
+          default_width_mm: number
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          default_depth_mm?: number
+          default_height_mm?: number
+          default_width_mm?: number
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      cart_items: {
+        Row: {
+          cabinet_type_id: string
+          cart_id: string
+          color_id: string | null
+          configuration: Json | null
+          created_at: string
+          depth_mm: number
+          door_style_id: string | null
+          finish_id: string | null
+          height_mm: number
+          id: string
+          quantity: number
+          total_price: number
+          unit_price: number
+          updated_at: string
+          width_mm: number
+        }
+        Insert: {
+          cabinet_type_id: string
+          cart_id: string
+          color_id?: string | null
+          configuration?: Json | null
+          created_at?: string
+          depth_mm: number
+          door_style_id?: string | null
+          finish_id?: string | null
+          height_mm: number
+          id?: string
+          quantity?: number
+          total_price: number
+          unit_price: number
+          updated_at?: string
+          width_mm: number
+        }
+        Update: {
+          cabinet_type_id?: string
+          cart_id?: string
+          color_id?: string | null
+          configuration?: Json | null
+          created_at?: string
+          depth_mm?: number
+          door_style_id?: string | null
+          finish_id?: string | null
+          height_mm?: number
+          id?: string
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+          updated_at?: string
+          width_mm?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_cabinet_type_id_fkey"
+            columns: ["cabinet_type_id"]
+            isOneToOne: false
+            referencedRelation: "cabinet_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_cart_id_fkey"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "carts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_color_id_fkey"
+            columns: ["color_id"]
+            isOneToOne: false
+            referencedRelation: "colors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_door_style_id_fkey"
+            columns: ["door_style_id"]
+            isOneToOne: false
+            referencedRelation: "door_styles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_finish_id_fkey"
+            columns: ["finish_id"]
+            isOneToOne: false
+            referencedRelation: "finishes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carts: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          session_id: string | null
+          total_amount: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          session_id?: string | null
+          total_amount?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          session_id?: string | null
+          total_amount?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      colors: {
+        Row: {
+          active: boolean
+          created_at: string
+          finish_id: string
+          hex_code: string | null
+          id: string
+          image_url: string | null
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          finish_id: string
+          hex_code?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          finish_id?: string
+          hex_code?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "colors_finish_id_fkey"
+            columns: ["finish_id"]
+            isOneToOne: false
+            referencedRelation: "finishes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      door_styles: {
+        Row: {
+          active: boolean
+          base_rate_per_sqm: number
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          base_rate_per_sqm?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          base_rate_per_sqm?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      finishes: {
+        Row: {
+          active: boolean
+          brand_id: string
+          created_at: string
+          finish_type: string
+          id: string
+          name: string
+          rate_per_sqm: number
+        }
+        Insert: {
+          active?: boolean
+          brand_id: string
+          created_at?: string
+          finish_type: string
+          id?: string
+          name: string
+          rate_per_sqm?: number
+        }
+        Update: {
+          active?: boolean
+          brand_id?: string
+          created_at?: string
+          finish_type?: string
+          id?: string
+          name?: string
+          rate_per_sqm?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finishes_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      global_settings: {
+        Row: {
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: string
+          updated_at: string
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value: string
+          updated_at?: string
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

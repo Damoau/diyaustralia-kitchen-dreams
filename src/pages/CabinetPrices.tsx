@@ -1,11 +1,54 @@
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ConfiguratorDialog } from "@/components/cabinet/ConfiguratorDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { CabinetType } from "@/types/cabinet";
 
 const CabinetPrices = () => {
+  const [cabinetTypes, setCabinetTypes] = useState<CabinetType[]>([]);
+  const [selectedCabinetType, setSelectedCabinetType] = useState<CabinetType | null>(null);
+  const [selectedWidth, setSelectedWidth] = useState<number>(300);
+  const [isConfiguratorOpen, setIsConfiguratorOpen] = useState(false);
+
+  // Load cabinet types
+  useEffect(() => {
+    loadCabinetTypes();
+  }, []);
+
+  const loadCabinetTypes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('cabinet_types')
+        .select('*')
+        .eq('category', 'base')
+        .eq('active', true);
+
+      if (error) throw error;
+      setCabinetTypes((data || []) as CabinetType[]);
+    } catch (error) {
+      console.error('Error loading cabinet types:', error);
+    }
+  };
+
+  const handleConfigure = (cabinetTypeName: string, width: number) => {
+    const cabinetType = cabinetTypes.find(ct => ct.name === cabinetTypeName);
+    if (cabinetType) {
+      setSelectedCabinetType(cabinetType);
+      setSelectedWidth(width);
+      setIsConfiguratorOpen(true);
+    }
+  };
+
+  const parseWidthRange = (widthStr: string): number => {
+    // Extract the first number from width ranges like "150-199" or "600"
+    const match = widthStr.match(/\d+/);
+    return match ? parseInt(match[0]) : 300;
+  };
   const finishTypes = [
     { name: "Standard Formica", note: "Add 10% for Gloss" },
     { name: "Standard Laminex", note: "Add 10% for Gloss" },
@@ -139,50 +182,28 @@ const CabinetPrices = () => {
                             ))}
                           </tr>
                         </thead>
-                        <tbody>
-                          {oneDoorPrices.map((row, idx) => (
-                            <tr key={idx} className="hover:bg-muted/50">
-                              <td className="border border-border p-3 font-medium">{row.width}</td>
-                              {row.prices.slice(0, 6).map((price, priceIdx) => (
-                                <td key={priceIdx} className="border border-border p-3">${price}</td>
-                              ))}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="2door">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>2 Door Base Cabinet Prices</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse border border-border">
-                        <thead>
-                          <tr className="bg-muted">
-                            <th className="border border-border p-3 text-left font-semibold">Width (mm)</th>
-                            {finishTypes.slice(0, 6).map((finish, idx) => (
-                              <th key={idx} className="border border-border p-3 text-left font-semibold text-sm">
-                                {finish.name}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {twoDoorPrices.map((row, idx) => (
-                            <tr key={idx} className="hover:bg-muted/50">
-                              <td className="border border-border p-3 font-medium">{row.width}</td>
-                              {row.prices.slice(0, 6).map((price, priceIdx) => (
-                                <td key={priceIdx} className="border border-border p-3">${price}</td>
-                              ))}
-                            </tr>
-                          ))}
-                        </tbody>
+                         <tbody>
+                           {oneDoorPrices.map((row, idx) => (
+                             <tr key={idx} className="hover:bg-muted/50">
+                               <td className="border border-border p-3 font-medium">{row.width}</td>
+                               {row.prices.slice(0, 6).map((price, priceIdx) => (
+                                 <td key={priceIdx} className="border border-border p-3">
+                                   <div className="flex flex-col gap-2">
+                                     <span className="font-medium">${price}</span>
+                                     <Button
+                                       size="sm"
+                                       variant="outline"
+                                       onClick={() => handleConfigure('1 Door Base Cabinet', parseWidthRange(row.width))}
+                                       className="text-xs"
+                                     >
+                                       Configure & Add
+                                     </Button>
+                                   </div>
+                                 </td>
+                               ))}
+                             </tr>
+                           ))}
+                         </tbody>
                       </table>
                     </div>
                   </CardContent>
@@ -194,12 +215,22 @@ const CabinetPrices = () => {
                   <CardHeader>
                     <CardTitle>2 Pot Drawers Prices</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      Pot drawer prices vary by width and finish. Contact us for detailed pricing on drawer configurations.
-                    </p>
-                    <Button variant="hero">Get Drawer Pricing</Button>
-                  </CardContent>
+                   <CardContent>
+                     <div className="space-y-4">
+                       <p className="text-muted-foreground">
+                         Pot drawer prices vary by width and finish. Contact us for detailed pricing on drawer configurations.
+                       </p>
+                       <div className="flex gap-4">
+                         <Button variant="hero">Get Drawer Pricing</Button>
+                         <Button 
+                           variant="outline"
+                           onClick={() => handleConfigure('Pot Drawer Base', 900)}
+                         >
+                           Configure Pot Drawers
+                         </Button>
+                       </div>
+                     </div>
+                   </CardContent>
                 </Card>
               </TabsContent>
             </Tabs>
@@ -257,6 +288,16 @@ const CabinetPrices = () => {
       </section>
 
       <Footer />
+
+      {/* Configurator Dialog */}
+      {selectedCabinetType && (
+        <ConfiguratorDialog
+          isOpen={isConfiguratorOpen}
+          onClose={() => setIsConfiguratorOpen(false)}
+          cabinetType={selectedCabinetType}
+          initialWidth={selectedWidth}
+        />
+      )}
     </div>
   );
 };
