@@ -12,30 +12,30 @@ interface Color {
   hex_code: string;
   image_url: string;
   active: boolean;
-  finish_id: string;
+  door_style_id: string;
   surcharge_rate_per_sqm: number;
 }
 
-interface Finish {
+interface DoorStyle {
   id: string;
   name: string;
 }
 
 interface ColorEditDialogProps {
   color: Color | null;
-  finishes: Finish[];
+  doorStyles: DoorStyle[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (color: Partial<Color>) => void;
 }
 
-const ColorEditDialog = ({ color, finishes, open, onOpenChange, onSave }: ColorEditDialogProps) => {
+const ColorEditDialog = ({ color, doorStyles, open, onOpenChange, onSave }: ColorEditDialogProps) => {
   const [formData, setFormData] = useState({
     name: "",
     hex_code: "",
     image_url: "",
     active: true,
-    finish_id: "",
+    door_style_id: "",
     surcharge_rate_per_sqm: 0
   });
 
@@ -46,7 +46,7 @@ const ColorEditDialog = ({ color, finishes, open, onOpenChange, onSave }: ColorE
         hex_code: color.hex_code || "",
         image_url: color.image_url || "",
         active: color.active,
-        finish_id: color.finish_id,
+        door_style_id: color.door_style_id,
         surcharge_rate_per_sqm: color.surcharge_rate_per_sqm
       });
     } else {
@@ -55,7 +55,7 @@ const ColorEditDialog = ({ color, finishes, open, onOpenChange, onSave }: ColorE
         hex_code: "",
         image_url: "",
         active: true,
-        finish_id: "",
+        door_style_id: "",
         surcharge_rate_per_sqm: 0
       });
     }
@@ -85,15 +85,15 @@ const ColorEditDialog = ({ color, finishes, open, onOpenChange, onSave }: ColorE
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="finish">Finish</Label>
-            <Select value={formData.finish_id} onValueChange={(value) => setFormData({...formData, finish_id: value})}>
+            <Label htmlFor="door_style">Door Style</Label>
+            <Select value={formData.door_style_id} onValueChange={(value) => setFormData({...formData, door_style_id: value})}>
               <SelectTrigger>
-                <SelectValue placeholder="Select finish" />
+                <SelectValue placeholder="Select door style" />
               </SelectTrigger>
               <SelectContent>
-                {finishes.map((finish) => (
-                  <SelectItem key={finish.id} value={finish.id}>
-                    {finish.name}
+                {doorStyles.map((doorStyle) => (
+                  <SelectItem key={doorStyle.id} value={doorStyle.id}>
+                    {doorStyle.name}
                   </SelectItem>
                 ))}
               </SelectContent>

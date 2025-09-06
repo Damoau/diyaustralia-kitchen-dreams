@@ -28,13 +28,13 @@ export interface Finish {
 
 export interface Color {
   id: string;
-  finish_id: string;
+  door_style_id: string;
   name: string;
   hex_code?: string;
   image_url?: string;
   active: boolean;
   created_at: string;
-  finish?: Finish;
+  door_style?: DoorStyle;
 }
 
 export interface CabinetType {

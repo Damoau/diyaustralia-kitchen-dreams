@@ -92,6 +92,7 @@ export type Database = {
           default_width_mm: number
           id: string
           name: string
+          range_id: string | null
         }
         Insert: {
           active?: boolean
@@ -102,6 +103,7 @@ export type Database = {
           default_width_mm: number
           id?: string
           name: string
+          range_id?: string | null
         }
         Update: {
           active?: boolean
@@ -112,8 +114,17 @@ export type Database = {
           default_width_mm?: number
           id?: string
           name?: string
+          range_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cabinet_types_range_id_fkey"
+            columns: ["range_id"]
+            isOneToOne: false
+            referencedRelation: "product_ranges"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cart_items: {
         Row: {
@@ -239,7 +250,7 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
-          finish_id: string
+          door_style_id: string | null
           hex_code: string | null
           id: string
           image_url: string | null
@@ -249,7 +260,7 @@ export type Database = {
         Insert: {
           active?: boolean
           created_at?: string
-          finish_id: string
+          door_style_id?: string | null
           hex_code?: string | null
           id?: string
           image_url?: string | null
@@ -259,7 +270,7 @@ export type Database = {
         Update: {
           active?: boolean
           created_at?: string
-          finish_id?: string
+          door_style_id?: string | null
           hex_code?: string | null
           id?: string
           image_url?: string | null
@@ -268,10 +279,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "colors_finish_id_fkey"
-            columns: ["finish_id"]
+            foreignKeyName: "colors_door_style_id_fkey"
+            columns: ["door_style_id"]
             isOneToOne: false
-            referencedRelation: "finishes"
+            referencedRelation: "door_styles"
             referencedColumns: ["id"]
           },
         ]
@@ -362,6 +373,141 @@ export type Database = {
           setting_key?: string
           setting_value?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      hardware_brands: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          website_url: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          website_url?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      hardware_products: {
+        Row: {
+          active: boolean
+          cost_per_unit: number
+          created_at: string
+          description: string | null
+          hardware_brand_id: string
+          hardware_type_id: string
+          id: string
+          model_number: string | null
+          name: string
+          specifications: Json | null
+        }
+        Insert: {
+          active?: boolean
+          cost_per_unit?: number
+          created_at?: string
+          description?: string | null
+          hardware_brand_id: string
+          hardware_type_id: string
+          id?: string
+          model_number?: string | null
+          name: string
+          specifications?: Json | null
+        }
+        Update: {
+          active?: boolean
+          cost_per_unit?: number
+          created_at?: string
+          description?: string | null
+          hardware_brand_id?: string
+          hardware_type_id?: string
+          id?: string
+          model_number?: string | null
+          name?: string
+          specifications?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hardware_products_hardware_brand_id_fkey"
+            columns: ["hardware_brand_id"]
+            isOneToOne: false
+            referencedRelation: "hardware_brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hardware_products_hardware_type_id_fkey"
+            columns: ["hardware_type_id"]
+            isOneToOne: false
+            referencedRelation: "hardware_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hardware_types: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      product_ranges: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          sort_order: number | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          sort_order?: number | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          sort_order?: number | null
         }
         Relationships: []
       }

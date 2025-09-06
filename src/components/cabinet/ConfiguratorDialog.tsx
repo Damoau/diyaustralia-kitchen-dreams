@@ -59,15 +59,15 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
     }
   }, [selectedBrand, finishes]);
 
-  // Update colors when finish changes
+  // Update colors when door style changes
   useEffect(() => {
-    if (selectedFinish) {
-      const finishColors = colors.filter(c => c.finish_id === selectedFinish);
-      if (finishColors.length > 0 && !finishColors.find(c => c.id === selectedColor)) {
-        setSelectedColor(finishColors[0].id);
+    if (selectedDoorStyle) {
+      const doorStyleColors = colors.filter(c => c.door_style_id === selectedDoorStyle);
+      if (doorStyleColors.length > 0 && !doorStyleColors.find(c => c.id === selectedColor)) {
+        setSelectedColor(doorStyleColors[0].id);
       }
     }
-  }, [selectedFinish, colors]);
+  }, [selectedDoorStyle, colors]);
 
   const loadData = async () => {
     try {
@@ -154,7 +154,7 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
   };
 
   const currentBrandFinishes = finishes.filter(f => f.brand_id === selectedBrand);
-  const currentFinishColors = colors.filter(c => c.finish_id === selectedFinish);
+  const currentDoorStyleColors = colors.filter(c => c.door_style_id === selectedDoorStyle);
   const totalPrice = calculatePrice();
 
   return (
@@ -259,11 +259,11 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
                     </div>
                   )}
 
-                  {selectedFinish && (
+                  {selectedDoorStyle && (
                     <div>
                       <Label>Color</Label>
                       <div className="grid grid-cols-2 gap-2 mt-2">
-                        {currentFinishColors.map(color => (
+                        {currentDoorStyleColors.map(color => (
                           <div
                             key={color.id}
                             className={`p-3 border rounded-lg cursor-pointer transition-colors ${

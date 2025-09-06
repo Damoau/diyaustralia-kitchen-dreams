@@ -83,12 +83,12 @@ const CabinetPrices = () => {
     }
   };
 
-  const loadColors = async (finishId: string) => {
+  const loadColors = async (doorStyleId: string) => {
     try {
       const { data, error } = await supabase
         .from('colors')
         .select('*')
-        .eq('finish_id', finishId)
+        .eq('door_style_id', doorStyleId)
         .eq('active', true);
 
       if (error) throw error;
@@ -205,7 +205,9 @@ const CabinetPrices = () => {
     });
     
     if (matchedFinish?.id) {
-      loadColors(matchedFinish.id);
+      // TODO: Update to load colors based on door style selection
+      // For now, load empty colors array until door style is selected
+      setColors([]);
     }
     
     setPopupOpen(true);

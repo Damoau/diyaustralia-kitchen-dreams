@@ -19,6 +19,8 @@ import FinishEditDialog from "@/components/admin/FinishEditDialog";
 import ColorEditDialog from "@/components/admin/ColorEditDialog";
 import DoorStyleEditDialog from "@/components/admin/DoorStyleEditDialog";
 import CabinetTypeEditDialog from "@/components/admin/CabinetTypeEditDialog";
+import GlobalSettingsEditDialog from "@/components/admin/GlobalSettingsEditDialog";
+import HardwareEditDialog from "@/components/admin/HardwareEditDialog";
 
 interface Brand {
   id: string;
@@ -42,7 +44,7 @@ interface Color {
   hex_code: string;
   image_url: string;
   active: boolean;
-  finish_id: string;
+  door_style_id: string;
   surcharge_rate_per_sqm: number;
 }
 
@@ -51,6 +53,48 @@ interface DoorStyle {
   name: string;
   description: string;
   base_rate_per_sqm: number;
+  active: boolean;
+}
+
+interface GlobalSetting {
+  id: string;
+  setting_key: string;
+  setting_value: string;
+  description: string;
+}
+
+interface HardwareType {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  active: boolean;
+}
+
+interface HardwareBrand {
+  id: string;
+  name: string;
+  description: string;
+  website_url: string;
+  active: boolean;
+}
+
+interface HardwareProduct {
+  id: string;
+  hardware_type_id: string;
+  hardware_brand_id: string;
+  name: string;
+  model_number: string;
+  cost_per_unit: number;
+  description: string;
+  active: boolean;
+}
+
+interface ProductRange {
+  id: string;
+  name: string;
+  description: string;
+  sort_order: number;
   active: boolean;
 }
 
@@ -70,6 +114,11 @@ const Admin = () => {
   const [colors, setColors] = useState<Color[]>([]);
   const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
   const [cabinetTypes, setCabinetTypes] = useState<CabinetType[]>([]);
+  const [globalSettings, setGlobalSettings] = useState<GlobalSetting[]>([]);
+  const [hardwareTypes, setHardwareTypes] = useState<HardwareType[]>([]);
+  const [hardwareBrands, setHardwareBrands] = useState<HardwareBrand[]>([]);
+  const [hardwareProducts, setHardwareProducts] = useState<HardwareProduct[]>([]);
+  const [productRanges, setProductRanges] = useState<ProductRange[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Edit states
@@ -78,6 +127,8 @@ const Admin = () => {
   const [editingColor, setEditingColor] = useState<Color | null>(null);
   const [editingDoorStyle, setEditingDoorStyle] = useState<DoorStyle | null>(null);
   const [editingCabinetType, setEditingCabinetType] = useState<CabinetType | null>(null);
+  const [editingGlobalSetting, setEditingGlobalSetting] = useState<GlobalSetting | null>(null);
+  const [editingHardware, setEditingHardware] = useState<{ type: 'hardware_type' | 'hardware_brand' | 'hardware_product' | 'product_range', item: any } | null>(null);
   
   const { toast } = useToast();
   const { user } = useAuth();
@@ -91,12 +142,28 @@ const Admin = () => {
   const loadAllData = async () => {
     try {
       setLoading(true);
-      const [brandsRes, finishesRes, colorsRes, doorStylesRes, cabinetTypesRes] = await Promise.all([
+      const [
+        brandsRes, 
+        finishesRes, 
+        colorsRes, 
+        doorStylesRes, 
+        cabinetTypesRes,
+        globalSettingsRes,
+        hardwareTypesRes,
+        hardwareBrandsRes,
+        hardwareProductsRes,
+        productRangesRes
+      ] = await Promise.all([
         supabase.from('brands').select('*').order('name'),
         supabase.from('finishes').select('*').order('name'),
         supabase.from('colors').select('*').order('name'),
         supabase.from('door_styles').select('*').order('name'),
         supabase.from('cabinet_types').select('*').order('name'),
+        supabase.from('global_settings').select('*').order('setting_key'),
+        supabase.from('hardware_types').select('*').order('name'),
+        supabase.from('hardware_brands').select('*').order('name'),
+        supabase.from('hardware_products').select('*').order('name'),
+        supabase.from('product_ranges').select('*').order('sort_order'),
       ]);
 
       if (brandsRes.data) setBrands(brandsRes.data);
@@ -104,6 +171,11 @@ const Admin = () => {
       if (colorsRes.data) setColors(colorsRes.data);
       if (doorStylesRes.data) setDoorStyles(doorStylesRes.data);
       if (cabinetTypesRes.data) setCabinetTypes(cabinetTypesRes.data);
+      if (globalSettingsRes.data) setGlobalSettings(globalSettingsRes.data);
+      if (hardwareTypesRes.data) setHardwareTypes(hardwareTypesRes.data);
+      if (hardwareBrandsRes.data) setHardwareBrands(hardwareBrandsRes.data);
+      if (hardwareProductsRes.data) setHardwareProducts(hardwareProductsRes.data);
+      if (productRangesRes.data) setProductRanges(productRangesRes.data);
     } catch (error) {
       toast({ 
         title: "Error", 
@@ -168,8 +240,8 @@ const Admin = () => {
 
   const saveColor = async (color: Partial<Color>) => {
     try {
-      if (!color.name || !color.finish_id) {
-        toast({ title: "Error", description: "Name and finish are required", variant: "destructive" });
+      if (!color.name || !color.door_style_id) {
+        toast({ title: "Error", description: "Name and door style are required", variant: "destructive" });
         return;
       }
       
@@ -178,7 +250,7 @@ const Admin = () => {
       } else {
         await supabase.from('colors').insert({
           name: color.name,
-          finish_id: color.finish_id,
+          door_style_id: color.door_style_id,
           hex_code: color.hex_code || "",
           image_url: color.image_url || null,
           surcharge_rate_per_sqm: color.surcharge_rate_per_sqm || 0,
@@ -215,6 +287,65 @@ const Admin = () => {
       toast({ title: "Success", description: "Door style saved!" });
     } catch (error) {
       toast({ title: "Error", description: "Failed to save door style", variant: "destructive" });
+    }
+  const saveGlobalSetting = async (setting: Partial<GlobalSetting>) => {
+    try {
+      if (!setting.setting_key || !setting.setting_value) {
+        toast({ title: "Error", description: "Setting key and value are required", variant: "destructive" });
+        return;
+      }
+      
+      if (setting.id) {
+        await supabase.from('global_settings').update(setting).eq('id', setting.id);
+      } else {
+        await supabase.from('global_settings').insert({
+          setting_key: setting.setting_key,
+          setting_value: setting.setting_value,
+          description: setting.description || ""
+        });
+      }
+      loadAllData();
+      setEditingGlobalSetting(null);
+      toast({ title: "Success", description: "Global setting saved!" });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to save global setting", variant: "destructive" });
+    }
+  };
+
+  const saveHardware = async (item: any) => {
+    try {
+      if (!editingHardware) return;
+      
+      const { type } = editingHardware;
+      let tableName = '';
+      
+      switch (type) {
+        case 'hardware_type':
+          tableName = 'hardware_types';
+          break;
+        case 'hardware_brand':
+          tableName = 'hardware_brands';
+          break;
+        case 'hardware_product':
+          tableName = 'hardware_products';
+          break;
+        case 'product_range':
+          tableName = 'product_ranges';
+          break;
+      }
+      
+      if (item.id) {
+        await supabase.from(tableName).update(item).eq('id', item.id);
+      } else {
+        delete item.id;
+        await supabase.from(tableName).insert(item);
+      }
+      
+      loadAllData();
+      setEditingHardware(null);
+      toast({ title: "Success", description: `${type.replace('_', ' ')} saved!` });
+    } catch (error) {
+      toast({ title: "Error", description: `Failed to save ${editingHardware?.type.replace('_', ' ')}`, variant: "destructive" });
     }
   };
 
@@ -271,12 +402,15 @@ const Admin = () => {
           </div>
 
           <Tabs defaultValue="brands" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="brands">Brands</TabsTrigger>
               <TabsTrigger value="finishes">Finishes</TabsTrigger>
               <TabsTrigger value="colors">Colors</TabsTrigger>
               <TabsTrigger value="door-styles">Door Styles</TabsTrigger>
               <TabsTrigger value="cabinet-types">Cabinet Types</TabsTrigger>
+              <TabsTrigger value="hardware">Hardware</TabsTrigger>
+              <TabsTrigger value="ranges">Ranges</TabsTrigger>
+              <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
 
             <TabsContent value="brands">
@@ -475,6 +609,159 @@ const Admin = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            <TabsContent value="hardware">
+              <div className="grid gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Hardware Types</CardTitle>
+                    <CardDescription>Manage hardware categories</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button className="mb-4" onClick={() => setEditingHardware({ type: 'hardware_type', item: {} })}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Hardware Type
+                    </Button>
+                    <div className="space-y-2">
+                      {hardwareTypes.map((type) => (
+                        <div key={type.id} className="flex items-center justify-between p-4 border rounded">
+                          <div>
+                            <h4 className="font-medium">{type.name}</h4>
+                            <p className="text-sm text-muted-foreground">{type.category}</p>
+                            <span className={`text-xs px-2 py-1 rounded ${type.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                              {type.active ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                          <Button variant="outline" size="sm" onClick={() => setEditingHardware({ type: 'hardware_type', item: type })}>
+                            Edit
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Hardware Brands</CardTitle>
+                    <CardDescription>Manage hardware manufacturers</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button className="mb-4" onClick={() => setEditingHardware({ type: 'hardware_brand', item: {} })}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Hardware Brand
+                    </Button>
+                    <div className="space-y-2">
+                      {hardwareBrands.map((brand) => (
+                        <div key={brand.id} className="flex items-center justify-between p-4 border rounded">
+                          <div>
+                            <h4 className="font-medium">{brand.name}</h4>
+                            <p className="text-sm text-muted-foreground">{brand.description}</p>
+                            <span className={`text-xs px-2 py-1 rounded ${brand.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                              {brand.active ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                          <Button variant="outline" size="sm" onClick={() => setEditingHardware({ type: 'hardware_brand', item: brand })}>
+                            Edit
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Hardware Products</CardTitle>
+                    <CardDescription>Manage specific hardware products</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button className="mb-4" onClick={() => setEditingHardware({ type: 'hardware_product', item: {} })}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Hardware Product
+                    </Button>
+                    <div className="space-y-2">
+                      {hardwareProducts.map((product) => (
+                        <div key={product.id} className="flex items-center justify-between p-4 border rounded">
+                          <div>
+                            <h4 className="font-medium">{product.name}</h4>
+                            <p className="text-sm text-muted-foreground">{product.model_number}</p>
+                            <p className="text-sm">${product.cost_per_unit}</p>
+                            <span className={`text-xs px-2 py-1 rounded ${product.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                              {product.active ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                          <Button variant="outline" size="sm" onClick={() => setEditingHardware({ type: 'hardware_product', item: product })}>
+                            Edit
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="ranges">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Product Ranges</CardTitle>
+                  <CardDescription>Organize cabinet types into ranges</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="mb-4" onClick={() => setEditingHardware({ type: 'product_range', item: {} })}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Product Range
+                  </Button>
+                  <div className="space-y-2">
+                    {productRanges.map((range) => (
+                      <div key={range.id} className="flex items-center justify-between p-4 border rounded">
+                        <div>
+                          <h4 className="font-medium">{range.name}</h4>
+                          <p className="text-sm text-muted-foreground">{range.description}</p>
+                          <p className="text-sm">Sort Order: {range.sort_order}</p>
+                          <span className={`text-xs px-2 py-1 rounded ${range.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            {range.active ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => setEditingHardware({ type: 'product_range', item: range })}>
+                          Edit
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="settings">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Global Settings</CardTitle>
+                  <CardDescription>Manage pricing and system settings</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="mb-4" onClick={() => setEditingGlobalSetting({} as GlobalSetting)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Global Setting
+                  </Button>
+                  <div className="space-y-2">
+                    {globalSettings.map((setting) => (
+                      <div key={setting.id} className="flex items-center justify-between p-4 border rounded">
+                        <div>
+                          <h4 className="font-medium">{setting.setting_key}</h4>
+                          <p className="text-sm font-mono">{setting.setting_value}</p>
+                          <p className="text-sm text-muted-foreground">{setting.description}</p>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => setEditingGlobalSetting(setting)}>
+                          Edit
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
           </Tabs>
 
           {/* Edit Dialogs */}
@@ -495,7 +782,7 @@ const Admin = () => {
 
           <ColorEditDialog
             color={editingColor}
-            finishes={finishes}
+            doorStyles={doorStyles}
             open={!!editingColor}
             onOpenChange={(open) => !open && setEditingColor(null)}
             onSave={saveColor}
@@ -513,6 +800,23 @@ const Admin = () => {
             open={!!editingCabinetType}
             onOpenChange={(open) => !open && setEditingCabinetType(null)}
             onSave={saveCabinetType}
+          />
+
+          <GlobalSettingsEditDialog
+            setting={editingGlobalSetting}
+            open={!!editingGlobalSetting}
+            onOpenChange={(open) => !open && setEditingGlobalSetting(null)}
+            onSave={saveGlobalSetting}
+          />
+
+          <HardwareEditDialog
+            type={editingHardware?.type || 'hardware_type'}
+            item={editingHardware?.item}
+            hardwareTypes={hardwareTypes}
+            hardwareBrands={hardwareBrands}
+            open={!!editingHardware}
+            onOpenChange={(open) => !open && setEditingHardware(null)}
+            onSave={saveHardware}
           />
         </main>
         <Footer />
