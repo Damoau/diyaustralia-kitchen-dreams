@@ -338,10 +338,11 @@ const Admin = () => {
 
             <TabsContent value="hardware">
               <div className="grid gap-6">
+                {/* Hardware Types */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Hardware Types</CardTitle>
-                    <CardDescription>Manage hardware categories</CardDescription>
+                    <CardDescription>Manage hardware categories (hinges, handles, drawer slides, etc.)</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
@@ -387,6 +388,132 @@ const Admin = () => {
                               </div>
                             </div>
                           ))}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Hardware Brands */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Hardware Brands</CardTitle>
+                    <CardDescription>Manage hardware manufacturers (Blum, Titus, etc.)</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <Button className="w-full max-w-sm" onClick={() => setEditingHardware({ type: 'hardware_brand', item: {} })}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Hardware Brand
+                      </Button>
+                      
+                      <div className="bg-gradient-to-br from-background to-muted/20 rounded-xl border border-border/50 overflow-hidden">
+                        <div className="grid grid-cols-4 gap-4 p-4 bg-muted/30 border-b border-border/50 font-semibold text-sm text-muted-foreground">
+                          <div>Brand Name</div>
+                          <div>Website</div>
+                          <div>Status</div>
+                          <div>Actions</div>
+                        </div>
+                        <div className="divide-y divide-border/30">
+                          {hardwareBrands.map((brand, index) => (
+                            <div key={brand.id} className="grid grid-cols-4 gap-4 p-4 hover:bg-muted/20 transition-all duration-200 group animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                              <div className="flex flex-col">
+                                <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">{brand.name}</h4>
+                                <p className="text-sm text-muted-foreground">{brand.description}</p>
+                              </div>
+                              <div className="flex items-center">
+                                {brand.website_url ? (
+                                  <a href={brand.website_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm">
+                                    Visit Website
+                                  </a>
+                                ) : (
+                                  <span className="text-sm text-muted-foreground">No website</span>
+                                )}
+                              </div>
+                              <div className="flex items-center">
+                                <span className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                                  brand.active 
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+                                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                }`}>
+                                  {brand.active ? 'Active' : 'Inactive'}
+                                </span>
+                              </div>
+                              <div className="flex items-center">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => setEditingHardware({ type: 'hardware_brand', item: brand })}
+                                  className="hover:bg-primary/10 hover:border-primary/20 hover:text-primary transition-all"
+                                >
+                                  Edit
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Hardware Products */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Hardware Products</CardTitle>
+                    <CardDescription>Manage specific hardware products with pricing</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <Button className="w-full max-w-sm" onClick={() => setEditingHardware({ type: 'hardware_product', item: {} })}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Hardware Product
+                      </Button>
+                      
+                      <div className="bg-gradient-to-br from-background to-muted/20 rounded-xl border border-border/50 overflow-hidden">
+                        <div className="grid grid-cols-6 gap-4 p-4 bg-muted/30 border-b border-border/50 font-semibold text-sm text-muted-foreground">
+                          <div>Product Name</div>
+                          <div>Model</div>
+                          <div>Type</div>
+                          <div>Brand</div>
+                          <div>Cost/Unit</div>
+                          <div>Actions</div>
+                        </div>
+                        <div className="divide-y divide-border/30">
+                          {hardwareProducts.map((product, index) => {
+                            const productType = hardwareTypes.find(t => t.id === product.hardware_type_id);
+                            const productBrand = hardwareBrands.find(b => b.id === product.hardware_brand_id);
+                            return (
+                              <div key={product.id} className="grid grid-cols-6 gap-4 p-4 hover:bg-muted/20 transition-all duration-200 group animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                                <div className="flex flex-col">
+                                  <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">{product.name}</h4>
+                                  <p className="text-xs text-muted-foreground">{product.description}</p>
+                                </div>
+                                <div className="flex items-center">
+                                  <span className="font-mono text-sm">{product.model_number || 'N/A'}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <span className="px-2 py-1 bg-accent/20 rounded text-xs">{productType?.name || 'Unknown'}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <span className="px-2 py-1 bg-secondary/50 rounded text-xs">{productBrand?.name || 'Unknown'}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <span className="font-semibold text-primary">${product.cost_per_unit}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => setEditingHardware({ type: 'hardware_product', item: product })}
+                                    className="hover:bg-primary/10 hover:border-primary/20 hover:text-primary transition-all"
+                                  >
+                                    Edit
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
