@@ -148,12 +148,17 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const generateAutoRanges = () => {
     const ranges = [];
     for (let start = autoGenMin; start < autoGenMax; start += increment) {
-      const end = Math.min(start + increment - 1, autoGenMax);
+      const end = start + increment - 1;
+      const isLastRange = start + increment >= autoGenMax;
+      const finalEnd = isLastRange ? autoGenMax : end;
+      
       ranges.push({
         min: start,
-        max: end,
-        label: `${start} - ${end}`
+        max: finalEnd,
+        label: `${start} - ${finalEnd}`
       });
+      
+      if (isLastRange) break;
     }
     return ranges;
   };
