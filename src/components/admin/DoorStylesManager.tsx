@@ -137,13 +137,23 @@ export function DoorStylesManager() {
                   <TableCell>
                     <Input
                       value={style.name}
-                      onChange={(e) => updateDoorStyle(style.id, { name: e.target.value })}
+                      onChange={(e) => {
+                        setDoorStyles((prev) => prev.map((s) => s.id === style.id ? { ...s, name: e.target.value } : s));
+                      }}
+                      onBlur={(e) => {
+                        updateDoorStyle(style.id, { name: e.target.value });
+                      }}
                     />
                   </TableCell>
                   <TableCell>
                     <Input
                       value={style.description || ""}
-                      onChange={(e) => updateDoorStyle(style.id, { description: e.target.value })}
+                      onChange={(e) => {
+                        setDoorStyles((prev) => prev.map((s) => s.id === style.id ? { ...s, description: e.target.value } : s));
+                      }}
+                      onBlur={(e) => {
+                        updateDoorStyle(style.id, { description: e.target.value });
+                      }}
                     />
                   </TableCell>
                   <TableCell>
