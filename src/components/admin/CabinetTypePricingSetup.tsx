@@ -16,6 +16,7 @@ import { PriceDiscrepancyAnalysis } from './PriceDiscrepancyAnalysis';
 import { ActualFrontendCalculation } from './ActualFrontendCalculation';
 import { HardwareCostExplanation } from './HardwareCostExplanation';
 import { DoorStyleConnectionIssue } from './DoorStyleConnectionIssue';
+import { PriceRoundingDemo } from './PriceRoundingDemo';
 
 interface DoorStyle {
   id: string;
@@ -56,6 +57,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const [showFrontendCalc, setShowFrontendCalc] = useState(false);
   const [showHardwareExplanation, setShowHardwareExplanation] = useState(false);
   const [showDoorStyleIssue, setShowDoorStyleIssue] = useState(false);
+  const [showRoundingDemo, setShowRoundingDemo] = useState(false);
 
   useEffect(() => {
     if (cabinetTypeId && user && !authLoading) {
@@ -491,6 +493,15 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                   <Calculator className="h-4 w-4" />
                   🚨 Door Style $2000?
                 </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setShowRoundingDemo(!showRoundingDemo)}
+                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                >
+                  <Calculator className="h-4 w-4" />
+                  ✅ Rounded Prices
+                </Button>
               </div>
             </div>
           </CardHeader>
@@ -565,6 +576,11 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
       {/* Door Style Connection Issue */}
       {showDoorStyleIssue && (
         <DoorStyleConnectionIssue />
+      )}
+
+      {/* Price Rounding Demo */}
+      {showRoundingDemo && (
+        <PriceRoundingDemo />
       )}
 
       {/* Poly 750-799 Example */}

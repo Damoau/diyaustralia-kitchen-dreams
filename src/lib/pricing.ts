@@ -186,10 +186,14 @@ function calculateDoorCost(
 }
 
 export function formatPrice(price: number): string {
+  // Round to nearest dollar
+  const roundedPrice = Math.round(price);
   return new Intl.NumberFormat('en-AU', {
     style: 'currency',
     currency: 'AUD',
-  }).format(price);
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(roundedPrice);
 }
 
 export function exportToCsv(cutlists: CabinetCutlist[]): string {

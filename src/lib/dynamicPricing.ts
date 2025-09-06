@@ -109,7 +109,7 @@ export function calculateCabinetPrice(
   const subtotalWithWastage = subtotal * (1 + settings.wastageFactor);
   const totalCost = subtotalWithWastage * (1 + settings.gstRate);
   
-  return Math.round(totalCost * 100) / 100; // Round to 2 decimal places
+  return Math.round(totalCost); // Round to nearest dollar
 }
 
 // Generate price data for the static price tables using database-driven ranges and finishes
