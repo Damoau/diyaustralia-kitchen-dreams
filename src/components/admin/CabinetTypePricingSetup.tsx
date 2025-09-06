@@ -14,6 +14,7 @@ import { PricingFormulaBreakdown } from './PricingFormulaBreakdown';
 import { PolyPricingBreakdown } from './PolyPricingBreakdown';
 import { PriceDiscrepancyAnalysis } from './PriceDiscrepancyAnalysis';
 import { ActualFrontendCalculation } from './ActualFrontendCalculation';
+import { HardwareCostExplanation } from './HardwareCostExplanation';
 
 interface DoorStyle {
   id: string;
