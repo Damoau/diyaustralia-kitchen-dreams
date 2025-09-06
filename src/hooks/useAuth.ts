@@ -7,35 +7,46 @@ export const useAuth = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [roleKnown, setRoleKnown] = useState(false);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Check admin role immediately, not with setTimeout
-          checkAdminRole(session.user.id);
-        } else {
-          setIsAdmin(false);
-        }
-        
+    // Set up auth state listener FIRST (sync-only callback)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+
+      if (session?.user) {
+        // Start loading until role is checked
+        setIsLoading(true);
+        // Defer Supabase call to avoid deadlocks
+        setTimeout(() => {
+          checkAdminRole(session.user!.id).finally(() => {
+            setRoleKnown(true);
+            setIsLoading(false);
+          });
+        }, 0);
+      } else {
+        setIsAdmin(false);
+        setRoleKnown(true);
         setIsLoading(false);
       }
-    );
+    });
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
-        checkAdminRole(session.user.id);
+        setIsLoading(true);
+        checkAdminRole(session.user.id).finally(() => {
+          setRoleKnown(true);
+          setIsLoading(false);
+        });
+      } else {
+        setRoleKnown(true);
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -70,6 +81,7 @@ export const useAuth = () => {
     session,
     isLoading,
     isAdmin,
+    roleKnown,
     signOut,
     isAuthenticated: !!user
   };

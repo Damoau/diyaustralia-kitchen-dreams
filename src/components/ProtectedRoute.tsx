@@ -11,7 +11,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps) => {
-  const { isAuthenticated, isAdmin, isLoading } = useAuth();
+  const { isAuthenticated, isAdmin, isLoading, roleKnown } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,15 +23,15 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
         if (!isAuthenticated) {
           console.log('Redirecting to auth - not authenticated');
           navigate('/auth', { replace: true });
-        } else if (requireAdmin && !isAdmin) {
+        } else if (requireAdmin && roleKnown && !isAdmin) {
           console.log('Redirecting to home - not admin');
           navigate('/', { replace: true });
         }
       }
-    }, 100);
+    }, 50);
 
     return () => clearTimeout(timeoutId);
-  }, [isAuthenticated, isAdmin, isLoading, navigate, requireAdmin]);
+  }, [isAuthenticated, isAdmin, isLoading, roleKnown, navigate, requireAdmin]);
 
   if (isLoading) {
     return (
@@ -72,7 +72,20 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
     );
   }
 
-  if (requireAdmin && !isAdmin) {
+  if (requireAdmin && !roleKnown) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-96">
+          <CardContent className="p-8 text-center">
+            <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Checking permissions...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (requireAdmin && roleKnown && !isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-96">
