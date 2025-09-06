@@ -288,6 +288,35 @@ const Admin = () => {
     } catch (error) {
       toast({ title: "Error", description: "Failed to save door style", variant: "destructive" });
     }
+  };
+
+  const saveCabinetType = async (cabinetType: Partial<CabinetType>) => {
+    try {
+      if (!cabinetType.name || !cabinetType.category) {
+        toast({ title: "Error", description: "Name and category are required", variant: "destructive" });
+        return;
+      }
+      
+      if (cabinetType.id) {
+        await supabase.from('cabinet_types').update(cabinetType).eq('id', cabinetType.id);
+      } else {
+        await supabase.from('cabinet_types').insert({
+          name: cabinetType.name,
+          category: cabinetType.category,
+          default_width_mm: cabinetType.default_width_mm || 300,
+          default_height_mm: cabinetType.default_height_mm || 720,
+          default_depth_mm: cabinetType.default_depth_mm || 560,
+          active: cabinetType.active ?? true
+        });
+      }
+      loadAllData();
+      setEditingCabinetType(null);
+      toast({ title: "Success", description: "Cabinet type saved!" });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to save cabinet type", variant: "destructive" });
+    }
+  };
+
   const saveGlobalSetting = async (setting: Partial<GlobalSetting>) => {
     try {
       if (!setting.setting_key || !setting.setting_value) {
@@ -317,28 +346,40 @@ const Admin = () => {
       if (!editingHardware) return;
       
       const { type } = editingHardware;
-      let tableName = '';
-      
-      switch (type) {
-        case 'hardware_type':
-          tableName = 'hardware_types';
-          break;
-        case 'hardware_brand':
-          tableName = 'hardware_brands';
-          break;
-        case 'hardware_product':
-          tableName = 'hardware_products';
-          break;
-        case 'product_range':
-          tableName = 'product_ranges';
-          break;
-      }
       
       if (item.id) {
-        await supabase.from(tableName).update(item).eq('id', item.id);
+        // Update existing item
+        switch (type) {
+          case 'hardware_type':
+            await supabase.from('hardware_types').update(item).eq('id', item.id);
+            break;
+          case 'hardware_brand':
+            await supabase.from('hardware_brands').update(item).eq('id', item.id);
+            break;
+          case 'hardware_product':
+            await supabase.from('hardware_products').update(item).eq('id', item.id);
+            break;
+          case 'product_range':
+            await supabase.from('product_ranges').update(item).eq('id', item.id);
+            break;
+        }
       } else {
+        // Insert new item
         delete item.id;
-        await supabase.from(tableName).insert(item);
+        switch (type) {
+          case 'hardware_type':
+            await supabase.from('hardware_types').insert(item);
+            break;
+          case 'hardware_brand':
+            await supabase.from('hardware_brands').insert(item);
+            break;
+          case 'hardware_product':
+            await supabase.from('hardware_products').insert(item);
+            break;
+          case 'product_range':
+            await supabase.from('product_ranges').insert(item);
+            break;
+        }
       }
       
       loadAllData();
@@ -346,33 +387,6 @@ const Admin = () => {
       toast({ title: "Success", description: `${type.replace('_', ' ')} saved!` });
     } catch (error) {
       toast({ title: "Error", description: `Failed to save ${editingHardware?.type.replace('_', ' ')}`, variant: "destructive" });
-    }
-  };
-
-  const saveCabinetType = async (cabinetType: Partial<CabinetType>) => {
-    try {
-      if (!cabinetType.name || !cabinetType.category) {
-        toast({ title: "Error", description: "Name and category are required", variant: "destructive" });
-        return;
-      }
-      
-      if (cabinetType.id) {
-        await supabase.from('cabinet_types').update(cabinetType).eq('id', cabinetType.id);
-      } else {
-        await supabase.from('cabinet_types').insert({
-          name: cabinetType.name,
-          category: cabinetType.category,
-          default_width_mm: cabinetType.default_width_mm || 300,
-          default_height_mm: cabinetType.default_height_mm || 720,
-          default_depth_mm: cabinetType.default_depth_mm || 560,
-          active: cabinetType.active ?? true
-        });
-      }
-      loadAllData();
-      setEditingCabinetType(null);
-      toast({ title: "Success", description: "Cabinet type saved!" });
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to save cabinet type", variant: "destructive" });
     }
   };
 
@@ -640,65 +654,6 @@ const Admin = () => {
                     </div>
                   </CardContent>
                 </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Hardware Brands</CardTitle>
-                    <CardDescription>Manage hardware manufacturers</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="mb-4" onClick={() => setEditingHardware({ type: 'hardware_brand', item: {} })}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Hardware Brand
-                    </Button>
-                    <div className="space-y-2">
-                      {hardwareBrands.map((brand) => (
-                        <div key={brand.id} className="flex items-center justify-between p-4 border rounded">
-                          <div>
-                            <h4 className="font-medium">{brand.name}</h4>
-                            <p className="text-sm text-muted-foreground">{brand.description}</p>
-                            <span className={`text-xs px-2 py-1 rounded ${brand.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                              {brand.active ? 'Active' : 'Inactive'}
-                            </span>
-                          </div>
-                          <Button variant="outline" size="sm" onClick={() => setEditingHardware({ type: 'hardware_brand', item: brand })}>
-                            Edit
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Hardware Products</CardTitle>
-                    <CardDescription>Manage specific hardware products</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="mb-4" onClick={() => setEditingHardware({ type: 'hardware_product', item: {} })}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Hardware Product
-                    </Button>
-                    <div className="space-y-2">
-                      {hardwareProducts.map((product) => (
-                        <div key={product.id} className="flex items-center justify-between p-4 border rounded">
-                          <div>
-                            <h4 className="font-medium">{product.name}</h4>
-                            <p className="text-sm text-muted-foreground">{product.model_number}</p>
-                            <p className="text-sm">${product.cost_per_unit}</p>
-                            <span className={`text-xs px-2 py-1 rounded ${product.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                              {product.active ? 'Active' : 'Inactive'}
-                            </span>
-                          </div>
-                          <Button variant="outline" size="sm" onClick={() => setEditingHardware({ type: 'hardware_product', item: product })}>
-                            Edit
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
               </div>
             </TabsContent>
 
@@ -772,6 +727,13 @@ const Admin = () => {
             onSave={saveBrand}
           />
           
+          <GlobalSettingsEditDialog
+            setting={editingGlobalSetting}
+            open={!!editingGlobalSetting}
+            onOpenChange={(open) => !open && setEditingGlobalSetting(null)}
+            onSave={saveGlobalSetting}
+          />
+
           <FinishEditDialog
             finish={editingFinish}
             brands={brands}
@@ -795,20 +757,6 @@ const Admin = () => {
             onSave={saveDoorStyle}
           />
 
-          <CabinetTypeEditDialog
-            cabinetType={editingCabinetType}
-            open={!!editingCabinetType}
-            onOpenChange={(open) => !open && setEditingCabinetType(null)}
-            onSave={saveCabinetType}
-          />
-
-          <GlobalSettingsEditDialog
-            setting={editingGlobalSetting}
-            open={!!editingGlobalSetting}
-            onOpenChange={(open) => !open && setEditingGlobalSetting(null)}
-            onSave={saveGlobalSetting}
-          />
-
           <HardwareEditDialog
             type={editingHardware?.type || 'hardware_type'}
             item={editingHardware?.item}
@@ -817,6 +765,13 @@ const Admin = () => {
             open={!!editingHardware}
             onOpenChange={(open) => !open && setEditingHardware(null)}
             onSave={saveHardware}
+          />
+
+          <CabinetTypeEditDialog
+            cabinetType={editingCabinetType}
+            open={!!editingCabinetType}
+            onOpenChange={(open) => !open && setEditingCabinetType(null)}
+            onSave={saveCabinetType}
           />
         </main>
         <Footer />
