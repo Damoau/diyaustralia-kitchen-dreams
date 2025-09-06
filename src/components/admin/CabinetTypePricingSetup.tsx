@@ -53,6 +53,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const [showPolyExample, setShowPolyExample] = useState(false);
   const [showDiscrepancyAnalysis, setShowDiscrepancyAnalysis] = useState(false);
   const [showFrontendCalc, setShowFrontendCalc] = useState(false);
+  const [showHardwareExplanation, setShowHardwareExplanation] = useState(false);
 
   useEffect(() => {
     if (cabinetTypeId && user && !authLoading) {
@@ -470,6 +471,15 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                   <Calculator className="h-4 w-4" />
                   📊 Frontend Table
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowHardwareExplanation(!showHardwareExplanation)}
+                  className="flex items-center gap-2 border-orange-300"
+                >
+                  <Calculator className="h-4 w-4" />
+                  🔧 Hardware $45?
+                </Button>
               </div>
             </div>
           </CardHeader>
@@ -534,6 +544,11 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
       {/* Frontend Table Calculation */}
       {showFrontendCalc && (
         <ActualFrontendCalculation />
+      )}
+
+      {/* Hardware Cost Explanation */}
+      {showHardwareExplanation && (
+        <HardwareCostExplanation />
       )}
 
       {/* Poly 750-799 Example */}
