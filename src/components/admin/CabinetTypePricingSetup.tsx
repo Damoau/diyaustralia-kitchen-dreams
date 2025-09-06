@@ -15,6 +15,7 @@ import { PolyPricingBreakdown } from './PolyPricingBreakdown';
 import { PriceDiscrepancyAnalysis } from './PriceDiscrepancyAnalysis';
 import { ActualFrontendCalculation } from './ActualFrontendCalculation';
 import { HardwareCostExplanation } from './HardwareCostExplanation';
+import { DoorStyleConnectionIssue } from './DoorStyleConnectionIssue';
 
 interface DoorStyle {
   id: string;
@@ -54,6 +55,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const [showDiscrepancyAnalysis, setShowDiscrepancyAnalysis] = useState(false);
   const [showFrontendCalc, setShowFrontendCalc] = useState(false);
   const [showHardwareExplanation, setShowHardwareExplanation] = useState(false);
+  const [showDoorStyleIssue, setShowDoorStyleIssue] = useState(false);
 
   useEffect(() => {
     if (cabinetTypeId && user && !authLoading) {
@@ -480,6 +482,15 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                   <Calculator className="h-4 w-4" />
                   🔧 Hardware $45?
                 </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowDoorStyleIssue(!showDoorStyleIssue)}
+                  className="flex items-center gap-2"
+                >
+                  <Calculator className="h-4 w-4" />
+                  🚨 Door Style $2000?
+                </Button>
               </div>
             </div>
           </CardHeader>
@@ -549,6 +560,11 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
       {/* Hardware Cost Explanation */}
       {showHardwareExplanation && (
         <HardwareCostExplanation />
+      )}
+
+      {/* Door Style Connection Issue */}
+      {showDoorStyleIssue && (
+        <DoorStyleConnectionIssue />
       )}
 
       {/* Poly 750-799 Example */}

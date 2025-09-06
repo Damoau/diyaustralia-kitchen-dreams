@@ -78,7 +78,9 @@ const CabinetPricesNew = () => {
   });
 
   const { data: cabinetTypeFinishes } = useQuery({
-    queryKey: ['cabinet-type-finishes'],
+        queryKey: ['cabinet-type-finishes'],
+        refetchOnWindowFocus: true, // Refetch when window gains focus
+        staleTime: 0, // Always consider data stale
     queryFn: async () => {
       const { data, error } = await supabase
         .from('cabinet_type_finishes' as any)
@@ -112,7 +114,7 @@ const CabinetPricesNew = () => {
           .sort((a: any, b: any) => a.sort_order - b.sort_order);
         
         // Get finishes for this cabinet type
-        const typeFinishes = cabinetTypeFinishes
+        const typeFinishes = (cabinetTypeFinishes || [])
           .filter((ctf: any) => ctf.cabinet_type_id === cabinetType.id && ctf.active)
           .sort((a: any, b: any) => a.sort_order - b.sort_order);
 
@@ -237,7 +239,7 @@ const CabinetPricesNew = () => {
             if (!typeData) return null;
 
             // Get finishes for this cabinet type
-            const typeFinishes = cabinetTypeFinishes?.filter((ctf: any) => 
+            const typeFinishes = (cabinetTypeFinishes || []).filter((ctf: any) => 
               ctf.cabinet_type_id === cabinetType.id && ctf.active
             ).sort((a: any, b: any) => a.sort_order - b.sort_order) || [];
 
