@@ -17,7 +17,6 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import CabinetTypeEditDialog from "@/components/admin/CabinetTypeEditDialog";
 import GlobalSettingsEditDialog from "@/components/admin/GlobalSettingsEditDialog";
 import { DoorStylesManager } from "@/components/admin/DoorStylesManager";
-import { CabinetTypePricingSetup } from "@/components/admin/CabinetTypePricingSetup";
 import HardwareEditDialog from "@/components/admin/HardwareEditDialog";
 import ColorEditDialog from "@/components/admin/ColorEditDialog";
 
@@ -354,52 +353,42 @@ const Admin = () => {
             </TabsContent>
 
             <TabsContent value="cabinet-types">
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Cabinet Types Management</CardTitle>
-                    <CardDescription>
-                      Manage cabinet types and default dimensions
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <Button className="w-full" onClick={() => setEditingCabinetType({} as CabinetType)}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add New Cabinet Type
-                      </Button>
-                      
-                      <div className="space-y-2">
-                        {cabinetTypes.map((cabinetType) => (
-                          <div key={cabinetType.id} className="border rounded">
-                            <div className="flex items-center justify-between p-4">
-                              <div>
-                                <h4 className="font-medium">{cabinetType.name}</h4>
-                                <p className="text-sm text-muted-foreground">{cabinetType.category}</p>
-                                <p className="text-sm">
-                                  {cabinetType.default_width_mm}×{cabinetType.default_height_mm}×{cabinetType.default_depth_mm}mm
-                                </p>
-                                <span className={`text-xs px-2 py-1 rounded ${cabinetType.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                  {cabinetType.active ? 'Active' : 'Inactive'}
-                                </span>
-                              </div>
-                              <Button variant="outline" size="sm" onClick={() => setEditingCabinetType(cabinetType)}>
-                                Edit
-                              </Button>
-                            </div>
-                            {cabinetType.active && (
-                              <div className="border-t p-4 bg-muted/20">
-                                <h5 className="font-medium mb-4">Pricing Configuration</h5>
-                                <CabinetTypePricingSetup cabinetTypeId={cabinetType.id} />
-                              </div>
-                            )}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Cabinet Types Management</CardTitle>
+                  <CardDescription>
+                    Manage cabinet types and default dimensions
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <Button className="w-full" onClick={() => setEditingCabinetType({} as CabinetType)}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add New Cabinet Type
+                    </Button>
+                    
+                    <div className="space-y-2">
+                      {cabinetTypes.map((cabinetType) => (
+                        <div key={cabinetType.id} className="flex items-center justify-between p-4 border rounded">
+                          <div>
+                            <h4 className="font-medium">{cabinetType.name}</h4>
+                            <p className="text-sm text-muted-foreground">{cabinetType.category}</p>
+                            <p className="text-sm">
+                              {cabinetType.default_width_mm}×{cabinetType.default_height_mm}×{cabinetType.default_depth_mm}mm
+                            </p>
+                            <span className={`text-xs px-2 py-1 rounded ${cabinetType.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                              {cabinetType.active ? 'Active' : 'Inactive'}
+                            </span>
                           </div>
-                        ))}
-                      </div>
+                          <Button variant="outline" size="sm" onClick={() => setEditingCabinetType(cabinetType)}>
+                            Edit
+                          </Button>
+                        </div>
+                      ))}
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="hardware">
