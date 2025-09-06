@@ -559,7 +559,6 @@ export type Database = {
         Row: {
           active: boolean
           base_rate_per_sqm: number
-          brand_id: string | null
           created_at: string
           description: string | null
           id: string
@@ -568,7 +567,6 @@ export type Database = {
         Insert: {
           active?: boolean
           base_rate_per_sqm?: number
-          brand_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -577,21 +575,12 @@ export type Database = {
         Update: {
           active?: boolean
           base_rate_per_sqm?: number
-          brand_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
           name?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "door_styles_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brands"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       finishes: {
         Row: {

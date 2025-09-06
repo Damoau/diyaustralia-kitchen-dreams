@@ -15,7 +15,7 @@ import { DoorStyleFinishesManager } from './DoorStyleFinishesManager';
 export function DoorStylesManager() {
   const { toast } = useToast();
   const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
-  const [brands, setBrands] = useState<Brand[]>([]);
+  
   const [selectedDoorStyle, setSelectedDoorStyle] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -26,26 +26,14 @@ export function DoorStylesManager() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [doorStylesRes, brandsRes] = await Promise.all([
-        supabase
-          .from('door_styles')
-          .select(`
-            *,
-            brand:brands(*)
-          `)
-          .order('name'),
-        supabase
-          .from('brands')
-          .select('*')
-          .eq('active', true)
-          .order('name')
-      ]);
+      const doorStylesRes = await supabase
+        .from('door_styles')
+        .select('*')
+        .order('name');
 
       if (doorStylesRes.error) throw doorStylesRes.error;
-      if (brandsRes.error) throw brandsRes.error;
       
       if (doorStylesRes.data) setDoorStyles(doorStylesRes.data as DoorStyle[]);
-      if (brandsRes.data) setBrands(brandsRes.data);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
@@ -68,10 +56,7 @@ export function DoorStylesManager() {
     const { data, error } = await supabase
       .from('door_styles')
       .insert(newStyle)
-      .select(`
-        *,
-        brand:brands(*)
-      `)
+      .select('*')
       .single();
 
     if (error) {
@@ -103,7 +88,7 @@ export function DoorStylesManager() {
       return;
     }
 
-    // Refresh data to get updated brand information
+    // Refresh data
     fetchData();
   };
 
@@ -157,7 +142,6 @@ export function DoorStylesManager() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Brand</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead>Base Rate ($/sqm)</TableHead>
@@ -168,24 +152,6 @@ export function DoorStylesManager() {
                 <TableBody>
                   {doorStyles.map((style) => (
                     <TableRow key={style.id}>
-                      <TableCell>
-                        <Select
-                          value={style.brand_id || "none"}
-                          onValueChange={(value) => updateDoorStyle(style.id, { brand_id: value === "none" ? null : value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select brand" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">No brand</SelectItem>
-                            {brands.map(brand => (
-                              <SelectItem key={brand.id} value={brand.id}>
-                                {brand.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
                       <TableCell>
                         <Input
                           value={style.name}

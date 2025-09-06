@@ -11,10 +11,8 @@ export interface DoorStyle {
   name: string;
   description?: string;
   base_rate_per_sqm: number;
-  brand_id?: string;
   active: boolean;
   created_at: string;
-  brand?: Brand;
 }
 
 export interface Finish {

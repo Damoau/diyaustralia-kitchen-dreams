@@ -44,17 +44,14 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
           .select(`
             *,
             door_style_finish:door_style_finishes(*),
-            door_style:door_styles(*, brand:brands(*)),
+            door_style:door_styles(*),
             color:colors(*)
           `)
           .eq('cabinet_type_id', cabinetTypeId)
           .order('sort_order'),
         supabase
           .from('door_styles')
-          .select(`
-            *,
-            brand:brands(*)
-          `)
+          .select('*')
           .eq('active', true),
         supabase
           .from('door_style_finishes')
@@ -412,7 +409,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                           <SelectItem value="none">No door style</SelectItem>
                           {allDoorStyles.map(style => (
                             <SelectItem key={style.id} value={style.id}>
-                              {style.brand?.name ? `${style.brand.name} - ${style.name}` : style.name}
+                              {style.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
