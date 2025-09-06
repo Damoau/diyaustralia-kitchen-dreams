@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Trash2, Plus, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { CabinetTypePriceRange, CabinetType } from '@/types/cabinet';
@@ -17,6 +17,16 @@ interface DoorStyle {
   base_rate_per_sqm: number;
 }
 
+interface CabinetTypeFinish {
+  id: string;
+  cabinet_type_id: string;
+  door_style_id: string;
+  color_id?: string;
+  door_style_finish_id?: string;
+  sort_order: number;
+  active: boolean;
+}
+
 interface CabinetTypePricingSetupProps {
   cabinetTypeId: string;
 }
@@ -26,7 +36,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const [priceRanges, setPriceRanges] = useState<CabinetTypePriceRange[]>([]);
   const [cabinetType, setCabinetType] = useState<CabinetType | null>(null);
   const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
-  const [selectedDoorStyle, setSelectedDoorStyle] = useState<string>('');
+  const [cabinetTypeFinishes, setCabinetTypeFinishes] = useState<CabinetTypeFinish[]>([]);
   const [loading, setLoading] = useState(true);
   const [autoGenMin, setAutoGenMin] = useState(300);
   const [autoGenMax, setAutoGenMax] = useState(600);
@@ -44,7 +54,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [rangesRes, cabinetTypeRes, doorStylesRes] = await Promise.all([
+      const [rangesRes, cabinetTypeRes, doorStylesRes, finishesRes] = await Promise.all([
         supabase
           .from('cabinet_type_price_ranges' as any)
           .select('*')
@@ -59,7 +69,12 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
           .from('door_styles')
           .select('*')
           .eq('active', true)
-          .order('name')
+          .order('name'),
+        supabase
+          .from('cabinet_type_finishes')
+          .select('*')
+          .eq('cabinet_type_id', cabinetTypeId)
+          .eq('active', true)
       ]);
 
       if (rangesRes.error) {
@@ -71,15 +86,14 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
       if (doorStylesRes.error) {
         console.error('Error loading door styles:', doorStylesRes.error);
       }
+      if (finishesRes.error) {
+        console.error('Error loading finishes:', finishesRes.error);
+      }
 
       if (rangesRes.data) setPriceRanges(rangesRes.data as any);
       if (cabinetTypeRes?.data) setCabinetType(cabinetTypeRes.data as CabinetType);
-      if (doorStylesRes.data) {
-        setDoorStyles(doorStylesRes.data as DoorStyle[]);
-        if (doorStylesRes.data.length > 0 && !selectedDoorStyle) {
-          setSelectedDoorStyle(doorStylesRes.data[0].id);
-        }
-      }
+      if (doorStylesRes.data) setDoorStyles(doorStylesRes.data as DoorStyle[]);
+      if (finishesRes.data) setCabinetTypeFinishes(finishesRes.data as CabinetTypeFinish[]);
     } catch (error) {
       console.error('Error fetching pricing data:', error);
       toast({
@@ -198,6 +212,36 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
     return ranges;
   };
 
+  const toggleDoorStyle = async (doorStyleId: string, enabled: boolean) => {
+    if (enabled) {
+      const { error } = await supabase.from('cabinet_type_finishes').insert({
+        cabinet_type_id: cabinetTypeId,
+        door_style_id: doorStyleId,
+        sort_order: cabinetTypeFinishes.length,
+        active: true
+      });
+      if (error) {
+        toast({ title: "Error", description: "Failed to add door style", variant: "destructive" });
+        return;
+      }
+    } else {
+      const { error } = await supabase
+        .from('cabinet_type_finishes')
+        .delete()
+        .eq('cabinet_type_id', cabinetTypeId)
+        .eq('door_style_id', doorStyleId);
+      if (error) {
+        toast({ title: "Error", description: "Failed to remove door style", variant: "destructive" });
+        return;
+      }
+    }
+    fetchData();
+  };
+
+  const isDoorStyleEnabled = (doorStyleId: string) => {
+    return cabinetTypeFinishes.some(finish => finish.door_style_id === doorStyleId);
+  };
+
   const autoGenerateRanges = async () => {
     if (autoGenMin >= autoGenMax) {
       toast({
@@ -263,29 +307,50 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
 
   return (
     <div className="space-y-6">
-      {/* Door Style Selection */}
+      {/* Door Styles Selection */}
       <Card>
         <CardHeader>
-          <CardTitle>Door Style for Pricing Table</CardTitle>
+          <CardTitle>Available Door Styles</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-2">
-            <Label htmlFor="doorStyle">Select Door Style</Label>
-            <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a door style" />
-              </SelectTrigger>
-              <SelectContent>
-                {doorStyles.map((style) => (
-                  <SelectItem key={style.id} value={style.id}>
-                    {style.name} - ${style.base_rate_per_sqm}/m²
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-2">
+            {doorStyles.map((style) => (
+              <div key={style.id} className="flex items-center space-x-2 p-2 border rounded bg-muted/30">
+                <Checkbox
+                  id={`door-style-${style.id}`}
+                  checked={isDoorStyleEnabled(style.id)}
+                  onCheckedChange={(checked) => toggleDoorStyle(style.id, checked as boolean)}
+                />
+                <Label htmlFor={`door-style-${style.id}`} className="flex-1">
+                  {style.name} - ${style.base_rate_per_sqm}/m²
+                </Label>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
+
+      {/* Selected Door Styles Summary */}
+      {cabinetTypeFinishes.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Selected Door Styles for This Cabinet Type</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              {cabinetTypeFinishes.map((finish) => {
+                const doorStyle = doorStyles.find(ds => ds.id === finish.door_style_id);
+                return doorStyle ? (
+                  <div key={finish.id} className="flex items-center justify-between p-2 border rounded bg-green-50">
+                    <span className="text-sm font-medium">{doorStyle.name}</span>
+                    <span className="text-xs text-muted-foreground">${doorStyle.base_rate_per_sqm}/m²</span>
+                  </div>
+                ) : null;
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Part Quantities */}
       {cabinetType && (
