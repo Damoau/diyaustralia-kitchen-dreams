@@ -22,7 +22,6 @@ const CabinetPrices = () => {
   const [selectedCabinetType, setSelectedCabinetType] = useState<CabinetType | null>(null);
   const [selectedWidth, setSelectedWidth] = useState<number>(300);
   const [isConfiguratorOpen, setIsConfiguratorOpen] = useState(false);
-  const [selectedFinish, setSelectedFinish] = useState<string>("formica");
   
   // Popup state
   const [popupOpen, setPopupOpen] = useState(false);
@@ -31,7 +30,7 @@ const CabinetPrices = () => {
     width: 300,
     height: 720,
     depth: 560,
-    finish: "formica",
+    finish: "",
     price: 0
   });
 
@@ -64,14 +63,13 @@ const CabinetPrices = () => {
     }
   };
 
-  const finishTypes = {
-    formica: { name: "Standard Formica", priceIndex: 0, note: "Add 10% for Gloss" },
-    laminex: { name: "Standard Laminex", priceIndex: 1, note: "Add 10% for Gloss" },
-    polytec: { name: "Standard Poly Tec", priceIndex: 2, note: "Add 10% for Standard Gloss" },
-    impressions: { name: "Laminex Impressions", priceIndex: 4, note: "" },
-    poly: { name: "Poly (Matt, Satin, Gloss)", priceIndex: 5, note: "" },
-    shaker: { name: "Shaker 86 degree - Satin", priceIndex: 8, note: "" },
-  };
+  const finishColumns = [
+    { name: "Standard Formica", index: 0 },
+    { name: "Standard Laminex", index: 1 },
+    { name: "Laminex Impressions", index: 4 },
+    { name: "Poly (Matt/Satin/Gloss)", index: 5 },
+    { name: "Shaker 86° - Satin", index: 8 }
+  ];
 
   const cabinetSizes = {
     "1door": {
@@ -121,16 +119,14 @@ const CabinetPrices = () => {
     return match ? parseInt(match[0]) : 300;
   };
 
-  const getSelectedFinish = () => finishTypes[selectedFinish as keyof typeof finishTypes];
-
-  const handlePriceClick = (cabinetName: string, sizeRange: string, price: number) => {
+  const handlePriceClick = (cabinetName: string, sizeRange: string, price: number, finishName: string) => {
     const width = parseWidthRange(sizeRange);
     setPopupConfig({
       cabinetType: cabinetName,
       width: width,
       height: 720,
       depth: 560,
-      finish: selectedFinish,
+      finish: finishName,
       price: price
     });
     setPopupOpen(true);
@@ -160,34 +156,6 @@ const CabinetPrices = () => {
         </div>
       </section>
 
-      {/* Finish Selector */}
-      <section className="py-8 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="max-w-md mx-auto">
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Select Your Finish Type
-            </label>
-            <Select value={selectedFinish} onValueChange={setSelectedFinish}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose finish type" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(finishTypes).map(([key, finish]) => (
-                  <SelectItem key={key} value={key}>
-                    {finish.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {getSelectedFinish()?.note && (
-              <p className="text-sm text-muted-foreground mt-2">
-                {getSelectedFinish().note}
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
-
       {/* Price Tables */}
       <section className="py-16">
         <div className="container mx-auto px-4 space-y-12">
@@ -199,108 +167,98 @@ const CabinetPrices = () => {
                   <thead>
                     <tr className="bg-muted/50">
                       <th className="border border-border p-3 text-left font-semibold text-foreground">Width Range</th>
-                      <th className="border border-border p-3 text-center font-semibold text-foreground">{getSelectedFinish()?.name}</th>
+                      {finishColumns.map((finish, idx) => (
+                        <th key={idx} className="border border-border p-3 text-center font-semibold text-foreground">{finish.name}</th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {cabinet.sizes.map((size, idx) => {
-                      const price = size.price[getSelectedFinish()?.priceIndex || 0];
-                      return (
-                        <tr key={idx} className="hover:bg-muted/30 transition-colors">
-                          <td className="border border-border p-3 font-medium text-foreground">{size.range}</td>
-                          <td className="border border-border p-3 text-center">
-                            <Popover open={popupOpen && popupConfig.cabinetType === cabinet.name && popupConfig.width === parseWidthRange(size.range)}>
-                              <PopoverTrigger asChild>
-                                <button
-                                  onClick={() => handlePriceClick(cabinet.name, size.range, price)}
-                                  className="text-lg font-bold text-primary hover:text-primary/80 cursor-pointer transition-colors"
-                                >
-                                  ${price}
-                                </button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-80 p-4 bg-background border border-border shadow-lg">
-                                <div className="space-y-4">
-                                  <h3 className="font-semibold text-foreground text-center">Configure Your Cabinet</h3>
-                                  
-                                  <div className="grid grid-cols-3 gap-3">
-                                    <div>
-                                      <Label htmlFor="width" className="text-sm font-medium text-foreground">Width (mm)</Label>
-                                      <Input
-                                        id="width"
-                                        type="number"
-                                        value={popupConfig.width}
-                                        onChange={(e) => setPopupConfig(prev => ({ ...prev, width: parseInt(e.target.value) || 0 }))}
-                                        className="mt-1"
-                                      />
+                    {cabinet.sizes.map((size, idx) => (
+                      <tr key={idx} className="hover:bg-muted/30 transition-colors">
+                        <td className="border border-border p-3 font-medium text-foreground">{size.range}</td>
+                        {finishColumns.map((finish, finishIdx) => {
+                          const price = size.price[finish.index];
+                          return (
+                            <td key={finishIdx} className="border border-border p-3 text-center">
+                              <Popover open={popupOpen && popupConfig.cabinetType === cabinet.name && popupConfig.width === parseWidthRange(size.range) && popupConfig.finish === finish.name}>
+                                <PopoverTrigger asChild>
+                                  <button
+                                    onClick={() => handlePriceClick(cabinet.name, size.range, price, finish.name)}
+                                    className="text-lg font-bold text-primary hover:text-primary/80 cursor-pointer transition-colors"
+                                  >
+                                    ${price}
+                                  </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-4 bg-background border border-border shadow-lg">
+                                  <div className="space-y-4">
+                                    <h3 className="font-semibold text-foreground text-center">Configure Your Cabinet</h3>
+                                    
+                                    <div className="grid grid-cols-3 gap-3">
+                                      <div>
+                                        <Label htmlFor="width" className="text-sm font-medium text-foreground">Width (mm)</Label>
+                                        <Input
+                                          id="width"
+                                          type="number"
+                                          value={popupConfig.width}
+                                          onChange={(e) => setPopupConfig(prev => ({ ...prev, width: parseInt(e.target.value) || 0 }))}
+                                          className="mt-1"
+                                        />
+                                      </div>
+                                      <div>
+                                        <Label htmlFor="height" className="text-sm font-medium text-foreground">Height (mm)</Label>
+                                        <Input
+                                          id="height"
+                                          type="number"
+                                          value={popupConfig.height}
+                                          onChange={(e) => setPopupConfig(prev => ({ ...prev, height: parseInt(e.target.value) || 0 }))}
+                                          className="mt-1"
+                                        />
+                                      </div>
+                                      <div>
+                                        <Label htmlFor="depth" className="text-sm font-medium text-foreground">Depth (mm)</Label>
+                                        <Input
+                                          id="depth"
+                                          type="number"
+                                          value={popupConfig.depth}
+                                          onChange={(e) => setPopupConfig(prev => ({ ...prev, depth: parseInt(e.target.value) || 0 }))}
+                                          className="mt-1"
+                                        />
+                                      </div>
                                     </div>
-                                    <div>
-                                      <Label htmlFor="height" className="text-sm font-medium text-foreground">Height (mm)</Label>
-                                      <Input
-                                        id="height"
-                                        type="number"
-                                        value={popupConfig.height}
-                                        onChange={(e) => setPopupConfig(prev => ({ ...prev, height: parseInt(e.target.value) || 0 }))}
-                                        className="mt-1"
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label htmlFor="depth" className="text-sm font-medium text-foreground">Depth (mm)</Label>
-                                      <Input
-                                        id="depth"
-                                        type="number"
-                                        value={popupConfig.depth}
-                                        onChange={(e) => setPopupConfig(prev => ({ ...prev, depth: parseInt(e.target.value) || 0 }))}
-                                        className="mt-1"
-                                      />
-                                    </div>
-                                  </div>
 
-                                  <div>
-                                    <Label htmlFor="finish-select" className="text-sm font-medium text-foreground">Finish</Label>
-                                    <Select
-                                      value={popupConfig.finish}
-                                      onValueChange={(value) => setPopupConfig(prev => ({ ...prev, finish: value }))}
-                                    >
-                                      <SelectTrigger className="w-full mt-1">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {Object.entries(finishTypes).map(([key, finish]) => (
-                                          <SelectItem key={key} value={key}>
-                                            {finish.name}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
+                                    <div>
+                                      <Label className="text-sm font-medium text-foreground">Selected Finish</Label>
+                                      <p className="mt-1 p-2 bg-muted rounded text-foreground">{popupConfig.finish}</p>
+                                    </div>
 
-                                  <div className="text-center">
-                                    <p className="text-lg font-bold text-primary mb-3">Price: ${popupConfig.price}</p>
-                                    <div className="flex gap-2">
-                                      <Button
-                                        onClick={() => setPopupOpen(false)}
-                                        variant="outline"
-                                        size="sm"
-                                        className="flex-1"
-                                      >
-                                        Cancel
-                                      </Button>
-                                      <Button
-                                        onClick={handleAddToQuote}
-                                        size="sm"
-                                        className="flex-1"
-                                      >
-                                        Add to Quote
-                                      </Button>
+                                    <div className="text-center">
+                                      <p className="text-lg font-bold text-primary mb-3">Price: ${popupConfig.price}</p>
+                                      <div className="flex gap-2">
+                                        <Button
+                                          onClick={() => setPopupOpen(false)}
+                                          variant="outline"
+                                          size="sm"
+                                          className="flex-1"
+                                        >
+                                          Cancel
+                                        </Button>
+                                        <Button
+                                          onClick={handleAddToQuote}
+                                          size="sm"
+                                          className="flex-1"
+                                        >
+                                          Add to Quote
+                                        </Button>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                                </PopoverContent>
+                              </Popover>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
