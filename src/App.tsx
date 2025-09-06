@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import KitchenStyles from "./pages/KitchenStyles";
 import CabinetPrices from "./pages/CabinetPrices";
 import Auth from "./pages/Auth";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/kitchen-styles" element={<KitchenStyles />} />
           <Route path="/base-cabinet-prices" element={<CabinetPrices />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
