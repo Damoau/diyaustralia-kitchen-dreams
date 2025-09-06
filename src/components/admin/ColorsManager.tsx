@@ -217,19 +217,17 @@ export function ColorsManager() {
             <div className="space-y-6">
               {/* Finish Types Management */}
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>Finish Types for {doorStyle.name}</CardTitle>
-                  <div className="flex space-x-2">
-                    <Button onClick={() => addFinishType(doorStyle.id)} size="sm">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Finish Type
-                    </Button>
-                  </div>
+                <CardHeader className="flex flex-row items-center justify-between py-3">
+                  <CardTitle className="text-lg">Finish Types for {doorStyle.name}</CardTitle>
+                  <Button onClick={() => addFinishType(doorStyle.id)} size="sm" className="h-7 text-xs">
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add Finish Type
+                  </Button>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid gap-2">
+                <CardContent className="pt-0">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                     {getFinishTypesForDoorStyle(doorStyle.id).map(finishType => (
-                      <div key={finishType.id} className="flex items-center space-x-2 p-2 border rounded">
+                      <div key={finishType.id} className="flex items-center space-x-2 p-2 border rounded bg-muted/30">
                         <Input
                           value={finishType.finish_name}
                           onChange={(e) => {
@@ -238,7 +236,8 @@ export function ColorsManager() {
                           onBlur={(e) => {
                             updateFinishType(finishType.id, { finish_name: e.target.value });
                           }}
-                          className="flex-1"
+                          className="flex-1 h-7 text-xs"
+                          placeholder="Finish name"
                         />
                         <Input
                           type="number"
@@ -250,15 +249,16 @@ export function ColorsManager() {
                           onBlur={(e) => {
                             updateFinishType(finishType.id, { sort_order: parseInt(e.target.value) || 0 });
                           }}
-                          className="w-20"
-                          placeholder="Order"
+                          className="w-12 h-7 text-xs"
+                          placeholder="#"
                         />
                         <Button
                           onClick={() => deleteFinishType(finishType.id)}
                           variant="destructive"
                           size="sm"
+                          className="h-6 w-6 p-0"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
                     ))}
