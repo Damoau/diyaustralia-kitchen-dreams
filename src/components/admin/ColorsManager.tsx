@@ -85,6 +85,20 @@ export function ColorsManager() {
   };
 
   const addColor = async (doorStyleId: string) => {
+    const tempColor: ExtendedColor = {
+      id: `temp-${Date.now()}`, // Temporary ID
+      name: "New Color",
+      hex_code: "#FFFFFF",
+      door_style_id: doorStyleId,
+      surcharge_rate_per_sqm: 0,
+      active: true,
+      created_at: new Date().toISOString(),
+      image_url: null
+    };
+
+    // Optimistic update - add to local state first
+    setColors([...colors, tempColor]);
+
     const newColor = {
       name: "New Color",
       hex_code: "#FFFFFF",
@@ -100,12 +114,17 @@ export function ColorsManager() {
       .single();
 
     if (error) {
+      // Rollback optimistic update
+      setColors(colors.filter(c => c.id !== tempColor.id));
       toast({ title: "Error", description: "Failed to add color", variant: "destructive" });
       return;
     }
 
-    // Auto-select all finish types for the new color
+    // Replace temp color with real data
     if (data) {
+      setColors(prev => prev.map(c => c.id === tempColor.id ? { ...data, door_style: undefined, finishes: [] } : c));
+      
+      // Auto-select all finish types for the new color
       const availableFinishTypes = getFinishTypesForDoorStyle(doorStyleId);
       if (availableFinishTypes.length > 0) {
         const colorFinishInserts = availableFinishTypes.map(finishType => ({
@@ -115,17 +134,26 @@ export function ColorsManager() {
           active: true
         }));
 
+        // Optimistic update for color finishes  
+        const newColorFinishes = colorFinishInserts.map((insert, index) => ({
+          id: `temp-finish-${Date.now()}-${index}`,
+          ...insert,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }));
+        setColorFinishes([...colorFinishes, ...newColorFinishes]);
+
         const { error: finishError } = await supabase
           .from('color_finishes')
           .insert(colorFinishInserts);
 
         if (finishError) {
           console.error('Error auto-selecting finishes:', finishError);
+          // Rollback color finish optimistic updates
+          setColorFinishes(colorFinishes.filter(cf => !newColorFinishes.some(ncf => ncf.id === cf.id)));
         }
       }
     }
-
-    fetchData();
   };
 
   const updateColor = async (id: string, updates: Partial<Color>) => {
@@ -148,18 +176,31 @@ export function ColorsManager() {
 
   const addFinishType = async (doorStyleId: string) => {
     const newFinishType = {
+      id: `temp-${Date.now()}`, // Temporary ID  
+      door_style_id: doorStyleId,
+      finish_name: "New Finish",
+      sort_order: 0,
+      active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    // Optimistic update - add to local state first
+    setFinishTypes([...finishTypes, newFinishType]);
+
+    const { error } = await supabase.from('door_style_finish_types').insert({
       door_style_id: doorStyleId,
       finish_name: "New Finish",
       sort_order: 0,
       active: true
-    };
-
-    const { error } = await supabase.from('door_style_finish_types').insert(newFinishType);
+    });
+    
     if (error) {
+      // Rollback optimistic update
+      setFinishTypes(finishTypes.filter(ft => ft.id !== newFinishType.id));
       toast({ title: "Error", description: "Failed to add finish type", variant: "destructive" });
       return;
     }
-    fetchData();
   };
 
   const updateFinishType = async (id: string, updates: Partial<DoorStyleFinishType>) => {
@@ -172,38 +213,66 @@ export function ColorsManager() {
   };
 
   const deleteFinishType = async (id: string) => {
+    // Optimistic update - remove from local state first
+    const originalFinishTypes = [...finishTypes];
+    setFinishTypes(finishTypes.filter(ft => ft.id !== id));
+    
     const { error } = await supabase.from('door_style_finish_types').delete().eq('id', id);
     if (error) {
+      // Rollback optimistic update
+      setFinishTypes(originalFinishTypes);
       toast({ title: "Error", description: "Failed to delete finish type", variant: "destructive" });
       return;
     }
-    fetchData();
   };
 
   const toggleColorFinish = async (colorId: string, finishTypeId: string, enabled: boolean) => {
     if (enabled) {
+      // Optimistic update - add to local state first
+      const newColorFinish = {
+        id: `temp-${Date.now()}`, // Temporary ID
+        color_id: colorId,
+        door_style_finish_type_id: finishTypeId,
+        rate_per_sqm: 0,
+        active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      setColorFinishes([...colorFinishes, newColorFinish]);
+      
       const { error } = await supabase.from('color_finishes').insert({
         color_id: colorId,
         door_style_finish_type_id: finishTypeId,
         rate_per_sqm: 0,
         active: true
       });
+      
       if (error) {
+        // Rollback optimistic update
+        setColorFinishes(colorFinishes.filter(cf => cf.id !== newColorFinish.id));
         toast({ title: "Error", description: "Failed to add color finish", variant: "destructive" });
         return;
       }
     } else {
+      // Optimistic update - remove from local state first
+      const originalColorFinishes = [...colorFinishes];
+      setColorFinishes(colorFinishes.filter(cf => 
+        !(cf.color_id === colorId && cf.door_style_finish_type_id === finishTypeId)
+      ));
+      
       const { error } = await supabase
         .from('color_finishes')
         .delete()
         .eq('color_id', colorId)
         .eq('door_style_finish_type_id', finishTypeId);
+        
       if (error) {
+        // Rollback optimistic update
+        setColorFinishes(originalColorFinishes);
         toast({ title: "Error", description: "Failed to remove color finish", variant: "destructive" });
         return;
       }
     }
-    fetchData();
   };
 
   const getColorsForDoorStyle = (doorStyleId: string) => {
