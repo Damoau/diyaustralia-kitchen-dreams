@@ -171,40 +171,96 @@ const CabinetPrices = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="overflow-x-auto">
-                      <table className="w-full border-collapse border border-border">
+                      <table className="w-full">
                         <thead>
-                          <tr className="bg-muted">
-                            <th className="border border-border p-3 text-left font-semibold">Width (mm)</th>
-                            {finishTypes.slice(0, 6).map((finish, idx) => (
-                              <th key={idx} className="border border-border p-3 text-left font-semibold text-sm">
-                                {finish.name}
-                              </th>
-                            ))}
+                          <tr className="border-b border-border">
+                            <th className="text-left py-4 px-2 font-semibold text-foreground">Width</th>
+                            <th className="text-left py-4 px-3 font-semibold text-foreground text-sm">Standard Formica</th>
+                            <th className="text-left py-4 px-3 font-semibold text-foreground text-sm">Standard Laminex</th>
+                            <th className="text-left py-4 px-3 font-semibold text-foreground text-sm">Poly Tec</th>
+                            <th className="text-left py-4 px-3 font-semibold text-foreground text-sm">Impressions</th>
+                            <th className="text-center py-4 px-2 font-semibold text-foreground">Action</th>
                           </tr>
                         </thead>
-                         <tbody>
+                         <tbody className="divide-y divide-border">
                            {oneDoorPrices.map((row, idx) => (
-                             <tr key={idx} className="hover:bg-muted/50">
-                               <td className="border border-border p-3 font-medium">{row.width}</td>
-                               {row.prices.slice(0, 6).map((price, priceIdx) => (
-                                 <td key={priceIdx} className="border border-border p-3">
-                                   <div className="flex flex-col gap-2">
-                                     <span className="font-medium">${price}</span>
-                                     <Button
-                                       size="sm"
-                                       variant="outline"
-                                       onClick={() => handleConfigure('1 Door Base Cabinet', parseWidthRange(row.width))}
-                                       className="text-xs"
-                                     >
-                                       Configure & Add
-                                     </Button>
-                                   </div>
-                                 </td>
-                               ))}
+                             <tr key={idx} className="hover:bg-muted/30 transition-colors">
+                               <td className="py-4 px-2 font-medium text-foreground">{row.width}mm</td>
+                               <td className="py-4 px-3 text-foreground">${row.prices[0]}</td>
+                               <td className="py-4 px-3 text-foreground">${row.prices[1]}</td>
+                               <td className="py-4 px-3 text-foreground">${row.prices[2]}</td>
+                               <td className="py-4 px-3 text-foreground">${row.prices[4]}</td>
+                               <td className="py-4 px-2 text-center">
+                                 <Button
+                                   size="sm"
+                                   variant="outline"
+                                   onClick={() => handleConfigure('1 Door Base Cabinet', parseWidthRange(row.width))}
+                                   className="text-xs px-3"
+                                 >
+                                   Configure
+                                 </Button>
+                               </td>
                              </tr>
                            ))}
                          </tbody>
                       </table>
+                    </div>
+                    <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+                      <p className="text-sm text-muted-foreground">
+                        <strong>Note:</strong> Standard Formica and Laminex add 10% for gloss finish. Poly Tec add 10% for standard gloss. 
+                        <Button variant="link" className="p-0 h-auto text-sm text-primary">View all finishes & pricing</Button>
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="2door">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>2 Door Base Cabinet Prices</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-border">
+                            <th className="text-left py-4 px-2 font-semibold text-foreground">Width</th>
+                            <th className="text-left py-4 px-3 font-semibold text-foreground text-sm">Standard Formica</th>
+                            <th className="text-left py-4 px-3 font-semibold text-foreground text-sm">Standard Laminex</th>
+                            <th className="text-left py-4 px-3 font-semibold text-foreground text-sm">Poly Tec</th>
+                            <th className="text-left py-4 px-3 font-semibold text-foreground text-sm">Impressions</th>
+                            <th className="text-center py-4 px-2 font-semibold text-foreground">Action</th>
+                          </tr>
+                        </thead>
+                         <tbody className="divide-y divide-border">
+                           {twoDoorPrices.map((row, idx) => (
+                             <tr key={idx} className="hover:bg-muted/30 transition-colors">
+                               <td className="py-4 px-2 font-medium text-foreground">{row.width}mm</td>
+                               <td className="py-4 px-3 text-foreground">${row.prices[0]}</td>
+                               <td className="py-4 px-3 text-foreground">${row.prices[1]}</td>
+                               <td className="py-4 px-3 text-foreground">${row.prices[2]}</td>
+                               <td className="py-4 px-3 text-foreground">${row.prices[4]}</td>
+                               <td className="py-4 px-2 text-center">
+                                 <Button
+                                   size="sm"
+                                   variant="outline"
+                                   onClick={() => handleConfigure('2 Door Base Cabinet', parseWidthRange(row.width))}
+                                   className="text-xs px-3"
+                                 >
+                                   Configure
+                                 </Button>
+                               </td>
+                             </tr>
+                           ))}
+                         </tbody>
+                      </table>
+                    </div>
+                    <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+                      <p className="text-sm text-muted-foreground">
+                        <strong>Note:</strong> Standard Formica and Laminex add 10% for gloss finish. Poly Tec add 10% for standard gloss. 
+                        <Button variant="link" className="p-0 h-auto text-sm text-primary">View all finishes & pricing</Button>
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
