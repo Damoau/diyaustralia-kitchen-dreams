@@ -5,11 +5,12 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, Plus, Zap } from 'lucide-react';
+import { Trash2, Plus, Zap, Calculator } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { CabinetTypePriceRange, CabinetType } from '@/types/cabinet';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { PricingFormulaBreakdown } from './PricingFormulaBreakdown';
 
 interface DoorStyle {
   id: string;
@@ -44,6 +45,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const [autoGenMax, setAutoGenMax] = useState(600);
   const [increment] = useState(50);
   const [generating, setGenerating] = useState(false);
+  const [showFormula, setShowFormula] = useState(false);
 
   useEffect(() => {
     if (cabinetTypeId && user && !authLoading) {
@@ -417,7 +419,23 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
       {cabinetType && (
         <Card>
           <CardHeader>
-            <CardTitle>Part Quantities</CardTitle>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Part Quantities</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Configure the number of each part type for this cabinet
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFormula(!showFormula)}
+                className="flex items-center gap-2"
+              >
+                <Calculator className="h-4 w-4" />
+                {showFormula ? 'Hide' : 'Show'} Formula
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-4 gap-4">
@@ -460,6 +478,11 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Pricing Formula Breakdown */}
+      {showFormula && cabinetType && (
+        <PricingFormulaBreakdown cabinetType={cabinetType} />
       )}
 
       {/* Width Ranges with Auto Generate */}
