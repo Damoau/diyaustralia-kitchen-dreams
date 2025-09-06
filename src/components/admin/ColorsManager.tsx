@@ -289,7 +289,10 @@ export function ColorsManager() {
                               <div>
                                 <Input
                                   value={color.name}
-                                  onChange={(e) => updateColor(color.id, { name: e.target.value })}
+                                  onChange={(e) => {
+                                    setColors(prev => prev.map(c => c.id === color.id ? { ...c, name: e.target.value } : c));
+                                  }}
+                                  onBlur={(e) => updateColor(color.id, { name: e.target.value })}
                                   className="font-medium"
                                 />
                               </div>
@@ -310,7 +313,10 @@ export function ColorsManager() {
                                 <Label>Hex Code</Label>
                                 <Input
                                   value={color.hex_code || ''}
-                                  onChange={(e) => updateColor(color.id, { hex_code: e.target.value })}
+                                  onChange={(e) => {
+                                    setColors(prev => prev.map(c => c.id === color.id ? { ...c, hex_code: e.target.value } : c));
+                                  }}
+                                  onBlur={(e) => updateColor(color.id, { hex_code: e.target.value })}
                                   placeholder="#FFFFFF"
                                 />
                               </div>
@@ -320,7 +326,14 @@ export function ColorsManager() {
                                   type="number"
                                   step="0.01"
                                   value={color.surcharge_rate_per_sqm}
-                                  onChange={(e) => updateColor(color.id, { surcharge_rate_per_sqm: parseFloat(e.target.value) || 0 })}
+                                  onChange={(e) => {
+                                    const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                                    setColors(prev => prev.map(c => c.id === color.id ? { ...c, surcharge_rate_per_sqm: Number.isNaN(val) ? 0 : val } : c));
+                                  }}
+                                  onBlur={(e) => {
+                                    const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                                    updateColor(color.id, { surcharge_rate_per_sqm: Number.isNaN(val) ? 0 : val });
+                                  }}
                                 />
                               </div>
                             </div>
