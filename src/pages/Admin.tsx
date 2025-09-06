@@ -105,6 +105,8 @@ interface CabinetType {
   default_width_mm: number;
   default_height_mm: number;
   default_depth_mm: number;
+  door_count: number;
+  drawer_count: number;
   active: boolean;
 }
 
@@ -170,7 +172,15 @@ const Admin = () => {
       if (finishesRes.data) setFinishes(finishesRes.data);
       if (colorsRes.data) setColors(colorsRes.data);
       if (doorStylesRes.data) setDoorStyles(doorStylesRes.data);
-      if (cabinetTypesRes.data) setCabinetTypes(cabinetTypesRes.data);
+      if (cabinetTypesRes.data) {
+        // Ensure the cabinet types have door_count and drawer_count (may be null in old records)
+        const cabinetTypesWithDefaults = cabinetTypesRes.data.map(ct => ({
+          ...ct,
+          door_count: ct.door_count || 0,
+          drawer_count: ct.drawer_count || 0
+        }));
+        setCabinetTypes(cabinetTypesWithDefaults);
+      }
       if (globalSettingsRes.data) setGlobalSettings(globalSettingsRes.data);
       if (hardwareTypesRes.data) setHardwareTypes(hardwareTypesRes.data);
       if (hardwareBrandsRes.data) setHardwareBrands(hardwareBrandsRes.data);

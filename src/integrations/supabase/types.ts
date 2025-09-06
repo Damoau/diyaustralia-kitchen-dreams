@@ -38,6 +38,103 @@ export type Database = {
         }
         Relationships: []
       }
+      cabinet_hardware_options: {
+        Row: {
+          active: boolean
+          created_at: string
+          hardware_brand_id: string
+          hardware_product_id: string
+          id: string
+          requirement_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          hardware_brand_id: string
+          hardware_product_id: string
+          id?: string
+          requirement_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          hardware_brand_id?: string
+          hardware_product_id?: string
+          id?: string
+          requirement_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cabinet_hardware_options_hardware_brand_id_fkey"
+            columns: ["hardware_brand_id"]
+            isOneToOne: false
+            referencedRelation: "hardware_brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cabinet_hardware_options_hardware_product_id_fkey"
+            columns: ["hardware_product_id"]
+            isOneToOne: false
+            referencedRelation: "hardware_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cabinet_hardware_options_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "cabinet_hardware_requirements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cabinet_hardware_requirements: {
+        Row: {
+          active: boolean
+          cabinet_type_id: string
+          created_at: string
+          hardware_type_id: string
+          id: string
+          notes: string | null
+          unit_scope: string
+          units_per_scope: number
+        }
+        Insert: {
+          active?: boolean
+          cabinet_type_id: string
+          created_at?: string
+          hardware_type_id: string
+          id?: string
+          notes?: string | null
+          unit_scope: string
+          units_per_scope?: number
+        }
+        Update: {
+          active?: boolean
+          cabinet_type_id?: string
+          created_at?: string
+          hardware_type_id?: string
+          id?: string
+          notes?: string | null
+          unit_scope?: string
+          units_per_scope?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cabinet_hardware_requirements_cabinet_type_id_fkey"
+            columns: ["cabinet_type_id"]
+            isOneToOne: false
+            referencedRelation: "cabinet_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cabinet_hardware_requirements_hardware_type_id_fkey"
+            columns: ["hardware_type_id"]
+            isOneToOne: false
+            referencedRelation: "hardware_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cabinet_parts: {
         Row: {
           cabinet_type_id: string
@@ -90,6 +187,8 @@ export type Database = {
           default_depth_mm: number
           default_height_mm: number
           default_width_mm: number
+          door_count: number
+          drawer_count: number
           id: string
           name: string
           range_id: string | null
@@ -101,6 +200,8 @@ export type Database = {
           default_depth_mm: number
           default_height_mm: number
           default_width_mm: number
+          door_count?: number
+          drawer_count?: number
           id?: string
           name: string
           range_id?: string | null
@@ -112,6 +213,8 @@ export type Database = {
           default_depth_mm?: number
           default_height_mm?: number
           default_width_mm?: number
+          door_count?: number
+          drawer_count?: number
           id?: string
           name?: string
           range_id?: string | null

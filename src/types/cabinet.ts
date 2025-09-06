@@ -44,6 +44,8 @@ export interface CabinetType {
   default_width_mm: number;
   default_height_mm: number;
   default_depth_mm: number;
+  door_count: number;
+  drawer_count: number;
   active: boolean;
   created_at: string;
 }
@@ -100,6 +102,58 @@ export interface CartItem {
   door_style?: DoorStyle;
 }
 
+// Add hardware brand interface
+export interface HardwareBrand {
+  id: string;
+  name: string;
+  website_url?: string;
+  description?: string;
+  active: boolean;
+  created_at: string;
+}
+
+export interface HardwareType {
+  id: string;
+  name: string;
+  category: string;
+  description?: string;
+  active: boolean;
+  created_at: string;
+}
+
+export interface HardwareProduct {
+  id: string;
+  name: string;
+  model_number?: string;
+  hardware_type_id: string;
+  hardware_brand_id: string;
+  cost_per_unit: number;
+  description?: string;
+  specifications?: any;
+  active: boolean;
+  created_at: string;
+}
+
+export interface CabinetHardwareRequirement {
+  id: string;
+  cabinet_type_id: string;
+  hardware_type_id: string;
+  unit_scope: 'per_cabinet' | 'per_door' | 'per_drawer';
+  units_per_scope: number;
+  notes?: string;
+  active: boolean;
+  created_at: string;
+}
+
+export interface CabinetHardwareOption {
+  id: string;
+  requirement_id: string;
+  hardware_brand_id: string;
+  hardware_product_id: string;
+  active: boolean;
+  created_at: string;
+}
+
 export interface CabinetConfiguration {
   cabinetType: CabinetType;
   width: number;
@@ -109,6 +163,7 @@ export interface CabinetConfiguration {
   finish?: Finish;
   color?: Color;
   doorStyle?: DoorStyle;
+  hardwareBrand?: string;
 }
 
 export interface PartCutlist {

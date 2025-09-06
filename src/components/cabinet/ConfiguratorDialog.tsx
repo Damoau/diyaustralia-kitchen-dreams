@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Minus, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { CabinetType, Brand, Finish, Color, DoorStyle, CabinetPart, GlobalSettings } from '@/types/cabinet';
+import { CabinetType, Brand, Finish, Color, DoorStyle, CabinetPart, GlobalSettings, HardwareBrand } from '@/types/cabinet';
 import { generateCutlist, parseGlobalSettings, formatPrice } from '@/lib/pricing';
 import { useCart } from '@/hooks/useCart';
 
@@ -32,11 +32,13 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
   const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
   const [cabinetParts, setCabinetParts] = useState<CabinetPart[]>([]);
   const [globalSettings, setGlobalSettings] = useState<GlobalSettings[]>([]);
+  const [hardwareBrands, setHardwareBrands] = useState<HardwareBrand[]>([]);
   
   const [selectedBrand, setSelectedBrand] = useState<string>('');
   const [selectedFinish, setSelectedFinish] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedDoorStyle, setSelectedDoorStyle] = useState<string>('');
+  const [selectedHardwareBrand, setSelectedHardwareBrand] = useState<string>('');
   
   const [isLoading, setIsLoading] = useState(false);
   const { addToCart, isLoading: isAddingToCart } = useCart();
@@ -79,14 +81,16 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
         colorsRes,
         doorStylesRes,
         cabinetPartsRes,
-        settingsRes
+        settingsRes,
+        hardwareBrandsRes
       ] = await Promise.all([
         supabase.from('brands').select('*').eq('active', true),
         supabase.from('finishes').select('*').eq('active', true),
         supabase.from('colors').select('*').eq('active', true),
         supabase.from('door_styles').select('*').eq('active', true),
         supabase.from('cabinet_parts').select('*').eq('cabinet_type_id', cabinetType.id),
-        supabase.from('global_settings').select('*')
+        supabase.from('global_settings').select('*'),
+        supabase.from('hardware_brands').select('*').eq('active', true)
       ]);
 
       if (brandsRes.data) {
@@ -102,6 +106,12 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
         setDoorStyles(doorStylesRes.data);
         if (doorStylesRes.data.length > 0 && !selectedDoorStyle) {
           setSelectedDoorStyle(doorStylesRes.data[0].id);
+        }
+      }
+      if (hardwareBrandsRes.data) {
+        setHardwareBrands(hardwareBrandsRes.data);
+        if (hardwareBrandsRes.data.length > 0 && !selectedHardwareBrand) {
+          setSelectedHardwareBrand(hardwareBrandsRes.data[0].id);
         }
       }
       if (cabinetPartsRes.data) setCabinetParts(cabinetPartsRes.data);
@@ -128,6 +138,7 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
       finish,
       color,
       doorStyle,
+      hardwareBrand: selectedHardwareBrand,
     };
   };
 
@@ -290,7 +301,28 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
                 </CardContent>
               </Card>
 
-              {/* Door Style */}
+                  {/* Hardware Brand Selection */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Hardware Brand</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Select value={selectedHardwareBrand} onValueChange={setSelectedHardwareBrand}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select hardware brand" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {hardwareBrands.map(brand => (
+                            <SelectItem key={brand.id} value={brand.id}>
+                              {brand.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </CardContent>
+                  </Card>
+
+                  {/* Door Style */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Door Style</CardTitle>
@@ -353,6 +385,13 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
                     </div>
                   )}
 
+                  {selectedHardwareBrand && (
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Hardware:</span>
+                      <span>{hardwareBrands.find(hb => hb.id === selectedHardwareBrand)?.name}</span>
+                    </div>
+                  )}
+
                   <Separator />
 
                   <div className="flex items-center justify-between">
@@ -388,7 +427,7 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
 
               <Button
                 onClick={handleAddToCart}
-                disabled={!selectedFinish || !selectedDoorStyle || isAddingToCart}
+                disabled={!selectedFinish || !selectedDoorStyle || !selectedHardwareBrand || isAddingToCart}
                 className="w-full"
                 size="lg"
               >

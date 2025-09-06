@@ -45,9 +45,11 @@ export function calculatePartDimensions(
 export function generateCutlist(
   configuration: CabinetConfiguration,
   cabinetParts: CabinetPart[],
-  settings: PricingSettings
+  settings: PricingSettings,
+  hardwareRequirements?: any[],
+  hardwareOptions?: any[]
 ): CabinetCutlist {
-  const { width, height, depth, quantity } = configuration;
+  const { width, height, depth, quantity, cabinetType } = configuration;
   
   const parts: PartCutlist[] = cabinetParts.map(part => {
     const dimensions = calculatePartDimensions(part, width, height, depth);
@@ -81,9 +83,39 @@ export function generateCutlist(
   const doorCostBeforeWastage = doorArea * (finishRate + doorStyleRate);
   const doorCost = doorCostBeforeWastage * (1 + settings.wastageFactor);
 
-  // Hardware cost
-  const hardwareQuantity = hardwareParts.reduce((sum, part) => sum + part.quantity, 0);
-  const hardwareCost = hardwareQuantity * settings.hardwareBaseCost;
+  // Hardware cost - calculate based on door/drawer count and selected brand
+  let hardwareCost = 0;
+  if (configuration.hardwareBrand && hardwareRequirements && hardwareOptions) {
+    const doorCount = cabinetType.door_count || 0;
+    const drawerCount = cabinetType.drawer_count || 0;
+    
+    hardwareRequirements.forEach(req => {
+      const option = hardwareOptions.find(opt => 
+        opt.requirement_id === req.id && 
+        opt.hardware_brand_id === configuration.hardwareBrand
+      );
+      
+      if (option && option.hardware_product) {
+        let requiredQuantity = 0;
+        switch (req.unit_scope) {
+          case 'per_cabinet':
+            requiredQuantity = req.units_per_scope * quantity;
+            break;
+          case 'per_door':
+            requiredQuantity = req.units_per_scope * doorCount * quantity;
+            break;
+          case 'per_drawer':
+            requiredQuantity = req.units_per_scope * drawerCount * quantity;
+            break;
+        }
+        hardwareCost += requiredQuantity * option.hardware_product.cost_per_unit;
+      }
+    });
+  } else {
+    // Fallback to base hardware cost calculation
+    const hardwareQuantity = hardwareParts.reduce((sum, part) => sum + part.quantity, 0);
+    hardwareCost = hardwareQuantity * settings.hardwareBaseCost;
+  }
 
   // Total cost (excluding GST for now)
   const subtotal = carcassCost + doorCost + hardwareCost;

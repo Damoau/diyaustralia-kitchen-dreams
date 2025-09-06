@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ConfiguratorDialog } from "@/components/cabinet/ConfiguratorDialog";
 import { supabase } from "@/integrations/supabase/client";
-import { CabinetType, Finish, Color, CabinetPart, GlobalSettings } from "@/types/cabinet";
+import { CabinetType, Finish, Color, CabinetPart, GlobalSettings, HardwareBrand } from "@/types/cabinet";
 import { useCart } from "@/hooks/useCart";
 import { generateCutlist, parseGlobalSettings } from "@/lib/pricing";
 import { useToast } from "@/hooks/use-toast";
@@ -30,6 +30,10 @@ const CabinetPrices = () => {
   const [cabinetParts, setCabinetParts] = useState<CabinetPart[]>([]);
   const [globalSettings, setGlobalSettings] = useState<GlobalSettings[]>([]);
   
+  // Add hardware selection to popup
+  const [hardwareBrands, setHardwareBrands] = useState<HardwareBrand[]>([]);
+  const [selectedHardwareBrand, setSelectedHardwareBrand] = useState<string>('');
+  
   const { addToCart, isLoading: isAddingToCart } = useCart();
   const { toast } = useToast();
   
@@ -43,6 +47,7 @@ const CabinetPrices = () => {
     finish: "",
     finishId: "",
     colorId: "",
+    hardwareBrandId: "",
     price: 0
   });
 
@@ -52,6 +57,7 @@ const CabinetPrices = () => {
     loadFinishes();
     loadCabinetParts();
     loadGlobalSettings();
+    loadHardwareBrands();
   }, []);
 
   const loadCabinetTypes = async () => {
@@ -108,6 +114,23 @@ const CabinetPrices = () => {
       setCabinetParts((data || []) as CabinetPart[]);
     } catch (error) {
       console.error('Error loading cabinet parts:', error);
+    }
+  };
+
+  const loadHardwareBrands = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('hardware_brands')
+        .select('*')
+        .eq('active', true);
+
+      if (error) throw error;
+      setHardwareBrands((data || []) as HardwareBrand[]);
+      if (data && data.length > 0 && !selectedHardwareBrand) {
+        setSelectedHardwareBrand(data[0].id);
+      }
+    } catch (error) {
+      console.error('Error loading hardware brands:', error);
     }
   };
 
@@ -201,6 +224,7 @@ const CabinetPrices = () => {
       finish: finishName,
       finishId: matchedFinish?.id || "",
       colorId: "",
+      hardwareBrandId: selectedHardwareBrand,
       price: price
     });
     
@@ -246,6 +270,15 @@ const CabinetPrices = () => {
         return;
       }
 
+      if (!hardwareBrands.find(hb => hb.id === popupConfig.hardwareBrandId)) {
+        toast({
+          title: "Error",
+          description: "Please select a hardware brand",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const configuration = {
         cabinetType,
         width: popupConfig.width,
@@ -254,7 +287,8 @@ const CabinetPrices = () => {
         quantity: 1,
         finish,
         color,
-        doorStyle: undefined
+        doorStyle: undefined,
+        hardwareBrand: popupConfig.hardwareBrandId
       };
 
       const relevantParts = cabinetParts.filter(part => part.cabinet_type_id === cabinetType.id);
@@ -371,32 +405,51 @@ const CabinetPrices = () => {
                                       <p className="mt-1 p-2 bg-muted rounded text-foreground">{popupConfig.finish}</p>
                                     </div>
 
-                                    <div>
-                                      <Label className="text-sm font-medium text-foreground">Color</Label>
-                                      <Select 
-                                        value={popupConfig.colorId} 
-                                        onValueChange={(value) => setPopupConfig(prev => ({ ...prev, colorId: value }))}
-                                      >
-                                        <SelectTrigger className="mt-1">
-                                          <SelectValue placeholder="Select a color" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {colors.map((color) => (
-                                            <SelectItem key={color.id} value={color.id}>
-                                              <div className="flex items-center gap-2">
-                                                {color.hex_code && (
-                                                  <div 
-                                                    className="w-4 h-4 rounded border border-border"
-                                                    style={{ backgroundColor: color.hex_code }}
-                                                  />
-                                                )}
-                                                {color.name}
-                                              </div>
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-foreground">Hardware Brand</Label>
+                      <Select 
+                        value={popupConfig.hardwareBrandId} 
+                        onValueChange={(value) => setPopupConfig(prev => ({ ...prev, hardwareBrandId: value }))}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select hardware brand" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {hardwareBrands.map((brand) => (
+                            <SelectItem key={brand.id} value={brand.id}>
+                              {brand.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium text-foreground">Color</Label>
+                      <Select 
+                        value={popupConfig.colorId} 
+                        onValueChange={(value) => setPopupConfig(prev => ({ ...prev, colorId: value }))}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select a color" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {colors.map((color) => (
+                            <SelectItem key={color.id} value={color.id}>
+                              <div className="flex items-center gap-2">
+                                {color.hex_code && (
+                                  <div 
+                                    className="w-4 h-4 rounded border border-border"
+                                    style={{ backgroundColor: color.hex_code }}
+                                  />
+                                )}
+                                {color.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
                                     <div className="text-center">
                                       <p className="text-lg font-bold text-primary mb-3">Price: ${popupConfig.price}</p>
@@ -409,14 +462,14 @@ const CabinetPrices = () => {
                                         >
                                           Cancel
                                         </Button>
-                                        <Button
-                                          onClick={handleAddToQuote}
-                                          size="sm"
-                                          className="flex-1"
-                                          disabled={isAddingToCart || !popupConfig.colorId}
-                                        >
-                                          {isAddingToCart ? "Adding..." : "Add to Quote"}
-                                        </Button>
+                        <Button
+                          onClick={handleAddToQuote}
+                          size="sm"
+                          className="flex-1"
+                          disabled={isAddingToCart || !popupConfig.colorId || !popupConfig.hardwareBrandId}
+                        >
+                          {isAddingToCart ? "Adding..." : "Add to Quote"}
+                        </Button>
                                       </div>
                                     </div>
                                   </div>
