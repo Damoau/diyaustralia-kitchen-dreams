@@ -279,63 +279,62 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
         </Card>
       )}
 
-      {/* Auto Generation */}
+      {/* Width Ranges with Auto Generate */}
       <Card>
         <CardHeader>
-          <CardTitle>Auto Generate Width Ranges</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-4 items-end">
-              <div>
-                <Label htmlFor="autoGenMin">Min Width (mm)</Label>
-                <Input
-                  id="autoGenMin"
-                  type="number"
-                  value={autoGenMin}
-                  onChange={(e) => setAutoGenMin(parseInt(e.target.value))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="autoGenMax">Max Width (mm)</Label>
-                <Input
-                  id="autoGenMax"
-                  type="number"
-                  value={autoGenMax}
-                  onChange={(e) => setAutoGenMax(parseInt(e.target.value))}
-                />
-              </div>
-              <Button onClick={autoGenerateRanges} className="h-10">
-                <Zap className="h-4 w-4 mr-2" />
-                Generate Ranges
+          <div className="flex flex-col space-y-4">
+            <div className="flex flex-row items-center justify-between">
+              <CardTitle>Width Ranges</CardTitle>
+              <Button onClick={addPriceRange} size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Range
               </Button>
             </div>
             
-            {/* Preview */}
-            <div className="mt-4">
-              <Label className="text-sm font-medium">Preview (50mm increments):</Label>
-              <div className="mt-2 p-3 bg-muted/20 rounded-md">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 text-sm">
-                  {generateAutoRanges().map((range, index) => (
-                    <div key={index} className="px-2 py-1 bg-background rounded border">
-                      {range.label}mm
-                    </div>
-                  ))}
+            {/* Auto Generate Controls */}
+            <div className="border-t pt-4">
+              <div className="grid grid-cols-3 gap-4 items-end">
+                <div>
+                  <Label htmlFor="autoGenMin" className="text-sm">Min Width (mm)</Label>
+                  <Input
+                    id="autoGenMin"
+                    type="number"
+                    value={autoGenMin}
+                    onChange={(e) => setAutoGenMin(parseInt(e.target.value))}
+                    className="h-8"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="autoGenMax" className="text-sm">Max Width (mm)</Label>
+                  <Input
+                    id="autoGenMax"
+                    type="number"
+                    value={autoGenMax}
+                    onChange={(e) => setAutoGenMax(parseInt(e.target.value))}
+                    className="h-8"
+                  />
+                </div>
+                <Button onClick={autoGenerateRanges} size="sm" className="h-8">
+                  <Zap className="h-4 w-4 mr-2" />
+                  Auto Generate
+                </Button>
+              </div>
+              
+              {/* Preview */}
+              <div className="mt-3">
+                <Label className="text-xs text-muted-foreground">Preview (50mm increments):</Label>
+                <div className="mt-1 p-2 bg-muted/20 rounded-md">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1 text-xs">
+                    {generateAutoRanges().map((range, index) => (
+                      <div key={index} className="px-2 py-1 bg-background rounded border text-center">
+                        {range.label}mm
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Price Ranges */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Width Ranges</CardTitle>
-          <Button onClick={addPriceRange} size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Range
-          </Button>
         </CardHeader>
         <CardContent>
           <Table>
