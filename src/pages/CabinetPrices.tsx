@@ -10,7 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ConfiguratorDialog } from "@/components/cabinet/ConfiguratorDialog";
 import { supabase } from "@/integrations/supabase/client";
-import { CabinetType } from "@/types/cabinet";
+import { CabinetType, Finish, Color, CabinetPart, GlobalSettings } from "@/types/cabinet";
+import { useCart } from "@/hooks/useCart";
+import { generateCutlist, parseGlobalSettings } from "@/lib/pricing";
+import { useToast } from "@/hooks/use-toast";
 
 // Import cabinet images
 import cabinet1DoorImg from "@/assets/cabinet-1-door.jpg";
@@ -22,6 +25,13 @@ const CabinetPrices = () => {
   const [selectedCabinetType, setSelectedCabinetType] = useState<CabinetType | null>(null);
   const [selectedWidth, setSelectedWidth] = useState<number>(300);
   const [isConfiguratorOpen, setIsConfiguratorOpen] = useState(false);
+  const [finishes, setFinishes] = useState<Finish[]>([]);
+  const [colors, setColors] = useState<Color[]>([]);
+  const [cabinetParts, setCabinetParts] = useState<CabinetPart[]>([]);
+  const [globalSettings, setGlobalSettings] = useState<GlobalSettings[]>([]);
+  
+  const { addToCart, isLoading: isAddingToCart } = useCart();
+  const { toast } = useToast();
   
   // Popup state
   const [popupOpen, setPopupOpen] = useState(false);
@@ -31,12 +41,17 @@ const CabinetPrices = () => {
     height: 720,
     depth: 560,
     finish: "",
+    finishId: "",
+    colorId: "",
     price: 0
   });
 
-  // Load cabinet types
+  // Load cabinet types and data
   useEffect(() => {
     loadCabinetTypes();
+    loadFinishes();
+    loadCabinetParts();
+    loadGlobalSettings();
   }, []);
 
   const loadCabinetTypes = async () => {
@@ -51,6 +66,61 @@ const CabinetPrices = () => {
       setCabinetTypes((data || []) as CabinetType[]);
     } catch (error) {
       console.error('Error loading cabinet types:', error);
+    }
+  };
+
+  const loadFinishes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('finishes')
+        .select('*')
+        .eq('active', true);
+
+      if (error) throw error;
+      setFinishes((data || []) as Finish[]);
+    } catch (error) {
+      console.error('Error loading finishes:', error);
+    }
+  };
+
+  const loadColors = async (finishId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('colors')
+        .select('*')
+        .eq('finish_id', finishId)
+        .eq('active', true);
+
+      if (error) throw error;
+      setColors((data || []) as Color[]);
+    } catch (error) {
+      console.error('Error loading colors:', error);
+    }
+  };
+
+  const loadCabinetParts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('cabinet_parts')
+        .select('*');
+
+      if (error) throw error;
+      setCabinetParts((data || []) as CabinetPart[]);
+    } catch (error) {
+      console.error('Error loading cabinet parts:', error);
+    }
+  };
+
+  const loadGlobalSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('global_settings')
+        .select('*');
+
+      if (error) throw error;
+      setGlobalSettings((data || []) as GlobalSettings[]);
+    } catch (error) {
+      console.error('Error loading global settings:', error);
     }
   };
 
@@ -121,21 +191,89 @@ const CabinetPrices = () => {
 
   const handlePriceClick = (cabinetName: string, sizeRange: string, price: number, finishName: string) => {
     const width = parseWidthRange(sizeRange);
+    const matchedFinish = finishes.find(f => f.name === finishName);
+    
     setPopupConfig({
       cabinetType: cabinetName,
       width: width,
       height: 720,
       depth: 560,
       finish: finishName,
+      finishId: matchedFinish?.id || "",
+      colorId: "",
       price: price
     });
+    
+    if (matchedFinish?.id) {
+      loadColors(matchedFinish.id);
+    }
+    
     setPopupOpen(true);
   };
 
-  const handleAddToQuote = () => {
-    console.log("Adding to quote:", popupConfig);
-    // Here you would integrate with your quote/cart system
-    setPopupOpen(false);
+  const handleAddToQuote = async () => {
+    try {
+      const cabinetType = cabinetTypes.find(ct => ct.name === popupConfig.cabinetType);
+      const finish = finishes.find(f => f.id === popupConfig.finishId);
+      const color = colors.find(c => c.id === popupConfig.colorId);
+      
+      if (!cabinetType) {
+        toast({
+          title: "Error",
+          description: "Cabinet type not found",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!finish) {
+        toast({
+          title: "Error", 
+          description: "Please select a finish",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!color) {
+        toast({
+          title: "Error",
+          description: "Please select a color", 
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const configuration = {
+        cabinetType,
+        width: popupConfig.width,
+        height: popupConfig.height, 
+        depth: popupConfig.depth,
+        quantity: 1,
+        finish,
+        color,
+        doorStyle: undefined
+      };
+
+      const relevantParts = cabinetParts.filter(part => part.cabinet_type_id === cabinetType.id);
+      const settings = parseGlobalSettings(globalSettings);
+      
+      await addToCart(configuration, relevantParts, settings);
+      
+      toast({
+        title: "Added to Cart",
+        description: `${cabinetType.name} added to your quote successfully!`
+      });
+      
+      setPopupOpen(false);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -231,6 +369,33 @@ const CabinetPrices = () => {
                                       <p className="mt-1 p-2 bg-muted rounded text-foreground">{popupConfig.finish}</p>
                                     </div>
 
+                                    <div>
+                                      <Label className="text-sm font-medium text-foreground">Color</Label>
+                                      <Select 
+                                        value={popupConfig.colorId} 
+                                        onValueChange={(value) => setPopupConfig(prev => ({ ...prev, colorId: value }))}
+                                      >
+                                        <SelectTrigger className="mt-1">
+                                          <SelectValue placeholder="Select a color" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {colors.map((color) => (
+                                            <SelectItem key={color.id} value={color.id}>
+                                              <div className="flex items-center gap-2">
+                                                {color.hex_code && (
+                                                  <div 
+                                                    className="w-4 h-4 rounded border border-border"
+                                                    style={{ backgroundColor: color.hex_code }}
+                                                  />
+                                                )}
+                                                {color.name}
+                                              </div>
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+
                                     <div className="text-center">
                                       <p className="text-lg font-bold text-primary mb-3">Price: ${popupConfig.price}</p>
                                       <div className="flex gap-2">
@@ -246,8 +411,9 @@ const CabinetPrices = () => {
                                           onClick={handleAddToQuote}
                                           size="sm"
                                           className="flex-1"
+                                          disabled={isAddingToCart || !popupConfig.colorId}
                                         >
-                                          Add to Quote
+                                          {isAddingToCart ? "Adding..." : "Add to Quote"}
                                         </Button>
                                       </div>
                                     </div>
