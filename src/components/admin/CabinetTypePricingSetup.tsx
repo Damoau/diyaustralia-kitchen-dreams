@@ -399,14 +399,14 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                   <TableRow key={ctf.id}>
                     <TableCell>
                       <Select
-                        value={ctf.door_style_id || ""}
-                        onValueChange={(value) => updateFinishMapping(ctf.id, { doorStyleId: value || null })}
+                        value={ctf.door_style_id || "none"}
+                        onValueChange={(value) => updateFinishMapping(ctf.id, { doorStyleId: value === "none" ? null : value })}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select door style" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No door style</SelectItem>
+                          <SelectItem value="none">No door style</SelectItem>
                           {allDoorStyles.map(style => (
                             <SelectItem key={style.id} value={style.id}>
                               {style.name}
@@ -417,15 +417,15 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                     </TableCell>
                     <TableCell>
                       <Select
-                        value={ctf.door_style_finish_id || ""}
-                        onValueChange={(value) => updateFinishMapping(ctf.id, { doorStyleFinishId: value || null })}
+                        value={ctf.door_style_finish_id || "none"}
+                        onValueChange={(value) => updateFinishMapping(ctf.id, { doorStyleFinishId: value === "none" ? null : value })}
                         disabled={!ctf.door_style_id}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select finish" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No finish</SelectItem>
+                          <SelectItem value="none">No finish</SelectItem>
                           {availableFinishes.map(finish => (
                             <SelectItem key={finish.id} value={finish.id}>
                               {finish.name} (${finish.rate_per_sqm}/sqm)
@@ -436,15 +436,15 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                     </TableCell>
                     <TableCell>
                       <Select
-                        value={ctf.color_id || ""}
-                        onValueChange={(value) => updateFinishMapping(ctf.id, { colorId: value || null })}
+                        value={ctf.color_id || "none"}
+                        onValueChange={(value) => updateFinishMapping(ctf.id, { colorId: value === "none" ? null : value })}
                         disabled={!ctf.door_style_id}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select color" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No color</SelectItem>
+                          <SelectItem value="none">No color</SelectItem>
                           {availableColors.map(color => (
                             <SelectItem key={color.id} value={color.id}>
                               {color.name} (+${color.surcharge_rate_per_sqm}/sqm)
