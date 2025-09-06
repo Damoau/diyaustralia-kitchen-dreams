@@ -88,8 +88,8 @@ export function DoorStylesManager() {
       return;
     }
 
-    // Refresh data
-    fetchData();
+    // Update local state without refetch to avoid input flicker
+    setDoorStyles((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
   };
 
   const deleteDoorStyle = async (id: string) => {
@@ -165,12 +165,19 @@ export function DoorStylesManager() {
                         />
                       </TableCell>
                       <TableCell>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={style.base_rate_per_sqm}
-                          onChange={(e) => updateDoorStyle(style.id, { base_rate_per_sqm: parseFloat(e.target.value) || 0 })}
-                        />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={style.base_rate_per_sqm}
+                        onChange={(e) => {
+                          const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                          setDoorStyles((prev) => prev.map((s) => s.id === style.id ? { ...s, base_rate_per_sqm: Number.isNaN(val) ? 0 : val } : s));
+                        }}
+                        onBlur={(e) => {
+                          const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                          updateDoorStyle(style.id, { base_rate_per_sqm: Number.isNaN(val) ? 0 : val });
+                        }}
+                      />
                       </TableCell>
                       <TableCell>
                         <Select
