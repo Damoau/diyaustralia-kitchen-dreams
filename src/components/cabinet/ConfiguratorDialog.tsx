@@ -50,17 +50,6 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
     }
   }, [isOpen, cabinetType.id]);
 
-  // Update finishes when brand changes
-  useEffect(() => {
-    if (selectedBrand) {
-      const brandFinishes = finishes.filter(f => f.brand_id === selectedBrand);
-      if (brandFinishes.length > 0 && !brandFinishes.find(f => f.id === selectedFinish)) {
-        setSelectedFinish(brandFinishes[0].id);
-        setSelectedColor('');
-      }
-    }
-  }, [selectedBrand, finishes]);
-
   // Update colors when door style changes
   useEffect(() => {
     if (selectedDoorStyle) {
@@ -70,6 +59,30 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
       }
     }
   }, [selectedDoorStyle, colors]);
+
+  // Update finishes when door style changes
+  useEffect(() => {
+    if (selectedDoorStyle) {
+      // Get finishes for this door style
+      const doorStyleFinishes = finishes.filter(f => {
+        // For now, we'll show all finishes - this could be filtered by door_style_finishes table
+        return f.active;
+      });
+      if (doorStyleFinishes.length > 0 && !doorStyleFinishes.find(f => f.id === selectedFinish)) {
+        setSelectedFinish(doorStyleFinishes[0].id);
+      }
+    }
+  }, [selectedDoorStyle, finishes]);
+
+  // Update brand when finish changes
+  useEffect(() => {
+    if (selectedFinish) {
+      const finish = finishes.find(f => f.id === selectedFinish);
+      if (finish && finish.brand_id !== selectedBrand) {
+        setSelectedBrand(finish.brand_id);
+      }
+    }
+  }, [selectedFinish, finishes]);
 
   const loadData = async () => {
     try {
@@ -164,8 +177,8 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
     onClose();
   };
 
-  const currentBrandFinishes = finishes.filter(f => f.brand_id === selectedBrand);
   const currentDoorStyleColors = colors.filter(c => c.door_style_id === selectedDoorStyle);
+  const currentDoorStyleFinishes = finishes.filter(f => f.active); // All finishes for now
   const totalPrice = calculatePrice();
 
   return (
@@ -227,102 +240,7 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
                 </CardContent>
               </Card>
 
-              {/* Brand Selection */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Brand & Finish</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label>Brand</Label>
-                    <Select value={selectedBrand} onValueChange={setSelectedBrand}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select brand" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {brands.map(brand => (
-                          <SelectItem key={brand.id} value={brand.id}>
-                            {brand.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {selectedBrand && (
-                    <div>
-                      <Label>Finish</Label>
-                      <Select value={selectedFinish} onValueChange={setSelectedFinish}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select finish" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {currentBrandFinishes.map(finish => (
-                            <SelectItem key={finish.id} value={finish.id}>
-                              {finish.name}
-                              <Badge variant="secondary" className="ml-2">
-                                {formatPrice(finish.rate_per_sqm)}/m²
-                              </Badge>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {selectedDoorStyle && (
-                    <div>
-                      <Label>Color</Label>
-                      <div className="grid grid-cols-2 gap-2 mt-2">
-                        {currentDoorStyleColors.map(color => (
-                          <div
-                            key={color.id}
-                            className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                              selectedColor === color.id
-                                ? 'border-primary bg-primary/10'
-                                : 'border-border hover:border-primary/50'
-                            }`}
-                            onClick={() => setSelectedColor(color.id)}
-                          >
-                            <div className="flex items-center gap-2">
-                              {color.hex_code && (
-                                <div
-                                  className="w-4 h-4 rounded border"
-                                  style={{ backgroundColor: color.hex_code }}
-                                />
-                              )}
-                              <span className="text-sm font-medium">{color.name}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-                  {/* Hardware Brand Selection */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Hardware Brand</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <Select value={selectedHardwareBrand} onValueChange={setSelectedHardwareBrand}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select hardware brand" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {hardwareBrands.map(brand => (
-                            <SelectItem key={brand.id} value={brand.id}>
-                              {brand.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </CardContent>
-                  </Card>
-
-                  {/* Door Style */}
+              {/* Door Style - First Selection */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Door Style</CardTitle>
@@ -339,6 +257,92 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
                           <Badge variant="secondary" className="ml-2">
                             {formatPrice(style.base_rate_per_sqm)}/m²
                           </Badge>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+
+              {/* Color Selection - Second */}
+              {selectedDoorStyle && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Color</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-2">
+                      {currentDoorStyleColors.map(color => (
+                        <div
+                          key={color.id}
+                          className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                            selectedColor === color.id
+                              ? 'border-primary bg-primary/10'
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                          onClick={() => setSelectedColor(color.id)}
+                        >
+                          <div className="flex items-center gap-2">
+                            {color.hex_code && (
+                              <div
+                                className="w-4 h-4 rounded border"
+                                style={{ backgroundColor: color.hex_code }}
+                              />
+                            )}
+                            <span className="text-sm font-medium">{color.name}</span>
+                          </div>
+                          {color.surcharge_rate_per_sqm > 0 && (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              +{formatPrice(color.surcharge_rate_per_sqm)}/m²
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Finish Selection - Third */}
+              {selectedDoorStyle && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Finish</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Select value={selectedFinish} onValueChange={setSelectedFinish}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select finish" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {currentDoorStyleFinishes.map(finish => (
+                          <SelectItem key={finish.id} value={finish.id}>
+                            {finish.name} ({brands.find(b => b.id === finish.brand_id)?.name})
+                            <Badge variant="secondary" className="ml-2">
+                              {formatPrice(finish.rate_per_sqm)}/m²
+                            </Badge>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Hardware Brand Selection */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Hardware Brand</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Select value={selectedHardwareBrand} onValueChange={setSelectedHardwareBrand}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select hardware brand" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {hardwareBrands.map(brand => (
+                        <SelectItem key={brand.id} value={brand.id}>
+                          {brand.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
