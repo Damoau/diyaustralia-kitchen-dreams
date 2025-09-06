@@ -16,6 +16,9 @@ import Footer from "@/components/Footer";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BrandEditDialog from "@/components/admin/BrandEditDialog";
 import FinishEditDialog from "@/components/admin/FinishEditDialog";
+import ColorEditDialog from "@/components/admin/ColorEditDialog";
+import DoorStyleEditDialog from "@/components/admin/DoorStyleEditDialog";
+import CabinetTypeEditDialog from "@/components/admin/CabinetTypeEditDialog";
 
 interface Brand {
   id: string;
@@ -364,7 +367,7 @@ const Admin = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <Button className="w-full">
+                    <Button className="w-full" onClick={() => setEditingColor({} as Color)}>
                       <Plus className="mr-2 h-4 w-4" />
                       Add New Color
                     </Button>
@@ -386,7 +389,7 @@ const Admin = () => {
                               </span>
                             </div>
                           </div>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => setEditingColor(color)}>
                             Edit
                           </Button>
                         </div>
@@ -407,7 +410,7 @@ const Admin = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <Button className="w-full">
+                    <Button className="w-full" onClick={() => setEditingDoorStyle({} as DoorStyle)}>
                       <Plus className="mr-2 h-4 w-4" />
                       Add New Door Style
                     </Button>
@@ -423,7 +426,7 @@ const Admin = () => {
                               {doorStyle.active ? 'Active' : 'Inactive'}
                             </span>
                           </div>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => setEditingDoorStyle(doorStyle)}>
                             Edit
                           </Button>
                         </div>
@@ -444,7 +447,7 @@ const Admin = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <Button className="w-full">
+                    <Button className="w-full" onClick={() => setEditingCabinetType({} as CabinetType)}>
                       <Plus className="mr-2 h-4 w-4" />
                       Add New Cabinet Type
                     </Button>
@@ -462,7 +465,7 @@ const Admin = () => {
                               {cabinetType.active ? 'Active' : 'Inactive'}
                             </span>
                           </div>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => setEditingCabinetType(cabinetType)}>
                             Edit
                           </Button>
                         </div>
@@ -488,6 +491,28 @@ const Admin = () => {
             open={!!editingFinish}
             onOpenChange={(open) => !open && setEditingFinish(null)}
             onSave={saveFinish}
+          />
+
+          <ColorEditDialog
+            color={editingColor}
+            finishes={finishes}
+            open={!!editingColor}
+            onOpenChange={(open) => !open && setEditingColor(null)}
+            onSave={saveColor}
+          />
+
+          <DoorStyleEditDialog
+            doorStyle={editingDoorStyle}
+            open={!!editingDoorStyle}
+            onOpenChange={(open) => !open && setEditingDoorStyle(null)}
+            onSave={saveDoorStyle}
+          />
+
+          <CabinetTypeEditDialog
+            cabinetType={editingCabinetType}
+            open={!!editingCabinetType}
+            onOpenChange={(open) => !open && setEditingCabinetType(null)}
+            onSave={saveCabinetType}
           />
         </main>
         <Footer />
