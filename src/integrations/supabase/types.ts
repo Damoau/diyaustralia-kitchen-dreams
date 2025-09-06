@@ -512,6 +512,7 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
+          sort_order: number | null
           surcharge_rate_per_sqm: number
         }
         Insert: {
@@ -522,6 +523,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name: string
+          sort_order?: number | null
           surcharge_rate_per_sqm?: number
         }
         Update: {
@@ -532,6 +534,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name?: string
+          sort_order?: number | null
           surcharge_rate_per_sqm?: number
         }
         Relationships: [

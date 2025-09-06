@@ -11,6 +11,7 @@ import { CabinetTypePriceRange, CabinetType } from '@/types/cabinet';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { PricingFormulaBreakdown } from './PricingFormulaBreakdown';
+import { PolyPricingBreakdown } from './PolyPricingBreakdown';
 
 interface DoorStyle {
   id: string;
@@ -46,6 +47,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const [increment] = useState(50);
   const [generating, setGenerating] = useState(false);
   const [showFormula, setShowFormula] = useState(false);
+  const [showPolyExample, setShowPolyExample] = useState(false);
 
   useEffect(() => {
     if (cabinetTypeId && user && !authLoading) {
@@ -426,15 +428,26 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                   Configure the number of each part type for this cabinet
                 </p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowFormula(!showFormula)}
-                className="flex items-center gap-2"
-              >
-                <Calculator className="h-4 w-4" />
-                {showFormula ? 'Hide' : 'Show'} Formula
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFormula(!showFormula)}
+                  className="flex items-center gap-2"
+                >
+                  <Calculator className="h-4 w-4" />
+                  {showFormula ? 'Hide' : 'Show'} Formula
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPolyExample(!showPolyExample)}
+                  className="flex items-center gap-2"
+                >
+                  <Calculator className="h-4 w-4" />
+                  Poly 750-799 Example
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -483,6 +496,16 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
       {/* Pricing Formula Breakdown */}
       {showFormula && cabinetType && (
         <PricingFormulaBreakdown cabinetType={cabinetType} />
+      )}
+
+      {/* Poly 750-799 Example */}
+      {showPolyExample && (
+        <PolyPricingBreakdown />
+      )}
+
+      {/* Poly 750-799 Example */}
+      {showPolyExample && (
+        <PolyPricingBreakdown />
       )}
 
       {/* Width Ranges with Auto Generate */}
