@@ -223,28 +223,52 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
 
   const toggleDoorStyle = async (doorStyleId: string, enabled: boolean) => {
     if (enabled) {
+      // Optimistic update - add to local state first
+      const newFinish = {
+        id: `temp-${Date.now()}`, // Temporary ID
+        cabinet_type_id: cabinetTypeId,
+        door_style_id: doorStyleId,
+        sort_order: cabinetTypeFinishes.length,
+        active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        depth_mm: null,
+        door_style_finish_id: null,
+        color_id: null
+      };
+      setCabinetTypeFinishes([...cabinetTypeFinishes, newFinish]);
+      
       const { error } = await supabase.from('cabinet_type_finishes').insert({
         cabinet_type_id: cabinetTypeId,
         door_style_id: doorStyleId,
         sort_order: cabinetTypeFinishes.length,
         active: true
       });
+      
       if (error) {
+        // Rollback optimistic update
+        setCabinetTypeFinishes(cabinetTypeFinishes.filter(f => f.id !== newFinish.id));
         toast({ title: "Error", description: "Failed to add door style", variant: "destructive" });
         return;
       }
     } else {
+      // Optimistic update - remove from local state first
+      const originalFinishes = [...cabinetTypeFinishes];
+      setCabinetTypeFinishes(cabinetTypeFinishes.filter(f => f.door_style_id !== doorStyleId));
+      
       const { error } = await supabase
         .from('cabinet_type_finishes')
         .delete()
         .eq('cabinet_type_id', cabinetTypeId)
         .eq('door_style_id', doorStyleId);
+        
       if (error) {
+        // Rollback optimistic update
+        setCabinetTypeFinishes(originalFinishes);
         toast({ title: "Error", description: "Failed to remove door style", variant: "destructive" });
         return;
       }
     }
-    fetchData();
   };
 
   const isDoorStyleEnabled = (doorStyleId: string) => {
