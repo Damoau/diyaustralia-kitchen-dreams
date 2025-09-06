@@ -306,7 +306,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
     setGenerating(true);
 
     try {
-      // Delete existing ranges
+      // Delete existing ranges first
       if (priceRanges.length > 0) {
         const { error: deleteError } = await supabase
           .from('cabinet_type_price_ranges' as any)
@@ -329,13 +329,19 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
         active: true
       }));
 
-      const { error } = await supabase
+      // Insert new ranges and get the created data
+      const { data, error } = await supabase
         .from('cabinet_type_price_ranges' as any)
-        .insert(rangesToInsert);
+        .insert(rangesToInsert)
+        .select('*');
 
       if (error) throw error;
 
-      await fetchData();
+      // Optimistically update local state with the created ranges
+      if (data) {
+        setPriceRanges(data as any[]);
+      }
+
       toast({
         title: "Success",
         description: `Generated ${rangesToInsert.length} width ranges`,
