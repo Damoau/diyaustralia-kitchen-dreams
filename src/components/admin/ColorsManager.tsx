@@ -232,13 +232,24 @@ export function ColorsManager() {
                       <div key={finishType.id} className="flex items-center space-x-2 p-2 border rounded">
                         <Input
                           value={finishType.finish_name}
-                          onChange={(e) => updateFinishType(finishType.id, { finish_name: e.target.value })}
+                          onChange={(e) => {
+                            setFinishTypes(prev => prev.map(ft => ft.id === finishType.id ? { ...ft, finish_name: e.target.value } : ft));
+                          }}
+                          onBlur={(e) => {
+                            updateFinishType(finishType.id, { finish_name: e.target.value });
+                          }}
                           className="flex-1"
                         />
                         <Input
                           type="number"
                           value={finishType.sort_order}
-                          onChange={(e) => updateFinishType(finishType.id, { sort_order: parseInt(e.target.value) || 0 })}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value) || 0;
+                            setFinishTypes(prev => prev.map(ft => ft.id === finishType.id ? { ...ft, sort_order: val } : ft));
+                          }}
+                          onBlur={(e) => {
+                            updateFinishType(finishType.id, { sort_order: parseInt(e.target.value) || 0 });
+                          }}
                           className="w-20"
                           placeholder="Order"
                         />
