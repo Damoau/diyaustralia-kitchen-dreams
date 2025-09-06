@@ -9,6 +9,7 @@ import { Trash2, Plus, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { CabinetTypePriceRange, CabinetType } from '@/types/cabinet';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface DoorStyle {
   id: string;
@@ -34,6 +35,7 @@ interface CabinetTypePricingSetupProps {
 export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSetupProps) {
   console.log('CabinetTypePricingSetup component loading - no Select components should be used');
   const { toast } = useToast();
+  const { user, isLoading: authLoading } = useAuth();
   const [priceRanges, setPriceRanges] = useState<CabinetTypePriceRange[]>([]);
   const [cabinetType, setCabinetType] = useState<CabinetType | null>(null);
   const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
@@ -45,12 +47,14 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
-    if (cabinetTypeId) {
+    if (cabinetTypeId && user && !authLoading) {
+      console.log('Fetching data for authenticated user:', user.id);
       fetchData();
-    } else {
+    } else if (!authLoading) {
+      console.log('Cannot fetch data - cabinetTypeId:', cabinetTypeId, 'user:', !!user, 'authLoading:', authLoading);
       setLoading(false);
     }
-  }, [cabinetTypeId]);
+  }, [cabinetTypeId, user, authLoading]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -86,6 +90,13 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
       }
       if (doorStylesRes.error) {
         console.error('Error loading door styles:', doorStylesRes.error);
+        toast({
+          title: 'Error',
+          description: `Failed to load door styles: ${doorStylesRes.error.message}`,
+          variant: 'destructive',
+        });
+      } else {
+        console.log('Door styles loaded successfully:', doorStylesRes.data?.length || 0, 'items');
       }
       if (finishesRes.error) {
         console.error('Error loading finishes:', finishesRes.error);
@@ -302,9 +313,13 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
     }
   };
 
-  if (loading) {
-    console.log('CabinetTypePricingSetup: Loading pricing configuration...');
+  if (loading || authLoading) {
+    console.log('CabinetTypePricingSetup: Loading... component loading:', loading, 'auth loading:', authLoading);
     return <div>Loading pricing configuration...</div>;
+  }
+
+  if (!user) {
+    return <div>Please log in to access this feature.</div>;
   }
 
   console.log('CabinetTypePricingSetup: Rendering with doorStyles:', doorStyles.length, 'cabinetTypeFinishes:', cabinetTypeFinishes.length);
