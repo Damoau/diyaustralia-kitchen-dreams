@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { PricingFormulaBreakdown } from './PricingFormulaBreakdown';
 import { PolyPricingBreakdown } from './PolyPricingBreakdown';
+import { PriceDiscrepancyAnalysis } from './PriceDiscrepancyAnalysis';
 
 interface DoorStyle {
   id: string;
@@ -48,6 +49,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const [generating, setGenerating] = useState(false);
   const [showFormula, setShowFormula] = useState(false);
   const [showPolyExample, setShowPolyExample] = useState(false);
+  const [showDiscrepancyAnalysis, setShowDiscrepancyAnalysis] = useState(false);
 
   useEffect(() => {
     if (cabinetTypeId && user && !authLoading) {
@@ -445,7 +447,16 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                   className="flex items-center gap-2"
                 >
                   <Calculator className="h-4 w-4" />
-                  Poly 750-799 Example
+                  Poly Example
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowDiscrepancyAnalysis(!showDiscrepancyAnalysis)}
+                  className="flex items-center gap-2"
+                >
+                  <Calculator className="h-4 w-4" />
+                  🚨 Price Debug
                 </Button>
               </div>
             </div>
@@ -501,6 +512,11 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
       {/* Poly 750-799 Example */}
       {showPolyExample && (
         <PolyPricingBreakdown />
+      )}
+
+      {/* Price Discrepancy Analysis */}
+      {showDiscrepancyAnalysis && (
+        <PriceDiscrepancyAnalysis />
       )}
 
       {/* Poly 750-799 Example */}
