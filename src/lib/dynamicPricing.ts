@@ -94,11 +94,12 @@ export function calculateCabinetPrice(
   // (Width/1000 * Depth/1000) * Qty sides * HMR Price
   const sideCost = (widthM * depthM) * qtySides * settings.hmrRate;
   
-  // (Width/1000 * height/1000) * Qty of door parts * door price Price
+  // Door cost calculation using 4 components: Door Style + Door Finish + Color + Carcass Material
   const doorStyleBaseRate = doorStyleFinish?.door_style?.base_rate_per_sqm || 0;
-  const finishRate = doorStyleFinish?.rate_per_sqm || 0;
+  const doorStyleFinishRate = doorStyleFinish?.rate_per_sqm || 0;
   const colorSurcharge = color?.surcharge_rate_per_sqm || 0;
-  const totalDoorRate = doorStyleBaseRate + finishRate + colorSurcharge;
+  const carcassMaterialRate = settings.hmrRate * 0.2; // 20% of HMR rate as carcass component for doors
+  const totalDoorRate = doorStyleBaseRate + doorStyleFinishRate + colorSurcharge + carcassMaterialRate;
   const doorCost = (widthM * heightM) * qtyDoors * totalDoorRate;
   
   // Sum all costs

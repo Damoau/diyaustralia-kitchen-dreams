@@ -21,6 +21,7 @@ export const PricingFormulaBreakdown = ({ cabinetType }: PricingFormulaBreakdown
   const [doorStyleRate, setDoorStyleRate] = useState<number>(120);
   const [finishRate, setFinishRate] = useState<number>(25);
   const [colorSurcharge, setColorSurcharge] = useState<number>(10);
+  const [carcassMaterialRate, setCarcassMaterialRate] = useState<number>(15);
   
   useEffect(() => {
     const fetchGlobalSettings = async () => {
@@ -65,7 +66,7 @@ export const PricingFormulaBreakdown = ({ cabinetType }: PricingFormulaBreakdown
   const backCost = (widthM * heightM) * qtyBacks * settings.hmrRate;
   const bottomCost = (widthM * depthM) * qtyBottoms * settings.hmrRate;
   const sideCost = (widthM * depthM) * qtySides * settings.hmrRate;
-  const totalDoorRate = doorStyleRate + finishRate + colorSurcharge;
+  const totalDoorRate = doorStyleRate + finishRate + colorSurcharge + carcassMaterialRate;
   const doorCost = (widthM * heightM) * qtyDoors * totalDoorRate;
   const hardwareCost = settings.hardwareBaseCost;
   
@@ -186,6 +187,18 @@ export const PricingFormulaBreakdown = ({ cabinetType }: PricingFormulaBreakdown
               />
             </div>
           </div>
+          
+          <div className="grid grid-cols-1 gap-4 mt-4">
+            <div>
+              <Label htmlFor="carcass">Carcass Material Rate ($/m²)</Label>
+              <Input
+                id="carcass"
+                type="number"
+                value={carcassMaterialRate}
+                onChange={(e) => setCarcassMaterialRate(Number(e.target.value))}
+              />
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -232,7 +245,14 @@ export const PricingFormulaBreakdown = ({ cabinetType }: PricingFormulaBreakdown
             {qtyDoors > 0 && (
               <div className="space-y-2">
                 <div className="font-semibold">4. Door Cost Calculation:</div>
-                <div>Total Door Rate: ${doorStyleRate} + ${finishRate} + ${colorSurcharge} = ${totalDoorRate}/m²</div>
+                <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
+                  <div><strong>Door Components:</strong></div>
+                  <div>• Door Style Base Rate: ${doorStyleRate}/m²</div>
+                  <div>• Door Style Finish Rate: ${finishRate}/m²</div>
+                  <div>• Color Surcharge: ${colorSurcharge}/m²</div>
+                  <div>• Carcass Material Rate: ${carcassMaterialRate}/m²</div>
+                </div>
+                <div>Total Door Rate: ${doorStyleRate} + ${finishRate} + ${colorSurcharge} + ${carcassMaterialRate} = ${totalDoorRate}/m²</div>
                 <div>Formula: (Width × Height) × Qty Doors × Total Door Rate</div>
                 <div>Calculation: ({widthM.toFixed(3)} × {heightM.toFixed(3)}) × {qtyDoors} × ${totalDoorRate}</div>
                 <div>= {(widthM * heightM).toFixed(6)} × {qtyDoors} × ${totalDoorRate}</div>
