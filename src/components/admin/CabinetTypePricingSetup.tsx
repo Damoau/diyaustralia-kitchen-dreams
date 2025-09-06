@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { CabinetTypePriceRange, CabinetType } from '@/types/cabinet';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +18,9 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const [priceRanges, setPriceRanges] = useState<CabinetTypePriceRange[]>([]);
   const [cabinetType, setCabinetType] = useState<CabinetType | null>(null);
   const [loading, setLoading] = useState(true);
+  const [autoGenMin, setAutoGenMin] = useState(300);
+  const [autoGenMax, setAutoGenMax] = useState(600);
+  const [increment] = useState(50);
 
   useEffect(() => {
     if (cabinetTypeId) {
@@ -142,6 +145,80 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
     }
   };
 
+  const generateAutoRanges = () => {
+    const ranges = [];
+    for (let start = autoGenMin; start < autoGenMax; start += increment) {
+      const end = Math.min(start + increment - 1, autoGenMax);
+      ranges.push({
+        min: start,
+        max: end,
+        label: `${start} - ${end}`
+      });
+    }
+    return ranges;
+  };
+
+  const autoGenerateRanges = async () => {
+    if (autoGenMin >= autoGenMax) {
+      toast({
+        title: "Error",
+        description: "Minimum width must be less than maximum width",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Delete existing ranges
+    if (priceRanges.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('cabinet_type_price_ranges' as any)
+        .delete()
+        .eq('cabinet_type_id', cabinetTypeId);
+
+      if (deleteError) {
+        toast({
+          title: "Error",
+          description: "Failed to clear existing ranges",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Generate new ranges
+    const autoRanges = generateAutoRanges();
+    const rangesToInsert = autoRanges.map((range, index) => ({
+      cabinet_type_id: cabinetTypeId,
+      label: range.label,
+      min_width_mm: range.min,
+      max_width_mm: range.max,
+      sort_order: index,
+      active: true
+    }));
+
+    const { data, error } = await supabase
+      .from('cabinet_type_price_ranges' as any)
+      .insert(rangesToInsert)
+      .select();
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate price ranges",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (data) {
+      setPriceRanges(data as any);
+      toast({
+        title: "Success",
+        description: `Generated ${data.length} width ranges`,
+      });
+    }
+  };
+
   if (loading) {
     return <div>Loading pricing configuration...</div>;
   }
@@ -196,6 +273,55 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
           </CardContent>
         </Card>
       )}
+
+      {/* Auto Generation */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Auto Generate Width Ranges</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-4 items-end">
+              <div>
+                <Label htmlFor="autoGenMin">Min Width (mm)</Label>
+                <Input
+                  id="autoGenMin"
+                  type="number"
+                  value={autoGenMin}
+                  onChange={(e) => setAutoGenMin(parseInt(e.target.value))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="autoGenMax">Max Width (mm)</Label>
+                <Input
+                  id="autoGenMax"
+                  type="number"
+                  value={autoGenMax}
+                  onChange={(e) => setAutoGenMax(parseInt(e.target.value))}
+                />
+              </div>
+              <Button onClick={autoGenerateRanges} className="h-10">
+                <Zap className="h-4 w-4 mr-2" />
+                Generate Ranges
+              </Button>
+            </div>
+            
+            {/* Preview */}
+            <div className="mt-4">
+              <Label className="text-sm font-medium">Preview (50mm increments):</Label>
+              <div className="mt-2 p-3 bg-muted/20 rounded-md">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 text-sm">
+                  {generateAutoRanges().map((range, index) => (
+                    <div key={index} className="px-2 py-1 bg-background rounded border">
+                      {range.label}mm
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Price Ranges */}
       <Card>
