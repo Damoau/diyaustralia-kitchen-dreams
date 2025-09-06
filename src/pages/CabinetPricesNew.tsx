@@ -83,7 +83,7 @@ const CabinetPricesNew = () => {
         .select(`
           *,
           door_style_finish:door_style_finishes(*),
-          door_style:door_styles(*),
+          door_style:door_styles(*, brand:brands(*)),
           color:colors(*)
         `)
         .eq('active', true)
@@ -193,6 +193,7 @@ const CabinetPricesNew = () => {
                         </th>
                         {typeFinishes.map((ctf: any) => (
                           <th key={ctf.id} className="border border-gray-300 px-4 py-3 text-center font-medium min-w-[120px]">
+                            {ctf.door_style?.brand?.name ? `${ctf.door_style.brand.name} - ` : ''}
                             {ctf.door_style?.name} - {ctf.door_style_finish?.name}
                             {ctf.color && ` (${ctf.color.name})`}
                           </th>

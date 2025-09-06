@@ -8,13 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trash2, Plus, Settings } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { DoorStyle } from '@/types/cabinet';
+import { DoorStyle, Brand } from '@/types/cabinet';
 import { useToast } from '@/hooks/use-toast';
 import { DoorStyleFinishesManager } from './DoorStyleFinishesManager';
 
 export function DoorStylesManager() {
   const { toast } = useToast();
   const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [selectedDoorStyle, setSelectedDoorStyle] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -25,18 +26,31 @@ export function DoorStylesManager() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('door_styles')
-        .select('*')
-        .order('name');
+      const [doorStylesRes, brandsRes] = await Promise.all([
+        supabase
+          .from('door_styles')
+          .select(`
+            *,
+            brand:brands(*)
+          `)
+          .order('name'),
+        supabase
+          .from('brands')
+          .select('*')
+          .eq('active', true)
+          .order('name')
+      ]);
 
-      if (error) throw error;
-      if (data) setDoorStyles(data);
+      if (doorStylesRes.error) throw doorStylesRes.error;
+      if (brandsRes.error) throw brandsRes.error;
+      
+      if (doorStylesRes.data) setDoorStyles(doorStylesRes.data as DoorStyle[]);
+      if (brandsRes.data) setBrands(brandsRes.data);
     } catch (error) {
-      console.error('Error fetching door styles:', error);
+      console.error('Error fetching data:', error);
       toast({
         title: "Error",
-        description: "Failed to load door styles",
+        description: "Failed to load data",
         variant: "destructive",
       });
     }
@@ -54,7 +68,10 @@ export function DoorStylesManager() {
     const { data, error } = await supabase
       .from('door_styles')
       .insert(newStyle)
-      .select()
+      .select(`
+        *,
+        brand:brands(*)
+      `)
       .single();
 
     if (error) {
@@ -67,7 +84,7 @@ export function DoorStylesManager() {
     }
 
     if (data) {
-      setDoorStyles([...doorStyles, data]);
+      setDoorStyles([...doorStyles, data as DoorStyle]);
     }
   };
 
@@ -86,9 +103,8 @@ export function DoorStylesManager() {
       return;
     }
 
-    setDoorStyles(doorStyles.map(style => 
-      style.id === id ? { ...style, ...updates } : style
-    ));
+    // Refresh data to get updated brand information
+    fetchData();
   };
 
   const deleteDoorStyle = async (id: string) => {
@@ -141,6 +157,7 @@ export function DoorStylesManager() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Brand</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead>Base Rate ($/sqm)</TableHead>
@@ -151,6 +168,24 @@ export function DoorStylesManager() {
                 <TableBody>
                   {doorStyles.map((style) => (
                     <TableRow key={style.id}>
+                      <TableCell>
+                        <Select
+                          value={style.brand_id || "none"}
+                          onValueChange={(value) => updateDoorStyle(style.id, { brand_id: value === "none" ? null : value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select brand" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">No brand</SelectItem>
+                            {brands.map(brand => (
+                              <SelectItem key={brand.id} value={brand.id}>
+                                {brand.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
                       <TableCell>
                         <Input
                           value={style.name}
