@@ -297,9 +297,9 @@ export function ColorsManager() {
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex gap-2 overflow-x-auto pb-2">
+                  <div className="space-y-2">
                     {getColorsForDoorStyle(doorStyle.id).map(color => (
-                      <div key={color.id} className="flex items-center space-x-2 p-2 border rounded bg-muted/30 flex-shrink-0">
+                      <div key={color.id} className="flex items-center space-x-2 p-2 border rounded bg-muted/30">
                         <div 
                           className="w-6 h-6 rounded border flex-shrink-0"
                           style={{ backgroundColor: color.hex_code || '#ccc' }}
@@ -307,18 +307,20 @@ export function ColorsManager() {
                         <Input
                           value={color.name}
                           onChange={(e) => {
-                            setColors(prev => prev.map(c => c.id === color.id ? { ...c, name: e.target.value } : c));
+                            const newValue = e.target.value;
+                            setColors(prev => prev.map(c => c.id === color.id ? { ...c, name: newValue } : c));
+                            updateColor(color.id, { name: newValue });
                           }}
-                          onBlur={(e) => updateColor(color.id, { name: e.target.value })}
-                          className="h-7 text-xs w-20"
+                          className="h-7 text-xs flex-1"
                           placeholder="Color"
                         />
                         <Input
                           value={color.hex_code || ''}
                           onChange={(e) => {
-                            setColors(prev => prev.map(c => c.id === color.id ? { ...c, hex_code: e.target.value } : c));
+                            const newValue = e.target.value;
+                            setColors(prev => prev.map(c => c.id === color.id ? { ...c, hex_code: newValue } : c));
+                            updateColor(color.id, { hex_code: newValue });
                           }}
-                          onBlur={(e) => updateColor(color.id, { hex_code: e.target.value })}
                           placeholder="#FFFFFF"
                           className="h-7 text-xs w-20"
                         />
@@ -328,11 +330,9 @@ export function ColorsManager() {
                           value={color.surcharge_rate_per_sqm}
                           onChange={(e) => {
                             const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                            setColors(prev => prev.map(c => c.id === color.id ? { ...c, surcharge_rate_per_sqm: Number.isNaN(val) ? 0 : val } : c));
-                          }}
-                          onBlur={(e) => {
-                            const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                            updateColor(color.id, { surcharge_rate_per_sqm: Number.isNaN(val) ? 0 : val });
+                            const finalVal = Number.isNaN(val) ? 0 : val;
+                            setColors(prev => prev.map(c => c.id === color.id ? { ...c, surcharge_rate_per_sqm: finalVal } : c));
+                            updateColor(color.id, { surcharge_rate_per_sqm: finalVal });
                           }}
                           className="h-7 text-xs w-16"
                           placeholder="$"
