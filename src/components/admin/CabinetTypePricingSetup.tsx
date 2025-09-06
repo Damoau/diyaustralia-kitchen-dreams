@@ -21,6 +21,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const [autoGenMin, setAutoGenMin] = useState(300);
   const [autoGenMax, setAutoGenMax] = useState(600);
   const [increment] = useState(50);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     if (cabinetTypeId) {
@@ -183,54 +184,52 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
       return;
     }
 
-    // Delete existing ranges
-    if (priceRanges.length > 0) {
-      const { error: deleteError } = await supabase
-        .from('cabinet_type_price_ranges' as any)
-        .delete()
-        .eq('cabinet_type_id', cabinetTypeId);
+    setGenerating(true);
 
-      if (deleteError) {
-        toast({
-          title: "Error",
-          description: "Failed to clear existing ranges",
-          variant: "destructive",
-        });
-        return;
+    try {
+      // Delete existing ranges
+      if (priceRanges.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('cabinet_type_price_ranges' as any)
+          .delete()
+          .eq('cabinet_type_id', cabinetTypeId);
+
+        if (deleteError) {
+          throw deleteError;
+        }
       }
-    }
 
-    // Generate new ranges
-    const autoRanges = generateAutoRanges();
-    const rangesToInsert = autoRanges.map((range, index) => ({
-      cabinet_type_id: cabinetTypeId,
-      label: range.label,
-      min_width_mm: range.min,
-      max_width_mm: range.max,
-      sort_order: index,
-      active: true
-    }));
+      // Generate new ranges
+      const autoRanges = generateAutoRanges();
+      const rangesToInsert = autoRanges.map((range, index) => ({
+        cabinet_type_id: cabinetTypeId,
+        label: range.label,
+        min_width_mm: range.min,
+        max_width_mm: range.max,
+        sort_order: index,
+        active: true
+      }));
 
-    const { data, error } = await supabase
-      .from('cabinet_type_price_ranges' as any)
-      .insert(rangesToInsert)
-      .select();
+      const { error } = await supabase
+        .from('cabinet_type_price_ranges' as any)
+        .insert(rangesToInsert);
 
-    if (error) {
+      if (error) throw error;
+
+      await fetchData();
+      toast({
+        title: "Success",
+        description: `Generated ${rangesToInsert.length} width ranges`,
+      });
+    } catch (err) {
+      console.error('Auto-generate error:', err);
       toast({
         title: "Error",
         description: "Failed to generate price ranges",
         variant: "destructive",
       });
-      return;
-    }
-
-    if (data) {
-      setPriceRanges(data as any);
-      toast({
-        title: "Success",
-        description: `Generated ${data.length} width ranges`,
-      });
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -310,7 +309,10 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                     id="autoGenMin"
                     type="number"
                     value={autoGenMin}
-                    onChange={(e) => setAutoGenMin(parseInt(e.target.value))}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value);
+                      setAutoGenMin(Number.isNaN(v) ? 0 : v);
+                    }}
                     className="h-8"
                   />
                 </div>
@@ -320,13 +322,16 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                     id="autoGenMax"
                     type="number"
                     value={autoGenMax}
-                    onChange={(e) => setAutoGenMax(parseInt(e.target.value))}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value);
+                      setAutoGenMax(Number.isNaN(v) ? 0 : v);
+                    }}
                     className="h-8"
                   />
                 </div>
-                <Button onClick={autoGenerateRanges} size="sm" className="h-8">
+                <Button onClick={autoGenerateRanges} size="sm" className="h-8" disabled={generating}>
                   <Zap className="h-4 w-4 mr-2" />
-                  Auto Generate
+                  {generating ? 'Generating…' : 'Auto Generate'}
                 </Button>
               </div>
               
