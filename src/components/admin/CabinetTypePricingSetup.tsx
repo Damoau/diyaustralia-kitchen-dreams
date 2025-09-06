@@ -25,6 +25,8 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   useEffect(() => {
     if (cabinetTypeId) {
       fetchData();
+    } else {
+      setLoading(false);
     }
   }, [cabinetTypeId]);
 
@@ -41,20 +43,28 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
           .from('cabinet_types')
           .select('*')
           .eq('id', cabinetTypeId)
-          .single()
+          .maybeSingle()
       ]);
 
+      if (rangesRes.error) {
+        console.error('Error loading ranges:', rangesRes.error);
+      }
+      if (cabinetTypeRes?.error) {
+        console.error('Error loading cabinet type:', cabinetTypeRes.error);
+      }
+
       if (rangesRes.data) setPriceRanges(rangesRes.data as any);
-      if (cabinetTypeRes.data) setCabinetType(cabinetTypeRes.data as CabinetType);
+      if (cabinetTypeRes?.data) setCabinetType(cabinetTypeRes.data as CabinetType);
     } catch (error) {
       console.error('Error fetching pricing data:', error);
       toast({
-        title: "Error",
-        description: "Failed to load pricing configuration",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load pricing configuration',
+        variant: 'destructive',
       });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const addPriceRange = async () => {
