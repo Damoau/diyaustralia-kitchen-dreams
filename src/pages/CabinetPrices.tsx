@@ -93,6 +93,7 @@ const CabinetPrices = () => {
               <CardContent>
                 <p className="text-2xl font-bold text-foreground mb-2">560mm</p>
                 <p className="text-muted-foreground">(plus door thickness)</p>
+                <p className="text-sm text-muted-foreground mb-2">Shadowline: 580mm (20mm doors)</p>
                 <Badge variant="outline" className="mt-2">+25% for custom depth up to 900mm</Badge>
               </CardContent>
             </Card>
