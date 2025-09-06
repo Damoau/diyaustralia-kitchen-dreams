@@ -183,6 +183,24 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
     setPriceRanges(priceRanges.filter(range => range.id !== id));
   };
 
+  // Helpers for inline editing of width ranges with optimistic UI
+  const handleRangeChange = (id: string, field: 'min_width_mm' | 'max_width_mm', value: number) => {
+    setPriceRanges(prev => prev.map(r => r.id === id ? {
+      ...r,
+      [field]: value,
+      // Keep label roughly in sync during typing
+      label: `${Number(field === 'min_width_mm' ? value : r.min_width_mm) || 0} - ${Number(field === 'max_width_mm' ? value : r.max_width_mm) || 0}`
+    } : r));
+  };
+
+  const persistRange = async (id: string) => {
+    const r = priceRanges.find(pr => pr.id === id);
+    if (!r) return;
+    const min = Number(r.min_width_mm) || 0;
+    const max = Number(r.max_width_mm) || 0;
+    await updatePriceRange(id, { min_width_mm: min, max_width_mm: max, label: `${min} - ${max}` });
+  };
+
   const updateCabinetTypeQuantities = async (updates: { backs_qty?: number; bottoms_qty?: number; sides_qty?: number; door_qty?: number }) => {
     const { error } = await supabase
       .from('cabinet_types')
@@ -519,10 +537,22 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                       {range.label}mm
                     </TableCell>
                     <TableCell>
-                      {range.min_width_mm}
+                      <Input
+                        type="number"
+                        value={range.min_width_mm}
+                        onChange={(e) => handleRangeChange(range.id, 'min_width_mm', parseInt(e.target.value) || 0)}
+                        onBlur={() => persistRange(range.id)}
+                        className="h-8"
+                      />
                     </TableCell>
                     <TableCell>
-                      {range.max_width_mm}
+                      <Input
+                        type="number"
+                        value={range.max_width_mm}
+                        onChange={(e) => handleRangeChange(range.id, 'max_width_mm', parseInt(e.target.value) || 0)}
+                        onBlur={() => persistRange(range.id)}
+                        className="h-8"
+                      />
                     </TableCell>
                     <TableCell>
                       <Button
