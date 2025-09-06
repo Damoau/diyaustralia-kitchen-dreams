@@ -63,7 +63,10 @@ const Header = () => {
               <DropdownMenuContent align="end" className="w-48">
                 {isAdmin && (
                   <>
-                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                    <DropdownMenuItem onClick={() => {
+                      console.log('Navigating to admin, isAdmin:', isAdmin, 'user:', user);
+                      navigate('/admin');
+                    }}>
                       <Settings className="mr-2 h-4 w-4" />
                       Admin Panel
                     </DropdownMenuItem>
