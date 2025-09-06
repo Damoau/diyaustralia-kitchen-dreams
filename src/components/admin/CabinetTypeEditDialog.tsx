@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CabinetTypePricingSetup } from "./CabinetTypePricingSetup";
 
 interface CabinetType {
   id: string;
@@ -74,110 +76,126 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{cabinetType ? 'Edit Cabinet Type' : 'Add New Cabinet Type'}</DialogTitle>
+          <DialogTitle>
+            {cabinetType ? 'Edit Cabinet Type' : 'Add Cabinet Type'}
+          </DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-              placeholder="Cabinet type name"
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="category">Category</Label>
-            <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="grid gap-2">
-              <Label htmlFor="width">Width (mm)</Label>
-              <Input
-                id="width"
-                type="number"
-                value={formData.default_width_mm}
-                onChange={(e) => setFormData({...formData, default_width_mm: parseInt(e.target.value) || 300})}
-                placeholder="300"
-              />
+        
+        <Tabs defaultValue="basic" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="basic">Basic Info</TabsTrigger>
+            <TabsTrigger value="pricing" disabled={!cabinetType}>Pricing Setup</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="basic" className="space-y-4">
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="category">Category</Label>
+                <Select
+                  value={formData.category}
+                  onValueChange={(value) => setFormData({ ...formData, category: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category.charAt(0).toUpperCase() + category.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <Label htmlFor="width">Width (mm)</Label>
+                  <Input
+                    id="width"
+                    type="number"
+                    value={formData.default_width_mm}
+                    onChange={(e) => setFormData({ ...formData, default_width_mm: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="height">Height (mm)</Label>
+                  <Input
+                    id="height"
+                    type="number"
+                    value={formData.default_height_mm}
+                    onChange={(e) => setFormData({ ...formData, default_height_mm: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="depth">Depth (mm)</Label>
+                  <Input
+                    id="depth"
+                    type="number"
+                    value={formData.default_depth_mm}
+                    onChange={(e) => setFormData({ ...formData, default_depth_mm: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label htmlFor="door_count">Door Count</Label>
+                  <Input
+                    id="door_count"
+                    type="number"
+                    value={formData.door_count}
+                    onChange={(e) => setFormData({ ...formData, door_count: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="drawer_count">Drawer Count</Label>
+                  <Input
+                    id="drawer_count"
+                    type="number"
+                    value={formData.drawer_count}
+                    onChange={(e) => setFormData({ ...formData, drawer_count: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="active"
+                  checked={formData.active}
+                  onCheckedChange={(checked) => setFormData({ ...formData, active: checked })}
+                />
+                <Label htmlFor="active">Active</Label>
+              </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="height">Height (mm)</Label>
-              <Input
-                id="height"
-                type="number"
-                value={formData.default_height_mm}
-                onChange={(e) => setFormData({...formData, default_height_mm: parseInt(e.target.value) || 720})}
-                placeholder="720"
-              />
+            
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave}>
+                Save
+              </Button>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="depth">Depth (mm)</Label>
-              <Input
-                id="depth"
-                type="number"
-                value={formData.default_depth_mm}
-                onChange={(e) => setFormData({...formData, default_depth_mm: parseInt(e.target.value) || 560})}
-                placeholder="560"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="grid gap-2">
-              <Label htmlFor="door-count">Door Count</Label>
-              <Input
-                id="door-count"
-                type="number"
-                value={formData.door_count}
-                onChange={(e) => setFormData({...formData, door_count: parseInt(e.target.value) || 0})}
-                placeholder="0"
-                min="0"
-                max="10"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="drawer-count">Drawer Count</Label>
-              <Input
-                id="drawer-count"
-                type="number"
-                value={formData.drawer_count}
-                onChange={(e) => setFormData({...formData, drawer_count: parseInt(e.target.value) || 0})}
-                placeholder="0"
-                min="0"
-                max="10"
-              />
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="active"
-              checked={formData.active}
-              onCheckedChange={(checked) => setFormData({...formData, active: checked})}
-            />
-            <Label htmlFor="active">Active</Label>
-          </div>
-        </div>
-        <div className="flex justify-end space-x-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>
-            Save
-          </Button>
-        </div>
+          </TabsContent>
+          
+          <TabsContent value="pricing">
+            {cabinetType && (
+              <CabinetTypePricingSetup cabinetTypeId={cabinetType.id} />
+            )}
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

@@ -48,6 +48,32 @@ export interface CabinetType {
   drawer_count: number;
   active: boolean;
   created_at: string;
+  range_id?: string;
+  pricing_formula?: any;
+  default_hardware_brand_id?: string;
+}
+
+export interface CabinetTypePriceRange {
+  id: string;
+  cabinet_type_id: string;
+  label: string;
+  min_width_mm: number;
+  max_width_mm: number;
+  sort_order: number;
+  active: boolean;
+  created_at: string;
+}
+
+export interface CabinetTypeFinish {
+  id: string;
+  cabinet_type_id: string;
+  finish_id: string;
+  door_style_id?: string;
+  sort_order: number;
+  active: boolean;
+  created_at: string;
+  finish?: Finish;
+  door_style?: DoorStyle;
 }
 
 export interface CabinetPart {

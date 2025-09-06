@@ -1,0 +1,341 @@
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Trash2, Plus } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { CabinetTypePriceRange, CabinetTypeFinish, Finish, DoorStyle } from '@/types/cabinet';
+import { useToast } from '@/hooks/use-toast';
+
+interface CabinetTypePricingSetupProps {
+  cabinetTypeId: string;
+}
+
+export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSetupProps) {
+  const { toast } = useToast();
+  const [priceRanges, setPriceRanges] = useState<CabinetTypePriceRange[]>([]);
+  const [cabinetTypeFinishes, setCabinetTypeFinishes] = useState<CabinetTypeFinish[]>([]);
+  const [allFinishes, setAllFinishes] = useState<Finish[]>([]);
+  const [allDoorStyles, setAllDoorStyles] = useState<DoorStyle[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (cabinetTypeId) {
+      fetchData();
+    }
+  }, [cabinetTypeId]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [rangesRes, finishesRes, allFinishesRes, doorStylesRes] = await Promise.all([
+        supabase
+          .from('cabinet_type_price_ranges' as any)
+          .select('*')
+          .eq('cabinet_type_id', cabinetTypeId)
+          .order('sort_order'),
+        supabase
+          .from('cabinet_type_finishes' as any)
+          .select(`
+            *,
+            finish:finishes(*),
+            door_style:door_styles(*)
+          `)
+          .eq('cabinet_type_id', cabinetTypeId)
+          .order('sort_order'),
+        supabase
+          .from('finishes')
+          .select('*')
+          .eq('active', true),
+        supabase
+          .from('door_styles')
+          .select('*')
+          .eq('active', true)
+      ]);
+
+      if (rangesRes.data) setPriceRanges(rangesRes.data as any);
+      if (finishesRes.data) setCabinetTypeFinishes(finishesRes.data as any);
+      if (allFinishesRes.data) setAllFinishes(allFinishesRes.data);
+      if (doorStylesRes.data) setAllDoorStyles(doorStylesRes.data);
+    } catch (error) {
+      console.error('Error fetching pricing data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load pricing configuration",
+        variant: "destructive",
+      });
+    }
+    setLoading(false);
+  };
+
+  const addPriceRange = async () => {
+    const newRange = {
+      cabinet_type_id: cabinetTypeId,
+      label: "New Range",
+      min_width_mm: 300,
+      max_width_mm: 600,
+      sort_order: priceRanges.length,
+      active: true
+    };
+
+    const { data, error } = await supabase
+      .from('cabinet_type_price_ranges' as any)
+      .insert(newRange)
+      .select()
+      .single();
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add price range",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (data) {
+      setPriceRanges([...priceRanges, data as any]);
+    }
+  };
+
+  const updatePriceRange = async (id: string, updates: Partial<CabinetTypePriceRange>) => {
+    const { error } = await supabase
+      .from('cabinet_type_price_ranges' as any)
+      .update(updates)
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update price range",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPriceRanges(priceRanges.map(range => 
+      range.id === id ? { ...range, ...updates } : range
+    ));
+  };
+
+  const deletePriceRange = async (id: string) => {
+    const { error } = await supabase
+      .from('cabinet_type_price_ranges' as any)
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete price range",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPriceRanges(priceRanges.filter(range => range.id !== id));
+  };
+
+  const addFinishMapping = async (finishId: string) => {
+    const newMapping = {
+      cabinet_type_id: cabinetTypeId,
+      finish_id: finishId,
+      sort_order: cabinetTypeFinishes.length,
+      active: true
+    };
+
+    const { data, error } = await supabase
+      .from('cabinet_type_finishes' as any)
+      .insert(newMapping)
+      .select(`
+        *,
+        finish:finishes(*),
+        door_style:door_styles(*)
+      `)
+      .single();
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add finish mapping",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (data) {
+      setCabinetTypeFinishes([...cabinetTypeFinishes, data as any]);
+    }
+  };
+
+  const updateFinishMapping = async (id: string, doorStyleId: string | null) => {
+    const { error } = await supabase
+      .from('cabinet_type_finishes' as any)
+      .update({ door_style_id: doorStyleId })
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update finish mapping",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    fetchData(); // Refresh to get updated door style data
+  };
+
+  const deleteFinishMapping = async (id: string) => {
+    const { error } = await supabase
+      .from('cabinet_type_finishes' as any)
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete finish mapping",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCabinetTypeFinishes(cabinetTypeFinishes.filter(ctf => ctf.id !== id));
+  };
+
+  if (loading) {
+    return <div>Loading pricing configuration...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Price Ranges */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Width Ranges</CardTitle>
+          <Button onClick={addPriceRange} size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Range
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Label</TableHead>
+                <TableHead>Min Width (mm)</TableHead>
+                <TableHead>Max Width (mm)</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {priceRanges.map((range) => (
+                <TableRow key={range.id}>
+                  <TableCell>
+                    <Input
+                      value={range.label}
+                      onChange={(e) => updatePriceRange(range.id, { label: e.target.value })}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type="number"
+                      value={range.min_width_mm}
+                      onChange={(e) => updatePriceRange(range.id, { min_width_mm: parseInt(e.target.value) })}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type="number"
+                      value={range.max_width_mm}
+                      onChange={(e) => updatePriceRange(range.id, { max_width_mm: parseInt(e.target.value) })}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      onClick={() => deletePriceRange(range.id)}
+                      variant="destructive"
+                      size="sm"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Finish Mappings */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Finish Columns</CardTitle>
+          <Select onValueChange={addFinishMapping}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Add finish" />
+            </SelectTrigger>
+            <SelectContent>
+              {allFinishes
+                .filter(f => !cabinetTypeFinishes.some(ctf => ctf.finish_id === f.id))
+                .map(finish => (
+                  <SelectItem key={finish.id} value={finish.id}>
+                    {finish.name}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Finish</TableHead>
+                <TableHead>Door Style</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {cabinetTypeFinishes.map((ctf) => (
+                <TableRow key={ctf.id}>
+                  <TableCell>{ctf.finish?.name}</TableCell>
+                  <TableCell>
+                    <Select
+                      value={ctf.door_style_id || ""}
+                      onValueChange={(value) => updateFinishMapping(ctf.id, value || null)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select door style" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">No door style</SelectItem>
+                        {allDoorStyles.map(style => (
+                          <SelectItem key={style.id} value={style.id}>
+                            {style.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      onClick={() => deleteFinishMapping(ctf.id)}
+                      variant="destructive"
+                      size="sm"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

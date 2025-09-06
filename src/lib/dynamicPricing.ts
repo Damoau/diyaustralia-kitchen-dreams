@@ -67,30 +67,38 @@ export function calculateCabinetPrice(
   return Math.round(totalCost * 100) / 100; // Round to 2 decimal places
 }
 
-// Generate price data for the static price tables
-export function generatePriceTableData(
+// Generate price data for the static price tables using database-driven ranges and finishes
+export async function generatePriceTableData(
   cabinetTypes: CabinetType[],
-  finishes: Finish[],
-  doorStyles: DoorStyle[],
-  colors: Color[],
   cabinetParts: CabinetPart[],
-  globalSettings: GlobalSettings[]
+  globalSettings: GlobalSettings[],
+  priceRanges: any[],
+  cabinetTypeFinishes: any[],
+  hardwareCost: number = 45
 ) {
+  const { supabase } = await import("@/integrations/supabase/client");
   const priceData: any = {};
   
-  cabinetTypes.forEach(cabinetType => {
-    const widthRanges = getWidthRangesForCabinet(cabinetType);
+  for (const cabinetType of cabinetTypes) {
+    // Get price ranges for this cabinet type
+    const typeRanges = priceRanges
+      .filter(range => range.cabinet_type_id === cabinetType.id && range.active)
+      .sort((a, b) => a.sort_order - b.sort_order);
+    
+    // Get finishes for this cabinet type
+    const typeFinishes = cabinetTypeFinishes
+      .filter(ctf => ctf.cabinet_type_id === cabinetType.id && ctf.active)
+      .sort((a, b) => a.sort_order - b.sort_order);
+    
+    if (typeRanges.length === 0 || typeFinishes.length === 0) {
+      continue; // Skip cabinet types without configured ranges or finishes
+    }
     
     priceData[cabinetType.name] = {
       name: cabinetType.name,
-      sizes: widthRanges.map(range => {
-        const width = range.minWidth;
-        const prices = finishes.map(finish => {
-          // Use first door style if available
-          const doorStyle = doorStyles[0];
-          // Use first color if available  
-          const color = colors.find(c => c.door_style_id === doorStyle?.id);
-          
+      sizes: typeRanges.map(range => {
+        const width = range.min_width_mm; // Use minimum width for pricing calculation
+        const prices = typeFinishes.map(ctf => {
           const relevantParts = cabinetParts.filter(p => p.cabinet_type_id === cabinetType.id);
           
           return calculateCabinetPrice(
@@ -98,12 +106,12 @@ export function generatePriceTableData(
             width,
             cabinetType.default_height_mm,
             cabinetType.default_depth_mm,
-            finish,
-            doorStyle,
-            color,
+            ctf.finish,
+            ctf.door_style,
+            null, // No color for now
             relevantParts,
             globalSettings,
-            45 // default hardware cost
+            hardwareCost
           );
         });
         
@@ -113,7 +121,7 @@ export function generatePriceTableData(
         };
       })
     };
-  });
+  }
   
   return priceData;
 }
