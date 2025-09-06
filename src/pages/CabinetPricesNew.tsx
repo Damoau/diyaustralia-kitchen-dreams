@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { CabinetType, CabinetPart, GlobalSettings, HardwareBrand, CabinetTypePriceRange, CabinetTypeFinish } from "@/types/cabinet";
-import { generatePriceTableData } from "@/lib/dynamicPricing";
+import { calculateCabinetPrice } from "@/lib/dynamicPricing";
 import { calculateHardwareCost } from "@/lib/hardwarePricing";
 import { useCart } from "@/hooks/useCart";
 import { formatPrice } from "@/lib/pricing";
@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const CabinetPricesNew = () => {
   const [selectedHardwareBrand, setSelectedHardwareBrand] = useState<string>('');
+  const [priceData, setPriceData] = useState<any>({});
   const { toast } = useToast();
 
   const { data: cabinetTypes } = useQuery({
@@ -69,9 +70,10 @@ const CabinetPricesNew = () => {
         .from('cabinet_type_price_ranges' as any)
         .select('*')
         .eq('active', true)
-        .order('sort_order');
+        .order('cabinet_type_id', { ascending: true })
+        .order('sort_order', { ascending: true });
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 
@@ -87,40 +89,96 @@ const CabinetPricesNew = () => {
           color:colors(*)
         `)
         .eq('active', true)
-        .order('sort_order');
+        .order('cabinet_type_id', { ascending: true })
+        .order('sort_order', { ascending: true });
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 
-  const priceData = useMemo(async () => {
-    if (!cabinetTypes || !cabinetParts || !globalSettings || !priceRanges || !cabinetTypeFinishes) {
-      return {};
-    }
-
-    const hardwareCost = selectedHardwareBrand ? 
-      await calculateHardwareCost(cabinetTypes[0], selectedHardwareBrand, 1) : 
-      45; // default hardware cost
-
-    return await generatePriceTableData(
-      cabinetTypes,
-      cabinetParts,
-      globalSettings,
-      priceRanges,
-      cabinetTypeFinishes,
-      hardwareCost
-    );
-  }, [cabinetTypes, cabinetParts, globalSettings, priceRanges, cabinetTypeFinishes, selectedHardwareBrand]);
-
-  const [resolvedPriceData, setResolvedPriceData] = useState<any>({});
-
+  // Generate pricing data when all dependencies are loaded
   useEffect(() => {
-    if (priceData instanceof Promise) {
-      priceData.then(setResolvedPriceData);
-    } else {
-      setResolvedPriceData(priceData);
+    if (!cabinetTypes || !cabinetParts || !globalSettings || !priceRanges || !cabinetTypeFinishes) {
+      return;
     }
-  }, [priceData]);
+
+    const generatePriceData = async () => {
+      const newPriceData: any = {};
+
+      for (const cabinetType of cabinetTypes) {
+        // Get price ranges for this cabinet type
+        const typeRanges = priceRanges
+          .filter((range: any) => range.cabinet_type_id === cabinetType.id && range.active)
+          .sort((a: any, b: any) => a.sort_order - b.sort_order);
+        
+        // Get finishes for this cabinet type
+        const typeFinishes = cabinetTypeFinishes
+          .filter((ctf: any) => ctf.cabinet_type_id === cabinetType.id && ctf.active)
+          .sort((a: any, b: any) => a.sort_order - b.sort_order);
+
+        console.log(`Processing ${cabinetType.name}: ${typeRanges.length} ranges, ${typeFinishes.length} finishes`);
+
+        if (typeFinishes.length > 0) {
+          // Use default ranges if no specific ranges configured
+          const ranges = typeRanges.length > 0 ? typeRanges : [
+            { id: 'default-1', label: '300 - 400mm', min_width_mm: 300, max_width_mm: 400 },
+            { id: 'default-2', label: '400 - 500mm', min_width_mm: 400, max_width_mm: 500 },
+            { id: 'default-3', label: '500 - 600mm', min_width_mm: 500, max_width_mm: 600 }
+          ];
+
+          const hardwareCost = selectedHardwareBrand ? 
+            await calculateHardwareCost(cabinetType, selectedHardwareBrand, 1) : 
+            45;
+
+          newPriceData[cabinetType.name] = {
+            name: cabinetType.name,
+            id: cabinetType.id,
+            hasConfiguredRanges: typeRanges.length > 0,
+            sizes: ranges.map((range: any) => {
+              const width = range.min_width_mm;
+              const prices = typeFinishes.map((ctf: any) => {
+                const relevantParts = cabinetParts.filter((p: any) => p.cabinet_type_id === cabinetType.id);
+                
+                // Create a mock door style finish if not present
+                const doorStyleFinish = ctf.door_style_finish || {
+                  id: `mock-${ctf.id}`,
+                  door_style_id: ctf.door_style_id,
+                  name: 'Standard Finish',
+                  rate_per_sqm: 0,
+                  sort_order: 0,
+                  active: true,
+                  created_at: new Date().toISOString(),
+                  door_style: ctf.door_style
+                };
+
+                return calculateCabinetPrice(
+                  cabinetType,
+                  width,
+                  cabinetType.default_height_mm || 720,
+                  cabinetType.default_depth_mm || 560,
+                  doorStyleFinish,
+                  ctf.color,
+                  relevantParts,
+                  globalSettings,
+                  hardwareCost,
+                  ctf
+                );
+              });
+              
+              return {
+                range: range.label,
+                price: prices
+              };
+            })
+          };
+        }
+      }
+
+      setPriceData(newPriceData);
+    };
+
+    generatePriceData();
+  }, [cabinetTypes, cabinetParts, globalSettings, priceRanges, cabinetTypeFinishes, selectedHardwareBrand]);
 
   // Set default hardware brand
   useEffect(() => {
@@ -170,7 +228,7 @@ const CabinetPricesNew = () => {
       <section className="py-16">
         <div className="container mx-auto px-4 space-y-12">
           {cabinetTypes?.map((cabinetType) => {
-            const typeData = resolvedPriceData[cabinetType.name];
+            const typeData = priceData[cabinetType.name];
             if (!typeData) return null;
 
             // Get finishes for this cabinet type
@@ -178,11 +236,32 @@ const CabinetPricesNew = () => {
               ctf.cabinet_type_id === cabinetType.id && ctf.active
             ).sort((a: any, b: any) => a.sort_order - b.sort_order) || [];
 
-            if (typeFinishes.length === 0) return null;
+            if (typeFinishes.length === 0) {
+              return (
+                <div key={cabinetType.id} className="mb-12">
+                  <h2 className="text-2xl font-semibold mb-6">{cabinetType.name}</h2>
+                  <div className="text-center py-8 bg-muted/20 rounded-lg">
+                    <p className="text-muted-foreground mb-2">
+                      No door styles configured for this cabinet type.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Please configure door styles in the admin panel.
+                    </p>
+                  </div>
+                </div>
+              );
+            }
 
             return (
               <div key={cabinetType.id} className="mb-12">
-                <h2 className="text-2xl font-semibold mb-6">{cabinetType.name}</h2>
+                <h2 className="text-2xl font-semibold mb-6">
+                  {cabinetType.name}
+                  {!typeData.hasConfiguredRanges && (
+                    <span className="ml-2 text-sm font-normal text-orange-600">
+                      (Using default ranges - configure in admin for custom ranges)
+                    </span>
+                  )}
+                </h2>
                 
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse border border-gray-300">
@@ -193,7 +272,8 @@ const CabinetPricesNew = () => {
                         </th>
                         {typeFinishes.map((ctf: any) => (
                           <th key={ctf.id} className="border border-gray-300 px-4 py-3 text-center font-medium min-w-[120px]">
-                            {ctf.door_style?.name} - {ctf.door_style_finish?.name}
+                            {ctf.door_style?.name || 'Unknown Style'}
+                            {ctf.door_style_finish?.name && ` - ${ctf.door_style_finish.name}`}
                             {ctf.color && ` (${ctf.color.name})`}
                           </th>
                         ))}
@@ -222,7 +302,18 @@ const CabinetPricesNew = () => {
           {(!cabinetTypes || cabinetTypes.length === 0) && (
             <div className="text-center py-12">
               <p className="text-muted-foreground">
-                No cabinet types with pricing configured yet. Please set up cabinet types with price ranges and finishes in the admin panel.
+                No cabinet types configured yet. Please set up cabinet types in the admin panel.
+              </p>
+            </div>
+          )}
+          
+          {cabinetTypes && cabinetTypes.length > 0 && Object.keys(priceData).length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground mb-2">
+                No pricing data available. 
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Please configure door styles and finishes for your cabinet types in the admin panel.
               </p>
             </div>
           )}
