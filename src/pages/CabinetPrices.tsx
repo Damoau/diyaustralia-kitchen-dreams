@@ -4,17 +4,10 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ConfiguratorDialog } from "@/components/cabinet/ConfiguratorDialog";
+import { CellConfigPopup } from "@/components/cabinet/CellConfigPopup";
 import { supabase } from "@/integrations/supabase/client";
-import { CabinetType, Finish, Color, CabinetPart, GlobalSettings, HardwareBrand } from "@/types/cabinet";
-import { calculateCabinetPrice } from "@/lib/dynamicPricing";
-import { calculateHardwareCost } from "@/lib/hardwarePricing";
-import { useCart } from "@/hooks/useCart";
-import { generateCutlist, parseGlobalSettings } from "@/lib/pricing";
+import { CabinetType, Finish, CabinetPart, GlobalSettings } from "@/types/cabinet";
 import { useToast } from "@/hooks/use-toast";
 
 // Import cabinet images
@@ -28,30 +21,19 @@ const CabinetPrices = () => {
   const [selectedWidth, setSelectedWidth] = useState<number>(300);
   const [isConfiguratorOpen, setIsConfiguratorOpen] = useState(false);
   const [finishes, setFinishes] = useState<Finish[]>([]);
-  const [colors, setColors] = useState<Color[]>([]);
   const [cabinetParts, setCabinetParts] = useState<CabinetPart[]>([]);
   const [globalSettings, setGlobalSettings] = useState<GlobalSettings[]>([]);
   
-  // Add hardware selection to popup
-  const [hardwareBrands, setHardwareBrands] = useState<HardwareBrand[]>([]);
-  const [selectedHardwareBrand, setSelectedHardwareBrand] = useState<string>('');
-  
-  const { addToCart, isLoading: isAddingToCart } = useCart();
   const { toast } = useToast();
   
-  // Popup state
-  const [popupOpen, setPopupOpen] = useState(false);
-  const [popupConfig, setPopupConfig] = useState({
-    cabinetType: "",
-    width: 300,
-    height: 720,
-    depth: 560,
-    finish: "",
-    finishId: "",
-    colorId: "",
-    hardwareBrandId: "",
-    price: 0
-  });
+  // Cell popup state
+  const [cellPopupOpen, setCellPopupOpen] = useState(false);
+  const [selectedCell, setSelectedCell] = useState<{
+    cabinetType: CabinetType;
+    finish: Finish;
+    width: number;
+    price: number;
+  } | null>(null);
 
   // Load cabinet types and data
   useEffect(() => {
@@ -59,38 +41,7 @@ const CabinetPrices = () => {
     loadFinishes();
     loadCabinetParts();
     loadGlobalSettings();
-    loadHardwareBrands();
   }, []);
-
-  // Update price when hardware brand or color changes
-  useEffect(() => {
-    if (popupConfig.hardwareBrandId && popupConfig.cabinetType && popupOpen) {
-      const cabinetType = cabinetTypes.find(ct => ct.name === popupConfig.cabinetType);
-      const finish = finishes.find(f => f.id === popupConfig.finishId);
-      
-      if (cabinetType && finish) {
-        const relevantParts = cabinetParts.filter(p => p.cabinet_type_id === cabinetType.id);
-        
-        // Calculate hardware cost for selected brand
-        calculateHardwareCost(cabinetType, popupConfig.hardwareBrandId, 1).then(hwCost => {
-          const updatedPrice = calculateCabinetPrice(
-            cabinetType,
-            popupConfig.width,
-            popupConfig.height,
-            popupConfig.depth,
-            finish,
-            undefined, // no door style selected yet
-            undefined, // no color selected yet  
-            relevantParts,
-            globalSettings,
-            hwCost
-          );
-          
-          setPopupConfig(prev => ({ ...prev, price: updatedPrice }));
-        });
-      }
-    }
-  }, [popupConfig.hardwareBrandId, popupConfig.colorId, popupOpen, cabinetTypes, finishes, cabinetParts, globalSettings]);
 
   const loadCabinetTypes = async () => {
     try {
@@ -121,21 +72,6 @@ const CabinetPrices = () => {
     }
   };
 
-  const loadColors = async (doorStyleId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('colors')
-        .select('*')
-        .eq('door_style_id', doorStyleId)
-        .eq('active', true);
-
-      if (error) throw error;
-      setColors((data || []) as Color[]);
-    } catch (error) {
-      console.error('Error loading colors:', error);
-    }
-  };
-
   const loadCabinetParts = async () => {
     try {
       const { data, error } = await supabase
@@ -162,23 +98,6 @@ const CabinetPrices = () => {
     }
   };
 
-  const loadHardwareBrands = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('hardware_brands')
-        .select('*')
-        .eq('active', true);
-
-      if (error) throw error;
-      setHardwareBrands((data || []) as HardwareBrand[]);
-      if (data && data.length > 0 && !selectedHardwareBrand) {
-        setSelectedHardwareBrand(data[0].id);
-      }
-    } catch (error) {
-      console.error('Error loading hardware brands:', error);
-    }
-  };
-
   const handleConfigure = (cabinetTypeName: string, width: number) => {
     const cabinetType = cabinetTypes.find(ct => ct.name === cabinetTypeName);
     if (cabinetType) {
@@ -193,122 +112,19 @@ const CabinetPrices = () => {
     return match ? parseInt(match[0]) : 300;
   };
 
-  const handlePriceClick = async (cabinetName: string, sizeRange: string, price: number, finishName: string) => {
+  const handleCellClick = (cabinetName: string, sizeRange: string, price: number, finishName: string) => {
     const width = parseWidthRange(sizeRange);
     const matchedFinish = finishes.find(f => f.name === finishName);
     const cabinetType = cabinetTypes.find(ct => ct.name === cabinetName);
     
-    // Calculate dynamic price using your formula
-    let calculatedPrice = price; // fallback to static price
     if (matchedFinish && cabinetType) {
-      const relevantParts = cabinetParts.filter(p => p.cabinet_type_id === cabinetType.id);
-      calculatedPrice = calculateCabinetPrice(
+      setSelectedCell({
         cabinetType,
+        finish: matchedFinish,
         width,
-        cabinetType.default_height_mm,
-        cabinetType.default_depth_mm,
-        matchedFinish,
-        undefined, // no door style selected yet
-        undefined, // no color selected yet
-        relevantParts,
-        globalSettings,
-        45 // default hardware cost - will be updated when hardware brand is selected
-      );
-    }
-    
-    setPopupConfig({
-      cabinetType: cabinetName,
-      width: width,
-      height: 720,
-      depth: 560,
-      finish: finishName,
-      finishId: matchedFinish?.id || "",
-      colorId: "",
-      hardwareBrandId: selectedHardwareBrand,
-      price: calculatedPrice
-    });
-    
-    if (matchedFinish?.id) {
-      // TODO: Update to load colors based on door style selection
-      // For now, load empty colors array until door style is selected
-      setColors([]);
-    }
-    
-    setPopupOpen(true);
-  };
-
-  const handleAddToQuote = async () => {
-    try {
-      const cabinetType = cabinetTypes.find(ct => ct.name === popupConfig.cabinetType);
-      const finish = finishes.find(f => f.id === popupConfig.finishId);
-      const color = colors.find(c => c.id === popupConfig.colorId);
-      
-      if (!cabinetType) {
-        toast({
-          title: "Error",
-          description: "Cabinet type not found",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      if (!finish) {
-        toast({
-          title: "Error", 
-          description: "Please select a finish",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      if (!color) {
-        toast({
-          title: "Error",
-          description: "Please select a color", 
-          variant: "destructive"
-        });
-        return;
-      }
-
-      if (!hardwareBrands.find(hb => hb.id === popupConfig.hardwareBrandId)) {
-        toast({
-          title: "Error",
-          description: "Please select a hardware brand",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const configuration = {
-        cabinetType,
-        width: popupConfig.width,
-        height: popupConfig.height, 
-        depth: popupConfig.depth,
-        quantity: 1,
-        finish,
-        color,
-        doorStyle: undefined,
-        hardwareBrand: popupConfig.hardwareBrandId
-      };
-
-      const relevantParts = cabinetParts.filter(part => part.cabinet_type_id === cabinetType.id);
-      const settings = parseGlobalSettings(globalSettings);
-      
-      await addToCart(configuration, relevantParts, settings);
-      
-      toast({
-        title: "Added to Cart",
-        description: `${cabinetType.name} added to your quote successfully!`
+        price
       });
-      
-      setPopupOpen(false);
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add item to cart",
-        variant: "destructive"
-      });
+      setCellPopupOpen(true);
     }
   };
 
@@ -405,127 +221,12 @@ const CabinetPrices = () => {
                           const price = size.price[finish.index];
                           return (
                             <td key={finishIdx} className="border border-border p-3 text-center">
-                              <Popover open={popupOpen && popupConfig.cabinetType === cabinet.name && popupConfig.width === parseWidthRange(size.range) && popupConfig.finish === finish.name}>
-                                <PopoverTrigger asChild>
-                                  <button
-                                    onClick={() => handlePriceClick(cabinet.name, size.range, price, finish.name)}
-                                    className="text-lg font-bold text-primary hover:text-primary/80 cursor-pointer transition-colors"
-                                  >
-                                    ${price}
-                                  </button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-80 p-4 bg-background border border-border shadow-lg">
-                                  <div className="space-y-4">
-                                    <h3 className="font-semibold text-foreground text-center">Configure Your Cabinet</h3>
-                                    
-                                    <div className="grid grid-cols-3 gap-3">
-                                      <div>
-                                        <Label htmlFor="width" className="text-sm font-medium text-foreground">Width (mm)</Label>
-                                        <Input
-                                          id="width"
-                                          type="number"
-                                          value={popupConfig.width}
-                                          onChange={(e) => setPopupConfig(prev => ({ ...prev, width: parseInt(e.target.value) || 0 }))}
-                                          className="mt-1"
-                                        />
-                                      </div>
-                                      <div>
-                                        <Label htmlFor="height" className="text-sm font-medium text-foreground">Height (mm)</Label>
-                                        <Input
-                                          id="height"
-                                          type="number"
-                                          value={popupConfig.height}
-                                          onChange={(e) => setPopupConfig(prev => ({ ...prev, height: parseInt(e.target.value) || 0 }))}
-                                          className="mt-1"
-                                        />
-                                      </div>
-                                      <div>
-                                        <Label htmlFor="depth" className="text-sm font-medium text-foreground">Depth (mm)</Label>
-                                        <Input
-                                          id="depth"
-                                          type="number"
-                                          value={popupConfig.depth}
-                                          onChange={(e) => setPopupConfig(prev => ({ ...prev, depth: parseInt(e.target.value) || 0 }))}
-                                          className="mt-1"
-                                        />
-                                      </div>
-                                    </div>
-
-                                    <div>
-                                      <Label className="text-sm font-medium text-foreground">Selected Finish</Label>
-                                      <p className="mt-1 p-2 bg-muted rounded text-foreground">{popupConfig.finish}</p>
-                                    </div>
-
-                                    <div>
-                                      <Label className="text-sm font-medium text-foreground">Hardware Brand</Label>
-                                      <Select 
-                                        value={popupConfig.hardwareBrandId} 
-                                        onValueChange={(value) => setPopupConfig(prev => ({ ...prev, hardwareBrandId: value }))}
-                                      >
-                                        <SelectTrigger className="mt-1">
-                                          <SelectValue placeholder="Select hardware brand" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {hardwareBrands.map((brand) => (
-                                            <SelectItem key={brand.id} value={brand.id}>
-                                              {brand.name}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-
-                                    <div>
-                                      <Label className="text-sm font-medium text-foreground">Color</Label>
-                                      <Select 
-                                        value={popupConfig.colorId} 
-                                        onValueChange={(value) => setPopupConfig(prev => ({ ...prev, colorId: value }))}
-                                      >
-                                        <SelectTrigger className="mt-1">
-                                          <SelectValue placeholder="Select a color" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {colors.map((color) => (
-                                            <SelectItem key={color.id} value={color.id}>
-                                              <div className="flex items-center gap-2">
-                                                {color.hex_code && (
-                                                  <div 
-                                                    className="w-4 h-4 rounded border border-border"
-                                                    style={{ backgroundColor: color.hex_code }}
-                                                  />
-                                                )}
-                                                {color.name}
-                                              </div>
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-
-                                    <div className="text-center">
-                                      <p className="text-lg font-bold text-primary mb-3">Price: ${popupConfig.price}</p>
-                                      <div className="flex gap-2">
-                                        <Button
-                                          onClick={() => setPopupOpen(false)}
-                                          variant="outline"
-                                          size="sm"
-                                          className="flex-1"
-                                        >
-                                          Cancel
-                                        </Button>
-                                        <Button
-                                          onClick={handleAddToQuote}
-                                          size="sm"
-                                          className="flex-1"
-                                          disabled={isAddingToCart || !popupConfig.colorId || !popupConfig.hardwareBrandId}
-                                        >
-                                          {isAddingToCart ? "Adding..." : "Add to Quote"}
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </PopoverContent>
-                              </Popover>
+                              <button
+                                onClick={() => handleCellClick(cabinet.name, size.range, price, finish.name)}
+                                className="text-lg font-bold text-primary hover:text-primary/80 hover:bg-primary/10 cursor-pointer transition-all rounded px-2 py-1"
+                              >
+                                ${price}
+                              </button>
                             </td>
                           );
                         })}
@@ -543,6 +244,20 @@ const CabinetPrices = () => {
           ))}
         </div>
       </section>
+
+      {/* Cell Configuration Popup */}
+      {selectedCell && (
+        <CellConfigPopup
+          isOpen={cellPopupOpen}
+          onClose={() => setCellPopupOpen(false)}
+          cabinetType={selectedCell.cabinetType}
+          finish={selectedCell.finish}
+          initialWidth={selectedCell.width}
+          initialPrice={selectedCell.price}
+          cabinetParts={cabinetParts}
+          globalSettings={globalSettings}
+        />
+      )}
 
       {/* Cabinet Specifications */}
       <section className="py-16 bg-muted/30">
@@ -565,76 +280,63 @@ const CabinetPrices = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold text-foreground mb-2">560mm</p>
-                <p className="text-muted-foreground">(plus door thickness)</p>
-                <p className="text-sm text-muted-foreground mb-2">Shadowline: 580mm (20mm doors)</p>
-                <Badge variant="outline" className="mt-2">+25% for custom depth up to 900mm</Badge>
+                <p className="text-muted-foreground">(internal)</p>
+                <Badge variant="outline" className="mt-2">Custom depths available</Badge>
               </CardContent>
             </Card>
 
             <Card className="text-center">
               <CardHeader>
-                <CardTitle className="text-primary">Materials</CardTitle>
+                <CardTitle className="text-primary">Custom Widths</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-lg font-semibold text-foreground mb-2">16mm HMR</p>
-                <p className="text-muted-foreground">Australian made with solid 16mm backs</p>
-                <Badge variant="outline" className="mt-2">Plastic adjustable legs included</Badge>
+                <p className="text-2xl font-bold text-foreground mb-2">Available</p>
+                <p className="text-muted-foreground">Any width possible</p>
+                <Badge variant="outline" className="mt-2">Made to order</Badge>
               </CardContent>
             </Card>
           </div>
 
-          {/* Additional Information */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Important Pricing Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold text-foreground mb-2">Minimum Orders</h4>
-                  <ul className="space-y-1 text-muted-foreground">
-                    <li>• Minimum order: $4,000</li>
-                    <li>• $1000-$2000: $700 service fee</li>
-                    <li>• $2001-$3000: $450 service fee</li>
-                    <li>• $3001-$4000: $250 service fee</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-foreground mb-2">Custom Options</h4>
-                  <ul className="space-y-1 text-muted-foreground">
-                    <li>• Any colour from Dulux range</li>
-                    <li>• Dark colours: +10% surcharge</li>
-                    <li>• Extra height (up to 1100mm): +25%</li>
-                    <li>• Extra depth (up to 700mm): +15%</li>
-                  </ul>
-                </div>
+          <div className="text-center">
+            <h3 className="text-2xl font-bold text-foreground mb-6">What's Included</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
+              <div className="bg-background p-4 rounded-lg">
+                <h4 className="font-semibold text-foreground mb-2">✓ Carcass</h4>
+                <p className="text-sm text-muted-foreground">32mm melamine carcass with adjustable shelves</p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-            Ready to Get Started?
-          </h2>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Contact us for a custom quote or call 1800 921 308 for immediate assistance with your cabinet project.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg" className="px-8">
-              Get Custom Quote
-            </Button>
-            <Button variant="outline" size="lg" className="px-8">
-              Call 1800 921 308
-            </Button>
+              <div className="bg-background p-4 rounded-lg">
+                <h4 className="font-semibold text-foreground mb-2">✓ Doors</h4>
+                <p className="text-sm text-muted-foreground">Custom doors in your chosen finish</p>
+              </div>
+              <div className="bg-background p-4 rounded-lg">
+                <h4 className="font-semibold text-foreground mb-2">✓ Hardware</h4>
+                <p className="text-sm text-muted-foreground">Quality hinges and drawer runners</p>
+              </div>
+              <div className="bg-background p-4 rounded-lg">
+                <h4 className="font-semibold text-foreground mb-2">✓ Assembly</h4>
+                <p className="text-sm text-muted-foreground">Pre-assembled and ready to install</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <Footer />
+      {/* Configure more button */}
+      <section className="py-16">
+        <div className="container mx-auto px-4 text-center">
+          <h3 className="text-2xl font-bold text-foreground mb-4">Need Something Different?</h3>
+          <p className="text-muted-foreground mb-8">
+            Use our cabinet configurator to create custom cabinets with exact dimensions, colors, and hardware options.
+          </p>
+          <Button 
+            onClick={() => setIsConfiguratorOpen(true)}
+            size="lg"
+            className="mx-auto"
+          >
+            Open Cabinet Configurator
+          </Button>
+        </div>
+      </section>
 
       {/* Configurator Dialog */}
       {selectedCabinetType && (
@@ -645,6 +347,8 @@ const CabinetPrices = () => {
           initialWidth={selectedWidth}
         />
       )}
+
+      <Footer />
     </div>
   );
 };
