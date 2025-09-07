@@ -251,6 +251,15 @@ export function CellConfigPopup({
         return;
       }
 
+      if (!color) {
+        toast({
+          title: "Select color",
+          description: "Please choose a color before adding to cart",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const configuration = {
         cabinetType,
         width,
@@ -298,7 +307,7 @@ export function CellConfigPopup({
           {/* Cabinet Info */}
           <div className="text-center p-3 bg-muted/30 rounded-lg">
             <h3 className="font-medium">{cabinetType.name}</h3>
-            <p className="text-sm text-muted-foreground">{finish.name}</p>
+            <p className="text-sm text-muted-foreground">{(finish as any).door_style_name || finish.name}</p>
           </div>
 
           {/* Dimensions */}
@@ -434,7 +443,7 @@ export function CellConfigPopup({
           {/* Add to Cart Button */}
           <Button
             onClick={handleAddToCart}
-            disabled={!selectedDoorStyle || isAddingToCart}
+            disabled={!selectedDoorStyle || !selectedColor || isAddingToCart}
             className="w-full"
           >
             {isAddingToCart ? (

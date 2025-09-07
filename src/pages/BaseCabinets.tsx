@@ -169,18 +169,19 @@ const BaseCabinets = () => {
   };
 
   const handleCellClick = (cabinetType: CabinetType, sizeRange: string, price: number, finishConfig: any) => {
-    console.log('Cell clicked:', { cabinetType: cabinetType.name, sizeRange, price });
+    console.log('Cell clicked:', { cabinetType: cabinetType.name, sizeRange, price, doorStyle: finishConfig.door_style?.name });
     
     const width = parseWidthRange(sizeRange);
     
     const mockFinish = {
       id: finishConfig.id,
-      name: finishConfig.door_style?.name || 'Standard',
+      name: finishConfig.door_style_finish?.name || 'Standard Finish',
       finish_type: 'standard',
       rate_per_sqm: finishConfig.door_style_finish?.rate_per_sqm || 0,
       brand_id: '',
       active: true,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      door_style_name: finishConfig.door_style?.name || 'Unknown Style'
     };
     
     setSelectedCell({
