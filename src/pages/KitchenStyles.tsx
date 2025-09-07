@@ -9,7 +9,7 @@ const KitchenStyles = () => {
       name: "Shadowline",
       description: "The Shadowline's classic look has a high-end feel. You can customize the doors to any colour to personalise your kitchen design. You'll love spending time in this kitchen for many years to come.",
       features: ["High-end classic look", "Customizable colours", "Matt, Satin, Gloss finishes"],
-      image: "/api/placeholder/600/400"
+      image: "/lovable-uploads/b6d88c5d-54f3-4b8d-9ac4-6fdf2711d29e.png"
     },
     {
       name: "Shaker",
