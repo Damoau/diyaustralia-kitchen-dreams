@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CellConfigPopup } from "@/components/cabinet/CellConfigPopup";
 import { supabase } from "@/integrations/supabase/client";
-import { CabinetType, CabinetPart, GlobalSettings, HardwareBrand, CabinetTypePriceRange, CabinetTypeFinish } from "@/types/cabinet";
+import { CabinetType, CabinetPart, GlobalSettings, CabinetTypePriceRange, CabinetTypeFinish } from "@/types/cabinet";
 import { calculateCabinetPrice } from "@/lib/dynamicPricing";
 import { calculateHardwareCost } from "@/lib/hardwarePricing";
 import { useCart } from "@/hooks/useCart";
@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { HardwareBreakdown } from "@/components/cabinet/HardwareBreakdown";
 
 const CabinetPricesNew = () => {
-  const [selectedHardwareBrand, setSelectedHardwareBrand] = useState<string>('');
+  
   const [priceData, setPriceData] = useState<any>({});
   const [cellPopupOpen, setCellPopupOpen] = useState(false);
   const [selectedCell, setSelectedCell] = useState<{
@@ -60,17 +60,6 @@ const CabinetPricesNew = () => {
     },
   });
 
-  const { data: hardwareBrands } = useQuery({
-    queryKey: ['hardware-brands'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('hardware_brands')
-        .select('*')
-        .eq('active', true);
-      if (error) throw error;
-      return data;
-    },
-  });
 
   const { data: priceRanges } = useQuery({
     queryKey: ['cabinet-type-price-ranges'],
@@ -137,9 +126,7 @@ const CabinetPricesNew = () => {
                 { id: 'default-3', label: '500 - 600mm', min_width_mm: 500, max_width_mm: 600 }
               ];
 
-              const hardwareCost = selectedHardwareBrand ? 
-                await calculateHardwareCost(cabinetType, selectedHardwareBrand, 1) : 
-                45;
+              const hardwareCost = 45; // Default hardware cost
 
               newPriceData[cabinetType.name] = {
                 name: cabinetType.name,
@@ -194,14 +181,8 @@ const CabinetPricesNew = () => {
     };
 
     generatePriceData();
-  }, [cabinetTypes, cabinetParts, globalSettings, priceRanges, cabinetTypeFinishes, selectedHardwareBrand]);
+  }, [cabinetTypes, cabinetParts, globalSettings, priceRanges, cabinetTypeFinishes]);
 
-  // Set default hardware brand
-  useEffect(() => {
-    if (hardwareBrands && hardwareBrands.length > 0 && !selectedHardwareBrand) {
-      setSelectedHardwareBrand(hardwareBrands[0].id);
-    }
-  }, [hardwareBrands, selectedHardwareBrand]);
 
   const parseWidthRange = (rangeStr: string): number => {
     const match = rangeStr.match(/\d+/);
@@ -245,27 +226,9 @@ const CabinetPricesNew = () => {
               Cabinet <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">Pricing</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-              Dynamic pricing based on your cabinet configurations. Select hardware brand to see updated prices.
+              Dynamic pricing based on your cabinet configurations. Click any price to configure and add to quote.
             </p>
             
-            {/* Hardware Brand Selector */}
-            <div className="max-w-xs mx-auto mb-8">
-              <Label htmlFor="hardware-brand" className="text-sm font-medium">
-                Hardware Brand
-              </Label>
-              <Select value={selectedHardwareBrand} onValueChange={setSelectedHardwareBrand}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select hardware brand" />
-                </SelectTrigger>
-                <SelectContent>
-                  {hardwareBrands?.map((brand) => (
-                    <SelectItem key={brand.id} value={brand.id}>
-                      {brand.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
         </div>
       </section>
@@ -309,11 +272,6 @@ const CabinetPricesNew = () => {
                   )}
                  </h2>
                  
-                 {/* Hardware Breakdown */}
-                 <HardwareBreakdown 
-                   cabinetType={cabinetType} 
-                   selectedHardwareBrand={selectedHardwareBrand}
-                 />
                  
                  <div className="overflow-x-auto">
                   <table className="w-full border-collapse border border-gray-300">
