@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Minus, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { CabinetType, Brand, Finish, Color, DoorStyle, CabinetPart, GlobalSettings, HardwareBrand } from '@/types/cabinet';
+import { CabinetType, Brand, Finish, Color, DoorStyle, CabinetPart, GlobalSettings } from '@/types/cabinet';
 import { generateCutlist, parseGlobalSettings, formatPrice } from '@/lib/pricing';
 import { useCart } from '@/hooks/useCart';
 import { HardwareCostPreview } from './HardwareCostPreview';
@@ -33,13 +33,12 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
   const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
   const [cabinetParts, setCabinetParts] = useState<CabinetPart[]>([]);
   const [globalSettings, setGlobalSettings] = useState<GlobalSettings[]>([]);
-  const [hardwareBrands, setHardwareBrands] = useState<HardwareBrand[]>([]);
   
   const [selectedBrand, setSelectedBrand] = useState<string>('');
   const [selectedFinish, setSelectedFinish] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedDoorStyle, setSelectedDoorStyle] = useState<string>('');
-  const [selectedHardwareBrand, setSelectedHardwareBrand] = useState<string>('');
+  const [selectedHardwareOptions, setSelectedHardwareOptions] = useState<Record<string, string>>({});
   
   const [isLoading, setIsLoading] = useState(false);
   const { addToCart, isLoading: isAddingToCart } = useCart();
@@ -96,7 +95,7 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
         doorStylesRes,
         cabinetPartsRes,
         settingsRes,
-        hardwareBrandsRes
+        hardwareRequirementsRes
       ] = await Promise.all([
         supabase.from('brands').select('*').eq('active', true),
         supabase.from('finishes').select('*').eq('active', true),
@@ -104,7 +103,16 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
         supabase.from('door_styles').select('*').eq('active', true),
         supabase.from('cabinet_parts').select('*').eq('cabinet_type_id', cabinetType.id),
         supabase.from('global_settings').select('*'),
-        supabase.from('hardware_brands').select('*').eq('active', true)
+        // Fetch hardware requirements with their options
+        supabase.from('cabinet_hardware_requirements').select(`
+          *,
+          hardware_type:hardware_types(name, category),
+          cabinet_hardware_options(
+            *,
+            hardware_brand:hardware_brands(name),
+            hardware_product:hardware_products(name, cost_per_unit)
+          )
+        `).eq('cabinet_type_id', cabinetType.id).eq('active', true)
       ]);
 
       if (brandsRes.data) {
@@ -122,11 +130,15 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
           setSelectedDoorStyle(doorStylesRes.data[0].id);
         }
       }
-      if (hardwareBrandsRes.data) {
-        setHardwareBrands(hardwareBrandsRes.data);
-        if (hardwareBrandsRes.data.length > 0 && !selectedHardwareBrand) {
-          setSelectedHardwareBrand(hardwareBrandsRes.data[0].id);
-        }
+      if (hardwareRequirementsRes.data) {
+        // Set up default hardware selections
+        const defaultSelections: Record<string, string> = {};
+        hardwareRequirementsRes.data.forEach(req => {
+          if (req.cabinet_hardware_options && req.cabinet_hardware_options.length > 0) {
+            defaultSelections[req.id] = req.cabinet_hardware_options[0].id;
+          }
+        });
+        setSelectedHardwareOptions(defaultSelections);
       }
       if (cabinetPartsRes.data) setCabinetParts(cabinetPartsRes.data);
       if (settingsRes.data) setGlobalSettings(settingsRes.data);
@@ -152,27 +164,21 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
       finish,
       color,
       doorStyle,
-      hardwareBrand: selectedHardwareBrand,
+      hardwareOptions: selectedHardwareOptions,
     };
   };
 
   const calculatePrice = () => {
-    if (!selectedFinish || !selectedDoorStyle || cabinetParts.length === 0 || !selectedHardwareBrand) {
+    if (!selectedFinish || !selectedDoorStyle || cabinetParts.length === 0) {
       return 0;
     }
 
     const configuration = getCurrentConfiguration();
     const settings = parseGlobalSettings(globalSettings);
     
-    // Calculate hardware cost based on selected brand
-    const blumBrandId = hardwareBrands.find(b => b.name === 'Blum')?.id;
-    const isBlumSelected = selectedHardwareBrand === blumBrandId;
-    
-    // Simple calculation based on our hardware setup:
-    // Blum: 8 hinges × $10 + 4 handles × $15 = $140 per cabinet
-    // Titus: 8 hinges × $5 + 4 handles × $8 = $72 per cabinet
-    const baseHardwareCost = isBlumSelected ? 140 : 72;
-    const hardwareCost = baseHardwareCost * quantity;
+    // Calculate hardware cost based on selected options
+    let hardwareCost = 0;
+    // This will be implemented with actual product costs in HardwareCostPreview
     
     const cutlist = generateCutlist(configuration, cabinetParts, settings);
     
@@ -181,21 +187,15 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
   };
 
   const handleAddToCart = async () => {
-    if (!selectedFinish || !selectedDoorStyle || !selectedHardwareBrand) return;
+    if (!selectedFinish || !selectedDoorStyle) return;
     
     const configuration = getCurrentConfiguration();
     const settings = parseGlobalSettings(globalSettings);
     
-    // Calculate hardware cost for this configuration
-    const blumBrandId = hardwareBrands.find(b => b.name === 'Blum')?.id;
-    const isBlumSelected = selectedHardwareBrand === blumBrandId;
-    const hardwareCost = isBlumSelected ? 140 : 72;
-    
-    // Add hardware cost info to configuration
+    // Add hardware options info to configuration
     const configWithHardware = {
       ...configuration,
-      hardwareCost: hardwareCost * quantity,
-      hardwareBrandName: hardwareBrands.find(b => b.id === selectedHardwareBrand)?.name
+      hardwareSelections: selectedHardwareOptions
     };
     
     await addToCart(configWithHardware, cabinetParts, settings);
@@ -354,38 +354,13 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
                 </Card>
               )}
 
-              {/* Hardware Brand Selection */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Hardware Brand</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Select value={selectedHardwareBrand} onValueChange={setSelectedHardwareBrand}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select hardware brand" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {hardwareBrands.map(brand => (
-                        <SelectItem key={brand.id} value={brand.id}>
-                          {brand.name}
-                          {brand.description && (
-                            <span className="text-xs text-muted-foreground ml-2">
-                              - {brand.description}
-                            </span>
-                          )}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  
-                  {/* Hardware Cost Preview */}
-                  <HardwareCostPreview 
-                    cabinetType={cabinetType}
-                    selectedHardwareBrand={selectedHardwareBrand}
-                    quantity={quantity}
-                  />
-                </CardContent>
-              </Card>
+              {/* Hardware Selection */}
+              <HardwareCostPreview 
+                cabinetType={cabinetType}
+                selectedHardwareOptions={selectedHardwareOptions}
+                onHardwareChange={setSelectedHardwareOptions}
+                quantity={quantity}
+              />
             </div>
 
             {/* Summary Panel */}
@@ -426,12 +401,6 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
                     </div>
                   )}
 
-                  {selectedHardwareBrand && (
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">Hardware:</span>
-                      <span>{hardwareBrands.find(hb => hb.id === selectedHardwareBrand)?.name}</span>
-                    </div>
-                  )}
 
                   <Separator />
 
@@ -468,7 +437,7 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
 
               <Button
                 onClick={handleAddToCart}
-                disabled={!selectedFinish || !selectedDoorStyle || !selectedHardwareBrand || isAddingToCart}
+                disabled={!selectedFinish || !selectedDoorStyle || isAddingToCart}
                 className="w-full"
                 size="lg"
               >

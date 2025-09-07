@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Plus, Save } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
+import { Trash2, Plus, Save, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -24,11 +26,28 @@ interface HardwareRequirement {
     name: string;
     category: string;
   };
+  options?: HardwareOption[];
+}
+
+interface HardwareOption {
+  id?: string;
+  requirement_id: string;
+  hardware_brand_id: string;
+  hardware_product_id: string;
+  active: boolean;
+  hardware_brand?: {
+    name: string;
+  };
+  hardware_product?: {
+    name: string;
+    cost_per_unit: number;
+  };
 }
 
 export function CabinetHardwareSetup({ cabinetTypeId }: CabinetHardwareSetupProps) {
   const [requirements, setRequirements] = useState<HardwareRequirement[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
+  const [expandedRequirement, setExpandedRequirement] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -45,10 +64,41 @@ export function CabinetHardwareSetup({ cabinetTypeId }: CabinetHardwareSetupProp
     },
   });
 
+  const { data: hardwareBrands } = useQuery({
+    queryKey: ['hardware-brands'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('hardware_brands')
+        .select('*')
+        .eq('active', true)
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: hardwareProducts } = useQuery({
+    queryKey: ['hardware-products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('hardware_products')
+        .select(`
+          *,
+          hardware_brand:hardware_brands(name),
+          hardware_type:hardware_types(name)
+        `)
+        .eq('active', true)
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const { data: existingRequirements } = useQuery({
     queryKey: ['cabinet-hardware-requirements', cabinetTypeId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch requirements with their options
+      const { data: reqs, error: reqError } = await supabase
         .from('cabinet_hardware_requirements')
         .select(`
           *,
@@ -56,8 +106,28 @@ export function CabinetHardwareSetup({ cabinetTypeId }: CabinetHardwareSetupProp
         `)
         .eq('cabinet_type_id', cabinetTypeId)
         .eq('active', true);
-      if (error) throw error;
-      return data;
+      
+      if (reqError) throw reqError;
+      
+      // Fetch options for each requirement
+      const { data: options, error: optError } = await supabase
+        .from('cabinet_hardware_options')
+        .select(`
+          *,
+          hardware_brand:hardware_brands(name),
+          hardware_product:hardware_products(name, cost_per_unit)
+        `)
+        .eq('active', true);
+      
+      if (optError) throw optError;
+      
+      // Combine requirements with their options
+      const requirementsWithOptions = reqs?.map(req => ({
+        ...req,
+        options: options?.filter(opt => opt.requirement_id === req.id) || []
+      })) || [];
+      
+      return requirementsWithOptions;
     },
   });
 
@@ -95,30 +165,59 @@ export function CabinetHardwareSetup({ cabinetTypeId }: CabinetHardwareSetupProp
 
   const saveRequirements = async () => {
     try {
-      // Delete existing requirements
-      await supabase
+      // Delete existing requirements and options
+      const { data: existingReqs } = await supabase
         .from('cabinet_hardware_requirements')
-        .delete()
+        .select('id')
         .eq('cabinet_type_id', cabinetTypeId);
-
-      // Insert new requirements
-      const newRequirements = requirements
-        .filter(req => req.hardware_type_id && req.units_per_scope > 0)
-        .map(req => ({
-          cabinet_type_id: cabinetTypeId,
-          hardware_type_id: req.hardware_type_id,
-          units_per_scope: req.units_per_scope,
-          unit_scope: req.unit_scope,
-          notes: req.notes || '',
-          active: true
-        }));
-
-      if (newRequirements.length > 0) {
-        const { error } = await supabase
-          .from('cabinet_hardware_requirements')
-          .insert(newRequirements);
+      
+      if (existingReqs && existingReqs.length > 0) {
+        // Delete options first
+        await supabase
+          .from('cabinet_hardware_options')
+          .delete()
+          .in('requirement_id', existingReqs.map(r => r.id));
         
-        if (error) throw error;
+        // Then delete requirements
+        await supabase
+          .from('cabinet_hardware_requirements')
+          .delete()
+          .eq('cabinet_type_id', cabinetTypeId);
+      }
+
+      // Insert new requirements and their options
+      for (const req of requirements.filter(r => r.hardware_type_id && r.units_per_scope > 0)) {
+        // Insert requirement
+        const { data: newReq, error: reqError } = await supabase
+          .from('cabinet_hardware_requirements')
+          .insert({
+            cabinet_type_id: cabinetTypeId,
+            hardware_type_id: req.hardware_type_id,
+            units_per_scope: req.units_per_scope,
+            unit_scope: req.unit_scope,
+            notes: req.notes || '',
+            active: true
+          })
+          .select()
+          .single();
+        
+        if (reqError) throw reqError;
+        
+        // Insert options for this requirement
+        if (req.options && req.options.length > 0) {
+          const optionsToInsert = req.options.map(opt => ({
+            requirement_id: newReq.id,
+            hardware_brand_id: opt.hardware_brand_id,
+            hardware_product_id: opt.hardware_product_id,
+            active: true
+          }));
+          
+          const { error: optError } = await supabase
+            .from('cabinet_hardware_options')
+            .insert(optionsToInsert);
+          
+          if (optError) throw optError;
+        }
       }
 
       // Invalidate cache and refetch
@@ -126,7 +225,7 @@ export function CabinetHardwareSetup({ cabinetTypeId }: CabinetHardwareSetupProp
       
       toast({
         title: "Success",
-        description: "Hardware requirements saved successfully!"
+        description: "Hardware requirements and options saved successfully!"
       });
       setHasChanges(false);
     } catch (error) {
@@ -136,6 +235,42 @@ export function CabinetHardwareSetup({ cabinetTypeId }: CabinetHardwareSetupProp
         description: "Failed to save hardware requirements",
         variant: "destructive"
       });
+    }
+  };
+
+  const addOptionToRequirement = (requirementIndex: number) => {
+    const updated = [...requirements];
+    if (!updated[requirementIndex].options) {
+      updated[requirementIndex].options = [];
+    }
+    updated[requirementIndex].options!.push({
+      requirement_id: '',
+      hardware_brand_id: '',
+      hardware_product_id: '',
+      active: true
+    });
+    setRequirements(updated);
+    setHasChanges(true);
+  };
+
+  const updateOption = (requirementIndex: number, optionIndex: number, field: keyof HardwareOption, value: any) => {
+    const updated = [...requirements];
+    if (updated[requirementIndex].options) {
+      updated[requirementIndex].options![optionIndex] = {
+        ...updated[requirementIndex].options![optionIndex],
+        [field]: value
+      };
+      setRequirements(updated);
+      setHasChanges(true);
+    }
+  };
+
+  const removeOption = (requirementIndex: number, optionIndex: number) => {
+    const updated = [...requirements];
+    if (updated[requirementIndex].options) {
+      updated[requirementIndex].options!.splice(optionIndex, 1);
+      setRequirements(updated);
+      setHasChanges(true);
     }
   };
 
@@ -295,6 +430,96 @@ export function CabinetHardwareSetup({ cabinetTypeId }: CabinetHardwareSetupProp
                       </p>
                     </div>
                   )}
+
+                  <Separator />
+
+                  {/* Hardware Brand Options */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">Available Brand Options</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addOptionToRequirement(index)}
+                        disabled={!requirement.hardware_type_id}
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Brand Option
+                      </Button>
+                    </div>
+
+                    {requirement.options && requirement.options.length > 0 ? (
+                      <div className="space-y-2">
+                        {requirement.options.map((option, optionIndex) => {
+                          const availableProducts = hardwareProducts?.filter(p => 
+                            p.hardware_type_id === requirement.hardware_type_id &&
+                            p.hardware_brand_id === option.hardware_brand_id
+                          ) || [];
+
+                          return (
+                            <div key={optionIndex} className="flex items-center gap-2 p-2 border rounded">
+                              <Select
+                                value={option.hardware_brand_id}
+                                onValueChange={(value) => {
+                                  updateOption(index, optionIndex, 'hardware_brand_id', value);
+                                  // Reset product when brand changes
+                                  updateOption(index, optionIndex, 'hardware_product_id', '');
+                                }}
+                              >
+                                <SelectTrigger className="flex-1">
+                                  <SelectValue placeholder="Select brand" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {hardwareBrands?.map((brand) => (
+                                    <SelectItem key={brand.id} value={brand.id}>
+                                      {brand.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+
+                              <Select
+                                value={option.hardware_product_id}
+                                onValueChange={(value) => updateOption(index, optionIndex, 'hardware_product_id', value)}
+                                disabled={!option.hardware_brand_id}
+                              >
+                                <SelectTrigger className="flex-1">
+                                  <SelectValue placeholder="Select product" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {availableProducts.map((product) => (
+                                    <SelectItem key={product.id} value={product.id}>
+                                      <div className="flex justify-between items-center w-full">
+                                        <span>{product.name}</span>
+                                        <Badge variant="secondary" className="ml-2">
+                                          ${product.cost_per_unit}
+                                        </Badge>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeOption(index, optionIndex)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground p-3 border border-dashed rounded-lg text-center">
+                        No brand options added. Users won't be able to select hardware for this type.
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             );
