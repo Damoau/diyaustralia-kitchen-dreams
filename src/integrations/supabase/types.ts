@@ -295,53 +295,80 @@ export type Database = {
         Row: {
           active: boolean
           backs_qty: number | null
+          base_price: number | null
           bottoms_qty: number | null
           category: string
           created_at: string
           default_depth_mm: number
           default_height_mm: number
           default_width_mm: number
+          display_order: number | null
           door_count: number
           door_qty: number | null
           drawer_count: number
           id: string
+          is_featured: boolean | null
+          long_description: string | null
+          max_stock_level: number | null
+          min_stock_level: number | null
           name: string
+          product_image_url: string | null
           range_id: string | null
+          short_description: string | null
           sides_qty: number | null
+          stock_quantity: number | null
         }
         Insert: {
           active?: boolean
           backs_qty?: number | null
+          base_price?: number | null
           bottoms_qty?: number | null
           category: string
           created_at?: string
           default_depth_mm: number
           default_height_mm: number
           default_width_mm: number
+          display_order?: number | null
           door_count?: number
           door_qty?: number | null
           drawer_count?: number
           id?: string
+          is_featured?: boolean | null
+          long_description?: string | null
+          max_stock_level?: number | null
+          min_stock_level?: number | null
           name: string
+          product_image_url?: string | null
           range_id?: string | null
+          short_description?: string | null
           sides_qty?: number | null
+          stock_quantity?: number | null
         }
         Update: {
           active?: boolean
           backs_qty?: number | null
+          base_price?: number | null
           bottoms_qty?: number | null
           category?: string
           created_at?: string
           default_depth_mm?: number
           default_height_mm?: number
           default_width_mm?: number
+          display_order?: number | null
           door_count?: number
           door_qty?: number | null
           drawer_count?: number
           id?: string
+          is_featured?: boolean | null
+          long_description?: string | null
+          max_stock_level?: number | null
+          min_stock_level?: number | null
           name?: string
+          product_image_url?: string | null
           range_id?: string | null
+          short_description?: string | null
           sides_qty?: number | null
+          stock_quantity?: number | null
         }
         Relationships: [
           {
@@ -815,6 +842,200 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_transactions: {
+        Row: {
+          cabinet_type_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          new_stock: number
+          notes: string | null
+          previous_stock: number
+          quantity_change: number
+          reference_id: string | null
+          transaction_type: string
+        }
+        Insert: {
+          cabinet_type_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          new_stock: number
+          notes?: string | null
+          previous_stock: number
+          quantity_change: number
+          reference_id?: string | null
+          transaction_type: string
+        }
+        Update: {
+          cabinet_type_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          new_stock?: number
+          notes?: string | null
+          previous_stock?: number
+          quantity_change?: number
+          reference_id?: string | null
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_transactions_cabinet_type_id_fkey"
+            columns: ["cabinet_type_id"]
+            isOneToOne: false
+            referencedRelation: "cabinet_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          cabinet_type_id: string
+          color_id: string | null
+          configuration: Json | null
+          created_at: string
+          depth_mm: number
+          door_style_id: string | null
+          finish_id: string | null
+          height_mm: number
+          id: string
+          order_id: string
+          quantity: number
+          total_price: number
+          unit_price: number
+          width_mm: number
+        }
+        Insert: {
+          cabinet_type_id: string
+          color_id?: string | null
+          configuration?: Json | null
+          created_at?: string
+          depth_mm: number
+          door_style_id?: string | null
+          finish_id?: string | null
+          height_mm: number
+          id?: string
+          order_id: string
+          quantity?: number
+          total_price: number
+          unit_price: number
+          width_mm: number
+        }
+        Update: {
+          cabinet_type_id?: string
+          color_id?: string | null
+          configuration?: Json | null
+          created_at?: string
+          depth_mm?: number
+          door_style_id?: string | null
+          finish_id?: string | null
+          height_mm?: number
+          id?: string
+          order_id?: string
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+          width_mm?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_cabinet_type_id_fkey"
+            columns: ["cabinet_type_id"]
+            isOneToOne: false
+            referencedRelation: "cabinet_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_color_id_fkey"
+            columns: ["color_id"]
+            isOneToOne: false
+            referencedRelation: "colors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_door_style_id_fkey"
+            columns: ["door_style_id"]
+            isOneToOne: false
+            referencedRelation: "door_styles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_finish_id_fkey"
+            columns: ["finish_id"]
+            isOneToOne: false
+            referencedRelation: "finishes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          billing_address: Json | null
+          created_at: string
+          id: string
+          notes: string | null
+          order_number: string
+          payment_method: string | null
+          payment_status: string | null
+          session_id: string | null
+          shipping_address: Json | null
+          shipping_amount: number
+          status: string
+          stripe_session_id: string | null
+          subtotal: number
+          tax_amount: number
+          total_amount: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          billing_address?: Json | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_number: string
+          payment_method?: string | null
+          payment_status?: string | null
+          session_id?: string | null
+          shipping_address?: Json | null
+          shipping_amount?: number
+          status?: string
+          stripe_session_id?: string | null
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          billing_address?: Json | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_number?: string
+          payment_method?: string | null
+          payment_status?: string | null
+          session_id?: string | null
+          shipping_address?: Json | null
+          shipping_amount?: number
+          status?: string
+          stripe_session_id?: string | null
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       product_ranges: {
         Row: {
           active: boolean
@@ -949,6 +1170,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_order_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
