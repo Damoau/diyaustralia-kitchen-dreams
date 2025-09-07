@@ -15,7 +15,7 @@ const KitchenStyles = () => {
       name: "Shaker",
       description: "Our most popular kitchen style is a modern take on a classic kitchen design that will stand the test of time. Available in Poly, Laminate and Ultra Glaze door finishes.",
       features: ["Modern classic design", "Timeless appeal", "Multiple finish options"],
-      image: "/api/placeholder/600/400"
+      image: "/lovable-uploads/8bf7a8e1-3389-40d8-bd11-5ff1d7de50e8.png"
     },
     {
       name: "Poly",
