@@ -106,48 +106,22 @@ export function CellConfigPopup({
 
   const loadDoorStyles = async () => {
     try {
-      // Load door styles that are configured for this cabinet type
+      // Load door styles that are compatible with the selected finish's brand
       const { data, error } = await supabase
-        .from('cabinet_type_finishes')
-        .select(`
-          *,
-          door_style:door_styles(
-            id,
-            name,
-            base_rate_per_sqm,
-            active
-          ),
-          door_style_finish:door_style_finishes(
-            id,
-            name,
-            rate_per_sqm
-          ),
-          color:colors(
-            id,
-            name,
-            hex_code,
-            surcharge_rate_per_sqm
-          )
-        `)
-        .eq('cabinet_type_id', cabinetType.id)
+        .from('door_styles')
+        .select('*')
         .eq('active', true)
-        .order('sort_order');
+        .order('name');
       
       if (error) throw error;
       
-      // Extract unique door styles from cabinet type finishes
-      const uniqueDoorStyles = data?.reduce((acc: any[], finish: any) => {
-        if (finish.door_style && !acc.find(ds => ds.id === finish.door_style.id)) {
-          acc.push(finish.door_style);
-        }
-        return acc;
-      }, []) || [];
-      
-      setDoorStyles(uniqueDoorStyles);
+      // For now, show all active door styles
+      // TODO: Filter by brand compatibility when brand-door style relationships are defined
+      setDoorStyles(data || []);
       
       // Set first door style as default
-      if (uniqueDoorStyles.length > 0) {
-        setSelectedDoorStyle(uniqueDoorStyles[0].id);
+      if (data && data.length > 0) {
+        setSelectedDoorStyle(data[0].id);
       }
     } catch (error) {
       console.error('Error loading door styles:', error);
