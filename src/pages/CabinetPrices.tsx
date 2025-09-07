@@ -113,9 +113,16 @@ const CabinetPrices = () => {
   };
 
   const handleCellClick = (cabinetName: string, sizeRange: string, price: number, finishName: string) => {
+    console.log('Cell clicked:', { cabinetName, sizeRange, price, finishName });
+    console.log('Available finishes:', finishes.map(f => f.name));
+    console.log('Available cabinet types:', cabinetTypes.map(ct => ct.name));
+    
     const width = parseWidthRange(sizeRange);
     const matchedFinish = finishes.find(f => f.name === finishName);
     const cabinetType = cabinetTypes.find(ct => ct.name === cabinetName);
+    
+    console.log('Matched finish:', matchedFinish);
+    console.log('Matched cabinet type:', cabinetType);
     
     if (matchedFinish && cabinetType) {
       setSelectedCell({
@@ -125,6 +132,8 @@ const CabinetPrices = () => {
         price
       });
       setCellPopupOpen(true);
+    } else {
+      console.error('No match found for cabinet or finish');
     }
   };
 

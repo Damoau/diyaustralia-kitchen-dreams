@@ -164,6 +164,8 @@ export function CabinetHardwareSetup({ cabinetTypeId }: CabinetHardwareSetupProp
   };
 
   const saveRequirements = async () => {
+    console.log('Saving requirements for cabinet type:', cabinetTypeId);
+    console.log('Requirements to save:', requirements);
     try {
       // Delete existing requirements and options
       const { data: existingReqs } = await supabase
