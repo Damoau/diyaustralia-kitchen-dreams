@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CellConfigPopup } from "@/components/cabinet/CellConfigPopup";
 import { supabase } from "@/integrations/supabase/client";
 import { CabinetType, CabinetPart, GlobalSettings, HardwareBrand, CabinetTypePriceRange, CabinetTypeFinish } from "@/types/cabinet";
 import { calculateCabinetPrice } from "@/lib/dynamicPricing";
@@ -19,6 +20,13 @@ import { HardwareBreakdown } from "@/components/cabinet/HardwareBreakdown";
 const CabinetPricesNew = () => {
   const [selectedHardwareBrand, setSelectedHardwareBrand] = useState<string>('');
   const [priceData, setPriceData] = useState<any>({});
+  const [cellPopupOpen, setCellPopupOpen] = useState(false);
+  const [selectedCell, setSelectedCell] = useState<{
+    cabinetType: CabinetType;
+    finish: any;
+    width: number;
+    price: number;
+  } | null>(null);
   const { toast } = useToast();
 
   const { data: cabinetTypes } = useQuery({
@@ -195,6 +203,36 @@ const CabinetPricesNew = () => {
     }
   }, [hardwareBrands, selectedHardwareBrand]);
 
+  const parseWidthRange = (rangeStr: string): number => {
+    const match = rangeStr.match(/\d+/);
+    return match ? parseInt(match[0]) : 300;
+  };
+
+  const handleCellClick = (cabinetType: CabinetType, sizeRange: string, price: number, finishConfig: any) => {
+    console.log('Cell clicked:', { cabinetType: cabinetType.name, sizeRange, price });
+    
+    const width = parseWidthRange(sizeRange);
+    
+    // Create a mock finish object from the finish config
+    const mockFinish = {
+      id: finishConfig.id,
+      name: finishConfig.door_style?.name || 'Standard',
+      finish_type: 'standard',
+      rate_per_sqm: finishConfig.door_style_finish?.rate_per_sqm || 0,
+      brand_id: '',
+      active: true,
+      created_at: new Date().toISOString()
+    };
+    
+    setSelectedCell({
+      cabinetType,
+      finish: mockFinish,
+      width,
+      price
+    });
+    setCellPopupOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -299,11 +337,16 @@ const CabinetPricesNew = () => {
                           <td className="border border-gray-300 px-4 py-3 font-medium">
                             {sizeData.range}
                           </td>
-                          {sizeData.price?.map((price: number, priceIndex: number) => (
-                            <td key={priceIndex} className="border border-gray-300 px-4 py-3 text-center">
-                              {formatPrice(price)}
-                            </td>
-                          ))}
+                           {sizeData.price?.map((price: number, priceIndex: number) => (
+                             <td key={priceIndex} className="border border-gray-300 px-4 py-3 text-center">
+                               <button
+                                 onClick={() => handleCellClick(cabinetType, sizeData.range, price, typeFinishes[priceIndex])}
+                                 className="text-lg font-bold text-primary hover:text-primary/80 hover:bg-primary/10 cursor-pointer transition-all rounded px-2 py-1 w-full"
+                               >
+                                 {formatPrice(price)}
+                               </button>
+                             </td>
+                           ))}
                         </tr>
                       ))}
                     </tbody>
@@ -333,6 +376,20 @@ const CabinetPricesNew = () => {
           )}
         </div>
       </section>
+
+      {/* Cell Configuration Popup */}
+      {selectedCell && (
+        <CellConfigPopup
+          isOpen={cellPopupOpen}
+          onClose={() => setCellPopupOpen(false)}
+          cabinetType={selectedCell.cabinetType}
+          finish={selectedCell.finish}
+          initialWidth={selectedCell.width}
+          initialPrice={selectedCell.price}
+          cabinetParts={cabinetParts || []}
+          globalSettings={globalSettings || []}
+        />
+      )}
 
       <Footer />
     </div>

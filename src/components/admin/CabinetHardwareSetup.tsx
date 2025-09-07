@@ -189,6 +189,7 @@ export function CabinetHardwareSetup({ cabinetTypeId }: CabinetHardwareSetupProp
 
       // Insert new requirements and their options
       for (const req of requirements.filter(r => r.hardware_type_id && r.units_per_scope > 0)) {
+        console.log('Inserting requirement:', req);
         // Insert requirement
         const { data: newReq, error: reqError } = await supabase
           .from('cabinet_hardware_requirements')
@@ -203,10 +204,15 @@ export function CabinetHardwareSetup({ cabinetTypeId }: CabinetHardwareSetupProp
           .select()
           .single();
         
-        if (reqError) throw reqError;
+        if (reqError) {
+          console.error('Error inserting requirement:', reqError);
+          throw reqError;
+        }
+        console.log('Inserted requirement:', newReq);
         
         // Insert options for this requirement
         if (req.options && req.options.length > 0) {
+          console.log('Inserting options for requirement:', newReq.id, req.options);
           const optionsToInsert = req.options.map(opt => ({
             requirement_id: newReq.id,
             hardware_brand_id: opt.hardware_brand_id,
@@ -218,7 +224,11 @@ export function CabinetHardwareSetup({ cabinetTypeId }: CabinetHardwareSetupProp
             .from('cabinet_hardware_options')
             .insert(optionsToInsert);
           
-          if (optError) throw optError;
+          if (optError) {
+            console.error('Error inserting options:', optError);
+            throw optError;
+          }
+          console.log('Inserted options successfully');
         }
       }
 
