@@ -186,19 +186,20 @@ const AdminAIAssistant = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center gap-3 mb-8">
-          <Bot className="h-8 w-8 text-primary" />
-          <div>
-            <h1 className="text-3xl font-bold">AI Code Assistant</h1>
-            <p className="text-muted-foreground">AI-powered security and code quality analysis</p>
+    <div className="h-screen bg-background flex flex-col">
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full max-w-7xl mx-auto p-6 flex flex-col">
+          <div className="flex items-center gap-3 mb-6">
+            <Bot className="h-8 w-8 text-primary" />
+            <div>
+              <h1 className="text-3xl font-bold">AI Code Assistant</h1>
+              <p className="text-muted-foreground">AI-powered security and code quality analysis</p>
+            </div>
           </div>
-        </div>
 
-        <div className="grid lg:grid-cols-4 gap-6">
-          {/* Left Sidebar - Analysis Tools */}
-          <div className="lg:col-span-1 space-y-4">
+          <div className="flex-1 grid lg:grid-cols-4 gap-6 overflow-hidden">
+            {/* Left Sidebar - Analysis Tools */}
+            <div className="lg:col-span-1 space-y-4 overflow-y-auto">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg">Analysis Type</CardTitle>
@@ -296,8 +297,8 @@ const AdminAIAssistant = () => {
           </div>
 
           {/* Main Chat Area */}
-          <div className="lg:col-span-3">
-            <Card className="h-[700px] flex flex-col">
+          <div className="lg:col-span-3 flex flex-col overflow-hidden">
+            <Card className="flex-1 flex flex-col overflow-hidden">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -310,9 +311,9 @@ const AdminAIAssistant = () => {
                 </CardTitle>
               </CardHeader>
               
-              <CardContent className="flex-1 flex flex-col">
+              <CardContent className="flex-1 flex flex-col overflow-hidden p-4">
                 {/* Messages */}
-                <ScrollArea className="flex-1 pr-4">
+                <ScrollArea className="flex-1 pr-2 -mx-2">
                   <div className="space-y-4">
                     {messages.length === 0 && (
                       <div className="text-center text-muted-foreground py-8">
@@ -373,10 +374,10 @@ const AdminAIAssistant = () => {
                   <div ref={messagesEndRef} />
                 </ScrollArea>
 
-                <Separator className="my-4" />
+                <Separator className="my-3" />
 
                 {/* Input Area */}
-                <div className="space-y-3">
+                <div className="space-y-3 flex-shrink-0">
                   {analysisType !== 'chat' && (
                     <Button
                       onClick={runAnalysis}
@@ -395,20 +396,22 @@ const AdminAIAssistant = () => {
                   )}
                   
                   {analysisType === 'chat' && (
-                    <div className="flex gap-2">
-                      <Textarea
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        placeholder="Ask me about security, code quality, or anything else..."
-                        rows={2}
-                        className="resize-none"
-                      />
+                    <div className="flex gap-2 items-end">
+                      <div className="flex-1">
+                        <Textarea
+                          value={input}
+                          onChange={(e) => setInput(e.target.value)}
+                          onKeyPress={handleKeyPress}
+                          placeholder="Ask me about security, code quality, or anything else..."
+                          rows={2}
+                          className="resize-none min-h-[60px]"
+                        />
+                      </div>
                       <Button
                         onClick={runAnalysis}
                         disabled={!input.trim() || isLoading}
                         size="icon"
-                        className="self-end"
+                        className="h-[60px] w-12"
                       >
                         {isLoading ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -424,6 +427,7 @@ const AdminAIAssistant = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };
