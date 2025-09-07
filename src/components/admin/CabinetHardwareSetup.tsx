@@ -320,23 +320,76 @@ export function CabinetHardwareSetup({ cabinetTypeId }: CabinetHardwareSetupProp
             const selectedType = hardwareTypes?.find(t => t.id === requirement.hardware_type_id);
             
             return (
-              <Card key={index} className="border-l-4 border-l-blue-500">
-                <CardHeader className="pb-3">
+              <Card key={index} className="border-l-4 border-l-blue-500 cursor-pointer hover:shadow-md transition-shadow">
+                <CardHeader 
+                  className="pb-3"
+                  onClick={() => setExpandedRequirement(expandedRequirement === `req-${index}` ? null : `req-${index}`)}
+                >
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">
+                    <CardTitle className="text-base flex items-center gap-2">
                       Hardware Requirement #{index + 1}
+                      {selectedType && (
+                        <Badge variant="outline" className="text-xs">
+                          {selectedType.name}
+                        </Badge>
+                      )}
+                      {expandedRequirement !== `req-${index}` && requirement.options && requirement.options.length > 0 && (
+                        <Badge variant="secondary" className="text-xs">
+                          {requirement.options.length} brand options
+                        </Badge>
+                      )}
                     </CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeRequirement(index)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedRequirement(expandedRequirement === `req-${index}` ? null : `req-${index}`);
+                        }}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeRequirement(index);
+                        }}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                
+                {/* Compact summary when collapsed */}
+                {expandedRequirement !== `req-${index}` && selectedType && (
+                  <CardContent className="pt-0 pb-4">
+                    <div className="text-sm text-muted-foreground">
+                      <div className="flex items-center justify-between">
+                        <span>
+                          {requirement.units_per_scope} × {selectedType.name}
+                          {requirement.unit_scope === 'per_door' && ' per door'}
+                          {requirement.unit_scope === 'per_drawer' && ' per drawer'}
+                          {requirement.unit_scope === 'per_cabinet' && ' per cabinet'}
+                        </span>
+                      </div>
+                      {requirement.notes && (
+                        <p className="text-xs mt-1 text-muted-foreground/80">
+                          Note: {requirement.notes}
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                )}
+
+                {/* Full editing form when expanded */}
+                {expandedRequirement === `req-${index}` && (
+                  <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Hardware Type */}
                     <div>
@@ -520,7 +573,8 @@ export function CabinetHardwareSetup({ cabinetTypeId }: CabinetHardwareSetupProp
                       </div>
                     )}
                   </div>
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
             );
           })}
