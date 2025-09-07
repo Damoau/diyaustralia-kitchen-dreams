@@ -214,16 +214,15 @@ const BaseCabinets = () => {
               Quality base cabinets for your kitchen. Click any price to configure and add to your quote.
             </p>
             
-            {/* Base Cabinet Specifications */}
-            <div className="bg-muted/30 rounded-lg p-6 mb-8 max-w-2xl mx-auto">
-              <div className="flex items-center justify-center mb-4">
-                <Info className="h-5 w-5 mr-2 text-primary" />
-                <h3 className="text-lg font-semibold">Base Cabinet Specifications</h3>
-              </div>
-              <div className="text-center space-y-2">
-                <p className="font-medium text-foreground">Base depth: 560mm (standard) | 580mm for shadowline</p>
-                <p className="font-medium text-foreground">Base height: 720mm (standard)</p>
-                <p className="text-sm text-muted-foreground mt-2">All sizes plus doors</p>
+            <div className="bg-muted/40 rounded-md px-4 py-3 mb-6 max-w-3xl mx-auto text-sm">
+              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-muted-foreground">
+                <span className="font-medium text-foreground">Base depth:</span>
+                <span>560mm (standard), 580mm for shadowline</span>
+                <span>•</span>
+                <span className="font-medium text-foreground">Base height:</span>
+                <span>720mm (standard)</span>
+                <span>•</span>
+                <span>All sizes plus doors</span>
               </div>
             </div>
 

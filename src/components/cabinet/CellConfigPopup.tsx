@@ -242,10 +242,10 @@ export function CellConfigPopup({
       const doorStyle = doorStyles.find(ds => ds.id === selectedDoorStyle);
       const color = colors.find(c => c.id === selectedColor);
       
-      if (!doorStyle || !color) {
+      if (!doorStyle) {
         toast({
-          title: "Error",
-          description: "Please select door style and color",
+          title: "Select door style",
+          description: "Please choose a door style before adding to cart",
           variant: "destructive"
         });
         return;
@@ -258,10 +258,12 @@ export function CellConfigPopup({
         depth,
         quantity: 1,
         finish,
-        color,
+        color: color || undefined,
         doorStyle,
         hardwareOptions: selectedHardwareOptions
       };
+
+      console.log('Adding to cart with configuration:', configuration);
 
       const settings = parseGlobalSettings(globalSettings);
       await addToCart(configuration, cabinetParts, settings);
@@ -432,7 +434,7 @@ export function CellConfigPopup({
           {/* Add to Cart Button */}
           <Button
             onClick={handleAddToCart}
-            disabled={!selectedDoorStyle || !selectedColor || isAddingToCart}
+            disabled={!selectedDoorStyle || isAddingToCart}
             className="w-full"
           >
             {isAddingToCart ? (
