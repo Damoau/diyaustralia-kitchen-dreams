@@ -199,7 +199,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
     };
     
     await addToCart(configWithHardware, cabinetParts, settings);
-    onClose();
+    onOpenChange(false);
   };
 
   const currentDoorStyleColors = colors.filter(c => c.door_style_id === selectedDoorStyle);
@@ -207,7 +207,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   const totalPrice = calculatePrice();
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Configure {cabinetType.name}</DialogTitle>

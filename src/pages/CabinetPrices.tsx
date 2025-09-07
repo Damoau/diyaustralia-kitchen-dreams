@@ -350,8 +350,8 @@ const CabinetPrices = () => {
       {/* Configurator Dialog */}
       {selectedCabinetType && (
         <ConfiguratorDialog
-          isOpen={isConfiguratorOpen}
-          onClose={() => setIsConfiguratorOpen(false)}
+          open={isConfiguratorOpen}
+          onOpenChange={setIsConfiguratorOpen}
           cabinetType={selectedCabinetType}
           initialWidth={selectedWidth}
         />
