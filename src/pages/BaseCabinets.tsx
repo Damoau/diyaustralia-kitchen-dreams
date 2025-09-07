@@ -120,9 +120,9 @@ const BaseCabinets = () => {
                 // Create a door style finish object from the available data
                 const doorStyleFinish = finish.door_style_finish || {
                   id: finish.id,
-                  name: finish.door_style?.name + ' Finish' || 'Standard Finish',
+                  name: (finish.door_style?.name ? finish.door_style.name + ' Finish' : 'Standard Finish'),
                   rate_per_sqm: 150, // Default rate
-                  door_style_id: finish.door_style?.id,
+                  door_style_id: finish.door_style?.id || null,
                   door_style: finish.door_style
                 };
 
@@ -132,7 +132,7 @@ const BaseCabinets = () => {
                   surcharge_rate_per_sqm: 0,
                   hex_code: '#ffffff',
                   active: true,
-                  door_style_id: finish.door_style.id
+                  door_style_id: finish.door_style?.id || null
                 };
 
                 return calculateCabinetPrice(
