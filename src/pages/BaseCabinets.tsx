@@ -214,28 +214,24 @@ const BaseCabinets = () => {
               Quality base cabinets for your kitchen. Click any price to configure and add to your quote.
             </p>
             
-            {/* Standard Dimensions Info */}
+            {/* Base Cabinet Specifications */}
             <div className="bg-muted/30 rounded-lg p-6 mb-8 max-w-2xl mx-auto">
               <div className="flex items-center justify-center mb-4">
                 <Info className="h-5 w-5 mr-2 text-primary" />
-                <h3 className="text-lg font-semibold">Standard Dimensions</h3>
+                <h3 className="text-lg font-semibold">Base Cabinet Specifications</h3>
               </div>
-              <div className="grid md:grid-cols-2 gap-4 text-sm">
-                <div className="text-left">
-                  <p className="font-medium text-foreground">Standard Height: 720mm</p>
-                  <p className="text-muted-foreground">(excludes legs)</p>
-                  <p className="text-primary font-medium mt-1">25% extra for custom height up to 1000mm</p>
-                </div>
-                <div className="text-left">
-                  <p className="font-medium text-foreground">Standard Depth: 560mm</p>
-                  <p className="text-muted-foreground">(plus door thickness)</p>
-                  <p className="text-primary font-medium mt-1">25% extra for custom depth up to 900mm</p>
-                </div>
+              <div className="text-center space-y-2">
+                <p className="font-medium text-foreground">Base depth: 560mm (standard) | 580mm for shadowline</p>
+                <p className="font-medium text-foreground">Base height: 720mm (standard)</p>
+                <p className="text-sm text-muted-foreground mt-2">All sizes plus doors</p>
               </div>
             </div>
 
             {/* Navigation to other pricing pages */}
             <div className="flex flex-wrap gap-3 justify-center mb-8">
+              <Link to="/pricing/base-cabinets">
+                <Button variant="default" size="sm">Base Cabinets</Button>
+              </Link>
               <Link to="/pricing/top-cabinets">
                 <Button variant="outline" size="sm">Top Cabinets</Button>
               </Link>

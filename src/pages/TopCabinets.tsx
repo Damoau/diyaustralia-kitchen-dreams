@@ -214,23 +214,16 @@ const TopCabinets = () => {
               Wall-mounted cabinets for your kitchen. Click any price to configure and add to your quote.
             </p>
             
-            {/* Standard Dimensions Info */}
+            {/* Top Cabinet Specifications */}
             <div className="bg-muted/30 rounded-lg p-6 mb-8 max-w-2xl mx-auto">
               <div className="flex items-center justify-center mb-4">
                 <Info className="h-5 w-5 mr-2 text-primary" />
-                <h3 className="text-lg font-semibold">Standard Dimensions</h3>
+                <h3 className="text-lg font-semibold">Top Cabinet Specifications</h3>
               </div>
-              <div className="grid md:grid-cols-2 gap-4 text-sm">
-                <div className="text-left">
-                  <p className="font-medium text-foreground">Standard Height: 720mm</p>
-                  <p className="text-muted-foreground">(standard wall cabinet height)</p>
-                  <p className="text-primary font-medium mt-1">25% extra for custom height up to 1000mm</p>
-                </div>
-                <div className="text-left">
-                  <p className="font-medium text-foreground">Standard Depth: 350mm</p>
-                  <p className="text-muted-foreground">(plus door thickness)</p>
-                  <p className="text-primary font-medium mt-1">25% extra for custom depth up to 450mm</p>
-                </div>
+              <div className="text-center space-y-2">
+                <p className="font-medium text-foreground">Standard height: 700mm</p>
+                <p className="font-medium text-foreground">Standard depth: 300mm</p>
+                <p className="text-sm text-muted-foreground mt-2">All sizes plus doors</p>
               </div>
             </div>
 
@@ -238,6 +231,9 @@ const TopCabinets = () => {
             <div className="flex flex-wrap gap-3 justify-center mb-8">
               <Link to="/pricing/base-cabinets">
                 <Button variant="outline" size="sm">Base Cabinets</Button>
+              </Link>
+              <Link to="/pricing/top-cabinets">
+                <Button variant="default" size="sm">Top Cabinets</Button>
               </Link>
               <Link to="/pricing/pantry">
                 <Button variant="outline" size="sm">Pantry</Button>
