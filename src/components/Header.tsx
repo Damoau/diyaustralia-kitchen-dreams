@@ -4,13 +4,17 @@ import { Menu, ShoppingCart, Settings, LogOut, LogIn } from "lucide-react";
 import { CartDrawer } from "@/components/cabinet/CartDrawer";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const { totalItems } = useCart();
   const { isAuthenticated, isAdmin, user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Check if user is in admin mode
+  const isInAdminMode = location.pathname.startsWith('/admin');
   
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-border/50">
@@ -21,24 +25,39 @@ const Header = () => {
         </div>
         
         <nav className="hidden md:flex items-center space-x-8">
-          <a href="#services" className="text-foreground hover:text-primary transition-colors font-medium">
-            Services
-          </a>
-          <a href="/kitchen-styles" className="text-foreground hover:text-primary transition-colors font-medium">
-            Kitchen Styles
-          </a>
-          <a href="/base-cabinet-prices" className="text-foreground hover:text-primary transition-colors font-medium">
-            Pricing
-          </a>
-          <a href="#gallery" className="text-foreground hover:text-primary transition-colors font-medium">
-            Gallery
-          </a>
-          <a href="#about" className="text-foreground hover:text-primary transition-colors font-medium">
-            About
-          </a>
-          <a href="#contact" className="text-foreground hover:text-primary transition-colors font-medium">
-            Contact
-          </a>
+          {isInAdminMode ? (
+            <>
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/')}
+                className="text-foreground hover:text-primary transition-colors font-medium"
+              >
+                ← Back to Site
+              </Button>
+              <span className="text-sm text-muted-foreground">Admin Panel</span>
+            </>
+          ) : (
+            <>
+              <a href="#services" className="text-foreground hover:text-primary transition-colors font-medium">
+                Services
+              </a>
+              <a href="/kitchen-styles" className="text-foreground hover:text-primary transition-colors font-medium">
+                Kitchen Styles
+              </a>
+              <a href="/base-cabinet-prices" className="text-foreground hover:text-primary transition-colors font-medium">
+                Pricing
+              </a>
+              <a href="#gallery" className="text-foreground hover:text-primary transition-colors font-medium">
+                Gallery
+              </a>
+              <a href="#about" className="text-foreground hover:text-primary transition-colors font-medium">
+                About
+              </a>
+              <a href="#contact" className="text-foreground hover:text-primary transition-colors font-medium">
+                Contact
+              </a>
+            </>
+          )}
         </nav>
 
         <div className="flex items-center space-x-4">
@@ -60,8 +79,8 @@ const Header = () => {
                   {user?.email?.split('@')[0] || 'Account'}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                {isAdmin && (
+               <DropdownMenuContent align="end" className="w-48">
+                {isAdmin && !isInAdminMode && (
                   <>
                     <DropdownMenuItem onClick={() => {
                       console.log('Navigating to admin, isAdmin:', isAdmin, 'user:', user);
@@ -69,6 +88,15 @@ const Header = () => {
                     }}>
                       <Settings className="mr-2 h-4 w-4" />
                       Admin Panel
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                {isInAdminMode && (
+                  <>
+                    <DropdownMenuItem onClick={() => navigate('/')}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Exit Admin
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                   </>
@@ -105,51 +133,74 @@ const Header = () => {
                 </div>
                 
                 <nav className="flex flex-col space-y-6">
-                  <a 
-                    href="#services" 
-                    className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
-                  >
-                    Services
-                  </a>
-                  <a 
-                    href="/kitchen-styles" 
-                    className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
-                  >
-                    Kitchen Styles
-                  </a>
-                  <a 
-                    href="/base-cabinet-prices" 
-                    className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
-                  >
-                    Pricing
-                  </a>
-                  <a 
-                    href="#gallery" 
-                    className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
-                  >
-                    Gallery
-                  </a>
-                  <a 
-                    href="#about" 
-                    className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
-                  >
-                    About
-                  </a>
-                  <a 
-                    href="#contact" 
-                    className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
-                  >
-                    Contact
-                  </a>
+                  {isInAdminMode ? (
+                    <>
+                      <Button
+                        variant="ghost"
+                        onClick={() => navigate('/')}
+                        className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100 justify-start"
+                      >
+                        ← Back to Site
+                      </Button>
+                      <div className="text-lg font-medium text-muted-foreground py-2 border-b border-gray-100">
+                        Admin Panel
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <a 
+                        href="#services" 
+                        className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
+                      >
+                        Services
+                      </a>
+                      <a 
+                        href="/kitchen-styles" 
+                        className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
+                      >
+                        Kitchen Styles
+                      </a>
+                      <a 
+                        href="/base-cabinet-prices" 
+                        className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
+                      >
+                        Pricing
+                      </a>
+                      <a 
+                        href="#gallery" 
+                        className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
+                      >
+                        Gallery
+                      </a>
+                      <a 
+                        href="#about" 
+                        className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
+                      >
+                        About
+                      </a>
+                      <a 
+                        href="#contact" 
+                        className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
+                      >
+                        Contact
+                      </a>
+                    </>
+                  )}
                 </nav>
                 
                 <div className="mt-8 space-y-4">
                   {isAuthenticated ? (
                     <>
-                      {isAdmin && (
+                      {isAdmin && !isInAdminMode && (
                         <Button variant="outline" size="lg" className="w-full" onClick={() => navigate('/admin')}>
                           <Settings className="mr-2 h-4 w-4" />
                           Admin Panel
+                        </Button>
+                      )}
+                      {isInAdminMode && (
+                        <Button variant="outline" size="lg" className="w-full" onClick={() => navigate('/')}>
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Exit Admin
                         </Button>
                       )}
                       <Button variant="outline" size="lg" className="w-full" onClick={signOut}>
