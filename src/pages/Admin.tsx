@@ -19,6 +19,7 @@ import GlobalSettingsEditDialog from "@/components/admin/GlobalSettingsEditDialo
 import { DoorStylesManager } from "@/components/admin/DoorStylesManager";
 import HardwareEditDialog from "@/components/admin/HardwareEditDialog";
 import { ColorsManager } from "@/components/admin/ColorsManager";
+import AdminAIAssistant from "@/pages/AdminAIAssistant";
 
 interface GlobalSetting {
   id: string;
@@ -255,12 +256,13 @@ const Admin = () => {
           </div>
 
           <Tabs defaultValue="door-styles" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="door-styles">Door Styles</TabsTrigger>
               <TabsTrigger value="colors">Colors</TabsTrigger>
               <TabsTrigger value="cabinet-types">Cabinet Types</TabsTrigger>
               <TabsTrigger value="hardware">Hardware</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
+              <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
             </TabsList>
 
             <TabsContent value="door-styles">
@@ -573,6 +575,10 @@ const Admin = () => {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="ai-assistant">
+              <AdminAIAssistant />
             </TabsContent>
           </Tabs>
 
