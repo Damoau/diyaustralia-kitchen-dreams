@@ -56,6 +56,16 @@ export interface CabinetType {
   bottoms_qty?: number;
   sides_qty?: number;
   door_qty?: number;
+  // E-commerce fields
+  stock_quantity: number;
+  min_stock_level: number;
+  max_stock_level: number;
+  is_featured: boolean;
+  product_image_url?: string;
+  short_description?: string;
+  long_description?: string;
+  base_price: number;
+  display_order: number;
 }
 
 export interface CabinetTypePriceRange {

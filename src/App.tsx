@@ -12,6 +12,9 @@ import BaseCabinets from "./pages/BaseCabinets";
 import TopCabinets from "./pages/TopCabinets";
 import Pantry from "./pages/Pantry";
 import PanelsFillers from "./pages/PanelsFillers";
+import Products from "./pages/Products";
+import ProductDetail from "./pages/ProductDetail";
+import Checkout from "./pages/Checkout";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -27,6 +30,9 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/products/:id" element={<ProductDetail />} />
+          <Route path="/checkout" element={<Checkout />} />
           <Route path="/kitchen-styles" element={<KitchenStyles />} />
           <Route path="/cabinet-prices" element={<CabinetPrices />} />
           <Route path="/cabinet-prices-new" element={<CabinetPricesNew />} />

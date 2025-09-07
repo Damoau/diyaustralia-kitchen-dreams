@@ -15,13 +15,13 @@ import { useCart } from '@/hooks/useCart';
 import { HardwareCostPreview } from './HardwareCostPreview';
 
 interface ConfiguratorDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
   cabinetType: CabinetType;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   initialWidth?: number;
 }
 
-export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth }: ConfiguratorDialogProps) {
+export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWidth }: ConfiguratorDialogProps) {
   const [width, setWidth] = useState(initialWidth || cabinetType.default_width_mm);
   const [height, setHeight] = useState(cabinetType.default_height_mm);
   const [depth, setDepth] = useState(cabinetType.default_depth_mm);
@@ -45,10 +45,10 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
 
   // Load data
   useEffect(() => {
-    if (isOpen) {
+    if (open) {
       loadData();
     }
-  }, [isOpen, cabinetType.id]);
+  }, [open, cabinetType.id]);
 
   // Update colors when door style changes
   useEffect(() => {
@@ -207,7 +207,7 @@ export function ConfiguratorDialog({ isOpen, onClose, cabinetType, initialWidth 
   const totalPrice = calculatePrice();
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Configure {cabinetType.name}</DialogTitle>
