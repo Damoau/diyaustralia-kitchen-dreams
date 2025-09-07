@@ -77,7 +77,7 @@ const BaseCabinets = () => {
         .select(`
           *,
           door_style:door_styles(*),
-          door_style_finish:door_style_finishes(*),
+          door_style_finish:door_style_finishes!cabinet_type_finishes_door_style_finish_id_fkey(*),
           color:colors(*)
         `)
         .eq('active', true)
@@ -117,10 +117,14 @@ const BaseCabinets = () => {
               const width = range.min_width_mm;
               
               const prices = typeFinishes.map((finish: any) => {
-                if (!finish.door_style || !finish.door_style_finish) {
-                  console.warn(`Missing door style or finish for cabinet type ${cabinetType.name}`);
-                  return 100; // Default price
-                }
+                // Create a door style finish object from the available data
+                const doorStyleFinish = finish.door_style_finish || {
+                  id: finish.id,
+                  name: finish.door_style?.name + ' Finish' || 'Standard Finish',
+                  rate_per_sqm: 150, // Default rate
+                  door_style_id: finish.door_style?.id,
+                  door_style: finish.door_style
+                };
 
                 const mockColor = finish.color || {
                   id: 'default-color',
@@ -136,7 +140,7 @@ const BaseCabinets = () => {
                   width,
                   cabinetType.default_height_mm,
                   cabinetType.default_depth_mm,
-                  finish.door_style_finish,
+                  doorStyleFinish,
                   mockColor,
                   cabinetParts,
                   globalSettings,
