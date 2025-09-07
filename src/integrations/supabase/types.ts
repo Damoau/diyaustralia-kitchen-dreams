@@ -869,6 +869,63 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_requests: {
+        Row: {
+          additional_notes: string | null
+          approximate_budget: string
+          cabinet_finish: string | null
+          color_preference: string | null
+          created_at: string
+          email: string
+          file_count: number
+          id: string
+          kitchen_style: string
+          name: string
+          other_kitchen_style: string | null
+          phone: string
+          project_type: string
+          suburb: string
+          timeframe: string
+          updated_at: string
+        }
+        Insert: {
+          additional_notes?: string | null
+          approximate_budget: string
+          cabinet_finish?: string | null
+          color_preference?: string | null
+          created_at?: string
+          email: string
+          file_count?: number
+          id?: string
+          kitchen_style: string
+          name: string
+          other_kitchen_style?: string | null
+          phone: string
+          project_type: string
+          suburb: string
+          timeframe: string
+          updated_at?: string
+        }
+        Update: {
+          additional_notes?: string | null
+          approximate_budget?: string
+          cabinet_finish?: string | null
+          color_preference?: string | null
+          created_at?: string
+          email?: string
+          file_count?: number
+          id?: string
+          kitchen_style?: string
+          name?: string
+          other_kitchen_style?: string | null
+          phone?: string
+          project_type?: string
+          suburb?: string
+          timeframe?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

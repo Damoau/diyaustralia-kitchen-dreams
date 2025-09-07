@@ -96,7 +96,7 @@ export default function QuoteForm({ onClose }: QuoteFormProps) {
     
     try {
       // Save quote request to database
-      const { error } = await supabase.from("quote_requests").insert({
+      const { error } = await supabase.from("quote_requests" as any).insert({
         name: data.name,
         email: data.email,
         phone: data.phone,
