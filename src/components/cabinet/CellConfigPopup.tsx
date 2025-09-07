@@ -27,6 +27,8 @@ interface CellConfigPopupProps {
 
 interface HardwareRequirement {
   id: string;
+  units_per_scope: number;
+  unit_scope: string;
   hardware_type: { name: string };
   cabinet_hardware_options: Array<{
     id: string;
@@ -104,18 +106,48 @@ export function CellConfigPopup({
 
   const loadDoorStyles = async () => {
     try {
+      // Load door styles that are configured for this cabinet type
       const { data, error } = await supabase
-        .from('door_styles')
-        .select('*')
+        .from('cabinet_type_finishes')
+        .select(`
+          *,
+          door_style:door_styles(
+            id,
+            name,
+            base_rate_per_sqm,
+            active
+          ),
+          door_style_finish:door_style_finishes(
+            id,
+            name,
+            rate_per_sqm
+          ),
+          color:colors(
+            id,
+            name,
+            hex_code,
+            surcharge_rate_per_sqm
+          )
+        `)
+        .eq('cabinet_type_id', cabinetType.id)
         .eq('active', true)
-        .order('name');
+        .order('sort_order');
       
       if (error) throw error;
-      setDoorStyles(data || []);
+      
+      // Extract unique door styles from cabinet type finishes
+      const uniqueDoorStyles = data?.reduce((acc: any[], finish: any) => {
+        if (finish.door_style && !acc.find(ds => ds.id === finish.door_style.id)) {
+          acc.push(finish.door_style);
+        }
+        return acc;
+      }, []) || [];
+      
+      setDoorStyles(uniqueDoorStyles);
       
       // Set first door style as default
-      if (data && data.length > 0) {
-        setSelectedDoorStyle(data[0].id);
+      if (uniqueDoorStyles.length > 0) {
+        setSelectedDoorStyle(uniqueDoorStyles[0].id);
       }
     } catch (error) {
       console.error('Error loading door styles:', error);
@@ -175,30 +207,24 @@ export function CellConfigPopup({
         const selectedOption = req.cabinet_hardware_options.find(opt => opt.id === selectedOptionId);
         
         if (selectedOption) {
-          // Calculate quantity needed (simplified - you may want to use the actual unit_scope logic)
-          let quantity = 1; // This should be calculated based on the requirement's unit_scope
+          // Calculate quantity based on unit_scope
+          let quantity = req.units_per_scope || 1;
+          if (req.unit_scope === 'per_door') {
+            quantity = quantity * cabinetType.door_count;
+          } else if (req.unit_scope === 'per_drawer') {
+            quantity = quantity * cabinetType.drawer_count;
+          }
           totalHardwareCost += selectedOption.hardware_product.cost_per_unit * quantity;
         }
       }
 
-      // Create door style finish mock object
-      const doorStyleFinish = {
-        id: `mock-${doorStyle.id}`,
-        door_style_id: doorStyle.id,
-        name: 'Standard',
-        rate_per_sqm: doorStyle.base_rate_per_sqm,
-        sort_order: 0,
-        active: true,
-        created_at: new Date().toISOString(),
-        door_style: doorStyle
-      };
-
+      // Use the actual finish passed from the parent component
       const price = calculateCabinetPrice(
         cabinetType,
         width,
         height,
         depth,
-        doorStyleFinish,
+        finish,
         color,
         cabinetParts,
         globalSettings,
