@@ -341,7 +341,7 @@ export function CellConfigPopup({
           <div className="flex items-start gap-4">
             {/* Main Cabinet Image - Updates with door style selection */}
             <div 
-              className="w-24 h-24 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors flex-shrink-0"
+              className="w-32 h-32 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors flex-shrink-0"
               onClick={() => {
                 const currentDoorStyle = selectedDoorStyle ? doorStyles.find(ds => ds.id === selectedDoorStyle) : null;
                 const imageUrl = currentDoorStyle?.image_url || (finish as any)?.image_url || cabinetType.product_image_url;
@@ -356,7 +356,7 @@ export function CellConfigPopup({
 
                 return imageUrl ? (
                   <img 
-                    key={`${selectedDoorStyle}-${imageUrl}`} // Force re-render when door style changes
+                    key={`cabinet-image-${selectedDoorStyle || 'default'}`} // Force re-render when door style changes
                     src={imageUrl} 
                     alt={`${cabinetType.name} - ${currentDoorStyle?.name || (finish as any)?.door_style?.name || 'Cabinet'}`}
                     className="w-full h-full object-cover rounded-md transition-all duration-300"
@@ -374,7 +374,10 @@ export function CellConfigPopup({
                         parent.innerHTML = '<span class="text-xs text-muted-foreground text-center">Image failed to load</span>';
                       }
                     }}
-                    loading="lazy"
+                    onLoad={() => {
+                      console.log('Cabinet image updated:', imageUrl, 'Door style:', currentDoorStyle?.name);
+                    }}
+                    loading="eager"
                   />
                 ) : (
                   <div className="text-center">
@@ -408,10 +411,13 @@ export function CellConfigPopup({
                   style.image_url && (
                     <div 
                       key={style.id}
-                      className={`w-16 h-16 bg-muted/30 rounded-lg border-2 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-all duration-200 flex-shrink-0 ${
+                      className={`w-20 h-20 bg-muted/30 rounded-lg border-2 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-all duration-200 flex-shrink-0 ${
                         selectedDoorStyle === style.id ? 'border-primary ring-2 ring-primary/20 scale-105' : 'border-dashed border-muted-foreground/20'
                       }`}
-                      onClick={() => setSelectedDoorStyle(style.id)}
+                      onClick={() => {
+                        console.log('Door style clicked:', style.name, 'ID:', style.id);
+                        setSelectedDoorStyle(style.id);
+                      }}
                       title={style.name}
                     >
                       <img 
