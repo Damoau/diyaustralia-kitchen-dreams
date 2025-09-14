@@ -58,30 +58,24 @@ class PricingService {
 
   private parseGlobalSettings(settings: GlobalSettings[]) {
     const settingsMap = settings.reduce((acc, setting) => {
-      acc[setting.setting_key] = parseFloat(setting.setting_value);
+      acc[setting.setting_key] = parseFloat(setting.setting_value) || 0;
       return acc;
     }, {} as Record<string, number>);
 
     return {
-      hmrRate: settingsMap.hmr_rate_per_sqm || 1000,
-      hardwareBaseCost: settingsMap.hardware_base_cost || 45,
-      gstRate: settingsMap.gst_rate || 0.1,
-      wastageFactor: settingsMap.wastage_factor || 0.05,
+      hmrRate: settingsMap['hmr_rate'] || 140,
+      gstRate: settingsMap['gst_rate'] || 0.1,
+      wastageFactor: settingsMap['wastage_factor'] || 1.1,
+      hardwareBaseCost: settingsMap['hardware_base_cost'] || 45
     };
   }
 
   private calculatePartQuantities(cabinetParts: CabinetPart[], cabinetType: CabinetType) {
-    // Try to get quantities from cabinet parts first
-    const backParts = cabinetParts.filter(p => p.part_name.toLowerCase().includes('back') && !p.is_door);
-    const bottomParts = cabinetParts.filter(p => p.part_name.toLowerCase().includes('bottom') && !p.is_door);
-    const sideParts = cabinetParts.filter(p => p.part_name.toLowerCase().includes('side') && !p.is_door);
-    const doorParts = cabinetParts.filter(p => p.is_door);
-
     return {
-      backs: backParts.reduce((sum, part) => sum + part.quantity, 0) || cabinetType.backs_qty || 1,
-      bottoms: bottomParts.reduce((sum, part) => sum + part.quantity, 0) || cabinetType.bottoms_qty || 1,
-      sides: sideParts.reduce((sum, part) => sum + part.quantity, 0) || cabinetType.sides_qty || 2,
-      doors: doorParts.reduce((sum, part) => sum + part.quantity, 0) || cabinetType.door_qty || cabinetType.door_count || 0,
+      backs: cabinetType.backs_qty || 1,
+      bottoms: cabinetType.bottoms_qty || 1,
+      sides: cabinetType.sides_qty || 2,
+      doors: cabinetType.door_qty || 0
     };
   }
 
@@ -101,57 +95,56 @@ class PricingService {
     const settings = this.parseGlobalSettings(globalSettings);
     const quantities = this.calculatePartQuantities(cabinetParts, cabinetType);
 
-    // Convert to meters
-    const widthM = width / 1000;
-    const heightM = height / 1000;
-    const depthM = depth / 1000;
-
     // Calculate carcass costs
-    const backCost = (widthM * heightM) * quantities.backs * settings.hmrRate;
-    const bottomCost = (widthM * depthM) * quantities.bottoms * settings.hmrRate;
-    const sideCost = (depthM * heightM) * quantities.sides * settings.hmrRate;
-    const carcassTotal = backCost + bottomCost + sideCost;
+    const carcassArea = {
+      backs: (width * height / 1000000) * quantities.backs,
+      bottoms: (width * depth / 1000000) * quantities.bottoms,
+      sides: (height * depth / 1000000) * quantities.sides
+    };
+
+    const carcassCosts = {
+      backs: carcassArea.backs * settings.hmrRate * settings.wastageFactor,
+      bottoms: carcassArea.bottoms * settings.hmrRate * settings.wastageFactor,
+      sides: carcassArea.sides * settings.hmrRate * settings.wastageFactor,
+      total: 0
+    };
+    carcassCosts.total = carcassCosts.backs + carcassCosts.bottoms + carcassCosts.sides;
 
     // Calculate door costs
-    const doorStyleBaseRate = doorStyle?.base_rate_per_sqm || 0;
-    const doorStyleFinishRate = 0; // Not using separate finish rate anymore
-    const colorSurcharge = color?.surcharge_rate_per_sqm || 0;
-    const carcassMaterialRate = settings.hmrRate * 0.2; // 20% of HMR rate as carcass component
-    const totalDoorRate = doorStyleBaseRate + doorStyleFinishRate + colorSurcharge + carcassMaterialRate;
-    const doorArea = (widthM * heightM) * quantities.doors;
-    const doorCost = doorArea * totalDoorRate;
+    let doorCosts = {
+      styleRate: doorStyle?.base_rate_per_sqm || 0,
+      finishRate: 0,
+      colorSurcharge: color?.surcharge_rate_per_sqm || 0,
+      carcassComponent: settings.hmrRate,
+      totalRate: 0,
+      area: 0,
+      total: 0
+    };
+
+    if (quantities.doors > 0) {
+      doorCosts.area = (width * height / 1000000) * quantities.doors;
+      doorCosts.totalRate = doorCosts.styleRate + doorCosts.finishRate + doorCosts.colorSurcharge + doorCosts.carcassComponent;
+      doorCosts.total = doorCosts.area * doorCosts.totalRate * settings.wastageFactor;
+    }
 
     // Hardware cost
     const hardwareCost = settings.hardwareBaseCost;
 
     // Calculate totals
-    const subtotal = (carcassTotal + doorCost + hardwareCost) * quantity;
+    const subtotal = (carcassCosts.total + doorCosts.total + hardwareCost) * quantity;
     const gst = subtotal * settings.gstRate;
     const finalTotal = subtotal + gst;
 
-    // Store breakdown for debugging
+    // Store breakdown for later retrieval
     this.lastBreakdown = {
-      carcassCosts: {
-        backs: backCost * quantity,
-        bottoms: bottomCost * quantity,
-        sides: sideCost * quantity,
-        total: carcassTotal * quantity,
-      },
-      doorCosts: {
-        styleRate: doorStyleBaseRate,
-        finishRate: doorStyleFinishRate,
-        colorSurcharge,
-        carcassComponent: carcassMaterialRate,
-        totalRate: totalDoorRate,
-        area: doorArea,
-        total: doorCost * quantity,
-      },
-      hardwareCost: hardwareCost * quantity,
+      carcassCosts,
+      doorCosts,
+      hardwareCost,
       subtotal,
       gst,
       finalTotal,
       dimensions: { width, height, depth },
-      quantities,
+      quantities
     };
 
     return Math.round(finalTotal);
@@ -159,42 +152,45 @@ class PricingService {
 
   generateTableData(params: PriceTableParams) {
     const { cabinetType, cabinetParts, globalSettings, priceRanges, cabinetTypeFinishes } = params;
-    
-    const tableData = {
-      cabinetType: cabinetType.name,
-      sizes: priceRanges.map((range: any) => {
-        const width = range.min_width_mm;
+
+    // Use price ranges or generate default ones
+    const ranges = priceRanges.length > 0 ? priceRanges : [
+      { id: 'default-1', label: '300-400mm', min_width_mm: 300, max_width_mm: 400 },
+      { id: 'default-2', label: '400-500mm', min_width_mm: 400, max_width_mm: 500 },
+      { id: 'default-3', label: '500-600mm', min_width_mm: 500, max_width_mm: 600 }
+    ];
+
+    const priceRangeData = ranges.map(range => {
+      const width = range.min_width_mm;
+      
+      const prices = cabinetTypeFinishes.map(finish => {
+        const doorStyle = finish.door_style;
+        const color = finish.color;
         
-        const prices = cabinetTypeFinishes.map((finish: any) => {
-          const doorStyle = finish.door_style || { base_rate_per_sqm: 0 };
-          const color = finish.color || { surcharge_rate_per_sqm: 0 };
-          
-          return this.calculatePrice({
-            cabinetType,
-            width,
-            height: cabinetType.default_height_mm,
-            depth: cabinetType.default_depth_mm,
-            cabinetParts,
-            globalSettings,
-            doorStyle,
-            color,
-            quantity: 1
-          });
+        return this.calculatePrice({
+          cabinetType,
+          width,
+          height: cabinetType.default_height_mm,
+          depth: cabinetType.default_depth_mm,
+          cabinetParts,
+          globalSettings,
+          doorStyle,
+          color,
+          quantity: 1
         });
+      });
 
-        return {
-          range: range.label,
-          prices,
-          width
-        };
-      }),
-      finishes: cabinetTypeFinishes.map((finish: any) => ({
-        ...finish,
-        displayName: finish.door_style?.name || 'Unknown Style'
-      }))
+      return {
+        id: range.id,
+        label: range.label,
+        prices
+      };
+    });
+
+    return {
+      priceRanges: priceRangeData,
+      finishes: cabinetTypeFinishes
     };
-
-    return tableData;
   }
 
   getLastBreakdown(): PriceBreakdown | null {
@@ -206,8 +202,8 @@ class PricingService {
       style: 'currency',
       currency: 'AUD',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(Math.round(price));
+      maximumFractionDigits: 0
+    }).format(price);
   }
 }
 

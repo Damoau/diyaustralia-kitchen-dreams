@@ -38,27 +38,9 @@ const Header = () => {
             </>
           ) : (
             <>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="text-foreground hover:text-primary transition-colors font-medium">
-                    Shop
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48 bg-background border border-border shadow-lg z-50">
-                  <DropdownMenuItem onClick={() => navigate('/pricing/base-cabinets')}>
-                    Base Cabinets
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/pricing/top-cabinets')}>
-                    Top Cabinets
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/pricing/pantry')}>
-                    Pantry
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/pricing/panels-fillers')}>
-                    Dress Panels & Fillers
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <a href="/pricing" className="text-foreground hover:text-primary transition-colors font-medium">
+                Pricing
+              </a>
               <a href="#services" className="text-foreground hover:text-primary transition-colors font-medium">
                 Services
               </a>
@@ -172,29 +154,12 @@ const Header = () => {
                     </>
                   ) : (
                     <>
-                  <div className="py-2 border-b border-gray-100">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="text-lg font-medium text-foreground hover:text-primary transition-colors w-full justify-start p-0">
-                          Shop
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-48 bg-background border border-border shadow-lg z-50">
-                        <DropdownMenuItem onClick={() => navigate('/pricing/base-cabinets')}>
-                          Base Cabinets
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate('/pricing/top-cabinets')}>
-                          Top Cabinets
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate('/pricing/pantry')}>
-                          Pantry
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate('/pricing/panels-fillers')}>
-                          Dress Panels & Fillers
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                  <a 
+                    href="/pricing" 
+                    className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
+                  >
+                    Pricing
+                  </a>
                   <a 
                     href="#services" 
                     className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
