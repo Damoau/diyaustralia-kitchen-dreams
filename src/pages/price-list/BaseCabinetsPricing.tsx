@@ -141,22 +141,13 @@ const BaseCabinetsPricing = () => {
         `)
         .eq('active', true);
 
-      // 7. Get colors for different door styles
-      const { data: blackColor } = await supabase
+      // 7. Get all active colors for lookup
+      const { data: allColors } = await supabase
         .from('colors')
         .select('*')
-        .eq('name', 'Black')
-        .eq('active', true)
-        .single();
+        .eq('active', true);
 
-      const { data: whiteColor } = await supabase
-        .from('colors')
-        .select('*')
-        .eq('name', 'Pure White')
-        .eq('active', true)
-        .single();
-
-      console.log('🎨 COLORS DATA:', { blackColor, whiteColor });
+      console.log('🎨 ALL COLORS:', allColors);
 
       // 8. Calculate prices with fresh data
       const newPriceData: PriceData = {};
@@ -169,19 +160,23 @@ const BaseCabinetsPricing = () => {
         newPriceData[selectedCabinetType][finish.door_style.id] = {};
 
         for (const range of freshRanges || []) {
-          // FOR POLY - USE PURE WHITE COLOR BUT ACTUAL RANGE WIDTH
-          let width, colorToUse;
-          if (finish.door_style.name.trim() === 'Poly') {
-            width = (range.min_width_mm + range.max_width_mm) / 2; // Use actual range width
-            colorToUse = whiteColor; // Use Pure White (0 surcharge)
-            console.log('🎯 POLY DETECTED - USING RANGE WIDTH:', width, 'MM AND WHITE COLOR');
-          } else {
-            width = (range.min_width_mm + range.max_width_mm) / 2;
-            colorToUse = blackColor;
-          }
-
+          const width = (range.min_width_mm + range.max_width_mm) / 2;
           const height = cabinets?.default_height_mm || 720;
           const depth = cabinets?.default_depth_mm || 560;
+
+          // Find the correct color for this door style
+          let colorToUse;
+          if (finish.door_style.name.trim() === 'Poly') {
+            // For Poly, use Pure White
+            colorToUse = allColors?.find(c => c.name === 'Pure White');
+          } else {
+            // For other door styles, find color by door_style_id or use a default
+            colorToUse = allColors?.find(c => c.door_style_id === finish.door_style.id) || 
+                        allColors?.find(c => c.name === 'sublime tek a') ||
+                        allColors?.find(c => c.name === 'Black');
+          }
+
+          console.log('🎨 COLOR FOR', finish.door_style.name.trim(), ':', colorToUse?.name, 'Surcharge:', colorToUse?.surcharge_rate_per_sqm);
 
           const price = pricingService.calculatePrice({
             cabinetType: cabinets as CabinetType,
@@ -400,7 +395,7 @@ const BaseCabinetsPricing = () => {
           <PriceCalculationBreakdown
             key={`breakdown-${Date.now()}`}
             cabinetType={selectedCabinetType}
-            doorStyle={debugData.finishes.find(f => f.door_style?.name === 'Poly ')?.door_style || debugData.finishes[0].door_style}
+            doorStyle={debugData.finishes.find(f => f.door_style?.name.trim() === 'Poly')?.door_style || debugData.finishes[0].door_style}
             color={debugData.finishes[0].color}
             priceRanges={debugData.ranges}
           />
