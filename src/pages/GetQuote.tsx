@@ -92,9 +92,6 @@ const GetQuote = () => {
             <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 gradient-text">
               Get Your Custom Kitchen Quote
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto mb-8 leading-relaxed">
-              Australian-made custom cabinets • Any size, any style • Fast Australia-wide delivery
-            </p>
             
           </div>
 
