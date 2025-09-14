@@ -69,6 +69,29 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
     hardwareBrandId: selectedHardwareBrand
   });
 
+  // Fetch hardware brands to set default
+  const { data: hardwareBrands } = useQuery({
+    queryKey: ['hardware-brands'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('hardware_brands')
+        .select('*')
+        .eq('active', true)
+        .order('name');
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  // Auto-select Titus as default hardware brand
+  useEffect(() => {
+    if (hardwareBrands && hardwareBrands.length > 0 && !selectedHardwareBrand) {
+      const titusBrand = hardwareBrands.find(brand => brand.name === 'Titus');
+      const defaultBrandId = titusBrand ? titusBrand.id : hardwareBrands[0].id;
+      setSelectedHardwareBrand(defaultBrandId);
+    }
+  }, [hardwareBrands, selectedHardwareBrand]);
+
   // Auto-select first available options when data loads
   useEffect(() => {
     if (cabinetTypeFinishes && cabinetTypeFinishes.length > 0 && !selectedDoorStyle) {
