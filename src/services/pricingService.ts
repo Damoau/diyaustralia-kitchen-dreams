@@ -75,7 +75,6 @@ class PricingService {
   private calculatePartQuantities(cabinetParts: CabinetPart[], cabinetType: CabinetType) {
     // Use admin-set door quantities to match expectations
     const doorQty = cabinetType.door_qty || cabinetType.door_count || 0;
-    console.log('PricingService door quantity:', doorQty, 'from cabinet type:', cabinetType.name);
     
     return {
       backs: cabinetType.backs_qty || 1,
@@ -101,31 +100,23 @@ class PricingService {
       hardwareOptions = []
     } = params;
 
-    const settings = this.parseGlobalSettings(globalSettings);
     const quantities = this.calculatePartQuantities(cabinetParts, cabinetType);
+    const settings = this.parseGlobalSettings(globalSettings);
 
     // Calculate carcass costs - NO wastage factor to match breakdown display
     const carcassArea = {
       backs: (width * height / 1000000) * quantities.backs,
       bottoms: (width * depth / 1000000) * quantities.bottoms,
-      sides: (height * depth / 1000000) * quantities.sides // Fixed: was using width * depth, should be height * depth
+      sides: (height * depth / 1000000) * quantities.sides
     };
 
     const carcassCosts = {
-      backs: carcassArea.backs * settings.hmrRate, // No wastage factor
-      bottoms: carcassArea.bottoms * settings.hmrRate, // No wastage factor  
-      sides: carcassArea.sides * settings.hmrRate, // No wastage factor
+      backs: carcassArea.backs * settings.hmrRate,
+      bottoms: carcassArea.bottoms * settings.hmrRate,
+      sides: carcassArea.sides * settings.hmrRate,
       total: 0
     };
     carcassCosts.total = carcassCosts.backs + carcassCosts.bottoms + carcassCosts.sides;
-    
-    console.log('Carcass calculation:', {
-      dimensions: { width, height, depth },
-      quantities,
-      areas: carcassArea,
-      costs: carcassCosts,
-      hmrRate: settings.hmrRate
-    });
 
     // Calculate door costs
     let doorCosts = {
@@ -140,26 +131,11 @@ class PricingService {
     if (quantities.doors > 0) {
       doorCosts.area = (width * height / 1000000) * quantities.doors;
       doorCosts.totalRate = doorCosts.styleRate + doorCosts.finishRate + doorCosts.colorSurcharge;
-      doorCosts.total = doorCosts.area * doorCosts.totalRate; // No wastage factor
-      
-      console.log('Door calculation:', {
-        doors: quantities.doors,
-        area: doorCosts.area,
-        rates: { styleRate: doorCosts.styleRate, finishRate: doorCosts.finishRate, colorSurcharge: doorCosts.colorSurcharge },
-        totalRate: doorCosts.totalRate,
-        total: doorCosts.total
-      });
+      doorCosts.total = doorCosts.area * doorCosts.totalRate;
     }
 
     // Hardware cost - calculate based on admin configuration
     let hardwareCost = 0;
-    console.log('Hardware calculation inputs:', {
-      hardwareBrandId,
-      hardwareRequirementsCount: hardwareRequirements.length,
-      hardwareOptionsCount: hardwareOptions.length,
-      hardwareRequirements: hardwareRequirements.map(r => ({ id: r.id, type: r.hardware_type?.name, units: r.units_per_scope })),
-      hardwareOptions: hardwareOptions.map(o => ({ id: o.id, brandId: o.hardware_brand_id, requirementId: o.requirement_id, product: o.hardware_product?.name, cost: o.hardware_product?.cost_per_unit }))
-    });
     
     if (hardwareBrandId && hardwareBrandId !== 'none' && hardwareRequirements.length > 0) {
       hardwareRequirements.forEach(requirement => {
@@ -169,44 +145,19 @@ class PricingService {
           option.hardware_brand_id === hardwareBrandId
         );
         
-        console.log('Looking for hardware option:', {
-          requirementId: requirement.id,
-          hardwareBrandId,
-          matchingOption: matchingOption ? {
-            id: matchingOption.id,
-            product: matchingOption.hardware_product?.name,
-            cost: matchingOption.hardware_product?.cost_per_unit
-          } : 'NOT FOUND'
-        });
-        
         if (matchingOption && matchingOption.hardware_product) {
           const costPerUnit = matchingOption.hardware_product.cost_per_unit || 0;
           const unitsNeeded = requirement.units_per_scope || 1;
           const requirementCost = costPerUnit * unitsNeeded * quantity;
           hardwareCost += requirementCost;
-          
-          console.log('Hardware calculation:', {
-            requirement: requirement.hardware_type?.name,
-            brand: hardwareBrandId,
-            product: matchingOption.hardware_product.name,
-            costPerUnit,
-            unitsNeeded,
-            quantity,
-            requirementCost,
-            totalHardwareCost: hardwareCost
-          });
         }
       });
     } else {
-      console.log('No hardware calculation because:', {
-        hardwareBrandId,
-        isNone: hardwareBrandId === 'none',
-        requirementsLength: hardwareRequirements.length
-      });
+      hardwareCost = 0;
     }
 
     // Calculate totals
-    const subtotal = (carcassCosts.total + doorCosts.total + hardwareCost) * quantity;
+    const subtotal = (carcassCosts.total + doorCosts.total) * quantity + hardwareCost;
     const gst = subtotal * settings.gstRate;
     const finalTotal = subtotal + gst;
 
