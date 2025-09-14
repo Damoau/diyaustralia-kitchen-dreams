@@ -126,13 +126,13 @@ const GetQuote = () => {
             ))}
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-16 mb-16">
+          <div className="grid lg:grid-cols-2 gap-16 mb-16 lg:items-stretch">
             {/* Process Timeline */}
-            <div>
+            <div className="flex flex-col h-full">
               <h2 className="text-3xl font-bold text-foreground mb-12 text-center">Simple 5-Step Process</h2>
               
               {/* Vertical Timeline */}
-              <div className="space-y-8">
+              <div className="space-y-8 flex-1">
                 {processSteps.map((step, index) => (
                   <div key={index} className="relative flex items-start gap-6">
                     {/* Timeline line */}
