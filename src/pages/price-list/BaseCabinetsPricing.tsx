@@ -57,9 +57,10 @@ const BaseCabinetsPricing = () => {
 
   // Fetch cabinet type finishes for selected cabinet
   const { data: cabinetTypeFinishes, isLoading: loadingFinishes } = useQuery({
-    queryKey: ['cabinet-type-finishes', selectedCabinetType],
+    queryKey: ['cabinet-type-finishes', selectedCabinetType, Date.now()], // Force fresh with timestamp
     queryFn: async () => {
       if (!selectedCabinetType) return [];
+      console.log('🔍 FETCHING FRESH FINISHES FOR:', selectedCabinetType);
       const { data, error } = await supabase
         .from('cabinet_type_finishes')
         .select(`
@@ -70,9 +71,15 @@ const BaseCabinetsPricing = () => {
         .eq('active', true)
         .order('sort_order');
       if (error) throw error;
+      console.log('📦 FRESH FINISHES DATA:', data?.map(f => ({ 
+        id: f.id, 
+        doorStyle: f.door_style?.name, 
+        rate: f.door_style?.base_rate_per_sqm 
+      })));
       return data;
     },
-    enabled: !!selectedCabinetType
+    enabled: !!selectedCabinetType,
+    staleTime: 0 // Always consider stale
   });
 
   // Fetch price ranges for selected cabinet
@@ -121,6 +128,14 @@ const BaseCabinetsPricing = () => {
   // Calculate prices when data is available
   const calculatePrices = async () => {
     if (!selectedCabinetType || !cabinetTypeFinishes || !priceRanges || !cabinetParts || !globalSettings) return;
+
+    console.log('=== CALCULATE PRICES START ===');
+    console.log('Selected cabinet type ID:', selectedCabinetType);
+    console.log('Available finishes:', cabinetTypeFinishes.map(f => ({ 
+      id: f.id, 
+      doorStyle: f.door_style?.name, 
+      rate: f.door_style?.base_rate_per_sqm 
+    })));
 
     setIsCalculating(true);
     const newPriceData: PriceData = {};
@@ -230,14 +245,18 @@ const BaseCabinetsPricing = () => {
   // Trigger calculation when dependencies change
   useEffect(() => {
     if (selectedCabinetType && cabinetTypeFinishes && priceRanges && cabinetParts && globalSettings) {
-      // Invalidate all queries to force fresh data
-      queryClient.invalidateQueries();
+      // Invalidate specific queries to force fresh data
+      queryClient.invalidateQueries({ queryKey: ['cabinet-type-finishes', selectedCabinetType] });
+      queryClient.invalidateQueries({ queryKey: ['price-ranges', selectedCabinetType] });
+      queryClient.invalidateQueries({ queryKey: ['cabinet-parts', selectedCabinetType] });
+      queryClient.invalidateQueries({ queryKey: ['global-settings'] });
+      
       // Clear existing price data to force recalculation
       setPriceData({});
       // Add delay to ensure cache is cleared
       setTimeout(() => {
         calculatePrices();
-      }, 100);
+      }, 200);
     }
   }, [selectedCabinetType, cabinetTypeFinishes, priceRanges, cabinetParts, globalSettings, queryClient]);
 
