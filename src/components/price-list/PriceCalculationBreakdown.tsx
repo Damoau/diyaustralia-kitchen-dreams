@@ -45,7 +45,10 @@ export function PriceCalculationBreakdown({ cabinetType, doorStyle, color, price
   const width = 600; // Use exact 600mm to match popup calculations
   const height = cabinetType.default_height_mm || 720;
   const depth = cabinetType.default_depth_mm || 560;
-  const doorQty = 1; // Custom qty as requested
+  
+  // Calculate door quantity dynamically - support decimals like 2.2
+  const doorQty = cabinetType?.door_qty || cabinetType?.doors_qty || 
+                  (width >= 900 ? 2.2 : width >= 600 ? 1.8 : 1.0);
 
   // Areas in square meters
   const backsArea = (width * height / 1000000) * 1;
@@ -83,7 +86,7 @@ export function PriceCalculationBreakdown({ cabinetType, doorStyle, color, price
           <p>Width: {width}mm ({(width/1000).toFixed(3)}m)</p>
           <p>Height: {height}mm ({(height/1000).toFixed(3)}m)</p>
           <p>Depth: {depth}mm ({(depth/1000).toFixed(3)}m)</p>
-          <p>Door Quantity: {doorQty} (custom qty=1)</p>
+          <p>Door Quantity: {doorQty} {typeof doorQty === 'number' && doorQty % 1 !== 0 ? '(decimal qty)' : ''}</p>
         </div>
 
         <div>
