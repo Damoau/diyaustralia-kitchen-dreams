@@ -406,57 +406,56 @@ export function CellConfigPopup({
             </div>
           </div>
 
-          {/* Door Style Image Carousel - Original size restored */}
+          {/* Door Style Image Carousel - Improved quality and labels */}
           {doorStyles.length > 0 && (
             <div className="space-y-2">
               <Label className="text-xs">Available Door Styles ({doorStyles.filter(s => s.image_url).length} options)</Label>
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-muted">
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-muted">
                 {doorStyles.map(style => (
                   style.image_url && (
                     <div 
                       key={style.id}
-                      className={`w-20 h-20 bg-muted/30 rounded-lg border-2 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-all duration-200 flex-shrink-0 overflow-hidden ${
-                        selectedDoorStyle === style.id ? 'border-primary ring-2 ring-primary/20 scale-105' : 'border-dashed border-muted-foreground/20'
-                      }`}
+                      className="flex flex-col items-center gap-1 cursor-pointer transition-all duration-200 flex-shrink-0"
                       onClick={() => {
                         console.log('Door style clicked:', style.name, 'ID:', style.id);
                         setSelectedDoorStyle(style.id);
                       }}
-                      title={style.name}
                     >
-                      <img 
-                        src={style.image_url} 
-                        alt={style.name}
-                        className="w-full h-full transition-all duration-200"
-                        style={{
-                          objectFit: 'cover',
-                          objectPosition: 'center',
-                          imageRendering: 'auto',
-                          width: '100%',
-                          height: '100%',
-                          minWidth: '0',
-                          minHeight: '0',
-                          filter: 'none',
-                          transform: 'none'
-                        }}
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                          const parent = e.currentTarget.parentElement;
-                          if (parent) {
-                            parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-xs text-muted-foreground text-center">No image</span></div>';
-                          }
-                        }}
-                        onLoad={(e) => {
-                          // Ensure image maintains quality after load
-                          const img = e.currentTarget;
-                          img.style.imageRendering = 'pixelated';
-                          img.style.imageRendering = 'crisp-edges';
-                          img.style.imageRendering = 'auto';
-                          console.log('Door style image loaded:', style.name);
-                        }}
-                        loading="lazy"
-                        decoding="sync"
-                      />
+                      <div className={`w-20 h-20 bg-muted/30 rounded-lg border-2 flex items-center justify-center hover:bg-muted/50 transition-all duration-200 overflow-hidden ${
+                        selectedDoorStyle === style.id ? 'border-primary ring-2 ring-primary/20 scale-105' : 'border-dashed border-muted-foreground/20'
+                      }`}>
+                        <img 
+                          src={style.image_url} 
+                          alt={style.name}
+                          className="w-full h-full transition-all duration-200"
+                          style={{
+                            objectFit: 'contain',
+                            objectPosition: 'center',
+                            imageRendering: 'crisp-edges',
+                            width: '100%',
+                            height: '100%',
+                            maxWidth: '100%',
+                            maxHeight: '100%'
+                          }}
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            const parent = e.currentTarget.parentElement;
+                            if (parent) {
+                              parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-xs text-muted-foreground text-center">No image</span></div>';
+                            }
+                          }}
+                          onLoad={(e) => {
+                            const img = e.currentTarget;
+                            img.style.imageRendering = 'crisp-edges';
+                            console.log('Door style image loaded:', style.name);
+                          }}
+                          loading="eager"
+                          decoding="sync"
+                        />
+                      </div>
+                      <span className="text-xs text-foreground text-center font-medium leading-tight max-w-20 break-words">
+                        {style.name}
+                      </span>
                     </div>
                   )
                 ))}
