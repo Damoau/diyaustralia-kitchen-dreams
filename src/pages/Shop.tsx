@@ -60,31 +60,32 @@ const Shop = () => {
           </div>
 
           {/* Category Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
             {categories.map((category) => (
               <Card key={category.id} className="group hover:shadow-elegant transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm">
-                <CardHeader className="text-center">
-                  <div className="aspect-square bg-muted rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                <CardHeader className="text-center pb-3">
+                  <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                     <img 
                       src={category.image} 
                       alt={category.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
-                  <div className="mb-4">
+                  <div className="mb-2 hidden md:block">
                     {category.icon}
                   </div>
-                  <CardTitle className="text-xl mb-2">{category.title}</CardTitle>
-                  <CardDescription className="text-sm">
+                  <CardTitle className="text-sm md:text-xl mb-1 md:mb-2 leading-tight">{category.title}</CardTitle>
+                  <CardDescription className="text-xs md:text-sm hidden sm:block">
                     {category.description}
                   </CardDescription>
                 </CardHeader>
                 
                 <CardContent className="pt-0">
-                  <Button asChild className="w-full" size="lg">
+                  <Button asChild className="w-full text-xs md:text-sm h-8 md:h-10" size="sm">
                     <Link to={category.path}>
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                      Browse Collection
+                      <ShoppingCart className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                      <span className="hidden sm:inline">Browse Collection</span>
+                      <span className="sm:hidden">Browse</span>
                     </Link>
                   </Button>
                 </CardContent>
