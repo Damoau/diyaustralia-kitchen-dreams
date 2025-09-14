@@ -57,10 +57,10 @@ const BaseCabinetsPricing = () => {
 
   // Fetch cabinet type finishes for selected cabinet
   const { data: cabinetTypeFinishes, isLoading: loadingFinishes } = useQuery({
-    queryKey: ['cabinet-type-finishes', selectedCabinetType, Date.now()], // Force fresh with timestamp
+    queryKey: ['cabinet-type-finishes', selectedCabinetType],
     queryFn: async () => {
       if (!selectedCabinetType) return [];
-      console.log('🔍 FETCHING FRESH FINISHES FOR:', selectedCabinetType);
+      console.log('🔍 FETCHING FINISHES FOR:', selectedCabinetType);
       const { data, error } = await supabase
         .from('cabinet_type_finishes')
         .select(`
@@ -71,15 +71,14 @@ const BaseCabinetsPricing = () => {
         .eq('active', true)
         .order('sort_order');
       if (error) throw error;
-      console.log('📦 FRESH FINISHES DATA:', data?.map(f => ({ 
+      console.log('📦 FINISHES DATA:', data?.map(f => ({ 
         id: f.id, 
         doorStyle: f.door_style?.name, 
         rate: f.door_style?.base_rate_per_sqm 
       })));
       return data;
     },
-    enabled: !!selectedCabinetType,
-    staleTime: 0 // Always consider stale
+    enabled: !!selectedCabinetType
   });
 
   // Fetch price ranges for selected cabinet
@@ -245,20 +244,11 @@ const BaseCabinetsPricing = () => {
   // Trigger calculation when dependencies change
   useEffect(() => {
     if (selectedCabinetType && cabinetTypeFinishes && priceRanges && cabinetParts && globalSettings) {
-      // Invalidate specific queries to force fresh data
-      queryClient.invalidateQueries({ queryKey: ['cabinet-type-finishes', selectedCabinetType] });
-      queryClient.invalidateQueries({ queryKey: ['price-ranges', selectedCabinetType] });
-      queryClient.invalidateQueries({ queryKey: ['cabinet-parts', selectedCabinetType] });
-      queryClient.invalidateQueries({ queryKey: ['global-settings'] });
-      
-      // Clear existing price data to force recalculation
+      console.log('🚀 STARTING PRICE CALCULATION');
       setPriceData({});
-      // Add delay to ensure cache is cleared
-      setTimeout(() => {
-        calculatePrices();
-      }, 200);
+      calculatePrices();
     }
-  }, [selectedCabinetType, cabinetTypeFinishes, priceRanges, cabinetParts, globalSettings, queryClient]);
+  }, [selectedCabinetType, cabinetTypeFinishes, priceRanges, cabinetParts, globalSettings]);
 
   const doorStyles = cabinetTypeFinishes?.map(f => f.door_style).filter(Boolean) as DoorStyle[] || [];
 
