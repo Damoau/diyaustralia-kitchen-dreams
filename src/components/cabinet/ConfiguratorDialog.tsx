@@ -196,20 +196,37 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   };
 
   const calculatePrice = () => {
-    if (!selectedDoorStyle || cabinetParts.length === 0 || globalSettings.length === 0) {
+    console.log('=== PRICE CALCULATION DEBUG ===');
+    console.log('selectedDoorStyle:', selectedDoorStyle);
+    console.log('cabinetParts length:', cabinetParts.length);
+    console.log('globalSettings length:', globalSettings.length);
+    
+    if (!selectedDoorStyle) {
+      console.log('❌ No door style selected');
+      return 0;
+    }
+    
+    if (cabinetParts.length === 0) {
+      console.log('❌ No cabinet parts loaded');
+      return 0;
+    }
+    
+    if (globalSettings.length === 0) {
+      console.log('❌ No global settings loaded');
       return 0;
     }
 
     const doorStyle = doorStyles.find(ds => ds.id === selectedDoorStyle);
     const color = colors.find(c => c.id === selectedColor);
     
-    if (!doorStyle) {
-      console.log('Door style not found:', selectedDoorStyle);
-      return 0;
-    }
+    console.log('Found doorStyle:', doorStyle?.name, 'rate:', doorStyle?.base_rate_per_sqm);
+    console.log('Found color:', color?.name, 'surcharge:', color?.surcharge_rate_per_sqm);
+    console.log('Selected finish ID:', selectedFinish);
+    console.log('Available finishes:', finishes.length);
 
-    if (!color) {
-      console.log('Color not found, using default');
+    if (!doorStyle) {
+      console.log('❌ Door style not found in doorStyles array');
+      return 0;
     }
 
     // Use default color if none selected
@@ -224,13 +241,14 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       sort_order: 0
     };
 
+    console.log('Using final color:', finalColor.name);
+
     // Create door style finish object - use actual finish rate if selected, otherwise use door style base rate
+    const selectedFinishObj = finishes.find(f => f.id === selectedFinish);
     const doorStyleFinish = {
       id: selectedDoorStyle,
       name: doorStyle.name + ' Finish',
-      rate_per_sqm: selectedFinish ? 
-        (finishes.find(f => f.id === selectedFinish)?.rate_per_sqm || 0) : 
-        doorStyle.base_rate_per_sqm || 150,
+      rate_per_sqm: selectedFinishObj?.rate_per_sqm || doorStyle.base_rate_per_sqm || 150,
       door_style_id: selectedDoorStyle,
       door_style: doorStyle,
       active: true,
@@ -239,15 +257,9 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       sort_order: 0
     };
 
-    console.log('Calculating price with:', {
-      width,
-      height, 
-      depth,
-      doorStyleFinish,
-      finalColor,
-      cabinetPartsLength: cabinetParts.length,
-      globalSettingsLength: globalSettings.length
-    });
+    console.log('Door style finish rate:', doorStyleFinish.rate_per_sqm);
+    console.log('Dimensions:', { width, height, depth });
+    console.log('Calling calculateCabinetPrice with all params...');
 
     const hardwareCost = 45; // Default hardware cost
 
@@ -263,7 +275,9 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       hardwareCost
     );
 
-    console.log('Calculated price:', calculatedPrice);
+    console.log('Final calculated price:', calculatedPrice);
+    console.log('=== END PRICE CALCULATION DEBUG ===');
+    
     return calculatedPrice;
   };
 
