@@ -336,43 +336,61 @@ export function CellConfigPopup({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Cabinet Image Carousel */}
-          <div className="space-y-3">
-            <h3 className="font-medium text-lg">{cabinetType.name}</h3>
+          {/* Cabinet Header with Image */}
+          <div className="flex items-start gap-4">
+            {/* Main Cabinet Image */}
+            <div 
+              className="w-24 h-24 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors flex-shrink-0"
+              onClick={() => {
+                if (cabinetType.product_image_url) {
+                  window.open(cabinetType.product_image_url, '_blank');
+                }
+              }}
+            >
+              {cabinetType.product_image_url ? (
+                <img 
+                  src={cabinetType.product_image_url} 
+                  alt={cabinetType.name}
+                  className="w-full h-full object-cover rounded-md"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                    e.currentTarget.parentElement!.innerHTML = '<span class="text-xs text-muted-foreground text-center">No image</span>';
+                  }}
+                />
+              ) : (
+                <span className="text-xs text-muted-foreground text-center">No image available</span>
+              )}
+            </div>
             
-            {/* Image Carousel */}
-            <div className="relative">
+            {/* Cabinet Details */}
+            <div className="flex-1">
+              <h3 className="font-medium text-lg">{cabinetType.name}</h3>
+              <p className="text-sm text-muted-foreground mb-2">
+                {cabinetType.category.charAt(0).toUpperCase() + cabinetType.category.slice(1)} Cabinet
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {selectedDoorStyle 
+                  ? doorStyles.find(ds => ds.id === selectedDoorStyle)?.name || 'Loading...'
+                  : (finish as any)?.door_style?.name || 'Select door style'
+                }
+              </p>
+            </div>
+          </div>
+
+          {/* Door Style Image Carousel */}
+          {doorStyles.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-xs">Available Door Styles</Label>
               <div className="flex gap-2 overflow-x-auto pb-2">
-                {/* Cabinet Type Image */}
-                {cabinetType.product_image_url && (
-                  <div 
-                    className="w-20 h-20 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors flex-shrink-0"
-                    onClick={() => window.open(cabinetType.product_image_url!, '_blank')}
-                  >
-                    <img 
-                      src={cabinetType.product_image_url} 
-                      alt={cabinetType.name}
-                      className="w-full h-full object-cover rounded-md"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                        e.currentTarget.parentElement!.innerHTML = '<span class="text-xs text-muted-foreground text-center">No image</span>';
-                      }}
-                    />
-                  </div>
-                )}
-                
-                {/* Door Style Images */}
                 {doorStyles.map(style => (
                   style.image_url && (
                     <div 
                       key={style.id}
-                      className={`w-20 h-20 bg-muted/30 rounded-lg border-2 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors flex-shrink-0 ${
+                      className={`w-16 h-16 bg-muted/30 rounded-lg border-2 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors flex-shrink-0 ${
                         selectedDoorStyle === style.id ? 'border-primary' : 'border-dashed border-muted-foreground/20'
                       }`}
-                      onClick={() => {
-                        setSelectedDoorStyle(style.id);
-                        window.open(style.image_url!, '_blank');
-                      }}
+                      onClick={() => setSelectedDoorStyle(style.id)}
+                      title={style.name}
                     >
                       <img 
                         src={style.image_url} 
@@ -388,14 +406,7 @@ export function CellConfigPopup({
                 ))}
               </div>
             </div>
-            
-            <p className="text-sm text-muted-foreground">
-              {selectedDoorStyle 
-                ? doorStyles.find(ds => ds.id === selectedDoorStyle)?.name || 'Loading...'
-                : (finish as any)?.door_style?.name || 'Select door style'
-              }
-            </p>
-          </div>
+          )}
 
           {/* Dimensions */}
           <div className="grid grid-cols-3 gap-3">
