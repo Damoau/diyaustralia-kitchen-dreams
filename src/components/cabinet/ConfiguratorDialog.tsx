@@ -752,7 +752,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                             door_style: availableDoorStyles.find(s => s.id === selectedDoorStyle)
                           }}
                           color={availableColors?.find(c => c.id === selectedColor)}
-                          hardwareCost={0}
+                          hardwareCost={priceBreakdown?.hardwareCost || 45}
                           totalPrice={price}
                         />
                       </div>

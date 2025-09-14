@@ -70,11 +70,15 @@ class PricingService {
   }
 
   private calculatePartQuantities(cabinetParts: CabinetPart[], cabinetType: CabinetType) {
+    // Use admin-set door quantities to match expectations
+    const doorQty = cabinetType.door_qty || cabinetType.door_count || 0;
+    console.log('PricingService door quantity:', doorQty, 'from cabinet type:', cabinetType.name);
+    
     return {
       backs: cabinetType.backs_qty || 1,
       bottoms: cabinetType.bottoms_qty || 1,
       sides: cabinetType.sides_qty || 2,
-      doors: cabinetType.door_qty || 0
+      doors: doorQty
     };
   }
 
@@ -94,7 +98,7 @@ class PricingService {
     const settings = this.parseGlobalSettings(globalSettings);
     const quantities = this.calculatePartQuantities(cabinetParts, cabinetType);
 
-    // Calculate carcass costs
+    // Calculate carcass costs - NO wastage factor to match breakdown display
     const carcassArea = {
       backs: (width * height / 1000000) * quantities.backs,
       bottoms: (width * depth / 1000000) * quantities.bottoms,
@@ -102,12 +106,20 @@ class PricingService {
     };
 
     const carcassCosts = {
-      backs: carcassArea.backs * settings.hmrRate * settings.wastageFactor,
-      bottoms: carcassArea.bottoms * settings.hmrRate * settings.wastageFactor,
-      sides: carcassArea.sides * settings.hmrRate * settings.wastageFactor,
+      backs: carcassArea.backs * settings.hmrRate, // No wastage factor
+      bottoms: carcassArea.bottoms * settings.hmrRate, // No wastage factor  
+      sides: carcassArea.sides * settings.hmrRate, // No wastage factor
       total: 0
     };
     carcassCosts.total = carcassCosts.backs + carcassCosts.bottoms + carcassCosts.sides;
+    
+    console.log('Carcass calculation:', {
+      dimensions: { width, height, depth },
+      quantities,
+      areas: carcassArea,
+      costs: carcassCosts,
+      hmrRate: settings.hmrRate
+    });
 
     // Calculate door costs
     let doorCosts = {
@@ -122,7 +134,15 @@ class PricingService {
     if (quantities.doors > 0) {
       doorCosts.area = (width * height / 1000000) * quantities.doors;
       doorCosts.totalRate = doorCosts.styleRate + doorCosts.finishRate + doorCosts.colorSurcharge;
-      doorCosts.total = doorCosts.area * doorCosts.totalRate * settings.wastageFactor;
+      doorCosts.total = doorCosts.area * doorCosts.totalRate; // No wastage factor
+      
+      console.log('Door calculation:', {
+        doors: quantities.doors,
+        area: doorCosts.area,
+        rates: { styleRate: doorCosts.styleRate, finishRate: doorCosts.finishRate, colorSurcharge: doorCosts.colorSurcharge },
+        totalRate: doorCosts.totalRate,
+        total: doorCosts.total
+      });
     }
 
     // Hardware cost

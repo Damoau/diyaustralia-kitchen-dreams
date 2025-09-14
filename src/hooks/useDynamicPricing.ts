@@ -167,6 +167,15 @@ export const useDynamicPricing = ({
         quantity
       });
 
+      console.log('Dynamic pricing result:', {
+        cabinetType: cabinetType.name,
+        dimensions: { width, height, depth },
+        doorStyle: doorStyle?.name,
+        color: color?.name,
+        quantity,
+        calculatedPrice: price
+      });
+
       return price;
     } catch (error) {
       console.error('Error calculating price:', error);

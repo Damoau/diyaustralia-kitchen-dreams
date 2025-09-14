@@ -31,23 +31,25 @@ export function PriceBreakdown({
 }: PriceBreakdownProps) {
   const settings = parseGlobalSettings(globalSettings);
 
-  // Get part quantities
+  // Get part quantities - use cabinet_type values for doors to match admin settings
   let qtyBacks = cabinetType.backs_qty || 1;
   let qtyBottoms = cabinetType.bottoms_qty || 1; 
   let qtySides = cabinetType.sides_qty || 2;
-  let qtyDoors = cabinetType.door_qty || 0;
+  let qtyDoors = cabinetType.door_qty || cabinetType.door_count || 0; // Use door_qty from admin
   
-  // If we have cabinet parts data, use actual quantities
+  // For non-door parts, use cabinet_parts data if available for accurate quantities
   if (cabinetParts.length > 0) {
     const backParts = cabinetParts.filter(p => p.part_name.toLowerCase().includes('back') && !p.is_door);
     const bottomParts = cabinetParts.filter(p => p.part_name.toLowerCase().includes('bottom') && !p.is_door);  
     const sideParts = cabinetParts.filter(p => p.part_name.toLowerCase().includes('side') && !p.is_door);
-    const doorParts = cabinetParts.filter(p => p.is_door);
     
+    // Only override carcass quantities, not door quantities
     qtyBacks = backParts.reduce((sum, part) => sum + part.quantity, 0) || qtyBacks;
     qtyBottoms = bottomParts.reduce((sum, part) => sum + part.quantity, 0) || qtyBottoms;
     qtySides = sideParts.reduce((sum, part) => sum + part.quantity, 0) || qtySides;
-    qtyDoors = doorParts.reduce((sum, part) => sum + part.quantity, 0) || qtyDoors;
+    
+    // Keep door quantity from cabinet_type (admin setting) - don't override from parts
+    console.log('Door quantity from admin:', qtyDoors);
   }
   
   // Convert dimensions to meters
