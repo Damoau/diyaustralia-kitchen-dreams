@@ -359,17 +359,11 @@ const BaseCabinetsPricing = () => {
               <CardTitle className="text-4xl font-bold">
                 {baseCabinets?.find(c => c.id === selectedCabinetType)?.name}
               </CardTitle>
-              <p className="text-muted-foreground mt-2">
-                {baseCabinets?.find(c => c.id === selectedCabinetType)?.short_description}
-              </p>
             </CardHeader>
             
             {/* Door Style Finishes Carousel */}
             {debugData?.finishes && debugData.finishes.length > 0 && (
               <div className="border-b">
-                <CardHeader>
-                  <CardTitle>Available Door Styles</CardTitle>
-                </CardHeader>
                 <CardContent className="pb-6">
                   <Carousel className="w-full">
                     <CarouselContent className="-ml-2 md:-ml-4">
