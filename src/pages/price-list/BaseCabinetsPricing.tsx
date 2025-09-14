@@ -351,21 +351,19 @@ const BaseCabinetsPricing = () => {
           </Card>
         )}
 
-        {/* Cabinet Name Header - Top of Page */}
-        {selectedCabinetType && (
-          <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold text-foreground">
-              {baseCabinets?.find(c => c.id === selectedCabinetType)?.name}
-            </h2>
-            <p className="text-muted-foreground mt-2">
-              {baseCabinets?.find(c => c.id === selectedCabinetType)?.short_description}
-            </p>
-          </div>
-        )}
-
-        {/* Single Card with Carousel and Pricing Table */}
+        {/* Single Card with Cabinet Name, Carousel and Pricing Table */}
         {selectedCabinetType && (
           <Card className="space-y-0">
+            {/* Cabinet Name Header */}
+            <CardHeader className="text-center border-b">
+              <CardTitle className="text-4xl font-bold">
+                {baseCabinets?.find(c => c.id === selectedCabinetType)?.name}
+              </CardTitle>
+              <p className="text-muted-foreground mt-2">
+                {baseCabinets?.find(c => c.id === selectedCabinetType)?.short_description}
+              </p>
+            </CardHeader>
+            
             {/* Door Style Finishes Carousel */}
             {debugData?.finishes && debugData.finishes.length > 0 && (
               <div className="border-b">
