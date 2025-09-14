@@ -105,7 +105,7 @@ const Shop = () => {
           {/* Cabinet Categories */}
           <div className="space-y-16">
             {Object.entries(groupedCabinets).map(([category, cabinets]) => (
-              <section key={category} className="space-y-8">
+              <section key={category} id={category} className="space-y-8 scroll-mt-24">
                 {/* Category Header */}
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-3 mb-4">

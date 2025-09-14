@@ -38,9 +38,27 @@ const Header = () => {
             </>
           ) : (
             <>
-              <a href="/shop" className="text-foreground hover:text-primary transition-colors font-medium">
-                Shop
-              </a>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="text-foreground hover:text-primary transition-colors font-medium">
+                    Shop
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48 bg-background border border-border shadow-lg z-50">
+                  <DropdownMenuItem onClick={() => navigate('/shop#base')}>
+                    Base Cabinets
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/shop#wall')}>
+                    Top Cabinets
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/shop#tall')}>
+                    Pantry
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/shop#panels')}>
+                    Dress Panels & Fillers
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <a href="#services" className="text-foreground hover:text-primary transition-colors font-medium">
                 Services
               </a>
@@ -154,12 +172,29 @@ const Header = () => {
                     </>
                   ) : (
                     <>
-                  <a 
-                    href="/shop" 
-                    className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
-                  >
-                    Shop
-                  </a>
+                  <div className="py-2 border-b border-gray-100">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="text-lg font-medium text-foreground hover:text-primary transition-colors w-full justify-start p-0">
+                          Shop
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-48 bg-background border border-border shadow-lg z-50">
+                        <DropdownMenuItem onClick={() => navigate('/shop#base')}>
+                          Base Cabinets
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate('/shop#wall')}>
+                          Top Cabinets
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate('/shop#tall')}>
+                          Pantry
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate('/shop#panels')}>
+                          Dress Panels & Fillers
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                   <a 
                     href="#services" 
                     className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
