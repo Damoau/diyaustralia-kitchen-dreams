@@ -139,6 +139,55 @@ All colors MUST be HSL.
   }
 }
 
+/* Carousel scrolling enhancements */
+@layer components {
+  .carousel-content {
+    @apply flex touch-pan-x;
+  }
+  
+  .carousel-item {
+    @apply min-w-0 shrink-0 grow-0 basis-full;
+    flex: 0 0 auto;
+  }
+  
+  .carousel-container {
+    @apply relative w-full;
+  }
+  
+  .carousel-container [data-orientation="horizontal"] {
+    @apply flex-row;
+  }
+  
+  .carousel-container [data-orientation="horizontal"] .carousel-content {
+    @apply -ml-4;
+  }
+  
+  .carousel-container [data-orientation="horizontal"] .carousel-item {
+    @apply pl-4;
+  }
+  
+  .carousel-navigation {
+    @apply absolute top-1/2 z-10 h-8 w-8 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm border border-border shadow-md;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .carousel-navigation:hover {
+    @apply bg-background scale-110;
+  }
+  
+  .carousel-navigation:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+  
+  .carousel-navigation.carousel-previous {
+    @apply -left-4;
+  }
+  
+  .carousel-navigation.carousel-next {
+    @apply -right-4;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;

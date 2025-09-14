@@ -128,6 +128,30 @@ const TopCabinetsPricing = () => {
     const selectedCabinet = topCabinets?.find(c => c.id === selectedCabinetType);
     if (!selectedCabinet) return;
 
+    // Get Titus hardware brand ID for consistent pricing
+    const { data: hardwareBrands } = await supabase
+      .from('hardware_brands')
+      .select('*')
+      .eq('active', true);
+    
+    const titusBrand = hardwareBrands?.find(brand => brand.name === 'Titus');
+    const defaultHardwareBrandId = titusBrand?.id || null;
+
+    // Get hardware requirements and options for pricing calculation
+    const { data: hardwareRequirements } = await supabase
+      .from('cabinet_hardware_requirements')
+      .select('*')
+      .eq('cabinet_type_id', selectedCabinetType)
+      .eq('active', true);
+
+    const { data: hardwareOptions } = await supabase
+      .from('cabinet_hardware_options')
+      .select(`
+        *,
+        hardware_product:hardware_products(*)
+      `)
+      .eq('active', true);
+
     try {
       for (const finish of cabinetTypeFinishes) {
         if (!finish.door_style) continue;
@@ -150,7 +174,9 @@ const TopCabinetsPricing = () => {
             globalSettings,
             doorStyle: finish.door_style,
             color: null,
-            hardwareBrandId: null
+            hardwareBrandId: defaultHardwareBrandId,
+            hardwareRequirements: hardwareRequirements || [],
+            hardwareOptions: hardwareOptions || []
           });
 
           newPriceData[selectedCabinetType][finish.door_style.id][range.id] = price;

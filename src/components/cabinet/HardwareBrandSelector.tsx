@@ -148,10 +148,13 @@ export function HardwareBrandSelector({ cabinetType, selectedBrandId, onBrandCha
     }
   }, [hardwareBrands, hardwareRequirements, hardwareProducts, cabinetType, quantity]);
 
-  // Auto-select first brand if none selected
+  // Auto-select Titus as default brand if none selected
   useEffect(() => {
     if (hardwareBrands && hardwareBrands.length > 0 && !selectedBrandId) {
-      onBrandChange(hardwareBrands[0].id);
+      // Find Titus brand first, fallback to first brand if not found
+      const titusBrand = hardwareBrands.find(brand => brand.name === 'Titus');
+      const defaultBrandId = titusBrand ? titusBrand.id : hardwareBrands[0].id;
+      onBrandChange(defaultBrandId);
     }
   }, [hardwareBrands, selectedBrandId, onBrandChange]);
 
