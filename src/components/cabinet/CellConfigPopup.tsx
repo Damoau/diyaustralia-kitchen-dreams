@@ -192,13 +192,25 @@ export function CellConfigPopup({
         }
       }
 
-      // Use the actual finish passed from the parent component
+      // Create a door style finish object from the selected door style
+      const doorStyleFinish = {
+        id: `temp-${selectedDoorStyle}`,
+        door_style_id: selectedDoorStyle,
+        name: doorStyle.name,
+        rate_per_sqm: doorStyle.base_rate_per_sqm,
+        sort_order: 0,
+        active: true,
+        created_at: new Date().toISOString(),
+        door_style: doorStyle
+      };
+
+      // Use the selected door style finish instead of the original finish
       const price = calculateCabinetPrice(
         cabinetType,
         width,
         height,
         depth,
-        finish,
+        doorStyleFinish,
         color,
         cabinetParts,
         globalSettings,
@@ -281,7 +293,12 @@ export function CellConfigPopup({
           {/* Cabinet Info */}
           <div className="text-center p-3 bg-muted/30 rounded-lg">
             <h3 className="font-medium">{cabinetType.name}</h3>
-            <p className="text-sm text-muted-foreground">{(finish as any).door_style_name || finish.name}</p>
+            <p className="text-sm text-muted-foreground">
+              {selectedDoorStyle 
+                ? doorStyles.find(ds => ds.id === selectedDoorStyle)?.name || 'Loading...'
+                : 'Select door style'
+              }
+            </p>
           </div>
 
           {/* Dimensions */}
@@ -325,18 +342,18 @@ export function CellConfigPopup({
               <SelectTrigger className="h-8">
                 <SelectValue placeholder="Select door style" />
               </SelectTrigger>
-              <SelectContent>
-                {doorStyles.map(style => (
-                  <SelectItem key={style.id} value={style.id}>
-                    <div className="flex items-center justify-between w-full">
-                      <span>{style.name}</span>
-                      <Badge variant="secondary" className="ml-2 text-xs">
-                        {formatPrice(style.base_rate_per_sqm)}/m²
-                      </Badge>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
+               <SelectContent className="bg-background border shadow-lg z-50">
+                 {doorStyles.map(style => (
+                   <SelectItem key={style.id} value={style.id}>
+                     <div className="flex items-center justify-between w-full">
+                       <span>{style.name}</span>
+                       <Badge variant="secondary" className="ml-2 text-xs">
+                         {formatPrice(style.base_rate_per_sqm)}/m²
+                       </Badge>
+                     </div>
+                   </SelectItem>
+                 ))}
+               </SelectContent>
             </Select>
           </div>
 
@@ -348,26 +365,26 @@ export function CellConfigPopup({
                 <SelectTrigger className="h-8">
                   <SelectValue placeholder="Select color" />
                 </SelectTrigger>
-                <SelectContent>
-                  {colors.map(color => (
-                    <SelectItem key={color.id} value={color.id}>
-                      <div className="flex items-center gap-2">
-                        {color.hex_code && (
-                          <div
-                            className="w-3 h-3 rounded border"
-                            style={{ backgroundColor: color.hex_code }}
-                          />
-                        )}
-                        <span>{color.name}</span>
-                        {color.surcharge_rate_per_sqm > 0 && (
-                          <Badge variant="outline" className="ml-2 text-xs">
-                            +{formatPrice(color.surcharge_rate_per_sqm)}/m²
-                          </Badge>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+                 <SelectContent className="bg-background border shadow-lg z-50">
+                   {colors.map(color => (
+                     <SelectItem key={color.id} value={color.id}>
+                       <div className="flex items-center gap-2">
+                         {color.hex_code && (
+                           <div
+                             className="w-3 h-3 rounded border"
+                             style={{ backgroundColor: color.hex_code }}
+                           />
+                         )}
+                         <span>{color.name}</span>
+                         {color.surcharge_rate_per_sqm > 0 && (
+                           <Badge variant="outline" className="ml-2 text-xs">
+                             +{formatPrice(color.surcharge_rate_per_sqm)}/m²
+                           </Badge>
+                         )}
+                       </div>
+                     </SelectItem>
+                   ))}
+                 </SelectContent>
               </Select>
             </div>
           )}
@@ -388,20 +405,20 @@ export function CellConfigPopup({
                 <SelectTrigger className="h-8">
                   <SelectValue placeholder="Select option" />
                 </SelectTrigger>
-                <SelectContent>
-                  {req.cabinet_hardware_options.map((option) => (
-                    <SelectItem key={option.id} value={option.id}>
-                      <div className="flex items-center justify-between w-full">
-                        <span className="text-xs">
-                          {option.hardware_brand.name} - {option.hardware_product.name}
-                        </span>
-                        <Badge variant="outline" className="ml-2 text-xs">
-                          {formatPrice(option.hardware_product.cost_per_unit)}
-                        </Badge>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+                 <SelectContent className="bg-background border shadow-lg z-50">
+                   {req.cabinet_hardware_options.map((option) => (
+                     <SelectItem key={option.id} value={option.id}>
+                       <div className="flex items-center justify-between w-full">
+                         <span className="text-xs">
+                           {option.hardware_brand.name} - {option.hardware_product.name}
+                         </span>
+                         <Badge variant="outline" className="ml-2 text-xs">
+                           {formatPrice(option.hardware_product.cost_per_unit)}
+                         </Badge>
+                       </div>
+                     </SelectItem>
+                   ))}
+                 </SelectContent>
               </Select>
             </div>
           ))}

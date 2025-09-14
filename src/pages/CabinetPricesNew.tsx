@@ -267,10 +267,10 @@ const CabinetPricesNew = () => {
 
             return (
               <div key={cabinetType.id} className="mb-12">
-                 <h2 className="text-2xl font-semibold mb-6">
+                 <h2 className="text-2xl font-semibold mb-6 text-center">
                    {cabinetType.name}
                    {!typeData.hasConfiguredRanges && (
-                     <span className="ml-2 text-sm font-normal text-orange-600">
+                     <span className="block text-sm font-normal text-orange-600 mt-1">
                        (Using default ranges - configure in admin for custom ranges)
                      </span>
                    )}
