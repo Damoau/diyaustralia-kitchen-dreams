@@ -312,8 +312,14 @@ export type Database = {
           id: string
           is_featured: boolean | null
           long_description: string | null
+          max_depth_mm: number | null
+          max_height_mm: number | null
           max_stock_level: number | null
+          max_width_mm: number | null
+          min_depth_mm: number | null
+          min_height_mm: number | null
           min_stock_level: number | null
+          min_width_mm: number | null
           name: string
           product_image_url: string | null
           range_id: string | null
@@ -338,8 +344,14 @@ export type Database = {
           id?: string
           is_featured?: boolean | null
           long_description?: string | null
+          max_depth_mm?: number | null
+          max_height_mm?: number | null
           max_stock_level?: number | null
+          max_width_mm?: number | null
+          min_depth_mm?: number | null
+          min_height_mm?: number | null
           min_stock_level?: number | null
+          min_width_mm?: number | null
           name: string
           product_image_url?: string | null
           range_id?: string | null
@@ -364,8 +376,14 @@ export type Database = {
           id?: string
           is_featured?: boolean | null
           long_description?: string | null
+          max_depth_mm?: number | null
+          max_height_mm?: number | null
           max_stock_level?: number | null
+          max_width_mm?: number | null
+          min_depth_mm?: number | null
+          min_height_mm?: number | null
           min_stock_level?: number | null
+          min_width_mm?: number | null
           name?: string
           product_image_url?: string | null
           range_id?: string | null
