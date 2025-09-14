@@ -280,7 +280,7 @@ const CabinetPricesNew = () => {
                                    <img 
                                      src={cabinetType.product_image_url} 
                                      alt={`${cabinetType.name} Cabinet`}
-                                     className="w-full h-40 object-cover rounded-lg border border-gray-200"
+                                     className="w-full h-48 object-cover rounded-lg border border-gray-200"
                                      style={{ imageRendering: 'crisp-edges' }}
                                      onError={(e) => {
                                        console.error("Cabinet image failed to load:", cabinetType.product_image_url);
@@ -320,7 +320,7 @@ const CabinetPricesNew = () => {
                                      <img 
                                        src={ctf.image_url} 
                                        alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
-                                       className="w-full h-40 object-cover rounded-lg border border-gray-200"
+                                       className="w-full h-48 object-cover rounded-lg border border-gray-200"
                                        style={{ imageRendering: 'crisp-edges' }}
                                        onError={(e) => {
                                          console.error("Finish image failed to load:", ctf.image_url);
@@ -328,7 +328,7 @@ const CabinetPricesNew = () => {
                                        }}
                                      />
                                    ) : (
-                                     <div className="w-full h-40 bg-muted/30 rounded-lg border border-gray-200 flex items-center justify-center">
+                                     <div className="w-full h-48 bg-muted/30 rounded-lg border border-gray-200 flex items-center justify-center">
                                        <span className="text-sm text-muted-foreground">No Image</span>
                                      </div>
                                    )}
