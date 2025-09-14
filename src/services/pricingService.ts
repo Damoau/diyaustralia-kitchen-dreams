@@ -189,9 +189,33 @@ class PricingService {
       quantities
     };
 
-    console.log('PricingService final calculation:', {
-      carcassCosts: carcassCosts.total,
-      doorCosts: doorCosts.total, 
+    console.log('🧮 DETAILED PRICE BREAKDOWN FOR $2,767:', {
+      cabinetName: cabinetType.name,
+      dimensions: { width, height, depth },
+      doorStyle: doorStyle?.name,
+      doorStyleRate: doorStyle?.base_rate_per_sqm || 0,
+      color: color?.name,
+      colorSurcharge: color?.surcharge_rate_per_sqm || 0,
+      quantities: quantities,
+      carcassArea: {
+        backs: (width * height / 1000000) * quantities.backs,
+        bottoms: (width * depth / 1000000) * quantities.bottoms,
+        sides: (height * depth / 1000000) * quantities.sides
+      },
+      carcassCosts: {
+        backs: carcassCosts.backs,
+        bottoms: carcassCosts.bottoms,
+        sides: carcassCosts.sides,
+        total: carcassCosts.total
+      },
+      doorArea: (width * height / 1000000) * quantities.doors,
+      doorCosts: {
+        styleRate: doorCosts.styleRate,
+        colorSurcharge: doorCosts.colorSurcharge,
+        totalRate: doorCosts.totalRate,
+        area: doorCosts.area,
+        total: doorCosts.total
+      },
       hardwareCost,
       subtotal,
       gst,
