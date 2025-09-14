@@ -107,7 +107,8 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
       // Upload image if a new file was selected
       if (imageFile) {
         setUploadingImage(true);
-        const fileName = `cabinet-types/${Date.now()}-${imageFile.name}`;
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `cabinet-types/${Date.now()}.${fileExt}`;
         
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('door-style-images')
