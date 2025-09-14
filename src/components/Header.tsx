@@ -41,6 +41,9 @@ const Header = () => {
               <a href="#services" className="text-foreground hover:text-primary transition-colors font-medium">
                 Services
               </a>
+              <a href="/manufacturing" className="text-foreground hover:text-primary transition-colors font-medium">
+                Manufacturing
+              </a>
               <a href="/kitchen-styles" className="text-foreground hover:text-primary transition-colors font-medium">
                 Kitchen Styles
               </a>
@@ -153,6 +156,12 @@ const Header = () => {
                         className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
                       >
                         Services
+                      </a>
+                      <a 
+                        href="/manufacturing" 
+                        className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
+                      >
+                        Manufacturing
                       </a>
                       <a 
                         href="/kitchen-styles" 
