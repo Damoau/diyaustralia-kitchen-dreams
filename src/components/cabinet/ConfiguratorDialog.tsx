@@ -171,6 +171,22 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
             </div>
           ) : (
             <>
+              {/* Cabinet Image */}
+              <div className="flex justify-center">
+                <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden">
+                  {getCurrentCabinetImage() ? (
+                    <img
+                      src={getCurrentCabinetImage()}
+                      alt={cabinetType.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+                      No Image
+                    </div>
+                  )}
+                </div>
+              </div>
 
               {/* Dimensions */}
               <div className="grid grid-cols-3 gap-2">
