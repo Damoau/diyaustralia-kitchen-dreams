@@ -45,16 +45,16 @@ const Header = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-48 bg-background border border-border shadow-lg z-50">
-                  <DropdownMenuItem onClick={() => navigate('/shop#base')}>
+                  <DropdownMenuItem onClick={() => navigate('/pricing/base-cabinets')}>
                     Base Cabinets
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/shop#wall')}>
+                  <DropdownMenuItem onClick={() => navigate('/pricing/top-cabinets')}>
                     Top Cabinets
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/shop#tall')}>
+                  <DropdownMenuItem onClick={() => navigate('/pricing/pantry')}>
                     Pantry
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/shop#panels')}>
+                  <DropdownMenuItem onClick={() => navigate('/pricing/panels-fillers')}>
                     Dress Panels & Fillers
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -180,16 +180,16 @@ const Header = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-48 bg-background border border-border shadow-lg z-50">
-                        <DropdownMenuItem onClick={() => navigate('/shop#base')}>
+                        <DropdownMenuItem onClick={() => navigate('/pricing/base-cabinets')}>
                           Base Cabinets
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate('/shop#wall')}>
+                        <DropdownMenuItem onClick={() => navigate('/pricing/top-cabinets')}>
                           Top Cabinets
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate('/shop#tall')}>
+                        <DropdownMenuItem onClick={() => navigate('/pricing/pantry')}>
                           Pantry
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate('/shop#panels')}>
+                        <DropdownMenuItem onClick={() => navigate('/pricing/panels-fillers')}>
                           Dress Panels & Fillers
                         </DropdownMenuItem>
                       </DropdownMenuContent>
