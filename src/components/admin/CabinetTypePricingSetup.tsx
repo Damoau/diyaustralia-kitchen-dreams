@@ -323,12 +323,17 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
     setUploadingImages(prev => new Set([...prev, finishId]));
 
     try {
-      const fileExt = file.name.split('.').pop();
+      // Compress image before upload
+      const { compressImage, getOptimalCompressionSettings } = await import('@/lib/imageUtils');
+      const compressionSettings = getOptimalCompressionSettings(file.size);
+      const compressedFile = await compressImage(file, compressionSettings);
+
+      const fileExt = compressedFile.name.split('.').pop();
       const fileName = `${finishId}-${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('door-style-images')
-        .upload(fileName, file);
+        .upload(fileName, compressedFile);
 
       if (uploadError) {
         throw uploadError;
@@ -358,7 +363,7 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
 
       toast({
         title: "Success",
-        description: "Image uploaded successfully",
+        description: "Image compressed and uploaded successfully",
       });
     } catch (error) {
       console.error('Error uploading image:', error);

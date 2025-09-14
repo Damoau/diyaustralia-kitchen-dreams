@@ -111,17 +111,31 @@ export function DoorStylesManager() {
   const handleImageUpload = async (styleId: string, file: File) => {
     if (!file) return;
 
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setUploadingImages(prev => ({ ...prev, [styleId]: true }));
 
     try {
+      // Compress image before upload
+      const { compressImage, getOptimalCompressionSettings } = await import('@/lib/imageUtils');
+      const compressionSettings = getOptimalCompressionSettings(file.size);
+      const compressedFile = await compressImage(file, compressionSettings);
+
       // Create unique filename
-      const fileExt = file.name.split('.').pop();
+      const fileExt = compressedFile.name.split('.').pop();
       const fileName = `${styleId}-${Date.now()}.${fileExt}`;
 
       // Upload to Supabase storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('door-style-images')
-        .upload(fileName, file);
+        .upload(fileName, compressedFile);
 
       if (uploadError) throw uploadError;
 
@@ -137,7 +151,7 @@ export function DoorStylesManager() {
 
       toast({
         title: "Success",
-        description: "Image uploaded successfully",
+        description: "Image compressed and uploaded successfully",
       });
     } catch (error) {
       console.error('Error uploading image:', error);
