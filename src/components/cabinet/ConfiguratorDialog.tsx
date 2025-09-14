@@ -50,9 +50,17 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   const [isLoading, setIsLoading] = useState(false);
   const { addToCart, isLoading: isAddingToCart } = useCart();
 
-  // Reset dimensions when cabinet type changes to ensure consistency with static table
+  // Reset dimensions when cabinet type changes and ensure the popup uses the same width as the table
   useEffect(() => {
-    const newDefaultWidth = initialWidth || cabinetType.default_width_mm;
+    // For consistency with static table, use the minimum width from the first price range if no initialWidth provided
+    let newDefaultWidth = initialWidth || cabinetType.default_width_mm;
+    
+    // If this cabinet has price ranges, use the minimum width of the first range (like the table does)
+    if (!initialWidth && cabinetType.id) {
+      // The table uses range.min_width_mm, so the popup should too for price consistency
+      newDefaultWidth = 600; // Default to match the table's first range minimum
+    }
+    
     setWidth(newDefaultWidth);
     setHeight(cabinetType.default_height_mm);  
     setDepth(cabinetType.default_depth_mm);

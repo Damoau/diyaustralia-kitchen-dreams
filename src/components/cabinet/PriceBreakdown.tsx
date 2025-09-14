@@ -171,11 +171,6 @@ export function PriceBreakdown({
             <span>{formatPrice(wastageAmount)}</span>
           </div>
           
-          <div className="flex justify-between items-center">
-            <span>Subtotal + Wastage:</span>
-            <span>{formatPrice(subtotalWithWastage)}</span>
-          </div>
-          
           <div className="flex justify-between items-center text-sm text-muted-foreground">
             <span>GST ({(settings.gstRate * 100).toFixed(1)}%):</span>
             <span>{formatPrice(gstAmount)}</span>
