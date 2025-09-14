@@ -3,26 +3,19 @@ import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { CellConfigPopup } from "@/components/cabinet/CellConfigPopup";
 import { supabase } from "@/integrations/supabase/client";
 import { CabinetType, CabinetPart, GlobalSettings, CabinetTypePriceRange, CabinetTypeFinish } from "@/types/cabinet";
 import { calculateCabinetPrice } from "@/lib/dynamicPricing";
 import { useCart } from "@/hooks/useCart";
-import { formatPrice } from "@/lib/pricing";
+import { formatPrice, parseGlobalSettings } from "@/lib/pricing";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Info } from "lucide-react";
 
 const BaseCabinets = () => {
   const [priceData, setPriceData] = useState<any>({});
-  const [cellPopupOpen, setCellPopupOpen] = useState(false);
-  const [selectedCell, setSelectedCell] = useState<{
-    cabinetType: CabinetType;
-    finish: any;
-    width: number;
-    price: number;
-  } | null>(null);
   const { toast } = useToast();
+  const { addToCart } = useCart();
 
   const { data: cabinetTypes } = useQuery({
     queryKey: ['cabinet-types-base'],
@@ -172,31 +165,6 @@ const BaseCabinets = () => {
     return match ? parseInt(match[0]) : 300;
   };
 
-  const handleCellClick = (cabinetType: CabinetType, sizeRange: string, price: number, finishConfig: any) => {
-    console.log('Cell clicked:', { cabinetType: cabinetType.name, sizeRange, price, doorStyle: finishConfig.door_style?.name });
-    
-    const width = parseWidthRange(sizeRange);
-    
-    const mockFinish = {
-      id: finishConfig.id,
-      name: finishConfig.door_style_finish?.name || 'Standard Finish',
-      finish_type: 'standard',
-      rate_per_sqm: finishConfig.door_style_finish?.rate_per_sqm || 0,
-      brand_id: '',
-      active: true,
-      created_at: new Date().toISOString(),
-      door_style_name: finishConfig.door_style?.name || 'Unknown Style'
-    };
-    
-    setSelectedCell({
-      cabinetType,
-      finish: mockFinish,
-      width,
-      price
-    });
-    setCellPopupOpen(true);
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -289,12 +257,56 @@ const BaseCabinets = () => {
                     )}
                   </span>
                   <Button 
-                    onClick={() => {
-                      // Add first available configuration to cart
+                    onClick={async () => {
+                      console.log('Add to Cart button clicked for:', cabinetType.name);
+                      // Add first available configuration directly to cart without popup
                       const firstFinish = typeFinishes[0];
                       const firstSize = typeData.sizes?.[0];
-                      if (firstFinish && firstSize) {
-                        handleCellClick(cabinetType, firstSize.range, firstSize.price[0], firstFinish);
+                      if (firstFinish && firstSize && cabinetParts && globalSettings) {
+                        const width = parseWidthRange(firstSize.range);
+                        
+                        // Create mock finish object
+                        const mockFinish = {
+                          id: firstFinish.id,
+                          name: firstFinish.door_style_finish?.name || 'Standard Finish',
+                          finish_type: 'standard',
+                          rate_per_sqm: firstFinish.door_style_finish?.rate_per_sqm || 0,
+                          brand_id: '',
+                          active: true,
+                          created_at: new Date().toISOString(),
+                          door_style_name: firstFinish.door_style?.name || 'Unknown Style'
+                        };
+
+                        // Create configuration object for addToCart
+                        const configuration = {
+                          cabinetType,
+                          width,
+                          height: cabinetType.default_height_mm,
+                          depth: cabinetType.default_depth_mm,
+                          quantity: 1,
+                          finish: mockFinish,
+                          color: firstFinish.color || { 
+                            id: 'default', 
+                            name: 'Standard', 
+                            surcharge_rate_per_sqm: 0,
+                            door_style_id: firstFinish.door_style?.id || 'default',
+                            active: true,
+                            created_at: new Date().toISOString()
+                          },
+                          doorStyle: firstFinish.door_style || { 
+                            id: 'default', 
+                            name: 'Standard',
+                            base_rate_per_sqm: 0,
+                            active: true,
+                            created_at: new Date().toISOString()
+                          }
+                        };
+
+                        // Create pricing settings from globalSettings
+                        const settings = parseGlobalSettings(globalSettings);
+                        
+                        // Add directly to cart
+                        addToCart(configuration, cabinetParts, settings);
                       }
                     }}
                     className="ml-4"
@@ -364,20 +376,6 @@ const BaseCabinets = () => {
           )}
         </div>
       </section>
-
-      {/* Cell Configuration Popup */}
-      {selectedCell && (
-        <CellConfigPopup
-          isOpen={cellPopupOpen}
-          onClose={() => setCellPopupOpen(false)}
-          cabinetType={selectedCell.cabinetType}
-          finish={selectedCell.finish}
-          initialWidth={selectedCell.width}
-          initialPrice={selectedCell.price}
-          cabinetParts={cabinetParts || []}
-          globalSettings={globalSettings || []}
-        />
-      )}
 
       <Footer />
     </div>
