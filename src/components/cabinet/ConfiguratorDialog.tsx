@@ -35,6 +35,11 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   const [selectedDoorStyle, setSelectedDoorStyle] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedHardwareBrand, setSelectedHardwareBrand] = useState<string>('');
+  const [touchedFields, setTouchedFields] = useState<{width: boolean, height: boolean, depth: boolean}>({
+    width: false,
+    height: false,
+    depth: false
+  });
 
   const { addToCart, isLoading: isAddingToCart } = useCart();
 
@@ -194,8 +199,9 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   <Label className="text-xs">Width (mm)</Label>
                   <Input
                     type="number"
-                    value={width}
-                    onChange={(e) => setWidth(Number(e.target.value))}
+                    value={width === 0 ? '' : width}
+                    onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
+                    onBlur={() => setTouchedFields(prev => ({ ...prev, width: true }))}
                     min={cabinetType.min_width_mm || 100}
                     max={cabinetType.max_width_mm || 2000}
                     className="mt-1 h-8 text-sm"
@@ -203,7 +209,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   <p className="text-xs text-muted-foreground mt-1">
                     {cabinetType.min_width_mm || 100}-{cabinetType.max_width_mm || 2000}
                   </p>
-                  {(width < (cabinetType.min_width_mm || 100) || width > (cabinetType.max_width_mm || 2000)) && (
+                  {touchedFields.width && (width < (cabinetType.min_width_mm || 100) || width > (cabinetType.max_width_mm || 2000)) && (
                     <p className="text-xs text-destructive mt-1">Outside range</p>
                   )}
                 </div>
@@ -211,8 +217,9 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   <Label className="text-xs">Height (mm)</Label>
                   <Input
                     type="number"
-                    value={height}
-                    onChange={(e) => setHeight(Number(e.target.value))}
+                    value={height === 0 ? '' : height}
+                    onChange={(e) => setHeight(e.target.value === '' ? 0 : Number(e.target.value))}
+                    onBlur={() => setTouchedFields(prev => ({ ...prev, height: true }))}
                     min={cabinetType.min_height_mm || 100}
                     max={cabinetType.max_height_mm || 3000}
                     className="mt-1 h-8 text-sm"
@@ -220,7 +227,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   <p className="text-xs text-muted-foreground mt-1">
                     {cabinetType.min_height_mm || 100}-{cabinetType.max_height_mm || 3000}
                   </p>
-                  {(height < (cabinetType.min_height_mm || 100) || height > (cabinetType.max_height_mm || 3000)) && (
+                  {touchedFields.height && (height < (cabinetType.min_height_mm || 100) || height > (cabinetType.max_height_mm || 3000)) && (
                     <p className="text-xs text-destructive mt-1">Outside range</p>
                   )}
                 </div>
@@ -228,8 +235,9 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   <Label className="text-xs">Depth (mm)</Label>
                   <Input
                     type="number"
-                    value={depth}
-                    onChange={(e) => setDepth(Number(e.target.value))}
+                    value={depth === 0 ? '' : depth}
+                    onChange={(e) => setDepth(e.target.value === '' ? 0 : Number(e.target.value))}
+                    onBlur={() => setTouchedFields(prev => ({ ...prev, depth: true }))}
                     min={cabinetType.min_depth_mm || 100}
                     max={cabinetType.max_depth_mm || 1000}
                     className="mt-1 h-8 text-sm"
@@ -237,7 +245,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   <p className="text-xs text-muted-foreground mt-1">
                     {cabinetType.min_depth_mm || 100}-{cabinetType.max_depth_mm || 1000}
                   </p>
-                  {(depth < (cabinetType.min_depth_mm || 100) || depth > (cabinetType.max_depth_mm || 1000)) && (
+                  {touchedFields.depth && (depth < (cabinetType.min_depth_mm || 100) || depth > (cabinetType.max_depth_mm || 1000)) && (
                     <p className="text-xs text-destructive mt-1">Outside range</p>
                   )}
                 </div>
