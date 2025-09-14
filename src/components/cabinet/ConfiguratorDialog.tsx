@@ -254,7 +254,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
     const doorStyleFinish = {
       id: selectedDoorStyle,
       name: doorStyle.name + ' Finish',
-      rate_per_sqm: selectedFinishObj?.rate_per_sqm || 150, // Match static table default
+      rate_per_sqm: doorStyle.base_rate_per_sqm || 150, // Use door style base rate, not finish rate
       door_style_id: selectedDoorStyle,
       door_style: doorStyle,
       active: true,
