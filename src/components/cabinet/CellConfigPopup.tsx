@@ -131,8 +131,20 @@ export function CellConfigPopup({
 
   // Recalculate price when any parameter changes
   useEffect(() => {
+    console.log('Price calculation useEffect triggered:', {
+      selectedDoorStyle,
+      selectedColor,
+      doorStylesLength: doorStyles.length,
+      colorsLength: colors.length,
+      hardwareOptionsCount: Object.keys(selectedHardwareOptions).length
+    });
+
+    // Only calculate if we have the required data
     if (selectedDoorStyle && selectedColor && doorStyles.length > 0 && colors.length > 0) {
+      console.log('Conditions met, calculating price...');
       calculatePrice();
+    } else {
+      console.log('Conditions not met for price calculation');
     }
   }, [width, height, depth, selectedDoorStyle, selectedColor, selectedHardwareOptions, doorStyles, colors, hardwareRequirements]);
 
@@ -210,10 +222,26 @@ export function CellConfigPopup({
 
   const calculatePrice = async () => {
     try {
+      console.log('Calculating price with:', {
+        selectedDoorStyle,
+        selectedColor,
+        width,
+        height,
+        depth,
+        doorStylesLength: doorStyles.length,
+        colorsLength: colors.length
+      });
+
       const doorStyle = doorStyles.find(ds => ds.id === selectedDoorStyle);
       const color = colors.find(c => c.id === selectedColor);
       
-      if (!doorStyle || !color) return;
+      console.log('Found door style:', doorStyle);
+      console.log('Found color:', color);
+      
+      if (!doorStyle || !color) {
+        console.log('Missing door style or color, cannot calculate price');
+        return;
+      }
 
       // Calculate hardware cost based on selected options
       let totalHardwareCost = 0;
@@ -233,6 +261,8 @@ export function CellConfigPopup({
         }
       }
 
+      console.log('Total hardware cost:', totalHardwareCost);
+
       // Create a door style finish object from the selected door style
       const doorStyleFinish = {
         id: `temp-${selectedDoorStyle}`,
@@ -244,6 +274,8 @@ export function CellConfigPopup({
         created_at: new Date().toISOString(),
         door_style: doorStyle
       };
+
+      console.log('Door style finish for calculation:', doorStyleFinish);
 
       // Use the selected door style finish instead of the original finish
       const price = calculateCabinetPrice(
@@ -258,6 +290,7 @@ export function CellConfigPopup({
         totalHardwareCost
       );
 
+      console.log('Calculated price:', price);
       setCalculatedPrice(price);
     } catch (error) {
       console.error('Error calculating price:', error);
@@ -396,7 +429,13 @@ export function CellConfigPopup({
           {/* Door Style */}
           <div>
             <Label className="text-xs">Door Style</Label>
-            <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
+            <Select 
+              value={selectedDoorStyle} 
+              onValueChange={(value) => {
+                console.log('Door style changed from', selectedDoorStyle, 'to', value);
+                setSelectedDoorStyle(value);
+              }}
+            >
               <SelectTrigger className="h-8">
                 <SelectValue placeholder="Select door style" />
               </SelectTrigger>
