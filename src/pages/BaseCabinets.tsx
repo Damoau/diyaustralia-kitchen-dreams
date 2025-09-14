@@ -14,9 +14,12 @@ import { ArrowLeft, Info } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { RefreshImagesButton } from "@/components/RefreshImagesButton";
+import { ConfiguratorDialog } from "@/components/cabinet/ConfiguratorDialog";
 
 const BaseCabinets = () => {
   const [priceData, setPriceData] = useState<any>({});
+  const [selectedCabinetType, setSelectedCabinetType] = useState<CabinetType | null>(null);
+  const [isConfiguratorOpen, setIsConfiguratorOpen] = useState(false);
   const { toast } = useToast();
   const { addToCart } = useCart();
 
@@ -260,57 +263,9 @@ const BaseCabinets = () => {
                     )}
                   </span>
                   <Button 
-                    onClick={async () => {
-                      console.log('Add to Cart button clicked for:', cabinetType.name);
-                      // Add first available configuration directly to cart without popup
-                      const firstFinish = typeFinishes[0];
-                      const firstSize = typeData.sizes?.[0];
-                      if (firstFinish && firstSize && cabinetParts && globalSettings) {
-                        const width = parseWidthRange(firstSize.range);
-                        
-                        // Create mock finish object
-                        const mockFinish = {
-                          id: firstFinish.id,
-                          name: firstFinish.door_style_finish?.name || 'Standard Finish',
-                          finish_type: 'standard',
-                          rate_per_sqm: firstFinish.door_style_finish?.rate_per_sqm || 0,
-                          brand_id: '',
-                          active: true,
-                          created_at: new Date().toISOString(),
-                          door_style_name: firstFinish.door_style?.name || 'Unknown Style'
-                        };
-
-                        // Create configuration object for addToCart
-                        const configuration = {
-                          cabinetType,
-                          width,
-                          height: cabinetType.default_height_mm,
-                          depth: cabinetType.default_depth_mm,
-                          quantity: 1,
-                          finish: mockFinish,
-                          color: firstFinish.color || { 
-                            id: 'default', 
-                            name: 'Standard', 
-                            surcharge_rate_per_sqm: 0,
-                            door_style_id: firstFinish.door_style?.id || 'default',
-                            active: true,
-                            created_at: new Date().toISOString()
-                          },
-                          doorStyle: firstFinish.door_style || { 
-                            id: 'default', 
-                            name: 'Standard',
-                            base_rate_per_sqm: 0,
-                            active: true,
-                            created_at: new Date().toISOString()
-                          }
-                        };
-
-                        // Create pricing settings from globalSettings
-                        const settings = parseGlobalSettings(globalSettings);
-                        
-                        // Add directly to cart
-                        addToCart(configuration, cabinetParts, settings);
-                      }
+                    onClick={() => {
+                      setSelectedCabinetType(cabinetType);
+                      setIsConfiguratorOpen(true);
                     }}
                     className="ml-4"
                   >
@@ -340,9 +295,14 @@ const BaseCabinets = () => {
                                       e.currentTarget.style.display = "none";
                                     }}
                                   />
-                                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
-                                    <span className="text-white opacity-0 group-hover:opacity-100 font-medium">View Full Size</span>
-                                  </div>
+                                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                     <span className="text-white opacity-0 group-hover:opacity-100 font-medium">View Full Size</span>
+                                   </div>
+                                   <div className="absolute bottom-2 left-0 right-0 text-center">
+                                     <span className="bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                                       {cabinetType.name}
+                                     </span>
+                                   </div>
                                 </div>
                               </DialogTrigger>
                               <DialogContent className="max-w-3xl">
@@ -386,9 +346,14 @@ const BaseCabinets = () => {
                                         </span>
                                       </div>
                                     )}
-                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
-                                      <span className="text-white opacity-0 group-hover:opacity-100 font-medium">View Full Size</span>
-                                    </div>
+                                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                       <span className="text-white opacity-0 group-hover:opacity-100 font-medium">View Full Size</span>
+                                     </div>
+                                     <div className="absolute bottom-2 left-0 right-0 text-center">
+                                       <span className="bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                                         {ctf.door_style?.name || 'Unknown Style'}
+                                       </span>
+                                     </div>
                                   </div>
                                 </DialogTrigger>
                                 <DialogContent className="max-w-3xl">
@@ -522,6 +487,15 @@ const BaseCabinets = () => {
           )}
         </div>
       </section>
+
+      {/* Configurator Dialog */}
+      {selectedCabinetType && (
+        <ConfiguratorDialog
+          open={isConfiguratorOpen}
+          onOpenChange={setIsConfiguratorOpen}
+          cabinetType={selectedCabinetType}
+        />
+      )}
 
       <Footer />
     </div>
