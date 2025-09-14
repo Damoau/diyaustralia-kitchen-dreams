@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatPrice } from "@/lib/pricing";
 import { pricingService } from "@/services/pricingService";
 import { CabinetType } from "@/types/cabinet";
+import { PriceCalculationBreakdown } from "@/components/price-list/PriceCalculationBreakdown";
 
 interface DoorStyle {
   id: string;
@@ -371,6 +372,16 @@ const BaseCabinetsPricing = () => {
               )}
             </CardContent>
           </Card>
+        )}
+
+        {/* Price Calculation Breakdown */}
+        {selectedCabinetType && debugData?.finishes?.[0] && (
+          <PriceCalculationBreakdown
+            cabinetType={selectedCabinetType}
+            doorStyle={debugData.finishes[0].door_style}
+            color={debugData.finishes[0].color}
+            priceRanges={debugData.ranges}
+          />
         )}
 
         {/* Debug Information */}
