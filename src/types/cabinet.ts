@@ -42,7 +42,9 @@ export interface Color {
 export interface CabinetType {
   id: string;
   name: string;
-  category: 'base' | 'wall' | 'pantry' | 'dress_panel';
+  category: 'base' | 'wall' | 'tall' | 'panels';
+  subcategory?: string;
+  subcategory_display_order?: number;
   default_width_mm: number;
   default_height_mm: number;
   default_depth_mm: number;

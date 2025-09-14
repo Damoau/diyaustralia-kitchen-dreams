@@ -326,6 +326,8 @@ export type Database = {
           short_description: string | null
           sides_qty: number | null
           stock_quantity: number | null
+          subcategory: string | null
+          subcategory_display_order: number | null
         }
         Insert: {
           active?: boolean
@@ -358,6 +360,8 @@ export type Database = {
           short_description?: string | null
           sides_qty?: number | null
           stock_quantity?: number | null
+          subcategory?: string | null
+          subcategory_display_order?: number | null
         }
         Update: {
           active?: boolean
@@ -390,6 +394,8 @@ export type Database = {
           short_description?: string | null
           sides_qty?: number | null
           stock_quantity?: number | null
+          subcategory?: string | null
+          subcategory_display_order?: number | null
         }
         Relationships: [
           {

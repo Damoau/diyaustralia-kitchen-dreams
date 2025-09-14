@@ -38,6 +38,9 @@ const Header = () => {
             </>
           ) : (
             <>
+              <a href="/shop" className="text-foreground hover:text-primary transition-colors font-medium">
+                Shop
+              </a>
               <a href="#services" className="text-foreground hover:text-primary transition-colors font-medium">
                 Services
               </a>
@@ -151,6 +154,12 @@ const Header = () => {
                     </>
                   ) : (
                     <>
+                  <a 
+                    href="/shop" 
+                    className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
+                  >
+                    Shop
+                  </a>
                   <a 
                     href="#services" 
                     className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
