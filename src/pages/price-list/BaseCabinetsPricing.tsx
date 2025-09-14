@@ -172,6 +172,17 @@ const BaseCabinetsPricing = () => {
             .eq('active', true)
             .single();
 
+          console.log('Price calculation inputs:', {
+            cabinetName: selectedCabinet.name,
+            doorStyleName: finish.door_style.name,
+            doorStyleRate: finish.door_style.base_rate_per_sqm,
+            blackColorSurcharge: blackColor.data?.surcharge_rate_per_sqm || 0,
+            width,
+            height,
+            depth,
+            hardwareBrandId: defaultHardwareBrandId
+          });
+
           const price = pricingService.calculatePrice({
             cabinetType: selectedCabinet,
             width,
