@@ -353,12 +353,19 @@ export function CellConfigPopup({
                   alt={cabinetType.name}
                   className="w-full h-full object-cover rounded-md"
                   onError={(e) => {
+                    console.error('Cabinet image failed to load:', cabinetType.product_image_url);
                     e.currentTarget.style.display = "none";
-                    e.currentTarget.parentElement!.innerHTML = '<span class="text-xs text-muted-foreground text-center">No image</span>';
+                    e.currentTarget.parentElement!.innerHTML = '<span class="text-xs text-muted-foreground text-center">Image failed to load</span>';
+                  }}
+                  onLoad={() => {
+                    console.log('Cabinet image loaded successfully:', cabinetType.product_image_url);
                   }}
                 />
               ) : (
-                <span className="text-xs text-muted-foreground text-center">No image available</span>
+                <div className="text-center">
+                  <span className="text-xs text-muted-foreground">No image available</span>
+                  <p className="text-xs text-red-500 mt-1">product_image_url: {cabinetType.product_image_url || 'null/undefined'}</p>
+                </div>
               )}
             </div>
             
