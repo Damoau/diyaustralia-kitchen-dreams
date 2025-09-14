@@ -326,7 +326,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
               {/* Desktop/Tablet Layout: Side by side */}
               <div className="hidden md:block">
                 <div className="grid grid-cols-2 gap-8">
-                  {/* Left: Large Image */}
+                  {/* Left: Large Image and Door Style */}
                   <div className="space-y-4">
                     <div 
                       className="w-full h-80 bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
@@ -344,9 +344,31 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                         </div>
                       )}
                     </div>
+                    
+                    {/* Door Style under image */}
+                    <div>
+                      <Label className="text-sm">Door Style</Label>
+                      <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select door style" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border z-50">
+                          {availableDoorStyles.map((style) => (
+                            <SelectItem key={style.id} value={style.id}>
+                              <div className="flex items-center justify-between w-full">
+                                <span>{style.name}</span>
+                                <Badge variant="outline" className="ml-2">
+                                  {pricingService.formatPrice(style.base_rate_per_sqm)}/m²
+                                </Badge>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
-                  {/* Right: Dimensions and Controls */}
+                  {/* Right: Dimensions, Color, and Hardware */}
                   <div className="space-y-4">
                     {/* Dimensions */}
                     <div className="space-y-4">
@@ -409,70 +431,49 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                       </div>
                     </div>
 
-                    {/* Style Options */}
-                    <div className="space-y-3">
-                      <h3 className="font-medium text-lg">Style Options</h3>
-                      <div>
-                        <Label className="text-sm">Door Style</Label>
-                        <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
-                          <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="Select door style" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availableDoorStyles.map((style) => (
-                              <SelectItem key={style.id} value={style.id}>
-                                <div className="flex items-center justify-between w-full">
-                                  <span>{style.name}</span>
+                    {/* Color */}
+                    <div>
+                      <Label className="text-sm">Color</Label>
+                      <Select value={selectedColor} onValueChange={setSelectedColor}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select color" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border z-50">
+                          {(availableColors || []).map((color) => (
+                            <SelectItem key={color.id} value={color.id}>
+                              <div className="flex items-center gap-2">
+                                {color.hex_code && (
+                                  <div
+                                    className="w-4 h-4 rounded border"
+                                    style={{ backgroundColor: color.hex_code }}
+                                  />
+                                )}
+                                <span>{color.name}</span>
+                                {color.surcharge_rate_per_sqm > 0 && (
                                   <Badge variant="outline" className="ml-2">
-                                    {pricingService.formatPrice(style.base_rate_per_sqm)}/m²
+                                    +{pricingService.formatPrice(color.surcharge_rate_per_sqm)}/m²
                                   </Badge>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div>
-                        <Label className="text-sm">Color</Label>
-                        <Select value={selectedColor} onValueChange={setSelectedColor}>
-                          <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="Select color" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {(availableColors || []).map((color) => (
-                              <SelectItem key={color.id} value={color.id}>
-                                <div className="flex items-center gap-2">
-                                  {color.hex_code && (
-                                    <div
-                                      className="w-4 h-4 rounded border"
-                                      style={{ backgroundColor: color.hex_code }}
-                                    />
-                                  )}
-                                  <span>{color.name}</span>
-                                  {color.surcharge_rate_per_sqm > 0 && (
-                                    <Badge variant="outline" className="ml-2">
-                                      +{pricingService.formatPrice(color.surcharge_rate_per_sqm)}/m²
-                                    </Badge>
-                                  )}
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      {/* Hardware Brand Selection */}
-                      <div>
-                        <Label className="text-sm">Hardware Brand</Label>
-                        <HardwareBrandSelector
-                          cabinetType={cabinetType}
-                          selectedBrandId={selectedHardwareBrand}
-                          onBrandChange={setSelectedHardwareBrand}
-                          quantity={quantity}
-                          compact={false}
-                        />
-                      </div>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {/* Hardware Brand as simple dropdown */}
+                    <div>
+                      <Label className="text-sm">Hardware Brand</Label>
+                      <Select value={selectedHardwareBrand} onValueChange={setSelectedHardwareBrand}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select hardware brand" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border z-50">
+                          <SelectItem value="">No Hardware</SelectItem>
+                          <SelectItem value="blum">Blum</SelectItem>
+                          <SelectItem value="titus">Titus</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
