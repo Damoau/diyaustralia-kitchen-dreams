@@ -288,7 +288,7 @@ const CabinetPricesNew = () => {
                                      }}
                                    />
                                    <div className="absolute bottom-2 left-0 right-0">
-                                     <p className="text-center text-sm font-medium text-white drop-shadow-lg">
+                                     <p className="text-center text-sm font-medium text-black drop-shadow-lg">
                                        {cabinetType.name}
                                      </p>
                                    </div>
@@ -333,7 +333,7 @@ const CabinetPricesNew = () => {
                                      </div>
                                    )}
                                    <div className="absolute bottom-2 left-0 right-0">
-                                     <p className="text-center text-sm font-medium text-white drop-shadow-lg">
+                                     <p className="text-center text-sm font-medium text-black drop-shadow-lg">
                                        {ctf.door_style?.name || 'Unknown Style'}
                                      </p>
                                    </div>
