@@ -361,7 +361,7 @@ export function CellConfigPopup({
           <div className="flex items-start gap-4">
             {/* Main Cabinet Image - High quality display */}
             <div 
-              className="w-32 h-32 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors flex-shrink-0 overflow-hidden"
+              className="w-48 h-48 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors flex-shrink-0 overflow-hidden"
               onClick={() => {
                 const currentDoorStyle = selectedDoorStyle ? doorStyles.find(ds => ds.id === selectedDoorStyle) : null;
                 const imageUrl = currentDoorStyle?.image_url || (finish as any)?.image_url || cabinetType.product_image_url;
