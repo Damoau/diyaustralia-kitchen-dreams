@@ -218,6 +218,8 @@ const BaseCabinetsPricing = () => {
   // Trigger calculation when dependencies change
   useEffect(() => {
     if (selectedCabinetType && cabinetTypeFinishes && priceRanges && cabinetParts && globalSettings) {
+      // Clear existing price data to force recalculation
+      setPriceData({});
       calculatePrices();
     }
   }, [selectedCabinetType, cabinetTypeFinishes, priceRanges, cabinetParts, globalSettings]);
@@ -288,7 +290,7 @@ const BaseCabinetsPricing = () => {
 
         {/* Pricing Table */}
         {selectedCabinetType && (
-          <Card>
+          <Card key={`${selectedCabinetType}-${JSON.stringify(priceData)}`}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
