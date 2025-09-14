@@ -73,16 +73,12 @@ class PricingService {
   }
 
   private calculatePartQuantities(cabinetParts: CabinetPart[], cabinetType: CabinetType) {
-    // Use actual cabinet parts data for accurate quantities
-    const doorPart = cabinetParts.find(part => part.is_door === true);
-    const doorQty = doorPart?.quantity || cabinetType.door_qty || cabinetType.door_count || 0;
+    // Use custom quantity of 1 for doors as requested
+    const doorQty = 1;
     
-    console.log('🔧 DOOR QUANTITY CALCULATION:', {
+    console.log('🔧 DOOR QUANTITY CALCULATION (Custom qty=1):', {
       cabinetName: cabinetType.name,
-      doorPartFound: !!doorPart,
-      doorPartQuantity: doorPart?.quantity,
-      cabinetTypeDoorQty: cabinetType.door_qty,
-      finalDoorQty: doorQty
+      customDoorQty: doorQty
     });
     
     return {
