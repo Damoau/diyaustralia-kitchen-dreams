@@ -40,6 +40,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
     height: false,
     depth: false
   });
+  const [showFullScreenImage, setShowFullScreenImage] = useState(false);
 
   const { addToCart, isLoading: isAddingToCart } = useCart();
 
@@ -178,7 +179,10 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
             <>
               {/* Cabinet Image */}
               <div className="flex justify-center">
-                <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden">
+                <div 
+                  className="w-20 h-20 bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => getCurrentCabinetImage() && setShowFullScreenImage(true)}
+                >
                   {getCurrentCabinetImage() ? (
                     <img
                       src={getCurrentCabinetImage()}
@@ -421,6 +425,31 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
             </>
           )}
         </div>
+
+        {/* Full Screen Image Overlay */}
+        {showFullScreenImage && (
+          <div 
+            className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 cursor-pointer"
+            onClick={() => setShowFullScreenImage(false)}
+          >
+            <div className="relative max-w-full max-h-full p-4">
+              <img
+                src={getCurrentCabinetImage()}
+                alt={cabinetType.name}
+                className="max-w-full max-h-full object-contain rounded-lg"
+              />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowFullScreenImage(false);
+                }}
+                className="absolute top-2 right-2 text-white hover:text-gray-300 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
