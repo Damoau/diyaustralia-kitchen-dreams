@@ -11,6 +11,9 @@ import { formatPrice, parseGlobalSettings } from "@/lib/pricing";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Info } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
+import { RefreshImagesButton } from "@/components/RefreshImagesButton";
 
 const BaseCabinets = () => {
   const [priceData, setPriceData] = useState<any>({});
@@ -247,7 +250,7 @@ const BaseCabinets = () => {
 
             return (
               <div key={cabinetType.id} className="mb-12">
-                <h2 className="text-2xl font-semibold mb-6 flex items-center justify-between">
+                 <h2 className="text-2xl font-semibold mb-6 flex items-center justify-between">
                   <span>
                     {cabinetType.name}
                     {!typeData.hasConfiguredRanges && (
@@ -314,6 +317,106 @@ const BaseCabinets = () => {
                     Add to Cart
                   </Button>
                  </h2>
+                 
+                 {/* Cabinet Images Carousel - Always show */}
+                 <div className="mb-8">
+                   <div className="text-center mb-4">
+                     <h3 className="text-lg font-medium text-muted-foreground">Available Finishes</h3>
+                   </div>
+                   <Carousel className="w-full max-w-5xl mx-auto">
+                     <CarouselContent className="-ml-2 md:-ml-4">
+                       {/* Show cabinet type image if available */}
+                       {cabinetType.product_image_url && (
+                          <CarouselItem className="pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <div className="relative group cursor-pointer hover:opacity-90 transition-opacity">
+                                   <img 
+                                     src={cabinetType.product_image_url} 
+                                     alt={`${cabinetType.name} Cabinet`}
+                                     className="carousel-image"
+                                    onError={(e) => {
+                                      console.error("Cabinet image failed to load:", cabinetType.product_image_url);
+                                      e.currentTarget.style.display = "none";
+                                    }}
+                                  />
+                                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                    <span className="text-white opacity-0 group-hover:opacity-100 font-medium">View Full Size</span>
+                                  </div>
+                                </div>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-3xl">
+                                <div className="relative">
+                                   <img 
+                                     src={cabinetType.product_image_url} 
+                                     alt={`${cabinetType.name} Cabinet - Full Size`}
+                                     className="w-full h-auto max-h-[80vh] object-contain"
+                                   />
+                                   <DialogTitle className="absolute bottom-4 left-4 bg-black bg-opacity-75 text-white px-3 py-1 rounded">
+                                     {cabinetType.name}
+                                   </DialogTitle>
+                                 </div>
+                               </DialogContent>
+                             </Dialog>
+                           </CarouselItem>
+                         )}
+                         
+                         {/* Show door style finishes */}
+                         {typeFinishes.map((ctf: any) => (
+                            <CarouselItem key={ctf.id} className="pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <div className="relative group cursor-pointer hover:opacity-90 transition-opacity">
+                                    {ctf.image_url ? (
+                                       <img 
+                                         src={ctf.image_url} 
+                                         alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
+                                         className="carousel-image"
+                                        onError={(e) => {
+                                          console.error("Finish image failed to load:", ctf.image_url);
+                                          e.currentTarget.style.display = "none";
+                                        }}
+                                      />
+                                    ) : (
+                                      <div className="carousel-image bg-gray-100 flex items-center justify-center">
+                                        <span className="text-gray-500 text-sm text-center px-2">
+                                          {ctf.door_style?.name || 'Unknown Style'}
+                                          <br />
+                                          <small>No image</small>
+                                        </span>
+                                      </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                      <span className="text-white opacity-0 group-hover:opacity-100 font-medium">View Full Size</span>
+                                    </div>
+                                  </div>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-3xl">
+                                  <div className="relative">
+                                     {ctf.image_url ? (
+                                       <img 
+                                         src={ctf.image_url} 
+                                         alt={`${cabinetType.name} - ${ctf.door_style?.name} - Full Size`}
+                                         className="w-full h-auto max-h-[80vh] object-contain"
+                                       />
+                                     ) : (
+                                       <div className="w-full h-64 bg-gray-100 flex items-center justify-center">
+                                         <span className="text-gray-500">No image available</span>
+                                       </div>
+                                     )}
+                                     <DialogTitle className="absolute bottom-4 left-4 bg-black bg-opacity-75 text-white px-3 py-1 rounded">
+                                       {ctf.door_style?.name || 'Unknown Style'}
+                                     </DialogTitle>
+                                   </div>
+                                 </DialogContent>
+                               </Dialog>
+                             </CarouselItem>
+                           ))}
+                         </CarouselContent>
+                         <CarouselPrevious />
+                         <CarouselNext />
+                       </Carousel>
+                     </div>
                  
                  <div className="overflow-x-auto">
                   <table className="w-full border-collapse border border-gray-300">
