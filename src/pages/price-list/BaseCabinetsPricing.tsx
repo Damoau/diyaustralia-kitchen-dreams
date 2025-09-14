@@ -39,6 +39,14 @@ const BaseCabinetsPricing = () => {
   const [selectedCabinetType, setSelectedCabinetType] = useState<string>('');
   const [priceData, setPriceData] = useState<PriceData>({});
   const [isCalculating, setIsCalculating] = useState(false);
+  const [debugData, setDebugData] = useState<any>(null);
+
+  // Clear all cached data when component mounts
+  useEffect(() => {
+    queryClient.clear();
+    setPriceData({});
+    setDebugData(null);
+  }, [queryClient]);
 
   // Fetch base cabinets
   const { data: baseCabinets, isLoading: loadingCabinets } = useQuery({
@@ -255,20 +263,154 @@ const BaseCabinetsPricing = () => {
   // Set first cabinet as default when cabinets load
   useEffect(() => {
     if (baseCabinets && baseCabinets.length > 0 && !selectedCabinetType) {
-      setSelectedCabinetType(baseCabinets[0].id);
+      const firstCabinet = baseCabinets[0];
+      console.log('🎯 SETTING FIRST CABINET:', firstCabinet.name, firstCabinet.id);
+      setSelectedCabinetType(firstCabinet.id);
     }
   }, [baseCabinets, selectedCabinetType]);
 
-  // Trigger calculation when dependencies change
+  // Trigger fresh calculation when cabinet type changes
   useEffect(() => {
-    if (selectedCabinetType && priceRanges && cabinetParts && globalSettings) {
-      console.log('🚀 STARTING PRICE CALCULATION - BYPASSING CACHED FINISHES');
-      setPriceData({});
-      calculatePrices();
-    }
-  }, [selectedCabinetType, priceRanges, cabinetParts, globalSettings]);
+    if (selectedCabinetType) {
+      console.log('🔄 CABINET TYPE CHANGED - STARTING FRESH CALCULATION');
+      const calculatePricesFromScratch = async () => {
+        console.log('🔥 COMPLETE FRESH CALCULATION START');
+        setIsCalculating(true);
+        
+        try {
+          // 1. Get selected cabinet fresh
+          const { data: cabinets } = await supabase
+            .from('cabinet_types')
+            .select('*')
+            .eq('id', selectedCabinetType)
+            .single();
 
-  const doorStyles = cabinetTypeFinishes?.map(f => f.door_style).filter(Boolean) as DoorStyle[] || [];
+          console.log('📦 FRESH CABINET:', cabinets);
+
+          // 2. Get finishes fresh
+          const { data: freshFinishes } = await supabase
+            .from('cabinet_type_finishes')
+            .select(`
+              *,
+              door_style:door_styles(*)
+            `)
+            .eq('cabinet_type_id', selectedCabinetType)
+            .eq('active', true)
+            .order('sort_order');
+
+          console.log('🚪 FRESH DOOR STYLES:', freshFinishes?.map(f => ({
+            name: f.door_style?.name,
+            rate: f.door_style?.base_rate_per_sqm
+          })));
+
+          // 3. Get price ranges fresh
+          const { data: freshRanges } = await supabase
+            .from('cabinet_type_price_ranges')
+            .select('*')
+            .eq('cabinet_type_id', selectedCabinetType)
+            .eq('active', true)
+            .order('sort_order');
+
+          // 4. Get cabinet parts fresh
+          const { data: freshParts } = await supabase
+            .from('cabinet_parts')
+            .select('*')
+            .eq('cabinet_type_id', selectedCabinetType);
+
+          // 5. Get global settings fresh
+          const { data: freshSettings } = await supabase
+            .from('global_settings')
+            .select('*');
+
+          // 6. Get hardware data fresh
+          const { data: hardwareBrands } = await supabase
+            .from('hardware_brands')
+            .select('*')
+            .eq('active', true);
+          
+          const titusBrand = hardwareBrands?.find(brand => brand.name === 'Titus');
+          const defaultHardwareBrandId = titusBrand?.id || null;
+
+          const { data: hardwareRequirements } = await supabase
+            .from('cabinet_hardware_requirements')
+            .select('*')
+            .eq('cabinet_type_id', selectedCabinetType)
+            .eq('active', true);
+
+          const { data: hardwareOptions } = await supabase
+            .from('cabinet_hardware_options')
+            .select(`
+              *,
+              hardware_product:hardware_products(*)
+            `)
+            .eq('active', true);
+
+          // 7. Get Black color fresh
+          const { data: blackColor } = await supabase
+            .from('colors')
+            .select('*')
+            .eq('name', 'Black')
+            .eq('active', true)
+            .single();
+
+          console.log('🎨 BLACK COLOR DATA:', blackColor);
+
+          // 8. Calculate prices with fresh data
+          const newPriceData: PriceData = {};
+          newPriceData[selectedCabinetType] = {};
+
+          for (const finish of freshFinishes || []) {
+            if (!finish.door_style) continue;
+            
+            console.log('💰 CALCULATING FOR DOOR STYLE:', finish.door_style.name, 'RATE:', finish.door_style.base_rate_per_sqm);
+            newPriceData[selectedCabinetType][finish.door_style.id] = {};
+
+            for (const range of freshRanges || []) {
+              const width = (range.min_width_mm + range.max_width_mm) / 2;
+              const height = cabinets?.default_height_mm || 720;
+              const depth = cabinets?.default_depth_mm || 560;
+
+              const price = pricingService.calculatePrice({
+                cabinetType: cabinets as CabinetType,
+                width,
+                height,
+                depth,
+                quantity: 1,
+                cabinetParts: freshParts || [],
+                globalSettings: freshSettings || [],
+                doorStyle: finish.door_style,
+                color: blackColor,
+                hardwareBrandId: defaultHardwareBrandId,
+                hardwareRequirements: hardwareRequirements || [],
+                hardwareOptions: hardwareOptions || []
+              });
+
+              console.log(`💵 PRICE FOR ${finish.door_style.name} ${width}mm: $${price}`);
+              newPriceData[selectedCabinetType][finish.door_style.id][range.id] = price;
+            }
+          }
+
+          setPriceData(newPriceData);
+          setDebugData({
+            cabinet: cabinets,
+            finishes: freshFinishes,
+            ranges: freshRanges,
+            parts: freshParts,
+            settings: freshSettings
+          });
+
+        } catch (error) {
+          console.error('❌ FRESH CALCULATION ERROR:', error);
+        } finally {
+          setIsCalculating(false);
+        }
+      };
+      
+      calculatePricesFromScratch();
+    }
+  }, [selectedCabinetType]);
+
+  const doorStyles = debugData?.finishes?.map(f => f.door_style).filter(Boolean) as DoorStyle[] || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 pt-24 pb-12">
