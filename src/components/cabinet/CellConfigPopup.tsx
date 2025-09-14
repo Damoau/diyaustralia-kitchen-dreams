@@ -62,13 +62,34 @@ export function CellConfigPopup({
   const { toast } = useToast();
   const { addToCart, isLoading: isAddingToCart } = useCart();
 
-  // Load door styles on mount
+  // Reset state when popup closes/opens
+  useEffect(() => {
+    if (!isOpen) {
+      // Reset selections when popup closes
+      setSelectedDoorStyle('');
+      setSelectedColor('');
+      setSelectedHardwareOptions({});
+    } else {
+      // Reset dimensions to defaults when opening
+      setWidth(initialWidth);
+      setHeight(cabinetType.default_height_mm);
+      setDepth(cabinetType.default_depth_mm);
+      setCalculatedPrice(initialPrice);
+    }
+  }, [isOpen, initialWidth, initialPrice, cabinetType]);
+
+  // Load door styles on mount and set initial door style from finish config
   useEffect(() => {
     if (isOpen) {
       loadDoorStyles();
       loadHardwareRequirements();
+      
+      // Set initial door style from the passed finish config
+      if (finish && (finish as any).door_style_id) {
+        setSelectedDoorStyle((finish as any).door_style_id);
+      }
     }
-  }, [isOpen, cabinetType.id]);
+  }, [isOpen, cabinetType.id, finish]);
 
   // Load colors when door style changes
   useEffect(() => {
@@ -77,12 +98,23 @@ export function CellConfigPopup({
     }
   }, [selectedDoorStyle]);
 
-  // Set first color as default when colors load
+  // Set initial color from finish config
   useEffect(() => {
-    if (colors.length > 0 && !selectedColor) {
-      setSelectedColor(colors[0].id);
+    if (colors.length > 0) {
+      // Try to set color from finish config first
+      if (finish && (finish as any).color_id) {
+        const finishColor = colors.find(c => c.id === (finish as any).color_id);
+        if (finishColor) {
+          setSelectedColor(finishColor.id);
+          return;
+        }
+      }
+      // Fallback to first color if no specific color from finish config
+      if (!selectedColor) {
+        setSelectedColor(colors[0].id);
+      }
     }
-  }, [colors]);
+  }, [colors, finish]);
 
   // Set default hardware selections
   useEffect(() => {
@@ -99,10 +131,10 @@ export function CellConfigPopup({
 
   // Recalculate price when any parameter changes
   useEffect(() => {
-    if (selectedDoorStyle && selectedColor && Object.keys(selectedHardwareOptions).length > 0) {
+    if (selectedDoorStyle && selectedColor && doorStyles.length > 0 && colors.length > 0) {
       calculatePrice();
     }
-  }, [width, height, depth, selectedDoorStyle, selectedColor, selectedHardwareOptions]);
+  }, [width, height, depth, selectedDoorStyle, selectedColor, selectedHardwareOptions, doorStyles, colors, hardwareRequirements]);
 
   const loadDoorStyles = async () => {
     try {
@@ -119,8 +151,17 @@ export function CellConfigPopup({
       // TODO: Filter by brand compatibility when brand-door style relationships are defined
       setDoorStyles(data || []);
       
-      // Set first door style as default
-      if (data && data.length > 0) {
+      // Set door style from finish config if available, otherwise use first door style
+      if (finish && (finish as any).door_style_id && data) {
+        const finishDoorStyle = data.find(ds => ds.id === (finish as any).door_style_id);
+        if (finishDoorStyle) {
+          setSelectedDoorStyle(finishDoorStyle.id);
+          return;
+        }
+      }
+      
+      // Fallback to first door style if no specific door style from finish config
+      if (data && data.length > 0 && !selectedDoorStyle) {
         setSelectedDoorStyle(data[0].id);
       }
     } catch (error) {
@@ -290,15 +331,32 @@ export function CellConfigPopup({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Cabinet Info */}
-          <div className="text-center p-3 bg-muted/30 rounded-lg">
-            <h3 className="font-medium">{cabinetType.name}</h3>
-            <p className="text-sm text-muted-foreground">
-              {selectedDoorStyle 
-                ? doorStyles.find(ds => ds.id === selectedDoorStyle)?.name || 'Loading...'
-                : 'Select door style'
-              }
-            </p>
+          {/* Cabinet Info with Image */}
+          <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
+            {/* Cabinet Image */}
+            {cabinetType.product_image_url && (
+              <div className="flex-shrink-0">
+                <img 
+                  src={cabinetType.product_image_url} 
+                  alt={cabinetType.name}
+                  className="w-12 h-12 object-cover rounded border"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              </div>
+            )}
+            
+            {/* Cabinet Details */}
+            <div className="flex-1 text-center">
+              <h3 className="font-medium">{cabinetType.name}</h3>
+              <p className="text-sm text-muted-foreground">
+                {selectedDoorStyle 
+                  ? doorStyles.find(ds => ds.id === selectedDoorStyle)?.name || 'Loading...'
+                  : (finish as any)?.door_style?.name || 'Select door style'
+                }
+              </p>
+            </div>
           </div>
 
           {/* Dimensions */}

@@ -193,24 +193,12 @@ const CabinetPricesNew = () => {
   };
 
   const handleCellClick = (cabinetType: CabinetType, sizeRange: string, price: number, finishConfig: any) => {
-    console.log('Cell clicked:', { cabinetType: cabinetType.name, sizeRange, price });
-    
     const width = parseWidthRange(sizeRange);
     
-    // Create a mock finish object from the finish config
-    const mockFinish = {
-      id: finishConfig.id,
-      name: finishConfig.door_style?.name || 'Standard',
-      finish_type: 'standard',
-      rate_per_sqm: finishConfig.door_style_finish?.rate_per_sqm || 0,
-      brand_id: '',
-      active: true,
-      created_at: new Date().toISOString()
-    };
-    
+    // Pass the complete finish configuration instead of a mock object
     setSelectedCell({
       cabinetType,
-      finish: mockFinish,
+      finish: finishConfig, // Pass the actual finish config with all data
       width,
       price
     });
