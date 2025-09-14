@@ -8,8 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { ConfiguratorDialog } from "@/components/cabinet/ConfiguratorDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { CabinetType } from "@/types/cabinet";
-import { ShoppingCart, ArrowLeft, Package } from "lucide-react";
+import { ShoppingCart, Filter, ArrowLeft, Package } from "lucide-react";
 import { Link } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const BaseCabinets = () => {
   const [selectedCabinetType, setSelectedCabinetType] = useState<CabinetType | null>(null);
@@ -52,6 +58,11 @@ const BaseCabinets = () => {
     setConfiguratorOpen(true);
   };
 
+  const getFilterLabel = (value: string) => {
+    const option = filterOptions.find(opt => opt.value === value);
+    return option ? option.label : 'All Cabinets';
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-subtle">
@@ -90,21 +101,34 @@ const BaseCabinets = () => {
               </p>
             </div>
 
-            {/* Filter Options */}
-            <div className="flex items-center gap-4 mt-6 lg:mt-0">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 w-full lg:w-auto">
-                {filterOptions.map((option) => (
-                  <Button
-                    key={option.value}
-                    variant={selectedFilter === option.value ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedFilter(option.value)}
-                    className="text-xs whitespace-nowrap"
-                  >
-                    {option.label}
+            {/* Filter Dropdown */}
+            <div className="w-full lg:w-auto mt-6 lg:mt-0">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full lg:w-auto justify-between">
+                    <div className="flex items-center">
+                      <Filter className="h-4 w-4 mr-2" />
+                      {getFilterLabel(selectedFilter)}
+                    </div>
                   </Button>
-                ))}
-              </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {filterOptions.map((option) => (
+                    <DropdownMenuItem
+                      key={option.value}
+                      onClick={() => setSelectedFilter(option.value)}
+                      className={selectedFilter === option.value ? "bg-primary/10" : ""}
+                    >
+                      {option.label}
+                      {selectedFilter === option.value && (
+                        <Badge variant="secondary" className="ml-auto">
+                          Active
+                        </Badge>
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
@@ -150,7 +174,7 @@ const BaseCabinets = () => {
               <p className="text-muted-foreground">
                 {selectedFilter === 'all' 
                   ? 'No base cabinets are currently available.' 
-                  : `No base cabinets found in the "${filterOptions.find(opt => opt.value === selectedFilter)?.label || 'selected'}" category.`
+                  : `No base cabinets found in the "${getFilterLabel(selectedFilter)}" category.`
                 }
               </p>
               {selectedFilter !== 'all' && (
