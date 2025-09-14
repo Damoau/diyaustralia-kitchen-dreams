@@ -374,7 +374,7 @@ export function CellConfigPopup({
                       e.currentTarget.style.display = "none";
                       const parent = e.currentTarget.parentElement;
                       if (parent) {
-                        parent.innerHTML = '<span class="text-xs text-muted-foreground text-center p-2">Image failed to load</span>';
+                        parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-xs text-muted-foreground text-center">Image failed to load</span></div>';
                       }
                     }}
                     onLoad={() => {
@@ -406,7 +406,7 @@ export function CellConfigPopup({
             </div>
           </div>
 
-          {/* Door Style Image Carousel - Compressed and optimized images */}
+          {/* Door Style Image Carousel - Original size restored */}
           {doorStyles.length > 0 && (
             <div className="space-y-2">
               <Label className="text-xs">Available Door Styles ({doorStyles.filter(s => s.image_url).length} options)</Label>
@@ -415,7 +415,7 @@ export function CellConfigPopup({
                   style.image_url && (
                     <div 
                       key={style.id}
-                      className={`w-20 h-20 bg-muted/30 rounded-lg border-2 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-all duration-200 flex-shrink-0 overflow-hidden ${
+                      className={`w-16 h-16 bg-muted/30 rounded-lg border-2 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-all duration-200 flex-shrink-0 overflow-hidden ${
                         selectedDoorStyle === style.id ? 'border-primary ring-2 ring-primary/20 scale-105' : 'border-dashed border-muted-foreground/20'
                       }`}
                       onClick={() => {
@@ -441,7 +441,7 @@ export function CellConfigPopup({
                           e.currentTarget.style.display = "none";
                           const parent = e.currentTarget.parentElement;
                           if (parent) {
-                            parent.innerHTML = '<span class="text-xs text-muted-foreground text-center p-1">No image</span>';
+                            parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-xs text-muted-foreground text-center">No image</span></div>';
                           }
                         }}
                         onLoad={(e) => {
