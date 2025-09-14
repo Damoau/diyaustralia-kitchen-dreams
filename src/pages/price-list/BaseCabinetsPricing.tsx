@@ -212,6 +212,9 @@ const BaseCabinetsPricing = () => {
   useEffect(() => {
     if (selectedCabinetType) {
       console.log('🔄 CABINET TYPE CHANGED - STARTING FRESH CALCULATION');
+      // Clear all state first
+      setPriceData({});
+      setDebugData(null);
       calculatePricesFromScratch();
     }
   }, [selectedCabinetType]);
@@ -290,14 +293,14 @@ const BaseCabinetsPricing = () => {
 
         {/* Pricing Table */}
         {selectedCabinetType && (
-          <Card key={`${selectedCabinetType}-${JSON.stringify(priceData)}`}>
+          <Card key={`pricing-${selectedCabinetType}-${Date.now()}`}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-foreground mb-2">
                     {baseCabinets?.find(c => c.id === selectedCabinetType)?.name}
                   </h2>
-                  <CardTitle>Pricing Table</CardTitle>
+                  <CardTitle>Pricing Table - {new Date().toLocaleTimeString()}</CardTitle>
                 </div>
                 {isCalculating && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
