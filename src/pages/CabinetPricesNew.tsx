@@ -291,7 +291,7 @@ const CabinetPricesNew = () => {
                                      <img 
                                        src={ctf.image_url} 
                                        alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
-                                       className="w-full h-48 object-cover rounded-lg border shadow-sm"
+                                       className="w-auto h-auto max-w-full rounded-lg border shadow-sm"
                                        onError={(e) => {
                                          console.error("Image failed to load:", ctf.image_url);
                                          e.currentTarget.style.display = "none";
@@ -309,7 +309,7 @@ const CabinetPricesNew = () => {
                                      <img 
                                        src={ctf.image_url} 
                                        alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
-                                       className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+                                       className="w-auto h-auto max-w-full rounded-lg"
                                      />
                                      <div className="absolute bottom-4 left-0 right-0 text-center">
                                        <h3 className="text-white text-xl font-semibold bg-black/60 backdrop-blur-sm rounded-lg mx-auto px-4 py-2 inline-block">
