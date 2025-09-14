@@ -375,7 +375,7 @@ const BaseCabinetsPricing = () => {
         )}
 
         {/* Price Calculation Breakdown */}
-        {selectedCabinetType && debugData?.finishes?.[0] && (
+        {selectedCabinetType && debugData?.finishes?.[0]?.door_style && debugData?.finishes?.[0]?.color && (
           <PriceCalculationBreakdown
             cabinetType={selectedCabinetType}
             doorStyle={debugData.finishes[0].door_style}

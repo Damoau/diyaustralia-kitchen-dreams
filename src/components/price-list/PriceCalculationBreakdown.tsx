@@ -10,7 +10,7 @@ interface PriceCalculationBreakdownProps {
 }
 
 export function PriceCalculationBreakdown({ cabinetType, doorStyle, color, priceRanges }: PriceCalculationBreakdownProps) {
-  if (!cabinetType || !doorStyle || !priceRanges.length) return null;
+  if (!cabinetType || !doorStyle || !color || !priceRanges?.length) return null;
 
   const range = priceRanges[0]; // Use first range
   const width = range?.min_width_mm || 300;
@@ -47,7 +47,7 @@ export function PriceCalculationBreakdown({ cabinetType, doorStyle, color, price
     <Card className="mt-4 border-orange-200 bg-orange-50">
       <CardHeader>
         <CardTitle className="text-orange-800">
-          Price Calculation Breakdown - {cabinetType.name} ({doorStyle.name} - {color.name})
+          Price Calculation Breakdown - {cabinetType?.name || 'Cabinet'} ({doorStyle?.name || 'Style'} - {color?.name || 'Color'})
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
