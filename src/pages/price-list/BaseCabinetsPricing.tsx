@@ -68,7 +68,7 @@ const BaseCabinetsPricing = () => {
   const calculatePricesFromScratch = async () => {
     if (!selectedCabinetType) return;
     
-    console.log('🔥 COMPLETE FRESH CALCULATION START');
+    console.log('🔥🔥🔥 COMPLETE FRESH CALCULATION START - TIMESTAMP:', new Date().toISOString());
     setIsCalculating(true);
     
     try {
@@ -163,7 +163,7 @@ const BaseCabinetsPricing = () => {
       for (const finish of freshFinishes || []) {
         if (!finish.door_style) continue;
         
-        console.log('💰 CALCULATING FOR DOOR STYLE:', finish.door_style.name, 'RATE:', finish.door_style.base_rate_per_sqm);
+        console.log('💰💰💰 CALCULATING FOR DOOR STYLE:', finish.door_style.name, 'RATE:', finish.door_style.base_rate_per_sqm, 'TIMESTAMP:', new Date().toISOString());
         newPriceData[selectedCabinetType][finish.door_style.id] = {};
 
         for (const range of freshRanges || []) {
@@ -229,11 +229,12 @@ const BaseCabinetsPricing = () => {
   // Trigger fresh calculation when cabinet type changes
   useEffect(() => {
     if (selectedCabinetType) {
-      console.log('🔄 CABINET TYPE CHANGED - STARTING FRESH CALCULATION');
+      console.log('🔄🔄🔄 CABINET TYPE CHANGED - STARTING FRESH CALCULATION - TIMESTAMP:', new Date().toISOString());
       // Clear all state first
       setPriceData({});
       setDebugData(null);
-      calculatePricesFromScratch();
+      // Force calculation with delay to ensure state is cleared
+      setTimeout(() => calculatePricesFromScratch(), 100);
     }
   }, [selectedCabinetType]);
 
@@ -257,6 +258,9 @@ const BaseCabinetsPricing = () => {
           <div className="flex items-center gap-2">
             <Package className="h-6 w-6 text-primary" />
             <h1 className="text-3xl font-bold text-foreground">Base Cabinets Pricing</h1>
+            <Button onClick={calculatePricesFromScratch} variant="outline" size="sm">
+              🔄 Force Recalculate
+            </Button>
           </div>
         </div>
 
@@ -389,11 +393,12 @@ const BaseCabinetsPricing = () => {
           </Card>
         )}
 
-        {/* Price Calculation Breakdown */}
+        {/* Price Calculation Breakdown - FORCE REFRESH */}
         {selectedCabinetType && debugData?.finishes?.[0]?.door_style && debugData?.finishes?.[0]?.color && (
           <PriceCalculationBreakdown
+            key={`breakdown-${Date.now()}`}
             cabinetType={selectedCabinetType}
-            doorStyle={debugData.finishes[0].door_style}
+            doorStyle={debugData.finishes.find(f => f.door_style?.name === 'Poly ')?.door_style || debugData.finishes[0].door_style}
             color={debugData.finishes[0].color}
             priceRanges={debugData.ranges}
           />
