@@ -60,6 +60,8 @@ export function CellConfigPopup({
   const [colors, setColors] = useState<Color[]>([]);
   const [hardwareRequirements, setHardwareRequirements] = useState<HardwareRequirement[]>([]);
   const [cabinetTypeFinishes, setCabinetTypeFinishes] = useState<any[]>([]);
+  const [showImageZoom, setShowImageZoom] = useState(false);
+  const [zoomImageUrl, setZoomImageUrl] = useState('');
   
   const { toast } = useToast();
   const { addToCart, isLoading: isAddingToCart } = useCart();
@@ -366,7 +368,8 @@ export function CellConfigPopup({
                 const currentDoorStyle = selectedDoorStyle ? doorStyles.find(ds => ds.id === selectedDoorStyle) : null;
                 const imageUrl = currentDoorStyle?.image_url || (finish as any)?.image_url || cabinetType.product_image_url;
                 if (imageUrl) {
-                  window.open(imageUrl, '_blank');
+                  setZoomImageUrl(imageUrl);
+                  setShowImageZoom(true);
                 }
               }}
             >
@@ -651,6 +654,22 @@ export function CellConfigPopup({
           </Button>
         </div>
       </DialogContent>
+
+      {/* Image Zoom Dialog */}
+      <Dialog open={showImageZoom} onOpenChange={setShowImageZoom}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-2">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Cabinet Image</DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center justify-center">
+            <img
+              src={zoomImageUrl}
+              alt="Cabinet Detail"
+              className="max-w-full max-h-[80vh] object-contain rounded-lg"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
