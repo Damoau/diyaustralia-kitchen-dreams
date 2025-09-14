@@ -10,6 +10,7 @@ import { CabinetType, Finish, Color, DoorStyle, CabinetPart, GlobalSettings } fr
 import { calculateCabinetPrice } from '@/lib/dynamicPricing';
 import { calculateHardwareCost } from '@/lib/hardwarePricing';
 import { formatPrice, parseGlobalSettings } from '@/lib/pricing';
+import { compressImage } from '@/lib/imageUtils';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/hooks/useCart';
 import { supabase } from '@/integrations/supabase/client';
@@ -338,66 +339,46 @@ export function CellConfigPopup({
         <div className="space-y-4">
           {/* Cabinet Header with Image */}
           <div className="flex items-start gap-4">
-            {/* Main Cabinet Image */}
+            {/* Main Cabinet Image - Updates with door style selection */}
             <div 
               className="w-24 h-24 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors flex-shrink-0"
               onClick={() => {
-                const imageUrl = (() => {
-                  // First priority: Currently selected door style image
-                  if (selectedDoorStyle) {
-                    const doorStyle = doorStyles.find(ds => ds.id === selectedDoorStyle);
-                    if (doorStyle?.image_url) return doorStyle.image_url;
-                  }
-                  // Second priority: Use finish image if available
-                  if ((finish as any)?.image_url) {
-                    return (finish as any).image_url;
-                  }
-                  // Fallback: Cabinet type image
-                  return cabinetType.product_image_url;
-                })();
-                
+                const currentDoorStyle = selectedDoorStyle ? doorStyles.find(ds => ds.id === selectedDoorStyle) : null;
+                const imageUrl = currentDoorStyle?.image_url || (finish as any)?.image_url || cabinetType.product_image_url;
                 if (imageUrl) {
                   window.open(imageUrl, '_blank');
                 }
               }}
             >
               {(() => {
-                // Determine which image to show (currently selected door style takes priority)
-                const imageUrl = (() => {
-                  if (selectedDoorStyle) {
-                    const doorStyle = doorStyles.find(ds => ds.id === selectedDoorStyle);
-                    if (doorStyle?.image_url) return doorStyle.image_url;
-                  }
-                  if ((finish as any)?.image_url) {
-                    return (finish as any).image_url;
-                  }
-                  return cabinetType.product_image_url;
-                })();
-
                 const currentDoorStyle = selectedDoorStyle ? doorStyles.find(ds => ds.id === selectedDoorStyle) : null;
+                const imageUrl = currentDoorStyle?.image_url || (finish as any)?.image_url || cabinetType.product_image_url;
 
                 return imageUrl ? (
                   <img 
+                    key={`${selectedDoorStyle}-${imageUrl}`} // Force re-render when door style changes
                     src={imageUrl} 
                     alt={`${cabinetType.name} - ${currentDoorStyle?.name || (finish as any)?.door_style?.name || 'Cabinet'}`}
-                    className="w-full h-full object-cover rounded-md"
+                    className="w-full h-full object-cover rounded-md transition-all duration-300"
+                    style={{
+                      imageRendering: 'auto',
+                      maxWidth: '100%',
+                      height: 'auto',
+                      objectFit: 'cover'
+                    }}
                     onError={(e) => {
                       console.error('Cabinet image failed to load:', imageUrl);
                       e.currentTarget.style.display = "none";
-                      e.currentTarget.parentElement!.innerHTML = '<span class="text-xs text-muted-foreground text-center">Image failed to load</span>';
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        parent.innerHTML = '<span class="text-xs text-muted-foreground text-center">Image failed to load</span>';
+                      }
                     }}
-                    onLoad={() => {
-                      console.log('Cabinet image loaded successfully:', imageUrl);
-                    }}
+                    loading="lazy"
                   />
                 ) : (
                   <div className="text-center">
                     <span className="text-xs text-muted-foreground">No image available</span>
-                    <p className="text-xs text-red-500 mt-1">
-                      selected_door_style: {currentDoorStyle?.name || 'none'}<br/>
-                      finish_image: {(finish as any)?.image_url || 'null'}<br/>
-                      cabinet_image: {cabinetType.product_image_url || 'null'}
-                    </p>
                   </div>
                 );
               })()}
@@ -418,17 +399,17 @@ export function CellConfigPopup({
             </div>
           </div>
 
-          {/* Door Style Image Carousel */}
+          {/* Door Style Image Carousel - All images compressed for optimal display */}
           {doorStyles.length > 0 && (
             <div className="space-y-2">
-              <Label className="text-xs">Available Door Styles</Label>
-              <div className="flex gap-2 overflow-x-auto pb-2">
+              <Label className="text-xs">Available Door Styles ({doorStyles.filter(s => s.image_url).length} options)</Label>
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-muted">
                 {doorStyles.map(style => (
                   style.image_url && (
                     <div 
                       key={style.id}
-                      className={`w-16 h-16 bg-muted/30 rounded-lg border-2 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors flex-shrink-0 ${
-                        selectedDoorStyle === style.id ? 'border-primary' : 'border-dashed border-muted-foreground/20'
+                      className={`w-16 h-16 bg-muted/30 rounded-lg border-2 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-all duration-200 flex-shrink-0 ${
+                        selectedDoorStyle === style.id ? 'border-primary ring-2 ring-primary/20 scale-105' : 'border-dashed border-muted-foreground/20'
                       }`}
                       onClick={() => setSelectedDoorStyle(style.id)}
                       title={style.name}
@@ -436,11 +417,20 @@ export function CellConfigPopup({
                       <img 
                         src={style.image_url} 
                         alt={style.name}
-                        className="w-full h-full object-cover rounded-md"
+                        className="w-full h-full object-cover rounded-md transition-all duration-200"
+                        style={{
+                          maxWidth: '100%',
+                          height: 'auto',
+                          objectFit: 'cover'
+                        }}
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
-                          e.currentTarget.parentElement!.innerHTML = '<span class="text-xs text-muted-foreground text-center">No image</span>';
+                          const parent = e.currentTarget.parentElement;
+                          if (parent) {
+                            parent.innerHTML = '<span class="text-xs text-muted-foreground text-center">No image</span>';
+                          }
                         }}
+                        loading="lazy"
                       />
                     </div>
                   )
