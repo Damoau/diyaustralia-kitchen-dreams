@@ -49,37 +49,6 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   // Cabinet preferences for lock-in functionality
   const { preferences, locks, updatePreference, toggleLock, getLockedPreferences } = useCabinetPreferences();
 
-  // Clear any invalid cached hardware brand values (old string values)
-  useEffect(() => {
-    if (selectedHardwareBrand && !selectedHardwareBrand.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-      console.log('Clearing invalid hardware brand:', selectedHardwareBrand);
-      setSelectedHardwareBrand('');
-      // Also clear from preferences if it exists
-      updatePreference('hardwareBrandId', '');
-    }
-  }, [selectedHardwareBrand, updatePreference]);
-
-  // Clear localStorage of old invalid hardware brand values on mount
-  useEffect(() => {
-    const clearInvalidCachedValues = () => {
-      try {
-        const prefsStr = localStorage.getItem('cabinetPreferences');
-        if (prefsStr) {
-          const prefs = JSON.parse(prefsStr);
-          if (prefs.hardwareBrandId && typeof prefs.hardwareBrandId === 'string' && 
-              !prefs.hardwareBrandId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-            console.log('Clearing invalid cached hardware brand from localStorage:', prefs.hardwareBrandId);
-            delete prefs.hardwareBrandId;
-            localStorage.setItem('cabinetPreferences', JSON.stringify(prefs));
-          }
-        }
-      } catch (error) {
-        console.error('Error clearing invalid cached values:', error);
-      }
-    };
-    clearInvalidCachedValues();
-  }, []);
-
   // Use dynamic pricing hook for real-time price calculation
   const {
     cabinetTypeFinishes,
@@ -135,14 +104,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
         setSelectedColor(lockedPrefs.colorId);
       }
       if (locks.hardware && lockedPrefs.hardwareBrandId) {
-        // Validate the hardware brand ID is a valid UUID before setting
-        const hardwareBrandId = lockedPrefs.hardwareBrandId;
-        if (hardwareBrandId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-          setSelectedHardwareBrand(hardwareBrandId);
-        } else {
-          console.log('Clearing invalid locked hardware brand:', hardwareBrandId);
-          updatePreference('hardwareBrandId', '');
-        }
+        setSelectedHardwareBrand(lockedPrefs.hardwareBrandId);
       }
     }
   }, [open, locks, getLockedPreferences]);
