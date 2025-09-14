@@ -132,28 +132,14 @@ export function PriceBreakdown({
               <h4 className="font-semibold mb-2">Door/Drawer Costs ({qtyDoors}x)</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between items-center">
-                  <span>Door Style Base:</span>
-                  <span>${doorStyleBaseRate}/m²</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Finish Rate:</span>
-                  <span>${doorStyleFinishRate}/m²</span>
-                </div>
-                {colorSurcharge > 0 && (
-                  <div className="flex justify-between items-center">
-                    <span>Color Surcharge:</span>
-                    <span>${colorSurcharge}/m²</span>
-                  </div>
-                )}
-                <div className="flex justify-between items-center">
-                  <span>Carcass Material (20% HMR):</span>
-                  <span>${carcassMaterialRate.toFixed(2)}/m²</span>
+                  <span>Total Door Rate (incl. finish):</span>
+                  <span>${totalDoorRate.toFixed(2)}/m²</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-center font-semibold">
-                  <span>Total Door Cost:</span>
+                  <span>Door Cost Formula:</span>
                   <span className="font-mono text-xs">
-                    {widthM.toFixed(3)} × {heightM.toFixed(3)} × {qtyDoors} × ${totalDoorRate.toFixed(2)} = {formatPrice(doorCost)}
+                    ({widthM.toFixed(3)} × {heightM.toFixed(3)}) × {qtyDoors} × ${totalDoorRate.toFixed(2)} = {formatPrice(doorCost)}
                   </span>
                 </div>
               </div>

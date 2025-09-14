@@ -101,8 +101,6 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       const [
         brandsRes,
         finishesRes,
-        colorsRes,
-        doorStylesRes,
         cabinetPartsRes,
         settingsRes,
         hardwareRequirementsRes,
@@ -110,8 +108,6 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       ] = await Promise.all([
         supabase.from('brands').select('*').eq('active', true),
         supabase.from('finishes').select('*').eq('active', true),
-        supabase.from('colors').select('*').eq('active', true),
-        supabase.from('door_styles').select('*').eq('active', true),
         supabase.from('cabinet_parts').select('*').eq('cabinet_type_id', cabinetType.id),
         supabase.from('global_settings').select('*'),
         // Fetch hardware requirements with their options
@@ -124,7 +120,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
             hardware_product:hardware_products(name, cost_per_unit)
           )
         `).eq('cabinet_type_id', cabinetType.id).eq('active', true),
-        // Fetch cabinet type finishes for images
+        // Fetch cabinet type finishes for images AND available door styles/colors
         supabase.from('cabinet_type_finishes').select(`
           *,
           door_style:door_styles(*),
@@ -141,20 +137,37 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       }
       
       if (finishesRes.data) setFinishes(finishesRes.data);
-      if (colorsRes.data) {
-        setColors(colorsRes.data);
-        // Auto-select first color
-        if (colorsRes.data.length > 0 && !selectedColor) {
-          setSelectedColor(colorsRes.data[0].id);
+      
+      if (cabinetTypeFinishesRes.data) {
+        setCabinetTypeFinishes(cabinetTypeFinishesRes.data);
+        
+        // Extract unique door styles from cabinet type finishes
+        const uniqueDoorStyles = cabinetTypeFinishesRes.data
+          .map(ctf => ctf.door_style)
+          .filter((ds, index, array) => ds && array.findIndex(d => d?.id === ds?.id) === index)
+          .filter(Boolean);
+        
+        // Extract unique colors from cabinet type finishes  
+        const uniqueColors = cabinetTypeFinishesRes.data
+          .map(ctf => ctf.color)
+          .filter((c, index, array) => c && array.findIndex(col => col?.id === c?.id) === index)
+          .filter(Boolean);
+        
+        setDoorStyles(uniqueDoorStyles);
+        setColors(uniqueColors);
+        
+        // Auto-select first available options
+        if (uniqueDoorStyles.length > 0 && !selectedDoorStyle) {
+          setSelectedDoorStyle(uniqueDoorStyles[0].id);
+        }
+        if (uniqueColors.length > 0 && !selectedColor) {
+          setSelectedColor(uniqueColors[0].id);
+        }
+        if (finishesRes.data && finishesRes.data.length > 0 && !selectedFinish) {
+          setSelectedFinish(finishesRes.data[0].id);
         }
       }
-      if (doorStylesRes.data) {
-        setDoorStyles(doorStylesRes.data);
-        // Auto-select first door style
-        if (doorStylesRes.data.length > 0 && !selectedDoorStyle) {
-          setSelectedDoorStyle(doorStylesRes.data[0].id);
-        }
-      }
+      
       if (hardwareRequirementsRes.data) {
         // Set up default hardware selections
         const defaultSelections: Record<string, string> = {};
@@ -167,13 +180,6 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       }
       if (cabinetPartsRes.data) setCabinetParts(cabinetPartsRes.data);
       if (settingsRes.data) setGlobalSettings(settingsRes.data);
-      if (cabinetTypeFinishesRes.data) {
-        setCabinetTypeFinishes(cabinetTypeFinishesRes.data);
-        // Auto-select first finish
-        if (finishesRes.data && finishesRes.data.length > 0 && !selectedFinish) {
-          setSelectedFinish(finishesRes.data[0].id);
-        }
-      }
       
     } catch (error) {
       console.error('Error loading configurator data:', error);
