@@ -14,7 +14,7 @@ export function parseGlobalSettings(settings: GlobalSettings[]): PricingSettings
   }, {} as Record<string, number>);
 
   return {
-    hmrRate: settingsMap.hmr_rate_per_sqm || 85,
+    hmrRate: settingsMap.hmr_rate_per_sqm,
     hardwareBaseCost: settingsMap.hardware_base_cost || 45,
     gstRate: settingsMap.gst_rate || 0.1,
     wastageFactor: settingsMap.wastage_factor || 0.05,
