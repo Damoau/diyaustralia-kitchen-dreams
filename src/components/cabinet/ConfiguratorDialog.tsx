@@ -25,7 +25,9 @@ interface ConfiguratorDialogProps {
 }
 
 export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWidth }: ConfiguratorDialogProps) {
-  const [width, setWidth] = useState(initialWidth || cabinetType.default_width_mm);
+  // Use initialWidth if provided, otherwise default to price range minimum for consistency with static table
+  const defaultWidth = initialWidth || cabinetType.default_width_mm;
+  const [width, setWidth] = useState(defaultWidth);
   const [height, setHeight] = useState(cabinetType.default_height_mm);
   const [depth, setDepth] = useState(cabinetType.default_depth_mm);
   const [quantity, setQuantity] = useState(1);
@@ -48,7 +50,13 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   const [isLoading, setIsLoading] = useState(false);
   const { addToCart, isLoading: isAddingToCart } = useCart();
 
-  // Load data
+  // Reset dimensions when cabinet type changes to ensure consistency with static table
+  useEffect(() => {
+    const newDefaultWidth = initialWidth || cabinetType.default_width_mm;
+    setWidth(newDefaultWidth);
+    setHeight(cabinetType.default_height_mm);  
+    setDepth(cabinetType.default_depth_mm);
+  }, [cabinetType.id, initialWidth]);
   useEffect(() => {
     if (open) {
       loadData();
@@ -230,19 +238,19 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       sort_order: 0
     };
 
-    console.log('Using final color:', finalColor.name);
-
-    // Create door style finish object - use actual finish rate if selected, otherwise use door style base rate
+    
+    // Create door style finish object - match static table calculation  
     const selectedFinishObj = finishes.find(f => f.id === selectedFinish);
+    
+    // Use the same calculation as the static table for door style finish rate
     const doorStyleFinish = {
       id: selectedDoorStyle,
       name: doorStyle.name + ' Finish',
-      rate_per_sqm: selectedFinishObj?.rate_per_sqm || doorStyle.base_rate_per_sqm || 150,
+      rate_per_sqm: selectedFinishObj?.rate_per_sqm || 150, // Match static table default
       door_style_id: selectedDoorStyle,
       door_style: doorStyle,
       active: true,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
       sort_order: 0
     };
 
@@ -305,9 +313,9 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Configure Cabinet</DialogTitle>
+          <DialogTitle>Configure {cabinetType.name}</DialogTitle>
         </DialogHeader>
 
         {isLoading ? (
