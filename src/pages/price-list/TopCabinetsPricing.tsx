@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Home, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPrice } from "@/lib/pricing";
 import { pricingService } from "@/services/pricingService";
@@ -162,6 +163,13 @@ const TopCabinetsPricing = () => {
     }
   };
 
+  // Set first cabinet as default when cabinets load
+  useEffect(() => {
+    if (topCabinets && topCabinets.length > 0 && !selectedCabinetType) {
+      setSelectedCabinetType(topCabinets[0].id);
+    }
+  }, [topCabinets, selectedCabinetType]);
+
   // Trigger calculation when dependencies change
   useEffect(() => {
     if (selectedCabinetType && cabinetTypeFinishes && priceRanges && cabinetParts && globalSettings) {
@@ -193,38 +201,43 @@ const TopCabinetsPricing = () => {
           </div>
         </div>
 
-        {/* Cabinet Type Selection */}
+        {/* Cabinet Type Carousel */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Select Cabinet Type</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {loadingCabinets ? (
-                <div className="col-span-full flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                </div>
-              ) : (
-                topCabinets?.map((cabinet) => (
-                  <Card 
-                    key={cabinet.id}
-                    className={`cursor-pointer transition-all ${
-                      selectedCabinetType === cabinet.id 
-                        ? 'ring-2 ring-primary bg-primary/5' 
-                        : 'hover:shadow-md'
-                    }`}
-                    onClick={() => setSelectedCabinetType(cabinet.id)}
-                  >
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold text-foreground">{cabinet.name}</h3>
-                      {selectedCabinetType === cabinet.id && (
-                        <Badge className="mt-2" variant="default">Selected</Badge>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </div>
+            {loadingCabinets ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : topCabinets && topCabinets.length > 0 ? (
+              <Carousel className="w-full max-w-5xl mx-auto">
+                <CarouselContent>
+                  {topCabinets.map((cabinet) => (
+                    <CarouselItem key={cabinet.id} className="md:basis-1/2 lg:basis-1/3">
+                      <Card 
+                        className={`cursor-pointer transition-all h-full ${
+                          selectedCabinetType === cabinet.id 
+                            ? 'ring-2 ring-primary bg-primary/5' 
+                            : 'hover:shadow-md'
+                        }`}
+                        onClick={() => setSelectedCabinetType(cabinet.id)}
+                      >
+                        <CardContent className="p-4">
+                          <h3 className="font-semibold text-foreground">{cabinet.name}</h3>
+                          {selectedCabinetType === cabinet.id && (
+                            <Badge className="mt-2" variant="default">Selected</Badge>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+            ) : null}
           </CardContent>
         </Card>
 
@@ -233,7 +246,12 @@ const TopCabinetsPricing = () => {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Pricing Table</CardTitle>
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground mb-2">
+                    {topCabinets?.find(c => c.id === selectedCabinetType)?.name}
+                  </h2>
+                  <CardTitle>Pricing Table</CardTitle>
+                </div>
                 {isCalculating && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin" />
