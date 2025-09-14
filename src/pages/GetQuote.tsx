@@ -107,10 +107,14 @@ const GetQuote = () => {
               <div className="space-y-8 flex-1">
                 {processSteps.map((step, index) => (
                   <div key={index} className="relative flex items-start gap-6">
-                    {/* Timeline line segment */}
+                    {/* Timeline connecting line */}
                     {index < processSteps.length - 1 && (
-                      <div className="absolute left-1/2 transform -translate-x-1/2 top-16 w-0.5 h-8 bg-gradient-to-b from-primary to-primary/30" 
-                           style={{ left: '32px' }}></div>
+                      <div className="absolute w-0.5 bg-primary" 
+                           style={{ 
+                             left: '32px', 
+                             top: '64px', 
+                             height: '32px' 
+                           }}></div>
                     )}
                     
                     {/* Step icon */}
