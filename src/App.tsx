@@ -5,9 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import KitchenStyles from "./pages/KitchenStyles";
-import CabinetPrices from "./pages/CabinetPrices";
-import CabinetPricesNew from "./pages/CabinetPricesNew";
-import PricingOverview from "./pages/PricingOverview";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import Checkout from "./pages/Checkout";
@@ -34,10 +31,6 @@ const App = () => (
           <Route path="/get-quote" element={<GetQuote />} />
           <Route path="/manufacturing" element={<Manufacturing />} />
           <Route path="/kitchen-styles" element={<KitchenStyles />} />
-          <Route path="/cabinet-prices" element={<CabinetPrices />} />
-          <Route path="/cabinet-prices-new" element={<CabinetPricesNew />} />
-          <Route path="/base-cabinet-prices" element={<CabinetPricesNew />} />
-          <Route path="/pricing" element={<PricingOverview />} />
           <Route path="/auth" element={<Auth />} />
           <Route 
             path="/admin" 
