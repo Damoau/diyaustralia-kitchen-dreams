@@ -15,8 +15,6 @@ import { CabinetType } from '@/types/cabinet';
 
 const BaseCabinets = () => {
   const [selectedImage, setSelectedImage] = useState<string>('');
-  const [selectedCabinetType, setSelectedCabinetType] = useState<CabinetType | null>(null);
-  const [isConfiguratorOpen, setIsConfiguratorOpen] = useState(false);
   const [priceData, setPriceData] = useState<any>({});
 
   // Fetch base cabinet types
@@ -240,18 +238,6 @@ const BaseCabinets = () => {
                                           </span>
                                         </td>
                                       ))}
-                                      <td className="border border-border p-3 text-center">
-                                        <Button
-                                          size="sm"
-                                          onClick={() => {
-                                            setSelectedCabinetType(cabinetType);
-                                            setIsConfiguratorOpen(true);
-                                          }}
-                                          className="bg-primary hover:bg-primary/90"
-                                        >
-                                          Add to Cart
-                                        </Button>
-                                      </td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -264,7 +250,7 @@ const BaseCabinets = () => {
                             <p className="text-sm text-muted-foreground">
                               <strong>Note:</strong> Prices include GST and are updated automatically. 
                               All cabinets come with {cabinetType.door_count || 0} door(s) and {cabinetType.drawer_count || 0} drawer(s).
-                              Custom dimensions available - use "Add to Cart" to configure your exact requirements.
+                              Visit our <Link to="/shop" className="text-primary hover:underline">Shop</Link> to configure and purchase cabinets.
                             </p>
                           </div>
                         </>
@@ -302,15 +288,6 @@ const BaseCabinets = () => {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Cabinet Configurator */}
-      {selectedCabinetType && (
-        <ConfiguratorDialog
-          cabinetType={selectedCabinetType}
-          open={isConfiguratorOpen}
-          onOpenChange={setIsConfiguratorOpen}
-        />
-      )}
     </div>
   );
 };
