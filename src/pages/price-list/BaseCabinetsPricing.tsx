@@ -164,6 +164,14 @@ const BaseCabinetsPricing = () => {
           const height = selectedCabinet.default_height_mm || 720;
           const depth = selectedCabinet.default_depth_mm || 560;
 
+          // Get Black color (no surcharge) for consistent pricing with configurator
+          const blackColor = await supabase
+            .from('colors')
+            .select('*')
+            .eq('name', 'Black')
+            .eq('active', true)
+            .single();
+
           const price = pricingService.calculatePrice({
             cabinetType: selectedCabinet,
             width,
@@ -173,7 +181,7 @@ const BaseCabinetsPricing = () => {
             cabinetParts,
             globalSettings,
             doorStyle: finish.door_style,
-            color: null,
+            color: blackColor.data,
             hardwareBrandId: defaultHardwareBrandId,
             hardwareRequirements: hardwareRequirements || [],
             hardwareOptions: hardwareOptions || []
