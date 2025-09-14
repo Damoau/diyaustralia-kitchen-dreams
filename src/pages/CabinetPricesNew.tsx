@@ -15,6 +15,7 @@ import { calculateHardwareCost } from "@/lib/hardwarePricing";
 import { useCart } from "@/hooks/useCart";
 import { formatPrice } from "@/lib/pricing";
 import { useToast } from "@/hooks/use-toast";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { RefreshImagesButton } from "@/components/RefreshImagesButton";
 
 const CabinetPricesNew = () => {
@@ -274,34 +275,37 @@ const CabinetPricesNew = () => {
                   )}
                  </h2>
                  
-                 {/* Cabinet Type + Door Style Images */}
+                 {/* Cabinet Type + Door Style Images Carousel */}
                  {typeFinishes.some((ctf: any) => ctf.image_url) && (
-                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-                     {typeFinishes
-                       .filter((ctf: any) => ctf.image_url) // Only show finishes with images
-                       .map((ctf: any) => (
-                         <div key={ctf.id} className="relative group">
-                           <img 
-                             src={ctf.image_url} 
-                             alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
-                             className="w-full h-48 object-cover rounded-lg border shadow-sm"
-                             onError={(e) => {
-                               console.error('Image failed to load:', ctf.image_url);
-                               e.currentTarget.style.display = 'none';
-                             }}
-                           />
-                           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent rounded-b-lg p-3">
-                             <p className="text-white font-medium text-sm">
-                               {cabinetType.name}
-                             </p>
-                             <p className="text-white/90 text-xs">
-                               {ctf.door_style?.name}
-                               {ctf.door_style_finish?.name && ` - ${ctf.door_style_finish.name}`}
-                               {ctf.color && ` (${ctf.color.name})`}
-                             </p>
-                           </div>
-                         </div>
-                       ))}
+                   <div className="mb-8">
+                     <Carousel className="w-full max-w-5xl mx-auto">
+                       <CarouselContent className="-ml-2 md:-ml-4">
+                         {typeFinishes
+                           .filter((ctf: any) => ctf.image_url) // Only show finishes with images
+                           .map((ctf: any) => (
+                             <CarouselItem key={ctf.id} className="pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
+                               <div className="relative group">
+                                 <img 
+                                   src={ctf.image_url} 
+                                   alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
+                                   className="w-full h-48 object-cover rounded-lg border shadow-sm"
+                                   onError={(e) => {
+                                     console.error("Image failed to load:", ctf.image_url);
+                                     e.currentTarget.style.display = "none";
+                                   }}
+                                 />
+                                 <div className="absolute bottom-0 left-0 right-0 p-3">
+                                   <p className="text-center text-sm font-medium text-gray-800 bg-white/90 backdrop-blur-sm rounded px-2 py-1">
+                                     {ctf.door_style?.name}
+                                   </p>
+                                 </div>
+                               </div>
+                             </CarouselItem>
+                           ))}
+                       </CarouselContent>
+                       <CarouselPrevious />
+                       <CarouselNext />
+                     </Carousel>
                    </div>
                  )}
                  
