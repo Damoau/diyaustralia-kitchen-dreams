@@ -14,6 +14,7 @@ import { useCart } from '@/hooks/useCart';
 import { useDynamicPricing } from '@/hooks/useDynamicPricing';
 import { pricingService } from '@/services/pricingService';
 import { PriceBreakdown } from './PriceBreakdown';
+import { HardwareBrandSelector } from './HardwareBrandSelector';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
@@ -33,6 +34,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   
   const [selectedDoorStyle, setSelectedDoorStyle] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
+  const [selectedHardwareBrand, setSelectedHardwareBrand] = useState<string>('');
 
   const { addToCart, isLoading: isAddingToCart } = useCart();
 
@@ -52,7 +54,8 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
     doorStyleId: selectedDoorStyle,
     colorId: selectedColor,
     quantity,
-    refreshInterval: 5000 // Refresh every 5 seconds for real-time updates
+    refreshInterval: 5000, // Refresh every 5 seconds for real-time updates
+    hardwareBrandId: selectedHardwareBrand
   });
 
   // Auto-select first available options when data loads
@@ -75,6 +78,13 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   const handleAddToCart = async () => {
     const selectedDoorStyleObj = cabinetTypeFinishes?.find(f => f.door_style?.id === selectedDoorStyle)?.door_style;
     const selectedColorObj = availableColors?.find(c => c.id === selectedColor);
+    
+    // Get selected hardware brand
+    const { data: hardwareBrandObj } = await supabase
+      .from('hardware_brands')
+      .select('*')
+      .eq('id', selectedHardwareBrand)
+      .single();
 
     const configuration = {
       cabinetType,
@@ -85,7 +95,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       doorStyle: selectedDoorStyleObj,
       color: selectedColorObj,
       finish: null, // Not using separate finishes anymore
-      hardwareBrand: null
+      hardwareBrand: hardwareBrandObj
     };
 
     try {
@@ -300,6 +310,16 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                 </div>
               </div>
 
+              {/* Hardware Brand Selection */}
+              <div>
+                <HardwareBrandSelector
+                  cabinetType={cabinetType}
+                  selectedBrandId={selectedHardwareBrand}
+                  onBrandChange={setSelectedHardwareBrand}
+                  quantity={quantity}
+                />
+              </div>
+
               {/* Price Display */}
               <Card className="bg-primary/5 border-primary/20">
                 <CardContent className="p-4">
@@ -353,7 +373,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                           door_style: availableDoorStyles.find(s => s.id === selectedDoorStyle)
                         }}
                         color={availableColors?.find(c => c.id === selectedColor)}
-                        hardwareCost={45}
+                        hardwareCost={0} // Hardware cost will be calculated by the new component
                         totalPrice={price}
                       />
                     </div>
@@ -387,7 +407,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
 
                 <Button
                   onClick={handleAddToCart}
-                  disabled={isAddingToCart || !selectedDoorStyle}
+                  disabled={isAddingToCart || !selectedDoorStyle || !selectedHardwareBrand}
                   className="min-w-32"
                 >
                   {isAddingToCart ? (

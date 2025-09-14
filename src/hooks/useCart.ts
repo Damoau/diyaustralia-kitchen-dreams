@@ -138,6 +138,7 @@ export function useCart() {
           carcassCost: cutlist.carcassCost,
           doorCost: cutlist.doorCost,
           hardwareCost: cutlist.hardwareCost,
+          hardwareBrandId: configuration.hardwareBrand?.id,
         }),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

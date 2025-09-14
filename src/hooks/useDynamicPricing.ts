@@ -12,6 +12,7 @@ interface UseDynamicPricingProps {
   colorId?: string;
   quantity?: number;
   refreshInterval?: number;
+  hardwareBrandId?: string;
 }
 
 export const useDynamicPricing = ({
@@ -22,7 +23,8 @@ export const useDynamicPricing = ({
   doorStyleId,
   colorId,
   quantity = 1,
-  refreshInterval = 0
+  refreshInterval = 0,
+  hardwareBrandId
 }: UseDynamicPricingProps = {}) => {
 
   // Fetch cabinet type

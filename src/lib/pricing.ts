@@ -79,7 +79,7 @@ export function generateCutlist(
     hardwareRequirements.forEach(req => {
       const option = hardwareOptions.find(opt => 
         opt.requirement_id === req.id && 
-        opt.hardware_brand_id === configuration.hardwareBrand
+        opt.hardware_brand_id === configuration.hardwareBrand?.id
       );
       
       if (option && option.hardware_product) {

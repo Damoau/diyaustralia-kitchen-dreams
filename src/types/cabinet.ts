@@ -228,7 +228,7 @@ export interface CabinetConfiguration {
   finish?: Finish;
   color?: Color;
   doorStyle?: DoorStyle;
-  hardwareBrand?: string;
+  hardwareBrand?: HardwareBrand;
 }
 
 export interface PartCutlist {
