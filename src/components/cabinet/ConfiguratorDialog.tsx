@@ -156,7 +156,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
-            Configure {cabinetType.name}
+            {cabinetType.name}
           </DialogTitle>
         </DialogHeader>
 
@@ -203,6 +203,9 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   <p className="text-xs text-muted-foreground mt-1">
                     {cabinetType.min_width_mm || 100}-{cabinetType.max_width_mm || 2000}
                   </p>
+                  {(width < (cabinetType.min_width_mm || 100) || width > (cabinetType.max_width_mm || 2000)) && (
+                    <p className="text-xs text-destructive mt-1">Outside range</p>
+                  )}
                 </div>
                 <div>
                   <Label className="text-xs">Height (mm)</Label>
@@ -217,6 +220,9 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   <p className="text-xs text-muted-foreground mt-1">
                     {cabinetType.min_height_mm || 100}-{cabinetType.max_height_mm || 3000}
                   </p>
+                  {(height < (cabinetType.min_height_mm || 100) || height > (cabinetType.max_height_mm || 3000)) && (
+                    <p className="text-xs text-destructive mt-1">Outside range</p>
+                  )}
                 </div>
                 <div>
                   <Label className="text-xs">Depth (mm)</Label>
@@ -231,6 +237,9 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   <p className="text-xs text-muted-foreground mt-1">
                     {cabinetType.min_depth_mm || 100}-{cabinetType.max_depth_mm || 1000}
                   </p>
+                  {(depth < (cabinetType.min_depth_mm || 100) || depth > (cabinetType.max_depth_mm || 1000)) && (
+                    <p className="text-xs text-destructive mt-1">Outside range</p>
+                  )}
                 </div>
               </div>
 
