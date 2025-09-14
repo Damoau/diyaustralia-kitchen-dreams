@@ -312,6 +312,17 @@ export const useDynamicPricing = ({
         return 0;
       }
 
+      // Find door style and color from available data if different IDs are provided
+      const targetDoorStyle = params.doorStyleId ? 
+        cabinetTypeFinishes?.find(f => f.door_style?.id === params.doorStyleId)?.door_style || 
+        (params.doorStyleId === doorStyleId ? doorStyle : null) : 
+        doorStyle;
+      
+      const targetColor = params.colorId ?
+        cabinetTypeFinishes?.find(f => f.color?.id === params.colorId)?.color ||
+        (params.colorId === colorId ? color : null) :
+        color;
+
       return pricingService.calculatePrice({
         cabinetType,
         width: params.width || width,
@@ -319,8 +330,8 @@ export const useDynamicPricing = ({
         depth: params.depth || depth,
         cabinetParts,
         globalSettings,
-        doorStyle: params.doorStyleId === doorStyleId ? doorStyle : null,
-        color: params.colorId === colorId ? color : null,
+        doorStyle: targetDoorStyle,
+        color: targetColor,
         quantity: params.quantity || quantity,
         hardwareBrandId: params.hardwareBrandId || hardwareBrandId,
         hardwareRequirements: hardwareRequirements || [],
