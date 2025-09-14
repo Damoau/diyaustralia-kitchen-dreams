@@ -351,52 +351,140 @@ const BaseCabinetsPricing = () => {
           </Card>
         )}
 
-        {/* Door Style Finishes Carousel */}
-        {selectedCabinetType && debugData?.finishes && debugData.finishes.length > 0 && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Available Door Styles for {baseCabinets?.find(c => c.id === selectedCabinetType)?.name}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Carousel className="w-full">
-                <CarouselContent className="-ml-2 md:-ml-4">
-                  {debugData.finishes.map((finish: any) => (
-                    <CarouselItem key={finish.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-                      <Card 
-                        className="cursor-pointer transition-all duration-200 hover:shadow-md hover:ring-1 hover:ring-primary/50 overflow-hidden hover-scale"
-                        onClick={() => finish.image_url && setEnlargedImage({
-                          url: finish.image_url,
-                          name: finish.door_style?.name || 'Door Style'
-                        })}
-                      >
-                        <div className="relative aspect-[4/3] w-full">
-                          {finish.image_url ? (
-                            <img 
-                              src={finish.image_url} 
-                              alt={finish.door_style?.name || 'Door Style'}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-muted flex items-center justify-center">
-                              <Package className="h-12 w-12 text-muted-foreground" />
+        {/* Selected Cabinet Section */}
+        {selectedCabinetType && (
+          <div className="space-y-8">
+            {/* Cabinet Name Header */}
+            <div className="text-center">
+              <h2 className="text-4xl font-bold text-foreground">
+                {baseCabinets?.find(c => c.id === selectedCabinetType)?.name}
+              </h2>
+              <p className="text-muted-foreground mt-2">
+                {baseCabinets?.find(c => c.id === selectedCabinetType)?.short_description}
+              </p>
+            </div>
+
+            {/* Door Style Finishes Carousel */}
+            {debugData?.finishes && debugData.finishes.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Available Door Styles</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Carousel className="w-full">
+                    <CarouselContent className="-ml-2 md:-ml-4">
+                      {debugData.finishes.map((finish: any) => (
+                        <CarouselItem key={finish.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                          <Card 
+                            className="cursor-pointer transition-all duration-200 hover:shadow-md hover:ring-1 hover:ring-primary/50 overflow-hidden hover-scale"
+                            onClick={() => finish.image_url && setEnlargedImage({
+                              url: finish.image_url,
+                              name: finish.door_style?.name || 'Door Style'
+                            })}
+                          >
+                            <div className="relative aspect-[4/3] w-full">
+                              {finish.image_url ? (
+                                <img 
+                                  src={finish.image_url} 
+                                  alt={finish.door_style?.name || 'Door Style'}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-muted flex items-center justify-center">
+                                  <Package className="h-12 w-12 text-muted-foreground" />
+                                </div>
+                              )}
+                              {/* Text overlay at bottom - black text with drop shadow, no white box */}
+                              <div className="absolute bottom-0 left-0 right-0 p-3">
+                                <h3 className="font-semibold text-center text-sm text-black drop-shadow-md">
+                                  {finish.door_style?.name}
+                                </h3>
+                              </div>
                             </div>
-                          )}
-                          {/* Text overlay at bottom - black text only */}
-                          <div className="absolute bottom-0 left-0 right-0 p-3">
-                            <h3 className="font-semibold text-center text-sm text-black bg-white/90 rounded px-2 py-1 mx-auto w-fit">
-                              {finish.door_style?.name}
-                            </h3>
-                          </div>
-                        </div>
-                      </Card>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
-            </CardContent>
-          </Card>
+                          </Card>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious />
+                    <CarouselNext />
+                  </Carousel>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Pricing Table */}
+            <Card key={`pricing-${selectedCabinetType}-${Date.now()}`}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Pricing Table</CardTitle>
+                  {isCalculating && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Calculating prices...
+                    </div>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {loadingCabinets ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                  </div>
+                ) : doorStyles.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No door styles configured for this cabinet type
+                  </div>
+                ) : debugData?.ranges?.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No price ranges configured for this cabinet type
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-3 font-semibold">Size Range</th>
+                          {doorStyles.map((style) => (
+                            <th key={style.id} className="text-center p-3 font-semibold min-w-[120px]">
+                              {style.name}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {debugData?.ranges?.map((range: PriceRange) => (
+                          <tr key={range.id} className="border-b hover:bg-muted/50">
+                            <td className="p-3">
+                              <div className="font-medium">{range.label}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {range.min_width_mm}mm - {range.max_width_mm}mm
+                              </div>
+                            </td>
+                            {doorStyles.map((style) => (
+                              <td key={style.id} className="text-center p-3">
+                                {priceData[selectedCabinetType]?.[style.id]?.[range.id] ? (
+                                  <div>
+                                    <span className="font-semibold text-primary block">
+                                      {formatPrice(priceData[selectedCabinetType][style.id][range.id])}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      Rate: ${style.base_rate_per_sqm}/m²
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground">-</span>
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {/* Enlarged Image Modal */}
@@ -423,86 +511,6 @@ const BaseCabinetsPricing = () => {
               </button>
             </div>
           </div>
-        )}
-
-        {/* Pricing Table */}
-        {selectedCabinetType && (
-          <Card key={`pricing-${selectedCabinetType}-${Date.now()}`}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground mb-2">
-                    {baseCabinets?.find(c => c.id === selectedCabinetType)?.name}
-                  </h2>
-                  <CardTitle>Pricing Table - CACHE BUST: {Date.now()}</CardTitle>
-                </div>
-                {isCalculating && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Calculating prices...
-                  </div>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loadingCabinets ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                </div>
-              ) : doorStyles.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  No door styles configured for this cabinet type
-                </div>
-              ) : debugData?.ranges?.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  No price ranges configured for this cabinet type
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-3 font-semibold">Size Range</th>
-                        {doorStyles.map((style) => (
-                          <th key={style.id} className="text-center p-3 font-semibold min-w-[120px]">
-                            {style.name}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {debugData?.ranges?.map((range: PriceRange) => (
-                        <tr key={range.id} className="border-b hover:bg-muted/50">
-                          <td className="p-3">
-                            <div className="font-medium">{range.label}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {range.min_width_mm}mm - {range.max_width_mm}mm
-                            </div>
-                          </td>
-                          {doorStyles.map((style) => (
-                            <td key={style.id} className="text-center p-3">
-                              {priceData[selectedCabinetType]?.[style.id]?.[range.id] ? (
-                                <div>
-                                  <span className="font-semibold text-primary block">
-                                    {formatPrice(priceData[selectedCabinetType][style.id][range.id])}
-                                  </span>
-                                  <span className="text-xs text-muted-foreground">
-                                    Rate: ${style.base_rate_per_sqm}/m²
-                                  </span>
-                                </div>
-                              ) : (
-                                <span className="text-muted-foreground">-</span>
-                              )}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
         )}
 
         {/* Price Calculation Breakdown - FORCE REFRESH */}
