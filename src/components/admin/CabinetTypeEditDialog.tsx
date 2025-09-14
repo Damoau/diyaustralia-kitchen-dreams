@@ -56,6 +56,7 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   useEffect(() => {
     if (cabinetType) {
@@ -150,34 +151,62 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        toast({
-          title: "Error",
-          description: "Please select an image file",
-          variant: "destructive",
-        });
-        return;
-      }
+      processImageFile(file);
+    }
+  };
 
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "Error",
-          description: "Image size must be less than 5MB",
-          variant: "destructive",
-        });
-        return;
-      }
+  const processImageFile = (file: File) => {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return;
+    }
 
-      setImageFile(file);
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Error", 
+        description: "Image size must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setImageFile(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      processImageFile(file);
     }
   };
 
@@ -277,8 +306,28 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
                             </Button>
                           </div>
                         ) : (
-                          <div className="w-32 h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center">
-                            <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
+                          <div 
+                            className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all ${
+                              isDragOver 
+                                ? 'border-primary bg-primary/5 scale-105' 
+                                : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/20'
+                            }`}
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                            onDrop={handleDrop}
+                            onClick={() => document.getElementById('image-upload')?.click()}
+                          >
+                            <Upload className={`h-8 w-8 mb-2 transition-colors ${
+                              isDragOver ? 'text-primary' : 'text-muted-foreground/50'
+                            }`} />
+                            <p className={`text-sm font-medium transition-colors ${
+                              isDragOver ? 'text-primary' : 'text-muted-foreground'
+                            }`}>
+                              {isDragOver ? 'Drop image here' : 'Drag & drop or click to upload'}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              JPG, PNG, WEBP up to 5MB
+                            </p>
                           </div>
                         )}
                         
@@ -290,20 +339,18 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
                             className="hidden"
                             id="image-upload"
                           />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => document.getElementById('image-upload')?.click()}
-                            disabled={uploadingImage}
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            {uploadingImage ? 'Uploading...' : 'Upload Image'}
-                          </Button>
+                          {imagePreview && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => document.getElementById('image-upload')?.click()}
+                              disabled={uploadingImage}
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              {uploadingImage ? 'Uploading...' : 'Change Image'}
+                            </Button>
+                          )}
                         </div>
-                        
-                        <p className="text-xs text-muted-foreground">
-                          Recommended: Square image, max 5MB (JPG, PNG, WEBP)
-                        </p>
                       </div>
                     </CardContent>
                   </Card>
