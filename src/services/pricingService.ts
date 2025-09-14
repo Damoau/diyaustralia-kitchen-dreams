@@ -31,7 +31,6 @@ interface PriceBreakdown {
     styleRate: number;
     finishRate: number;
     colorSurcharge: number;
-    carcassComponent: number;
     totalRate: number;
     area: number;
     total: number;
@@ -115,7 +114,6 @@ class PricingService {
       styleRate: doorStyle?.base_rate_per_sqm || 0,
       finishRate: 0,
       colorSurcharge: color?.surcharge_rate_per_sqm || 0,
-      carcassComponent: settings.hmrRate,
       totalRate: 0,
       area: 0,
       total: 0
@@ -123,7 +121,7 @@ class PricingService {
 
     if (quantities.doors > 0) {
       doorCosts.area = (width * height / 1000000) * quantities.doors;
-      doorCosts.totalRate = doorCosts.styleRate + doorCosts.finishRate + doorCosts.colorSurcharge + doorCosts.carcassComponent;
+      doorCosts.totalRate = doorCosts.styleRate + doorCosts.finishRate + doorCosts.colorSurcharge;
       doorCosts.total = doorCosts.area * doorCosts.totalRate * settings.wastageFactor;
     }
 

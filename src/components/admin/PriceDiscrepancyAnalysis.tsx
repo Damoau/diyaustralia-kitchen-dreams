@@ -49,8 +49,7 @@ export const PriceDiscrepancyAnalysis = () => {
     const doorStyleRate = 0;
     const finishRate = 0;
     const colorSurcharge = 0;
-    const carcassMaterialRate = actualData.settings.hmrRate * 0.2; // 20% of HMR
-    const totalDoorRate = doorStyleRate + finishRate + colorSurcharge + carcassMaterialRate;
+    const totalDoorRate = doorStyleRate + finishRate + colorSurcharge;
     const doorCost = (dimensions.widthM * dimensions.heightM) * actualData.cabinet.door_qty * totalDoorRate;
     
     const hardwareCost = actualData.settings.hardwareBaseCost;

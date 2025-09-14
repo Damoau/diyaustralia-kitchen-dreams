@@ -35,7 +35,7 @@ export const PolyPricingBreakdown = () => {
   const bottomCost = (widthM * depthM) * cabinetData.bottoms_qty * pricingData.hmrRate;
   const sideCost = (depthM * heightM) * cabinetData.sides_qty * pricingData.hmrRate;
   
-  const totalDoorRate = pricingData.doorStyleRate + pricingData.doorFinishRate + pricingData.defaultColorSurcharge + pricingData.carcassMaterialRate;
+  const totalDoorRate = pricingData.doorStyleRate + pricingData.doorFinishRate + pricingData.defaultColorSurcharge;
   const doorCost = (widthM * heightM) * cabinetData.door_qty * totalDoorRate;
   
   const hardwareCost = pricingData.hardwareBaseCost;
@@ -112,7 +112,6 @@ export const PolyPricingBreakdown = () => {
                 <div>• Door Style (Poly): ${pricingData.doorStyleRate}/m²</div>
                 <div>• Door Finish: ${pricingData.doorFinishRate}/m²</div>
                 <div>• Color (Black - First/Default): ${pricingData.defaultColorSurcharge}/m²</div>
-                <div>• Carcass Material: ${pricingData.carcassMaterialRate}/m²</div>
                 <div><strong>Total Door Rate: ${totalDoorRate}/m²</strong></div>
               </div>
               <div>({widthM.toFixed(3)}m × {heightM.toFixed(3)}m) × {cabinetData.door_qty} × ${totalDoorRate}</div>

@@ -44,8 +44,7 @@ export const ActualFrontendCalculation = () => {
     const doorStyleRate = 0; // No door style configured
     const finishRate = 0; // No finish configured
     const colorSurcharge = 0; // No color configured
-    const carcassMaterialRate = settings.hmrRate * 0.2; // 20% of HMR rate
-    const totalDoorRate = doorStyleRate + finishRate + colorSurcharge + carcassMaterialRate;
+    const totalDoorRate = doorStyleRate + finishRate + colorSurcharge;
     const doorCost = (widthM * heightM) * cabinetData.door_qty * totalDoorRate;
     
     const hardwareCost = settings.hardwareBaseCost;
