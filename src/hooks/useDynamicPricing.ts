@@ -236,6 +236,9 @@ export const useDynamicPricing = ({
         doorStyle: doorStyle?.name,
         color: color?.name,
         quantity,
+        hardwareBrandId,
+        hardwareRequirementsCount: hardwareRequirements?.length || 0,
+        hardwareOptionsCount: hardwareOptions?.length || 0,
         calculatedPrice: price
       });
 

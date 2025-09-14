@@ -100,6 +100,17 @@ class PricingService {
       hardwareOptions = []
     } = params;
 
+    console.log('PricingService.calculatePrice called with:', {
+      cabinetType: cabinetType.name,
+      dimensions: { width, height, depth },
+      doorStyle: doorStyle?.name,
+      color: color?.name,
+      quantity,
+      hardwareBrandId,
+      hardwareRequirementsCount: hardwareRequirements?.length || 0,
+      hardwareOptionsCount: hardwareOptions?.length || 0
+    });
+
     const quantities = this.calculatePartQuantities(cabinetParts, cabinetType);
     const settings = this.parseGlobalSettings(globalSettings);
 
@@ -172,6 +183,16 @@ class PricingService {
       dimensions: { width, height, depth },
       quantities
     };
+
+    console.log('PricingService final calculation:', {
+      carcassCosts: carcassCosts.total,
+      doorCosts: doorCosts.total, 
+      hardwareCost,
+      subtotal,
+      gst,
+      finalTotal,
+      roundedTotal: Math.round(finalTotal)
+    });
 
     return Math.round(finalTotal);
   }

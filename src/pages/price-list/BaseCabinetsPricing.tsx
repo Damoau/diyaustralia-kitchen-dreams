@@ -179,6 +179,17 @@ const BaseCabinetsPricing = () => {
             hardwareOptions: hardwareOptions || []
           });
 
+          console.log('Price List calculation for range:', {
+            cabinetName: selectedCabinet.name,
+            doorStyle: finish.door_style.name,
+            width,
+            height,
+            depth,
+            hardwareBrandId: defaultHardwareBrandId,
+            hardwareBrand: titusBrand?.name,
+            calculatedPrice: price
+          });
+
           newPriceData[selectedCabinetType][finish.door_style.id][range.id] = price;
         }
       }
