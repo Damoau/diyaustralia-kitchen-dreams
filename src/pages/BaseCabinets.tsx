@@ -120,7 +120,7 @@ const BaseCabinets = () => {
                 const doorStyleFinish = finish.door_style_finish || {
                   id: finish.id,
                   name: (finish.door_style?.name ? finish.door_style.name + ' Finish' : 'Standard Finish'),
-                  rate_per_sqm: 150, // Default rate
+                  rate_per_sqm: finish.door_style?.base_rate_per_sqm || 150, // Use actual door style rate
                   door_style_id: finish.door_style?.id || null,
                   door_style: finish.door_style
                 };
