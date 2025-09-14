@@ -276,11 +276,11 @@ const CabinetPricesNew = () => {
                            <CarouselItem className="pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
                              <Dialog>
                                <DialogTrigger asChild>
-                                 <div className="relative group cursor-pointer hover:opacity-90 transition-opacity bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                                 <div className="relative group cursor-pointer hover:opacity-90 transition-opacity bg-white rounded-lg p-4 shadow-sm">
                                    <img 
                                      src={cabinetType.product_image_url} 
                                      alt={`${cabinetType.name} Cabinet`}
-                                     className="w-full h-48 object-contain rounded-lg"
+                                     className="w-full h-48 object-contain rounded-lg border border-gray-200"
                                      style={{ imageRendering: 'crisp-edges' }}
                                      onError={(e) => {
                                        console.error("Cabinet image failed to load:", cabinetType.product_image_url);
@@ -315,12 +315,12 @@ const CabinetPricesNew = () => {
                            <CarouselItem key={ctf.id} className="pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
                              <Dialog>
                                <DialogTrigger asChild>
-                                 <div className="relative group cursor-pointer hover:opacity-90 transition-opacity bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                                 <div className="relative group cursor-pointer hover:opacity-90 transition-opacity bg-white rounded-lg p-4 shadow-sm">
                                    {ctf.image_url ? (
                                      <img 
                                        src={ctf.image_url} 
                                        alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
-                                       className="w-full h-48 object-contain rounded-lg"
+                                       className="w-full h-48 object-contain rounded-lg border border-gray-200"
                                        style={{ imageRendering: 'crisp-edges' }}
                                        onError={(e) => {
                                          console.error("Finish image failed to load:", ctf.image_url);
@@ -328,7 +328,7 @@ const CabinetPricesNew = () => {
                                        }}
                                      />
                                    ) : (
-                                     <div className="w-full h-48 bg-muted/30 rounded-lg flex items-center justify-center">
+                                     <div className="w-full h-48 bg-muted/30 rounded-lg border border-gray-200 flex items-center justify-center">
                                        <span className="text-sm text-muted-foreground">No Image</span>
                                      </div>
                                    )}
