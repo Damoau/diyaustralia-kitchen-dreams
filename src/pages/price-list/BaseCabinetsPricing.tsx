@@ -22,7 +22,6 @@ interface PriceRange {
   label: string;
   min_width_mm: number;
   max_width_mm: number;
-  sort_order: number;
 }
 
 interface PriceData {
@@ -43,6 +42,7 @@ const BaseCabinetsPricing = () => {
 
   // Clear all cached data when component mounts
   useEffect(() => {
+    console.log('🗑️ CLEARING ALL CACHE');
     queryClient.clear();
     setPriceData({});
     setDebugData(null);
@@ -63,13 +63,25 @@ const BaseCabinetsPricing = () => {
     }
   });
 
-  // Fetch cabinet type finishes for selected cabinet
-  const { data: cabinetTypeFinishes, isLoading: loadingFinishes } = useQuery({
-    queryKey: ['cabinet-type-finishes', selectedCabinetType],
-    queryFn: async () => {
-      if (!selectedCabinetType) return [];
-      console.log('🔍 FETCHING FINISHES FOR:', selectedCabinetType);
-      const { data, error } = await supabase
+  // Calculate prices COMPLETELY FRESH - no dependencies on React Query
+  const calculatePricesFromScratch = async () => {
+    if (!selectedCabinetType) return;
+    
+    console.log('🔥 COMPLETE FRESH CALCULATION START');
+    setIsCalculating(true);
+    
+    try {
+      // 1. Get selected cabinet fresh
+      const { data: cabinets } = await supabase
+        .from('cabinet_types')
+        .select('*')
+        .eq('id', selectedCabinetType)
+        .single();
+
+      console.log('📦 FRESH CABINET:', cabinets);
+
+      // 2. Get finishes fresh
+      const { data: freshFinishes } = await supabase
         .from('cabinet_type_finishes')
         .select(`
           *,
@@ -78,183 +90,110 @@ const BaseCabinetsPricing = () => {
         .eq('cabinet_type_id', selectedCabinetType)
         .eq('active', true)
         .order('sort_order');
-      if (error) throw error;
-      console.log('📦 FINISHES DATA:', data?.map(f => ({ 
-        id: f.id, 
-        doorStyle: f.door_style?.name, 
-        rate: f.door_style?.base_rate_per_sqm 
-      })));
-      return data;
-    },
-    enabled: !!selectedCabinetType
-  });
 
-  // Fetch price ranges for selected cabinet
-  const { data: priceRanges, isLoading: loadingRanges } = useQuery({
-    queryKey: ['price-ranges', selectedCabinetType],
-    queryFn: async () => {
-      if (!selectedCabinetType) return [];
-      const { data, error } = await supabase
+      console.log('🚪 FRESH DOOR STYLES:', freshFinishes?.map(f => ({
+        name: f.door_style?.name,
+        rate: f.door_style?.base_rate_per_sqm
+      })));
+
+      // 3. Get price ranges fresh
+      const { data: freshRanges } = await supabase
         .from('cabinet_type_price_ranges')
         .select('*')
         .eq('cabinet_type_id', selectedCabinetType)
         .eq('active', true)
         .order('sort_order');
-      if (error) throw error;
-      return data as PriceRange[];
-    },
-    enabled: !!selectedCabinetType
-  });
 
-  // Fetch additional required data
-  const { data: cabinetParts } = useQuery({
-    queryKey: ['cabinet-parts', selectedCabinetType],
-    queryFn: async () => {
-      if (!selectedCabinetType) return [];
-      const { data, error } = await supabase
+      // 4. Get cabinet parts fresh
+      const { data: freshParts } = await supabase
         .from('cabinet_parts')
         .select('*')
         .eq('cabinet_type_id', selectedCabinetType);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!selectedCabinetType
-  });
 
-  const { data: globalSettings } = useQuery({
-    queryKey: ['global-settings'],
-    queryFn: async () => {
-      const { data, error } = await supabase
+      // 5. Get global settings fresh
+      const { data: freshSettings } = await supabase
         .from('global_settings')
         .select('*');
-      if (error) throw error;
-      return data;
-    }
-  });
 
-  // Calculate prices when data is available
-  const calculatePrices = async () => {
-    if (!selectedCabinetType || !priceRanges || !cabinetParts || !globalSettings) return;
+      // 6. Get hardware data fresh
+      const { data: hardwareBrands } = await supabase
+        .from('hardware_brands')
+        .select('*')
+        .eq('active', true);
+      
+      const titusBrand = hardwareBrands?.find(brand => brand.name === 'Titus');
+      const defaultHardwareBrandId = titusBrand?.id || null;
 
-    console.log('=== CALCULATE PRICES START ===');
-    console.log('Selected cabinet type ID:', selectedCabinetType);
+      const { data: hardwareRequirements } = await supabase
+        .from('cabinet_hardware_requirements')
+        .select('*')
+        .eq('cabinet_type_id', selectedCabinetType)
+        .eq('active', true);
 
-    // BYPASS REACT QUERY - Fetch fresh data directly
-    const { data: freshFinishes, error: finishError } = await supabase
-      .from('cabinet_type_finishes')
-      .select(`
-        *,
-        door_style:door_styles(*)
-      `)
-      .eq('cabinet_type_id', selectedCabinetType)
-      .eq('active', true)
-      .order('sort_order');
+      const { data: hardwareOptions } = await supabase
+        .from('cabinet_hardware_options')
+        .select(`
+          *,
+          hardware_product:hardware_products(*)
+        `)
+        .eq('active', true);
 
-    if (finishError) {
-      console.error('Error fetching fresh finishes:', finishError);
-      return;
-    }
+      // 7. Get Black color fresh
+      const { data: blackColor } = await supabase
+        .from('colors')
+        .select('*')
+        .eq('name', 'Black')
+        .eq('active', true)
+        .single();
 
-    console.log('🔥 BYPASSED CACHE - FRESH FINISHES:', freshFinishes?.map(f => ({ 
-      id: f.id, 
-      doorStyle: f.door_style?.name, 
-      rate: f.door_style?.base_rate_per_sqm 
-    })));
+      console.log('🎨 BLACK COLOR DATA:', blackColor);
 
-    setIsCalculating(true);
-    const newPriceData: PriceData = {};
-    newPriceData[selectedCabinetType] = {};
+      // 8. Calculate prices with fresh data
+      const newPriceData: PriceData = {};
+      newPriceData[selectedCabinetType] = {};
 
-    const selectedCabinet = baseCabinets?.find(c => c.id === selectedCabinetType);
-    if (!selectedCabinet) return;
-
-    // Get Titus hardware brand ID for consistent pricing
-    const { data: hardwareBrands } = await supabase
-      .from('hardware_brands')
-      .select('*')
-      .eq('active', true);
-    
-    const titusBrand = hardwareBrands?.find(brand => brand.name === 'Titus');
-    const defaultHardwareBrandId = titusBrand?.id || null;
-
-    // Get hardware requirements and options for pricing calculation
-    const { data: hardwareRequirements } = await supabase
-      .from('cabinet_hardware_requirements')
-      .select('*')
-      .eq('cabinet_type_id', selectedCabinetType)
-      .eq('active', true);
-
-    const { data: hardwareOptions } = await supabase
-      .from('cabinet_hardware_options')
-      .select(`
-        *,
-        hardware_product:hardware_products(*)
-      `)
-      .eq('active', true);
-
-    try {
       for (const finish of freshFinishes || []) {
         if (!finish.door_style) continue;
         
-        console.log('💰 PROCESSING FINISH:', finish.door_style.name, 'Rate:', finish.door_style.base_rate_per_sqm);
+        console.log('💰 CALCULATING FOR DOOR STYLE:', finish.door_style.name, 'RATE:', finish.door_style.base_rate_per_sqm);
         newPriceData[selectedCabinetType][finish.door_style.id] = {};
 
-        for (const range of priceRanges) {
-          // Use middle of the range for calculation
+        for (const range of freshRanges || []) {
           const width = (range.min_width_mm + range.max_width_mm) / 2;
-          const height = selectedCabinet.default_height_mm || 720;
-          const depth = selectedCabinet.default_depth_mm || 560;
+          const height = cabinets?.default_height_mm || 720;
+          const depth = cabinets?.default_depth_mm || 560;
 
-          // Get Black color (no surcharge) for consistent pricing with configurator
-          const blackColor = await supabase
-            .from('colors')
-            .select('*')
-            .eq('name', 'Black')
-            .eq('active', true)
-            .single();
-
-          console.log('Price calculation inputs:', {
-            cabinetName: selectedCabinet.name,
-            doorStyleName: finish.door_style.name,
-            doorStyleRate: finish.door_style.base_rate_per_sqm,
-            blackColorSurcharge: blackColor.data?.surcharge_rate_per_sqm || 0,
+          const price = pricingService.calculatePrice({
+            cabinetType: cabinets as CabinetType,
             width,
             height,
             depth,
-            hardwareBrandId: defaultHardwareBrandId
-          });
-
-          const price = pricingService.calculatePrice({
-            cabinetType: selectedCabinet,
-            width,
-            height, 
-            depth,
             quantity: 1,
-            cabinetParts,
-            globalSettings,
+            cabinetParts: freshParts || [],
+            globalSettings: freshSettings || [],
             doorStyle: finish.door_style,
-            color: blackColor.data,
+            color: blackColor,
             hardwareBrandId: defaultHardwareBrandId,
             hardwareRequirements: hardwareRequirements || [],
             hardwareOptions: hardwareOptions || []
           });
 
-          console.log('Price List calculation for range:', {
-            cabinetName: selectedCabinet.name,
-            doorStyle: finish.door_style.name,
-            width,
-            height,
-            depth,
-            hardwareBrandId: defaultHardwareBrandId,
-            hardwareBrand: titusBrand?.name,
-            calculatedPrice: price
-          });
-
+          console.log(`💵 PRICE FOR ${finish.door_style.name} ${width}mm: $${price}`);
           newPriceData[selectedCabinetType][finish.door_style.id][range.id] = price;
         }
       }
 
       setPriceData(newPriceData);
+      setDebugData({
+        cabinet: cabinets,
+        finishes: freshFinishes,
+        ranges: freshRanges,
+        parts: freshParts,
+        settings: freshSettings
+      });
+
+    } catch (error) {
+      console.error('❌ FRESH CALCULATION ERROR:', error);
     } finally {
       setIsCalculating(false);
     }
@@ -273,139 +212,6 @@ const BaseCabinetsPricing = () => {
   useEffect(() => {
     if (selectedCabinetType) {
       console.log('🔄 CABINET TYPE CHANGED - STARTING FRESH CALCULATION');
-      const calculatePricesFromScratch = async () => {
-        console.log('🔥 COMPLETE FRESH CALCULATION START');
-        setIsCalculating(true);
-        
-        try {
-          // 1. Get selected cabinet fresh
-          const { data: cabinets } = await supabase
-            .from('cabinet_types')
-            .select('*')
-            .eq('id', selectedCabinetType)
-            .single();
-
-          console.log('📦 FRESH CABINET:', cabinets);
-
-          // 2. Get finishes fresh
-          const { data: freshFinishes } = await supabase
-            .from('cabinet_type_finishes')
-            .select(`
-              *,
-              door_style:door_styles(*)
-            `)
-            .eq('cabinet_type_id', selectedCabinetType)
-            .eq('active', true)
-            .order('sort_order');
-
-          console.log('🚪 FRESH DOOR STYLES:', freshFinishes?.map(f => ({
-            name: f.door_style?.name,
-            rate: f.door_style?.base_rate_per_sqm
-          })));
-
-          // 3. Get price ranges fresh
-          const { data: freshRanges } = await supabase
-            .from('cabinet_type_price_ranges')
-            .select('*')
-            .eq('cabinet_type_id', selectedCabinetType)
-            .eq('active', true)
-            .order('sort_order');
-
-          // 4. Get cabinet parts fresh
-          const { data: freshParts } = await supabase
-            .from('cabinet_parts')
-            .select('*')
-            .eq('cabinet_type_id', selectedCabinetType);
-
-          // 5. Get global settings fresh
-          const { data: freshSettings } = await supabase
-            .from('global_settings')
-            .select('*');
-
-          // 6. Get hardware data fresh
-          const { data: hardwareBrands } = await supabase
-            .from('hardware_brands')
-            .select('*')
-            .eq('active', true);
-          
-          const titusBrand = hardwareBrands?.find(brand => brand.name === 'Titus');
-          const defaultHardwareBrandId = titusBrand?.id || null;
-
-          const { data: hardwareRequirements } = await supabase
-            .from('cabinet_hardware_requirements')
-            .select('*')
-            .eq('cabinet_type_id', selectedCabinetType)
-            .eq('active', true);
-
-          const { data: hardwareOptions } = await supabase
-            .from('cabinet_hardware_options')
-            .select(`
-              *,
-              hardware_product:hardware_products(*)
-            `)
-            .eq('active', true);
-
-          // 7. Get Black color fresh
-          const { data: blackColor } = await supabase
-            .from('colors')
-            .select('*')
-            .eq('name', 'Black')
-            .eq('active', true)
-            .single();
-
-          console.log('🎨 BLACK COLOR DATA:', blackColor);
-
-          // 8. Calculate prices with fresh data
-          const newPriceData: PriceData = {};
-          newPriceData[selectedCabinetType] = {};
-
-          for (const finish of freshFinishes || []) {
-            if (!finish.door_style) continue;
-            
-            console.log('💰 CALCULATING FOR DOOR STYLE:', finish.door_style.name, 'RATE:', finish.door_style.base_rate_per_sqm);
-            newPriceData[selectedCabinetType][finish.door_style.id] = {};
-
-            for (const range of freshRanges || []) {
-              const width = (range.min_width_mm + range.max_width_mm) / 2;
-              const height = cabinets?.default_height_mm || 720;
-              const depth = cabinets?.default_depth_mm || 560;
-
-              const price = pricingService.calculatePrice({
-                cabinetType: cabinets as CabinetType,
-                width,
-                height,
-                depth,
-                quantity: 1,
-                cabinetParts: freshParts || [],
-                globalSettings: freshSettings || [],
-                doorStyle: finish.door_style,
-                color: blackColor,
-                hardwareBrandId: defaultHardwareBrandId,
-                hardwareRequirements: hardwareRequirements || [],
-                hardwareOptions: hardwareOptions || []
-              });
-
-              console.log(`💵 PRICE FOR ${finish.door_style.name} ${width}mm: $${price}`);
-              newPriceData[selectedCabinetType][finish.door_style.id][range.id] = price;
-            }
-          }
-
-          setPriceData(newPriceData);
-          setDebugData({
-            cabinet: cabinets,
-            finishes: freshFinishes,
-            ranges: freshRanges,
-            parts: freshParts,
-            settings: freshSettings
-          });
-
-        } catch (error) {
-          console.error('❌ FRESH CALCULATION ERROR:', error);
-        } finally {
-          setIsCalculating(false);
-        }
-      };
-      
       calculatePricesFromScratch();
     }
   }, [selectedCabinetType]);
@@ -426,42 +232,50 @@ const BaseCabinetsPricing = () => {
             <ArrowLeft className="h-4 w-4" />
             Back to Price List
           </Button>
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/10 rounded-lg">
-              <Package className="h-6 w-6 text-blue-600" />
-            </div>
+          
+          <div className="flex items-center gap-2">
+            <Package className="h-6 w-6 text-primary" />
             <h1 className="text-3xl font-bold text-foreground">Base Cabinets Pricing</h1>
           </div>
         </div>
 
-        {/* Cabinet Type Carousel */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Select Cabinet Type</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loadingCabinets ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin" />
-              </div>
-            ) : baseCabinets && baseCabinets.length > 0 ? (
-              <Carousel className="w-full max-w-5xl mx-auto">
-                <CarouselContent>
+        {/* Cabinet Selection Carousel */}
+        {baseCabinets && baseCabinets.length > 0 && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Select Cabinet Type</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Carousel className="w-full">
+                <CarouselContent className="-ml-2 md:-ml-4">
                   {baseCabinets.map((cabinet) => (
-                    <CarouselItem key={cabinet.id} className="md:basis-1/2 lg:basis-1/3">
+                    <CarouselItem key={cabinet.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
                       <Card 
-                        className={`cursor-pointer transition-all h-full ${
+                        className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
                           selectedCabinetType === cabinet.id 
-                            ? 'ring-2 ring-primary bg-primary/5' 
-                            : 'hover:shadow-md'
+                            ? 'ring-2 ring-primary shadow-lg' 
+                            : 'hover:ring-1 hover:ring-primary/50'
                         }`}
                         onClick={() => setSelectedCabinetType(cabinet.id)}
                       >
                         <CardContent className="p-4">
-                          <h3 className="font-semibold text-foreground">{cabinet.name}</h3>
-                          {selectedCabinetType === cabinet.id && (
-                            <Badge className="mt-2" variant="default">Selected</Badge>
+                          {cabinet.product_image_url && (
+                            <img 
+                              src={cabinet.product_image_url} 
+                              alt={cabinet.name}
+                              className="w-full h-32 object-cover rounded-md mb-3"
+                            />
                           )}
+                          <h3 className="font-semibold text-sm mb-2">{cabinet.name}</h3>
+                          <p className="text-xs text-muted-foreground mb-2">{cabinet.short_description}</p>
+                          <div className="flex gap-1 flex-wrap">
+                            <Badge variant="secondary" className="text-xs">
+                              {cabinet.door_count || 0} doors
+                            </Badge>
+                            <Badge variant="secondary" className="text-xs">
+                              {cabinet.drawer_count || 0} drawers
+                            </Badge>
+                          </div>
                         </CardContent>
                       </Card>
                     </CarouselItem>
@@ -470,9 +284,9 @@ const BaseCabinetsPricing = () => {
                 <CarouselPrevious />
                 <CarouselNext />
               </Carousel>
-            ) : null}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Pricing Table */}
         {selectedCabinetType && (
@@ -494,7 +308,7 @@ const BaseCabinetsPricing = () => {
               </div>
             </CardHeader>
             <CardContent>
-              {loadingFinishes || loadingRanges ? (
+              {loadingCabinets ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
@@ -502,54 +316,81 @@ const BaseCabinetsPricing = () => {
                 <div className="text-center py-12 text-muted-foreground">
                   No door styles configured for this cabinet type
                 </div>
-              ) : priceRanges?.length === 0 ? (
+              ) : debugData?.ranges?.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   No price ranges configured for this cabinet type
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full border-collapse">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left p-4 font-semibold">Size Range</th>
-                        {doorStyles.map((doorStyle) => (
-                          <th key={doorStyle.id} className="text-center p-4 font-semibold">
-                            {doorStyle.name}
+                        <th className="text-left p-3 font-semibold">Size Range</th>
+                        {doorStyles.map((style) => (
+                          <th key={style.id} className="text-center p-3 font-semibold min-w-[120px]">
+                            {style.name}
                           </th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {priceRanges?.map((range) => (
+                      {debugData?.ranges?.map((range: PriceRange) => (
                         <tr key={range.id} className="border-b hover:bg-muted/50">
-                          <td className="p-4 font-medium">
-                            <div>
-                              <div className="font-semibold">{range.label}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {range.min_width_mm}mm - {range.max_width_mm}mm
-                              </div>
+                          <td className="p-3">
+                            <div className="font-medium">{range.label}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {range.min_width_mm}mm - {range.max_width_mm}mm
                             </div>
                           </td>
-                          {doorStyles.map((doorStyle) => {
-                            const price = priceData[selectedCabinetType]?.[doorStyle.id]?.[range.id];
-                            return (
-                              <td key={doorStyle.id} className="p-4 text-center">
-                                {price ? (
-                                  <div className="font-semibold text-lg">
-                                    {formatPrice(price)}
-                                  </div>
-                                ) : (
-                                  <div className="text-muted-foreground">-</div>
-                                )}
-                              </td>
-                            );
-                          })}
+                          {doorStyles.map((style) => (
+                            <td key={style.id} className="text-center p-3">
+                              {priceData[selectedCabinetType]?.[style.id]?.[range.id] ? (
+                                <span className="font-semibold text-primary">
+                                  {formatPrice(priceData[selectedCabinetType][style.id][range.id])}
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </td>
+                          ))}
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Debug Information */}
+        {debugData && (
+          <Card className="mt-8">
+            <CardHeader>
+              <CardTitle>Debug Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold">Door Styles Found:</h4>
+                  <pre className="text-sm bg-muted p-2 rounded">
+                    {JSON.stringify(debugData.finishes?.map(f => ({
+                      name: f.door_style?.name,
+                      rate: f.door_style?.base_rate_per_sqm
+                    })), null, 2)}
+                  </pre>
+                </div>
+                <div>
+                  <h4 className="font-semibold">Price Ranges:</h4>
+                  <pre className="text-sm bg-muted p-2 rounded">
+                    {JSON.stringify(debugData.ranges?.map(r => ({
+                      label: r.label,
+                      min: r.min_width_mm,
+                      max: r.max_width_mm
+                    })), null, 2)}
+                  </pre>
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}
