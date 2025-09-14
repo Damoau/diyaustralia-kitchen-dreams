@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingCart, Package, Layers, Home, Wrench } from "lucide-react";
 import baseCabinetsImage from "@/assets/base-cabinets-hero.jpg";
+import topCabinetsImage from "@/assets/top-cabinets-hero.jpg";
 
 const Shop = () => {
   const categories = [
@@ -22,7 +23,7 @@ const Shop = () => {
       description: 'Wall-mounted storage solutions',
       icon: <Package className="h-12 w-12 text-primary" />,
       path: '/shop/top-cabinets',
-      image: '/lovable-uploads/8bf7a8e1-3389-40d8-bd11-5ff1d7de50e8.png' // Placeholder
+      image: topCabinetsImage
     },
     {
       id: 'pantry-cabinets',
