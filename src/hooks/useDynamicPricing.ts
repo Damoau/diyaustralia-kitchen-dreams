@@ -314,14 +314,24 @@ export const useDynamicPricing = ({
 
       // Find door style and color from available data if different IDs are provided
       const targetDoorStyle = params.doorStyleId ? 
-        cabinetTypeFinishes?.find(f => f.door_style?.id === params.doorStyleId)?.door_style || 
-        (params.doorStyleId === doorStyleId ? doorStyle : null) : 
+        cabinetTypeFinishes?.find(f => f.door_style?.id === params.doorStyleId)?.door_style : 
         doorStyle;
       
       const targetColor = params.colorId ?
-        cabinetTypeFinishes?.find(f => f.color?.id === params.colorId)?.color ||
-        (params.colorId === colorId ? color : null) :
+        cabinetTypeFinishes?.find(f => f.color?.id === params.colorId)?.color :
         color;
+
+      console.log('🔍 calculateCustomPrice lookup:', {
+        requestedDoorStyleId: params.doorStyleId,
+        foundDoorStyle: targetDoorStyle?.name,
+        foundDoorStyleRate: targetDoorStyle?.base_rate_per_sqm,
+        availableFinishes: cabinetTypeFinishes?.length,
+        availableDoorStyles: cabinetTypeFinishes?.map(f => ({
+          id: f.door_style?.id,
+          name: f.door_style?.name,
+          rate: f.door_style?.base_rate_per_sqm
+        }))
+      });
 
       return pricingService.calculatePrice({
         cabinetType,
