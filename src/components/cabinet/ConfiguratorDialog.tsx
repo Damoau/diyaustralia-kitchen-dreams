@@ -158,31 +158,31 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md md:max-w-5xl max-h-[95vh] overflow-y-auto mx-2 sm:mx-8 p-3 sm:p-6">
+      <DialogContent className="max-w-md md:max-w-4xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-8 p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5" />
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <ShoppingCart className="h-4 w-4" />
             {cabinetType.name}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-3 sm:space-y-6">
+        <div className="space-y-3 sm:space-y-4">
           {isLoading ? (
-            <div className="text-center py-4 sm:py-8">
-              <div className="animate-pulse space-y-2 sm:space-y-4">
-                <div className="h-3 sm:h-4 bg-muted rounded w-3/4 mx-auto"></div>
-                <div className="h-3 sm:h-4 bg-muted rounded w-1/2 mx-auto"></div>
+            <div className="text-center py-4">
+              <div className="animate-pulse space-y-2">
+                <div className="h-3 bg-muted rounded w-3/4 mx-auto"></div>
+                <div className="h-3 bg-muted rounded w-1/2 mx-auto"></div>
               </div>
-              <p className="text-muted-foreground mt-2 sm:mt-4 text-sm">Loading configuration options...</p>
+              <p className="text-muted-foreground mt-2 text-sm">Loading...</p>
             </div>
           ) : (
             <>
               {/* Mobile Layout: Stacked */}
-              <div className="md:hidden space-y-4">
+              <div className="md:hidden space-y-3">
                 {/* Cabinet Image */}
                 <div className="flex justify-center">
                   <div 
-                    className="w-20 h-20 bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                    className="w-16 h-16 bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => getCurrentCabinetImage() && setShowFullScreenImage(true)}
                   >
                     {getCurrentCabinetImage() ? (
@@ -199,81 +199,49 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   </div>
                 </div>
 
-                {/* Dimensions */}
+                {/* Compact Dimensions Grid */}
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <Label className="text-xs">Width (mm)</Label>
+                    <Label className="text-xs">Width</Label>
                     <Input
                       type="number"
                       value={width === 0 ? '' : width}
                       onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
-                      onBlur={() => setTouchedFields(prev => ({ ...prev, width: true }))}
-                      min={cabinetType.min_width_mm || 100}
-                      max={cabinetType.max_width_mm || 2000}
-                      className="mt-1 h-8 text-sm"
+                      className="mt-1 h-7 text-xs"
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {cabinetType.min_width_mm || 100}-{cabinetType.max_width_mm || 2000}
-                    </p>
-                    {touchedFields.width && (width < (cabinetType.min_width_mm || 100) || width > (cabinetType.max_width_mm || 2000)) && (
-                      <p className="text-xs text-destructive mt-1">Outside range</p>
-                    )}
                   </div>
                   <div>
-                    <Label className="text-xs">Height (mm)</Label>
+                    <Label className="text-xs">Height</Label>
                     <Input
                       type="number"
                       value={height === 0 ? '' : height}
                       onChange={(e) => setHeight(e.target.value === '' ? 0 : Number(e.target.value))}
-                      onBlur={() => setTouchedFields(prev => ({ ...prev, height: true }))}
-                      min={cabinetType.min_height_mm || 100}
-                      max={cabinetType.max_height_mm || 3000}
-                      className="mt-1 h-8 text-sm"
+                      className="mt-1 h-7 text-xs"
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {cabinetType.min_height_mm || 100}-{cabinetType.max_height_mm || 3000}
-                    </p>
-                    {touchedFields.height && (height < (cabinetType.min_height_mm || 100) || height > (cabinetType.max_height_mm || 3000)) && (
-                      <p className="text-xs text-destructive mt-1">Outside range</p>
-                    )}
                   </div>
                   <div>
-                    <Label className="text-xs">Depth (mm)</Label>
+                    <Label className="text-xs">Depth</Label>
                     <Input
                       type="number"
                       value={depth === 0 ? '' : depth}
                       onChange={(e) => setDepth(e.target.value === '' ? 0 : Number(e.target.value))}
-                      onBlur={() => setTouchedFields(prev => ({ ...prev, depth: true }))}
-                      min={cabinetType.min_depth_mm || 100}
-                      max={cabinetType.max_depth_mm || 1000}
-                      className="mt-1 h-8 text-sm"
+                      className="mt-1 h-7 text-xs"
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {cabinetType.min_depth_mm || 100}-{cabinetType.max_depth_mm || 1000}
-                    </p>
-                    {touchedFields.depth && (depth < (cabinetType.min_depth_mm || 100) || depth > (cabinetType.max_depth_mm || 1000)) && (
-                      <p className="text-xs text-destructive mt-1">Outside range</p>
-                    )}
                   </div>
                 </div>
 
-                {/* Door Style, Color & Hardware Selection */}
+                {/* Compact Selection Grid */}
                 <div className="grid grid-cols-1 gap-2">
                   <div>
                     <Label className="text-xs">Door Style</Label>
                     <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
-                      <SelectTrigger className="mt-1 h-8">
-                        <SelectValue placeholder="Select door style" />
+                      <SelectTrigger className="mt-1 h-7 text-xs">
+                        <SelectValue placeholder="Select style" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border z-50">
                         {availableDoorStyles.map((style) => (
                           <SelectItem key={style.id} value={style.id}>
-                            <div className="flex items-center justify-between w-full">
-                              <span className="text-sm">{style.name}</span>
-                              <Badge variant="outline" className="ml-2 text-xs">
-                                {pricingService.formatPrice(style.base_rate_per_sqm)}/m²
-                              </Badge>
-                            </div>
+                            <span className="text-xs">{style.name}</span>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -283,53 +251,42 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   <div>
                     <Label className="text-xs">Color</Label>
                     <Select value={selectedColor} onValueChange={setSelectedColor}>
-                      <SelectTrigger className="mt-1 h-8">
+                      <SelectTrigger className="mt-1 h-7 text-xs">
                         <SelectValue placeholder="Select color" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border z-50">
                         {(availableColors || []).map((color) => (
                           <SelectItem key={color.id} value={color.id}>
-                            <div className="flex items-center gap-2">
-                              {color.hex_code && (
-                                <div
-                                  className="w-4 h-4 rounded border"
-                                  style={{ backgroundColor: color.hex_code }}
-                                />
-                              )}
-                              <span className="text-sm">{color.name}</span>
-                              {color.surcharge_rate_per_sqm > 0 && (
-                                <Badge variant="outline" className="ml-2 text-xs">
-                                  +{pricingService.formatPrice(color.surcharge_rate_per_sqm)}/m²
-                                </Badge>
-                              )}
-                            </div>
+                            <span className="text-xs">{color.name}</span>
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   
-                  {/* Hardware Brand Selection */}
                   <div>
-                    <Label className="text-xs">Hardware Brand</Label>
-                    <HardwareBrandSelector
-                      cabinetType={cabinetType}
-                      selectedBrandId={selectedHardwareBrand}
-                      onBrandChange={setSelectedHardwareBrand}
-                      quantity={quantity}
-                      compact={true}
-                    />
+                    <Label className="text-xs">Hardware</Label>
+                    <Select value={selectedHardwareBrand} onValueChange={setSelectedHardwareBrand}>
+                      <SelectTrigger className="mt-1 h-7 text-xs">
+                        <SelectValue placeholder="Select hardware" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background border z-50">
+                        <SelectItem value="none">No Hardware</SelectItem>
+                        <SelectItem value="blum">Blum</SelectItem>
+                        <SelectItem value="titus">Titus</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
 
-              {/* Desktop/Tablet Layout: Side by side */}
+              {/* Desktop/Tablet Layout: More Compact Side by side */}
               <div className="hidden md:block">
-                <div className="grid grid-cols-2 gap-8">
-                  {/* Left: Large Image and Door Style */}
-                  <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Left: Compact Image and Door Style */}
+                  <div className="space-y-3">
                     <div 
-                      className="w-full h-80 bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                      className="w-full h-48 bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
                       onClick={() => getCurrentCabinetImage() && setShowFullScreenImage(true)}
                     >
                       {getCurrentCabinetImage() ? (
@@ -349,7 +306,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                     <div>
                       <Label className="text-sm">Door Style</Label>
                       <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
-                        <SelectTrigger className="mt-1">
+                        <SelectTrigger className="mt-1 h-9">
                           <SelectValue placeholder="Select door style" />
                         </SelectTrigger>
                         <SelectContent className="bg-background border z-50">
@@ -357,7 +314,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                             <SelectItem key={style.id} value={style.id}>
                               <div className="flex items-center justify-between w-full">
                                 <span>{style.name}</span>
-                                <Badge variant="outline" className="ml-2">
+                                <Badge variant="outline" className="ml-2 text-xs">
                                   {pricingService.formatPrice(style.base_rate_per_sqm)}/m²
                                 </Badge>
                               </div>
@@ -368,218 +325,192 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                     </div>
                   </div>
 
-                  {/* Right: Dimensions, Color, and Hardware */}
-                  <div className="space-y-4">
-                    {/* Dimensions */}
-                    <div className="space-y-4">
-                      <h3 className="font-medium text-lg">Dimensions</h3>
-                      <div className="space-y-3">
+                  {/* Right: Compact Controls */}
+                  <div className="space-y-3">
+                    {/* Compact Dimensions */}
+                    <div className="space-y-2">
+                      <h3 className="font-medium text-base">Dimensions</h3>
+                      <div className="grid grid-cols-3 gap-2">
                         <div>
-                          <Label className="text-sm">Width (mm)</Label>
+                          <Label className="text-xs">Width (mm)</Label>
                           <Input
                             type="number"
                             value={width === 0 ? '' : width}
                             onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
-                            onBlur={() => setTouchedFields(prev => ({ ...prev, width: true }))}
-                            min={cabinetType.min_width_mm || 100}
-                            max={cabinetType.max_width_mm || 2000}
-                            className="mt-1"
+                            className="mt-1 h-8 text-sm"
                           />
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Range: {cabinetType.min_width_mm || 100}-{cabinetType.max_width_mm || 2000}mm
-                          </p>
-                          {touchedFields.width && (width < (cabinetType.min_width_mm || 100) || width > (cabinetType.max_width_mm || 2000)) && (
-                            <p className="text-xs text-destructive mt-1">Outside valid range</p>
-                          )}
                         </div>
                         <div>
-                          <Label className="text-sm">Height (mm)</Label>
+                          <Label className="text-xs">Height (mm)</Label>
                           <Input
                             type="number"
                             value={height === 0 ? '' : height}
                             onChange={(e) => setHeight(e.target.value === '' ? 0 : Number(e.target.value))}
-                            onBlur={() => setTouchedFields(prev => ({ ...prev, height: true }))}
-                            min={cabinetType.min_height_mm || 100}
-                            max={cabinetType.max_height_mm || 3000}
-                            className="mt-1"
+                            className="mt-1 h-8 text-sm"
                           />
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Range: {cabinetType.min_height_mm || 100}-{cabinetType.max_height_mm || 3000}mm
-                          </p>
-                          {touchedFields.height && (height < (cabinetType.min_height_mm || 100) || height > (cabinetType.max_height_mm || 3000)) && (
-                            <p className="text-xs text-destructive mt-1">Outside valid range</p>
-                          )}
                         </div>
                         <div>
-                          <Label className="text-sm">Depth (mm)</Label>
+                          <Label className="text-xs">Depth (mm)</Label>
                           <Input
                             type="number"
                             value={depth === 0 ? '' : depth}
                             onChange={(e) => setDepth(e.target.value === '' ? 0 : Number(e.target.value))}
-                            onBlur={() => setTouchedFields(prev => ({ ...prev, depth: true }))}
-                            min={cabinetType.min_depth_mm || 100}
-                            max={cabinetType.max_depth_mm || 1000}
-                            className="mt-1"
+                            className="mt-1 h-8 text-sm"
                           />
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Range: {cabinetType.min_depth_mm || 100}-{cabinetType.max_depth_mm || 1000}mm
-                          </p>
-                          {touchedFields.depth && (depth < (cabinetType.min_depth_mm || 100) || depth > (cabinetType.max_depth_mm || 1000)) && (
-                            <p className="text-xs text-destructive mt-1">Outside valid range</p>
-                          )}
                         </div>
                       </div>
                     </div>
 
-                    {/* Color */}
-                    <div>
-                      <Label className="text-sm">Color</Label>
-                      <Select value={selectedColor} onValueChange={setSelectedColor}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select color" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-background border z-50">
-                          {(availableColors || []).map((color) => (
-                            <SelectItem key={color.id} value={color.id}>
-                              <div className="flex items-center gap-2">
-                                {color.hex_code && (
-                                  <div
-                                    className="w-4 h-4 rounded border"
-                                    style={{ backgroundColor: color.hex_code }}
-                                  />
-                                )}
-                                <span>{color.name}</span>
-                                {color.surcharge_rate_per_sqm > 0 && (
-                                  <Badge variant="outline" className="ml-2">
-                                    +{pricingService.formatPrice(color.surcharge_rate_per_sqm)}/m²
-                                  </Badge>
-                                )}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    {/* Hardware Brand as simple dropdown */}
-                    <div>
-                      <Label className="text-sm">Hardware Brand</Label>
-                      <Select value={selectedHardwareBrand} onValueChange={setSelectedHardwareBrand}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select hardware brand" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-background border z-50">
-                          <SelectItem value="none">No Hardware</SelectItem>
-                          <SelectItem value="blum">Blum</SelectItem>
-                          <SelectItem value="titus">Titus</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    {/* Compact Options */}
+                    <div className="space-y-2">
+                      <div>
+                        <Label className="text-sm">Color</Label>
+                        <Select value={selectedColor} onValueChange={setSelectedColor}>
+                          <SelectTrigger className="mt-1 h-9">
+                            <SelectValue placeholder="Select color" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border z-50">
+                            {(availableColors || []).map((color) => (
+                              <SelectItem key={color.id} value={color.id}>
+                                <div className="flex items-center gap-2">
+                                  {color.hex_code && (
+                                    <div
+                                      className="w-3 h-3 rounded border"
+                                      style={{ backgroundColor: color.hex_code }}
+                                    />
+                                  )}
+                                  <span>{color.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm">Hardware Brand</Label>
+                        <Select value={selectedHardwareBrand} onValueChange={setSelectedHardwareBrand}>
+                          <SelectTrigger className="mt-1 h-9">
+                            <SelectValue placeholder="Select hardware" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border z-50">
+                            <SelectItem value="none">No Hardware</SelectItem>
+                            <SelectItem value="blum">Blum</SelectItem>
+                            <SelectItem value="titus">Titus</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Price Display */}
-              <Card className="bg-primary/5 border-primary/20">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Total Price</p>
-                      <p className="text-xl sm:text-3xl font-bold text-primary">
-                        {pricingService.formatPrice(price * quantity)}
-                      </p>
-                      {quantity > 1 && (
-                        <p className="text-xs text-muted-foreground">
-                          {pricingService.formatPrice(price)} × {quantity}
+              {/* Compact Price Display and Actions */}
+              <div className="space-y-3">
+                {/* Compact Price Card */}
+                <Card className="bg-primary/5 border-primary/20">
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Total Price</p>
+                        <p className="text-2xl font-bold text-primary">
+                          {pricingService.formatPrice(price * quantity)}
                         </p>
-                      )}
+                        {quantity > 1 && (
+                          <p className="text-xs text-muted-foreground">
+                            {pricingService.formatPrice(price)} × {quantity}
+                          </p>
+                        )}
+                      </div>
+                      <Badge variant="secondary" className="text-xs">
+                        Live Pricing
+                      </Badge>
                     </div>
-                    <Badge variant="secondary" className="animate-pulse text-xs">
-                      Live Pricing
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              {/* Price Breakdown */}
-              {priceBreakdown && (
-                <Collapsible open={showPriceBreakdown} onOpenChange={setShowPriceBreakdown}>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-muted rounded text-sm">
-                    <span className="font-medium">View Price Breakdown</span>
-                    {showPriceBreakdown ? (
-                      <ChevronUp className="h-3 w-3" />
+                {/* Quantity and Chunky Add to Cart */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm">Qty</Label>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        disabled={quantity <= 1}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="w-8 text-center text-sm font-medium">{quantity}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setQuantity(quantity + 1)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Chunky Add to Cart Button */}
+                  <Button
+                    onClick={handleAddToCart}
+                    disabled={isAddingToCart || !selectedDoorStyle || !selectedHardwareBrand}
+                    className="flex-1 h-12 text-base font-semibold"
+                    size="lg"
+                  >
+                    {isAddingToCart ? (
+                      <span>Adding to Cart...</span>
                     ) : (
-                      <ChevronDown className="h-3 w-3" />
+                      <>
+                        <ShoppingCart className="h-5 w-5 mr-2" />
+                        Add to Cart
+                      </>
                     )}
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="mt-2">
-                      <PriceBreakdown
-                        cabinetType={cabinetType}
-                        width={width}
-                        height={height}
-                        depth={depth}
-                        cabinetParts={cabinetParts || []}
-                        globalSettings={globalSettings || []}
-                        doorStyleFinish={{
-                          id: selectedDoorStyle,
-                          name: availableDoorStyles.find(s => s.id === selectedDoorStyle)?.name || 'Standard',
-                          rate_per_sqm: availableDoorStyles.find(s => s.id === selectedDoorStyle)?.base_rate_per_sqm || 0,
-                          door_style_id: selectedDoorStyle,
-                          sort_order: 0,
-                          active: true,
-                          created_at: new Date().toISOString(),
-                          door_style: availableDoorStyles.find(s => s.id === selectedDoorStyle)
-                        }}
-                        color={availableColors?.find(c => c.id === selectedColor)}
-                        hardwareCost={0} // Hardware cost will be calculated by the new component
-                        totalPrice={price}
-                      />
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              )}
-
-              {/* Quantity & Actions */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Label className="text-xs">Qty</Label>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      disabled={quantity <= 1}
-                      className="h-7 w-7 p-0"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <span className="w-8 text-center text-sm font-medium">{quantity}</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="h-7 w-7 p-0"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </div>
+                  </Button>
                 </div>
 
-                <Button
-                  onClick={handleAddToCart}
-                  disabled={isAddingToCart || !selectedDoorStyle || !selectedHardwareBrand}
-                  className="flex-1 h-8"
-                >
-                  {isAddingToCart ? (
-                    <span className="text-xs">Adding...</span>
-                  ) : (
-                    <>
-                      <ShoppingCart className="h-3 w-3 mr-1" />
-                      <span className="text-xs">Add to Cart</span>
-                    </>
-                  )}
-                </Button>
+                {/* Compact Price Breakdown Toggle */}
+                {priceBreakdown && (
+                  <Collapsible open={showPriceBreakdown} onOpenChange={setShowPriceBreakdown}>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-muted rounded text-sm">
+                      <span className="font-medium">Price Breakdown</span>
+                      {showPriceBreakdown ? (
+                        <ChevronUp className="h-3 w-3" />
+                      ) : (
+                        <ChevronDown className="h-3 w-3" />
+                      )}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="mt-2">
+                        <PriceBreakdown
+                          cabinetType={cabinetType}
+                          width={width}
+                          height={height}
+                          depth={depth}
+                          cabinetParts={cabinetParts || []}
+                          globalSettings={globalSettings || []}
+                          doorStyleFinish={{
+                            id: selectedDoorStyle,
+                            name: availableDoorStyles.find(s => s.id === selectedDoorStyle)?.name || 'Standard',
+                            rate_per_sqm: availableDoorStyles.find(s => s.id === selectedDoorStyle)?.base_rate_per_sqm || 0,
+                            door_style_id: selectedDoorStyle,
+                            sort_order: 0,
+                            active: true,
+                            created_at: new Date().toISOString(),
+                            door_style: availableDoorStyles.find(s => s.id === selectedDoorStyle)
+                          }}
+                          color={availableColors?.find(c => c.id === selectedColor)}
+                          hardwareCost={0}
+                          totalPrice={price}
+                        />
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
               </div>
             </>
           )}
