@@ -415,7 +415,7 @@ export function CellConfigPopup({
                   style.image_url && (
                     <div 
                       key={style.id}
-                      className={`w-16 h-16 bg-muted/30 rounded-lg border-2 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-all duration-200 flex-shrink-0 overflow-hidden ${
+                      className={`w-20 h-20 bg-muted/30 rounded-lg border-2 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-all duration-200 flex-shrink-0 overflow-hidden ${
                         selectedDoorStyle === style.id ? 'border-primary ring-2 ring-primary/20 scale-105' : 'border-dashed border-muted-foreground/20'
                       }`}
                       onClick={() => {
@@ -431,11 +431,13 @@ export function CellConfigPopup({
                         style={{
                           objectFit: 'cover',
                           objectPosition: 'center',
-                          imageRendering: 'crisp-edges',
+                          imageRendering: 'auto',
                           width: '100%',
                           height: '100%',
                           minWidth: '0',
-                          minHeight: '0'
+                          minHeight: '0',
+                          filter: 'none',
+                          transform: 'none'
                         }}
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
@@ -447,11 +449,13 @@ export function CellConfigPopup({
                         onLoad={(e) => {
                           // Ensure image maintains quality after load
                           const img = e.currentTarget;
+                          img.style.imageRendering = 'pixelated';
+                          img.style.imageRendering = 'crisp-edges';
                           img.style.imageRendering = 'auto';
                           console.log('Door style image loaded:', style.name);
                         }}
                         loading="lazy"
-                        decoding="async"
+                        decoding="sync"
                       />
                     </div>
                   )
