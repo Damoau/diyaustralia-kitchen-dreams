@@ -35,6 +35,12 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
     default_width_mm: 300,
     default_height_mm: 720,
     default_depth_mm: 560,
+    min_width_mm: 100,
+    max_width_mm: 1200,
+    min_height_mm: 200,
+    max_height_mm: 1000,
+    min_depth_mm: 200,
+    max_depth_mm: 800,
     drawer_count: 0,
     active: true,
     min_price: 0,
@@ -49,6 +55,12 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
         default_width_mm: cabinetType.default_width_mm,
         default_height_mm: cabinetType.default_height_mm,
         default_depth_mm: cabinetType.default_depth_mm,
+        min_width_mm: (cabinetType as any).min_width_mm || 100,
+        max_width_mm: (cabinetType as any).max_width_mm || 1200,
+        min_height_mm: (cabinetType as any).min_height_mm || 200,
+        max_height_mm: (cabinetType as any).max_height_mm || 1000,
+        min_depth_mm: (cabinetType as any).min_depth_mm || 200,
+        max_depth_mm: (cabinetType as any).max_depth_mm || 800,
         drawer_count: cabinetType.drawer_count,
         active: cabinetType.active,
         min_price: (cabinetType as any).min_price || 0,
@@ -61,6 +73,12 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
         default_width_mm: 300,
         default_height_mm: 720,
         default_depth_mm: 560,
+        min_width_mm: 100,
+        max_width_mm: 1200,
+        min_height_mm: 200,
+        max_height_mm: 1000,
+        min_depth_mm: 200,
+        max_depth_mm: 800,
         drawer_count: 0,
         active: true,
         min_price: 0,
@@ -126,7 +144,7 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
               
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <Label htmlFor="width">Width (mm)</Label>
+                  <Label htmlFor="width">Default Width (mm)</Label>
                   <Input
                     id="width"
                     type="number"
@@ -135,7 +153,7 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
                   />
                 </div>
                 <div>
-                  <Label htmlFor="height">Height (mm)</Label>
+                  <Label htmlFor="height">Default Height (mm)</Label>
                   <Input
                     id="height"
                     type="number"
@@ -144,13 +162,101 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
                   />
                 </div>
                 <div>
-                  <Label htmlFor="depth">Depth (mm)</Label>
+                  <Label htmlFor="depth">Default Depth (mm)</Label>
                   <Input
                     id="depth"
                     type="number"
                     value={formData.default_depth_mm}
                     onChange={(e) => setFormData({ ...formData, default_depth_mm: parseInt(e.target.value) || 0 })}
                   />
+                </div>
+              </div>
+
+              {/* Min/Max Dimensions */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Dimension Constraints</h3>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  {/* Width Min/Max */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Width Range</Label>
+                    <div className="grid grid-cols-2 gap-1">
+                      <div>
+                        <Label htmlFor="min_width" className="text-xs">Min (mm)</Label>
+                        <Input
+                          id="min_width"
+                          type="number"
+                          value={formData.min_width_mm}
+                          onChange={(e) => setFormData({ ...formData, min_width_mm: parseInt(e.target.value) || 0 })}
+                          className="h-8"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="max_width" className="text-xs">Max (mm)</Label>
+                        <Input
+                          id="max_width"
+                          type="number"
+                          value={formData.max_width_mm}
+                          onChange={(e) => setFormData({ ...formData, max_width_mm: parseInt(e.target.value) || 0 })}
+                          className="h-8"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Height Min/Max */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Height Range</Label>
+                    <div className="grid grid-cols-2 gap-1">
+                      <div>
+                        <Label htmlFor="min_height" className="text-xs">Min (mm)</Label>
+                        <Input
+                          id="min_height"
+                          type="number"
+                          value={formData.min_height_mm}
+                          onChange={(e) => setFormData({ ...formData, min_height_mm: parseInt(e.target.value) || 0 })}
+                          className="h-8"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="max_height" className="text-xs">Max (mm)</Label>
+                        <Input
+                          id="max_height"
+                          type="number"
+                          value={formData.max_height_mm}
+                          onChange={(e) => setFormData({ ...formData, max_height_mm: parseInt(e.target.value) || 0 })}
+                          className="h-8"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Depth Min/Max */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Depth Range</Label>
+                    <div className="grid grid-cols-2 gap-1">
+                      <div>
+                        <Label htmlFor="min_depth" className="text-xs">Min (mm)</Label>
+                        <Input
+                          id="min_depth"
+                          type="number"
+                          value={formData.min_depth_mm}
+                          onChange={(e) => setFormData({ ...formData, min_depth_mm: parseInt(e.target.value) || 0 })}
+                          className="h-8"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="max_depth" className="text-xs">Max (mm)</Label>
+                        <Input
+                          id="max_depth"
+                          type="number"
+                          value={formData.max_depth_mm}
+                          onChange={(e) => setFormData({ ...formData, max_depth_mm: parseInt(e.target.value) || 0 })}
+                          className="h-8"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               

@@ -67,8 +67,6 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
         const tableWidth = priceRanges?.[0]?.min_width_mm || cabinetType.default_width_mm;
         const newDefaultWidth = initialWidth || tableWidth;
         
-        console.log('🔧 POPUP - Setting width to match table:', newDefaultWidth);
-        
         setWidth(newDefaultWidth);
         setHeight(cabinetType.default_height_mm);  
         setDepth(cabinetType.default_depth_mm);
@@ -281,12 +279,6 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
 
     const hardwareCost = 45; // Default hardware cost
 
-    console.log('🏷️ POPUP - Cabinet Type:', cabinetType.name);
-    console.log('📏 POPUP - Dimensions:', width, 'x', height, 'x', depth);
-    console.log('🚪 POPUP - Door Style Finish:', doorStyleFinish);
-    console.log('🎨 POPUP - Final Color:', finalColor);
-    console.log('💰 POPUP - Hardware Cost:', hardwareCost);
-
     const calculatedPrice = calculateCabinetPrice(
       cabinetType,
       width,
@@ -299,7 +291,6 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       hardwareCost
     );
 
-    console.log('💵 POPUP - Final Price:', calculatedPrice);
     return calculatedPrice;
   };
 
@@ -390,10 +381,13 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   type="number"
                   value={width}
                   onChange={(e) => setWidth(Number(e.target.value))}
-                  min={100}
-                  max={2000}
+                  min={cabinetType.min_width_mm || 100}
+                  max={cabinetType.max_width_mm || 2000}
                   className="mt-1"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Range: {cabinetType.min_width_mm || 100}-{cabinetType.max_width_mm || 2000}mm
+                </p>
               </div>
               <div>
                 <Label className="text-xs text-muted-foreground">Height (mm)</Label>
@@ -401,10 +395,13 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   type="number"
                   value={height}
                   onChange={(e) => setHeight(Number(e.target.value))}
-                  min={100}
-                  max={3000}
+                  min={cabinetType.min_height_mm || 100}
+                  max={cabinetType.max_height_mm || 3000}
                   className="mt-1"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Range: {cabinetType.min_height_mm || 100}-{cabinetType.max_height_mm || 3000}mm
+                </p>
               </div>
               <div>
                 <Label className="text-xs text-muted-foreground">Depth (mm)</Label>
@@ -412,10 +409,13 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   type="number"
                   value={depth}
                   onChange={(e) => setDepth(Number(e.target.value))}
-                  min={100}
-                  max={1000}
+                  min={cabinetType.min_depth_mm || 100}
+                  max={cabinetType.max_depth_mm || 1000}
                   className="mt-1"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Range: {cabinetType.min_depth_mm || 100}-{cabinetType.max_depth_mm || 1000}mm
+                </p>
               </div>
             </div>
             {/* Door Style */}
