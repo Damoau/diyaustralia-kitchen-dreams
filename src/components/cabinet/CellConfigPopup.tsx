@@ -343,7 +343,12 @@ export function CellConfigPopup({
               className="w-24 h-24 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors flex-shrink-0"
               onClick={() => {
                 const imageUrl = (() => {
-                  // First priority: Use finish image if available (matches carousel)
+                  // First priority: Currently selected door style image
+                  if (selectedDoorStyle) {
+                    const doorStyle = doorStyles.find(ds => ds.id === selectedDoorStyle);
+                    if (doorStyle?.image_url) return doorStyle.image_url;
+                  }
+                  // Second priority: Use finish image if available
                   if ((finish as any)?.image_url) {
                     return (finish as any).image_url;
                   }
@@ -357,18 +362,24 @@ export function CellConfigPopup({
               }}
             >
               {(() => {
-                // Determine which image to show (finish image takes priority to match carousel)
+                // Determine which image to show (currently selected door style takes priority)
                 const imageUrl = (() => {
+                  if (selectedDoorStyle) {
+                    const doorStyle = doorStyles.find(ds => ds.id === selectedDoorStyle);
+                    if (doorStyle?.image_url) return doorStyle.image_url;
+                  }
                   if ((finish as any)?.image_url) {
                     return (finish as any).image_url;
                   }
                   return cabinetType.product_image_url;
                 })();
 
+                const currentDoorStyle = selectedDoorStyle ? doorStyles.find(ds => ds.id === selectedDoorStyle) : null;
+
                 return imageUrl ? (
                   <img 
                     src={imageUrl} 
-                    alt={`${cabinetType.name} - ${(finish as any)?.door_style?.name || 'Finish'}`}
+                    alt={`${cabinetType.name} - ${currentDoorStyle?.name || (finish as any)?.door_style?.name || 'Cabinet'}`}
                     className="w-full h-full object-cover rounded-md"
                     onError={(e) => {
                       console.error('Cabinet image failed to load:', imageUrl);
@@ -383,6 +394,7 @@ export function CellConfigPopup({
                   <div className="text-center">
                     <span className="text-xs text-muted-foreground">No image available</span>
                     <p className="text-xs text-red-500 mt-1">
+                      selected_door_style: {currentDoorStyle?.name || 'none'}<br/>
                       finish_image: {(finish as any)?.image_url || 'null'}<br/>
                       cabinet_image: {cabinetType.product_image_url || 'null'}
                     </p>
