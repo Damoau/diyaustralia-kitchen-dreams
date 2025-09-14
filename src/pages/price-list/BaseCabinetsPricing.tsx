@@ -351,26 +351,28 @@ const BaseCabinetsPricing = () => {
           </Card>
         )}
 
-        {/* Selected Cabinet Section */}
+        {/* Cabinet Name Header - Top of Page */}
         {selectedCabinetType && (
-          <div className="space-y-8">
-            {/* Cabinet Name Header */}
-            <div className="text-center">
-              <h2 className="text-4xl font-bold text-foreground">
-                {baseCabinets?.find(c => c.id === selectedCabinetType)?.name}
-              </h2>
-              <p className="text-muted-foreground mt-2">
-                {baseCabinets?.find(c => c.id === selectedCabinetType)?.short_description}
-              </p>
-            </div>
+          <div className="text-center mb-8">
+            <h2 className="text-4xl font-bold text-foreground">
+              {baseCabinets?.find(c => c.id === selectedCabinetType)?.name}
+            </h2>
+            <p className="text-muted-foreground mt-2">
+              {baseCabinets?.find(c => c.id === selectedCabinetType)?.short_description}
+            </p>
+          </div>
+        )}
 
+        {/* Single Card with Carousel and Pricing Table */}
+        {selectedCabinetType && (
+          <Card className="space-y-0">
             {/* Door Style Finishes Carousel */}
             {debugData?.finishes && debugData.finishes.length > 0 && (
-              <Card>
+              <div className="border-b">
                 <CardHeader>
                   <CardTitle>Available Door Styles</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pb-6">
                   <Carousel className="w-full">
                     <CarouselContent className="-ml-2 md:-ml-4">
                       {debugData.finishes.map((finish: any) => (
@@ -409,11 +411,11 @@ const BaseCabinetsPricing = () => {
                     <CarouselNext />
                   </Carousel>
                 </CardContent>
-              </Card>
+              </div>
             )}
 
             {/* Pricing Table */}
-            <Card key={`pricing-${selectedCabinetType}-${Date.now()}`}>
+            <div>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Pricing Table</CardTitle>
@@ -483,8 +485,8 @@ const BaseCabinetsPricing = () => {
                   </div>
                 )}
               </CardContent>
-            </Card>
-          </div>
+            </div>
+          </Card>
         )}
 
         {/* Enlarged Image Modal */}
