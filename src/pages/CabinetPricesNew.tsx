@@ -295,7 +295,7 @@ const CabinetPricesNew = () => {
                                    }}
                                  />
                                  <div className="absolute bottom-0 left-0 right-0 p-3">
-                                   <p className="text-center text-sm font-medium text-gray-800 bg-white/90 backdrop-blur-sm rounded px-2 py-1">
+                                   <p className="text-center text-sm font-medium text-white">
                                      {ctf.door_style?.name}
                                    </p>
                                  </div>
