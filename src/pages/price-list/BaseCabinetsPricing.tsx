@@ -39,7 +39,7 @@ const BaseCabinetsPricing = () => {
   
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [selectedCabinetType, setSelectedCabinetType] = useState<string>('');
+  const [selectedCabinetType, setSelectedCabinetType] = useState<string>('all');
   const [priceData, setPriceData] = useState<PriceData>({});
   const [isCalculating, setIsCalculating] = useState(false);
   const [debugData, setDebugData] = useState<any>(null);
@@ -84,8 +84,9 @@ const BaseCabinetsPricing = () => {
   });
 
   // Calculate prices COMPLETELY FRESH - no dependencies on React Query
-  const calculatePricesFromScratch = async () => {
-    if (!selectedCabinetType) return;
+  const calculatePricesFromScratch = async (cabinetId?: string) => {
+    const targetCabinetId = cabinetId || selectedCabinetType;
+    if (!targetCabinetId || targetCabinetId === 'all') return;
     
     console.log('🔥🔥🔥 COMPLETE FRESH CALCULATION START - TIMESTAMP:', new Date().toISOString());
     setIsCalculating(true);
@@ -95,7 +96,7 @@ const BaseCabinetsPricing = () => {
       const { data: cabinets } = await supabase
         .from('cabinet_types')
         .select('*')
-        .eq('id', selectedCabinetType)
+        .eq('id', targetCabinetId)
         .single();
 
       console.log('📦 FRESH CABINET:', cabinets);
@@ -107,7 +108,7 @@ const BaseCabinetsPricing = () => {
           *,
           door_style:door_styles(*)
         `)
-        .eq('cabinet_type_id', selectedCabinetType)
+        .eq('cabinet_type_id', targetCabinetId)
         .eq('active', true)
         .order('sort_order');
 
@@ -120,7 +121,7 @@ const BaseCabinetsPricing = () => {
       const { data: freshRanges } = await supabase
         .from('cabinet_type_price_ranges')
         .select('*')
-        .eq('cabinet_type_id', selectedCabinetType)
+        .eq('cabinet_type_id', targetCabinetId)
         .eq('active', true)
         .order('sort_order');
 
@@ -128,7 +129,7 @@ const BaseCabinetsPricing = () => {
       const { data: freshParts } = await supabase
         .from('cabinet_parts')
         .select('*')
-        .eq('cabinet_type_id', selectedCabinetType);
+        .eq('cabinet_type_id', targetCabinetId);
 
       // 5. Get global settings fresh
       const { data: freshSettings } = await supabase
@@ -147,7 +148,7 @@ const BaseCabinetsPricing = () => {
       const { data: hardwareRequirements } = await supabase
         .from('cabinet_hardware_requirements')
         .select('*')
-        .eq('cabinet_type_id', selectedCabinetType)
+        .eq('cabinet_type_id', targetCabinetId)
         .eq('active', true);
 
       const { data: hardwareOptions } = await supabase
@@ -167,14 +168,14 @@ const BaseCabinetsPricing = () => {
       console.log('🎨 ALL COLORS:', allColors);
 
       // 8. Calculate prices with fresh data
-      const newPriceData: PriceData = {};
-      newPriceData[selectedCabinetType] = {};
+      const newPriceData: PriceData = { ...priceData };
+      newPriceData[targetCabinetId] = {};
 
       for (const finish of freshFinishes || []) {
         if (!finish.door_style) continue;
         
         console.log('💰💰💰 CALCULATING FOR DOOR STYLE:', finish.door_style.name, 'RATE:', finish.door_style.base_rate_per_sqm, 'TIMESTAMP:', new Date().toISOString());
-        newPriceData[selectedCabinetType][finish.door_style.id] = {};
+        newPriceData[targetCabinetId][finish.door_style.id] = {};
 
         for (const range of freshRanges || []) {
           const width = range.min_width_mm; // Use minimum width instead of average to match popup
@@ -211,7 +212,7 @@ const BaseCabinetsPricing = () => {
           });
 
           console.log(`💵💵💵 FINAL PRICE FOR ${finish.door_style.name} ${width}mm: $${price} 💵💵💵`);
-          newPriceData[selectedCabinetType][finish.door_style.id][range.id] = price;
+          newPriceData[targetCabinetId][finish.door_style.id][range.id] = price;
         }
       }
 
@@ -231,26 +232,19 @@ const BaseCabinetsPricing = () => {
     }
   };
 
-  // Set first cabinet as default when cabinets load
+  // Set first cabinet as default when cabinets load and calculate prices for all if "all" is selected
   useEffect(() => {
-    if (baseCabinets && baseCabinets.length > 0 && !selectedCabinetType) {
-      const firstCabinet = baseCabinets[0];
-      console.log('🎯 SETTING FIRST CABINET:', firstCabinet.name, firstCabinet.id);
-      setSelectedCabinetType(firstCabinet.id);
+    if (baseCabinets && baseCabinets.length > 0) {
+      if (selectedCabinetType === 'all') {
+        // Calculate prices for all cabinets
+        baseCabinets.forEach(cabinet => {
+          calculatePricesFromScratch(cabinet.id);
+        });
+      } else if (selectedCabinetType && selectedCabinetType !== 'all') {
+        calculatePricesFromScratch();
+      }
     }
   }, [baseCabinets, selectedCabinetType]);
-
-  // Trigger fresh calculation when cabinet type changes
-  useEffect(() => {
-    if (selectedCabinetType) {
-      console.log('🔄🔄🔄 CABINET TYPE CHANGED - STARTING FRESH CALCULATION - TIMESTAMP:', new Date().toISOString());
-      // Clear all state first
-      setPriceData({});
-      setDebugData(null);
-      // Force calculation with delay to ensure state is cleared
-      setTimeout(() => calculatePricesFromScratch(), 100);
-    }
-  }, [selectedCabinetType]);
 
   const doorStyles = debugData?.finishes?.map(f => f.door_style).filter(Boolean) as DoorStyle[] || [];
 
@@ -272,7 +266,7 @@ const BaseCabinetsPricing = () => {
           <div className="flex items-center gap-2">
             <Package className="h-6 w-6 text-primary" />
             <h1 className="text-3xl font-bold text-foreground">Base Cabinets Pricing</h1>
-            <Button onClick={calculatePricesFromScratch} variant="outline" size="sm">
+            <Button onClick={() => calculatePricesFromScratch()} variant="outline" size="sm">
               🔄 Force Recalculate
             </Button>
             <Button onClick={() => window.location.reload()} variant="outline" size="sm">
@@ -281,7 +275,7 @@ const BaseCabinetsPricing = () => {
           </div>
         </div>
 
-        {/* Cabinet Selection Carousel */}
+        {/* Cabinet Selection Buttons */}
         {loadingCabinets ? (
           <Card className="mb-8">
             <CardContent className="p-8 text-center">
@@ -297,43 +291,24 @@ const BaseCabinetsPricing = () => {
             <CardContent>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-2 md:-ml-4">
+                  <CarouselItem className="pl-2 md:pl-4 md:basis-1/4 lg:basis-1/5">
+                    <Button 
+                      variant={selectedCabinetType === 'all' ? 'default' : 'outline'} 
+                      className="w-full"
+                      onClick={() => setSelectedCabinetType('all')}
+                    >
+                      All Cabinets
+                    </Button>
+                  </CarouselItem>
                   {baseCabinets.map((cabinet) => (
-                    <CarouselItem key={cabinet.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-                      <Card 
-                        className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                          selectedCabinetType === cabinet.id 
-                            ? 'ring-2 ring-primary shadow-lg' 
-                            : 'hover:ring-1 hover:ring-primary/50'
-                        }`}
+                    <CarouselItem key={cabinet.id} className="pl-2 md:pl-4 md:basis-1/4 lg:basis-1/5">
+                      <Button 
+                        variant={selectedCabinetType === cabinet.id ? 'default' : 'outline'} 
+                        className="w-full"
                         onClick={() => setSelectedCabinetType(cabinet.id)}
                       >
-                        <CardContent className="p-4">
-                          <div className="w-full h-32 bg-muted rounded-md mb-3 flex items-center justify-center">
-                            {cabinet.product_image_url ? (
-                              <img 
-                                src={cabinet.product_image_url} 
-                                alt={cabinet.name}
-                                className="w-full h-full object-cover rounded-md"
-                              />
-                            ) : (
-                              <div className="flex flex-col items-center justify-center text-muted-foreground">
-                                <Package className="h-8 w-8 mb-1" />
-                                <span className="text-xs">No Image</span>
-                              </div>
-                            )}
-                          </div>
-                          <h3 className="font-semibold text-sm mb-2">{cabinet.name}</h3>
-                          <p className="text-xs text-muted-foreground mb-2">{cabinet.short_description}</p>
-                          <div className="flex gap-1 flex-wrap">
-                            <Badge variant="secondary" className="text-xs">
-                              {cabinet.door_count || 0} doors
-                            </Badge>
-                            <Badge variant="secondary" className="text-xs">
-                              {cabinet.drawer_count || 0} drawers
-                            </Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
+                        {cabinet.name}
+                      </Button>
                     </CarouselItem>
                   ))}
                 </CarouselContent>
@@ -351,13 +326,13 @@ const BaseCabinetsPricing = () => {
           </Card>
         )}
 
-        {/* Single Card with Cabinet Name, Carousel and Pricing Table */}
-        {selectedCabinetType && (
-          <Card className="space-y-0">
+        {/* Cabinet Cards Display */}
+        {(selectedCabinetType === 'all' ? baseCabinets : baseCabinets?.filter(c => c.id === selectedCabinetType))?.map((cabinet) => (
+          <Card key={cabinet.id} className="space-y-0 mb-8">
             {/* Cabinet Name Header */}
             <CardHeader className="text-center border-b">
               <CardTitle className="text-4xl font-bold">
-                {baseCabinets?.find(c => c.id === selectedCabinetType)?.name}
+                {cabinet.name}
               </CardTitle>
             </CardHeader>
             
@@ -412,74 +387,62 @@ const BaseCabinetsPricing = () => {
                 <div className="flex items-center justify-between">
                   <CardTitle>Pricing Table</CardTitle>
                   {isCalculating && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 text-muted-foreground">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Calculating prices...
+                      <span className="text-sm">Calculating...</span>
                     </div>
                   )}
                 </div>
               </CardHeader>
               <CardContent>
-                {loadingCabinets ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin" />
-                  </div>
-                ) : doorStyles.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    No door styles configured for this cabinet type
-                  </div>
-                ) : debugData?.ranges?.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    No price ranges configured for this cabinet type
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left p-3 font-semibold">Size Range</th>
-                          {doorStyles.map((style) => (
-                            <th key={style.id} className="text-center p-3 font-semibold min-w-[120px]">
-                              {style.name}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {debugData?.ranges?.map((range: PriceRange) => (
-                          <tr key={range.id} className="border-b hover:bg-muted/50">
-                            <td className="p-3">
-                              <div className="font-medium">{range.label}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {range.min_width_mm}mm - {range.max_width_mm}mm
-                              </div>
-                            </td>
-                            {doorStyles.map((style) => (
-                              <td key={style.id} className="text-center p-3">
-                                {priceData[selectedCabinetType]?.[style.id]?.[range.id] ? (
-                                  <div>
-                                    <span className="font-semibold text-primary block">
-                                      {formatPrice(priceData[selectedCabinetType][style.id][range.id])}
-                                    </span>
-                                    <span className="text-xs text-muted-foreground">
-                                      Rate: ${style.base_rate_per_sqm}/m²
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <span className="text-muted-foreground">-</span>
-                                )}
-                              </td>
+                {Object.keys(priceData).length > 0 && priceData[cabinet.id] && doorStyles.length > 0 ? (
+                  <div className="space-y-6">
+                    {/* Price Table */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr>
+                            <th className="text-left p-3 bg-muted font-semibold border">Door Style</th>
+                            {debugData?.ranges?.map((range: PriceRange) => (
+                              <th key={range.id} className="text-center p-3 bg-muted font-semibold border min-w-24">
+                                <div className="text-sm">{range.label}</div>
+                                <div className="text-xs text-muted-foreground font-normal">
+                                  {range.min_width_mm}mm - {range.max_width_mm}mm
+                                </div>
+                              </th>
                             ))}
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {doorStyles.map((doorStyle) => (
+                            <tr key={doorStyle.id} className="hover:bg-muted/50">
+                              <td className="p-3 font-medium border">{doorStyle.name}</td>
+                              {debugData?.ranges?.map((range: PriceRange) => {
+                                const price = priceData[cabinet.id]?.[doorStyle.id]?.[range.id];
+                                return (
+                                  <td key={range.id} className="p-3 text-center border">
+                                    {price ? formatPrice(price) : '-'}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Package className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+                    <p className="text-muted-foreground">
+                      {isCalculating ? 'Calculating prices...' : `No pricing data available for ${cabinet.name}`}
+                    </p>
                   </div>
                 )}
               </CardContent>
             </div>
           </Card>
-        )}
+        ))}
 
         {/* Enlarged Image Modal */}
         {enlargedImage && (
@@ -505,49 +468,6 @@ const BaseCabinetsPricing = () => {
               </button>
             </div>
           </div>
-        )}
-
-        {/* Price Calculation Breakdown - FORCE REFRESH */}
-        {selectedCabinetType && debugData?.finishes?.[0]?.door_style && debugData?.finishes?.[0]?.color && (
-          <PriceCalculationBreakdown
-            key={`breakdown-${Date.now()}`}
-            cabinetType={selectedCabinetType}
-            doorStyle={debugData.finishes.find(f => f.door_style?.name.trim() === 'Poly')?.door_style || debugData.finishes[0].door_style}
-            color={debugData.finishes[0].color}
-            priceRanges={debugData.ranges}
-          />
-        )}
-
-        {/* Debug Information */}
-        {debugData && (
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>Debug Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold">Door Styles Found:</h4>
-                  <pre className="text-sm bg-muted p-2 rounded">
-                    {JSON.stringify(debugData.finishes?.map(f => ({
-                      name: f.door_style?.name,
-                      rate: f.door_style?.base_rate_per_sqm
-                    })), null, 2)}
-                  </pre>
-                </div>
-                <div>
-                  <h4 className="font-semibold">Price Ranges:</h4>
-                  <pre className="text-sm bg-muted p-2 rounded">
-                    {JSON.stringify(debugData.ranges?.map(r => ({
-                      label: r.label,
-                      min: r.min_width_mm,
-                      max: r.max_width_mm
-                    })), null, 2)}
-                  </pre>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         )}
       </div>
     </div>
