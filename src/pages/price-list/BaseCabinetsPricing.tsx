@@ -271,61 +271,81 @@ const BaseCabinetsPricing = () => {
           </div>
         </div>
 
-        {/* Cabinet Selection Carousel */}
-        {baseCabinets && baseCabinets.length > 0 && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Select Cabinet Type</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Carousel className="w-full">
-                <CarouselContent className="-ml-2 md:-ml-4">
-                  {baseCabinets.map((cabinet) => (
-                    <CarouselItem key={cabinet.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-                      <Card 
-                        className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                          selectedCabinetType === cabinet.id 
-                            ? 'ring-2 ring-primary shadow-lg' 
-                            : 'hover:ring-1 hover:ring-primary/50'
-                        }`}
-                        onClick={() => setSelectedCabinetType(cabinet.id)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="w-full h-32 bg-muted rounded-md mb-3 flex items-center justify-center">
-                            {cabinet.product_image_url ? (
-                              <img 
-                                src={cabinet.product_image_url} 
-                                alt={cabinet.name}
-                                className="w-full h-full object-cover rounded-md"
-                              />
-                            ) : (
-                              <div className="flex flex-col items-center justify-center text-muted-foreground">
-                                <Package className="h-8 w-8 mb-1" />
-                                <span className="text-xs">No Image</span>
-                              </div>
-                            )}
-                          </div>
-                          <h3 className="font-semibold text-sm mb-2">{cabinet.name}</h3>
-                          <p className="text-xs text-muted-foreground mb-2">{cabinet.short_description}</p>
-                          <div className="flex gap-1 flex-wrap">
-                            <Badge variant="secondary" className="text-xs">
-                              {cabinet.door_count || 0} doors
-                            </Badge>
-                            <Badge variant="secondary" className="text-xs">
-                              {cabinet.drawer_count || 0} drawers
-                            </Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
-            </CardContent>
-          </Card>
-        )}
+        {/* Cabinet Selection Carousel - DEBUG */}
+        <div className="mb-8">
+          <div className="text-sm text-muted-foreground mb-2">
+            DEBUG: baseCabinets = {JSON.stringify(baseCabinets?.length || 'none')}
+            | loadingCabinets = {loadingCabinets.toString()}
+          </div>
+          {baseCabinets && baseCabinets.length > 0 ? (
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Select Cabinet Type ({baseCabinets.length} available)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Carousel className="w-full">
+                  <CarouselContent className="-ml-2 md:-ml-4">
+                    {baseCabinets.map((cabinet) => (
+                      <CarouselItem key={cabinet.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                        <Card 
+                          className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                            selectedCabinetType === cabinet.id 
+                              ? 'ring-2 ring-primary shadow-lg' 
+                              : 'hover:ring-1 hover:ring-primary/50'
+                          }`}
+                          onClick={() => setSelectedCabinetType(cabinet.id)}
+                        >
+                          <CardContent className="p-4">
+                            <div className="w-full h-32 bg-muted rounded-md mb-3 flex items-center justify-center">
+                              {cabinet.product_image_url ? (
+                                <img 
+                                  src={cabinet.product_image_url} 
+                                  alt={cabinet.name}
+                                  className="w-full h-full object-cover rounded-md"
+                                />
+                              ) : (
+                                <div className="flex flex-col items-center justify-center text-muted-foreground">
+                                  <Package className="h-8 w-8 mb-1" />
+                                  <span className="text-xs">No Image</span>
+                                </div>
+                              )}
+                            </div>
+                            <h3 className="font-semibold text-sm mb-2">{cabinet.name}</h3>
+                            <p className="text-xs text-muted-foreground mb-2">{cabinet.short_description}</p>
+                            <div className="flex gap-1 flex-wrap">
+                              <Badge variant="secondary" className="text-xs">
+                                {cabinet.door_count || 0} doors
+                              </Badge>
+                              <Badge variant="secondary" className="text-xs">
+                                {cabinet.drawer_count || 0} drawers
+                              </Badge>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </Carousel>
+              </CardContent>
+            </Card>
+          ) : loadingCabinets ? (
+            <Card className="mb-8">
+              <CardContent className="p-8 text-center">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                <p>Loading cabinets...</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="mb-8">
+              <CardContent className="p-8 text-center">
+                <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-muted-foreground">No base cabinets found</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
         {/* Pricing Table */}
         {selectedCabinetType && (
