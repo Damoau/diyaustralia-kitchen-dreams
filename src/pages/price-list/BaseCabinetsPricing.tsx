@@ -43,6 +43,7 @@ const BaseCabinetsPricing = () => {
   const [priceData, setPriceData] = useState<PriceData>({});
   const [isCalculating, setIsCalculating] = useState(false);
   const [debugData, setDebugData] = useState<any>(null);
+  const [enlargedImage, setEnlargedImage] = useState<{url: string, name: string} | null>(null);
 
   // Clear all cached data when component mounts
   useEffect(() => {
@@ -361,7 +362,13 @@ const BaseCabinetsPricing = () => {
                 <CarouselContent className="-ml-2 md:-ml-4">
                   {debugData.finishes.map((finish: any) => (
                     <CarouselItem key={finish.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-                      <Card className="cursor-pointer transition-all duration-200 hover:shadow-md hover:ring-1 hover:ring-primary/50 overflow-hidden">
+                      <Card 
+                        className="cursor-pointer transition-all duration-200 hover:shadow-md hover:ring-1 hover:ring-primary/50 overflow-hidden hover-scale"
+                        onClick={() => finish.image_url && setEnlargedImage({
+                          url: finish.image_url,
+                          name: finish.door_style?.name || 'Door Style'
+                        })}
+                      >
                         <div className="relative aspect-[4/3] w-full">
                           {finish.image_url ? (
                             <img 
@@ -374,9 +381,9 @@ const BaseCabinetsPricing = () => {
                               <Package className="h-12 w-12 text-muted-foreground" />
                             </div>
                           )}
-                          {/* Text overlay at bottom */}
-                          <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm text-white p-3">
-                            <h3 className="font-semibold text-center text-sm">
+                          {/* Text overlay at bottom - black text only */}
+                          <div className="absolute bottom-0 left-0 right-0 p-3">
+                            <h3 className="font-semibold text-center text-sm text-black bg-white/90 rounded px-2 py-1 mx-auto w-fit">
                               {finish.door_style?.name}
                             </h3>
                           </div>
@@ -390,6 +397,32 @@ const BaseCabinetsPricing = () => {
               </Carousel>
             </CardContent>
           </Card>
+        )}
+
+        {/* Enlarged Image Modal */}
+        {enlargedImage && (
+          <div 
+            className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+            onClick={() => setEnlargedImage(null)}
+          >
+            <div className="relative max-w-4xl max-h-[90vh] w-full">
+              <img 
+                src={enlargedImage.url}
+                alt={enlargedImage.name}
+                className="w-full h-full object-contain rounded-lg"
+                onClick={(e) => e.stopPropagation()}
+              />
+              <div className="absolute top-4 left-4 bg-white/90 rounded px-3 py-1">
+                <h3 className="font-semibold text-black">{enlargedImage.name}</h3>
+              </div>
+              <button 
+                className="absolute top-4 right-4 bg-white/90 hover:bg-white rounded-full w-8 h-8 flex items-center justify-center text-black font-bold"
+                onClick={() => setEnlargedImage(null)}
+              >
+                ×
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Pricing Table */}
