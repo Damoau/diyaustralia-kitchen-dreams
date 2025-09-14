@@ -134,7 +134,13 @@ const BaseCabinets = () => {
                   door_style_id: finish.door_style?.id || null
                 };
 
-                return calculateCabinetPrice(
+                console.log('🏷️ TABLE - Cabinet Type:', cabinetType.name);
+                console.log('📏 TABLE - Dimensions:', width, 'x', cabinetType.default_height_mm, 'x', cabinetType.default_depth_mm);
+                console.log('🚪 TABLE - Door Style Finish:', doorStyleFinish);
+                console.log('🎨 TABLE - Mock Color:', mockColor);
+                console.log('💰 TABLE - Hardware Cost:', hardwareCost);
+
+                const price = calculateCabinetPrice(
                   cabinetType,
                   width,
                   cabinetType.default_height_mm,
@@ -145,6 +151,9 @@ const BaseCabinets = () => {
                   globalSettings,
                   hardwareCost
                 );
+
+                console.log('💵 TABLE - Final Price:', price);
+                return price;
               });
 
               return {

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,6 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ShoppingCart, Minus, Plus, ChevronDown, ChevronUp } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { CabinetType, Brand, Finish, Color, DoorStyle, CabinetPart, GlobalSettings, CabinetTypeFinish } from '@/types/cabinet';
 import { generateCutlist, parseGlobalSettings, formatPrice } from '@/lib/pricing';
 import { calculateCabinetPrice } from '@/lib/dynamicPricing';
@@ -50,20 +50,37 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   const [isLoading, setIsLoading] = useState(false);
   const { addToCart, isLoading: isAddingToCart } = useCart();
 
-  // Reset dimensions when cabinet type changes and ensure the popup uses the same width as the table
+  // For consistency with static table, fetch and use the minimum width from the first price range
   useEffect(() => {
-    // For consistency with static table, use the minimum width from the first price range if no initialWidth provided
-    let newDefaultWidth = initialWidth || cabinetType.default_width_mm;
+    const fetchPriceRanges = async () => {
+      if (!cabinetType.id) return;
+      
+      try {
+        const { data: priceRanges } = await supabase
+          .from('cabinet_type_price_ranges')
+          .select('min_width_mm')
+          .eq('cabinet_type_id', cabinetType.id)
+          .eq('active', true)
+          .order('sort_order', { ascending: true })
+          .limit(1);
+          
+        const tableWidth = priceRanges?.[0]?.min_width_mm || cabinetType.default_width_mm;
+        const newDefaultWidth = initialWidth || tableWidth;
+        
+        console.log('🔧 POPUP - Setting width to match table:', newDefaultWidth);
+        
+        setWidth(newDefaultWidth);
+        setHeight(cabinetType.default_height_mm);  
+        setDepth(cabinetType.default_depth_mm);
+      } catch (error) {
+        console.error('Error fetching price ranges:', error);
+        setWidth(initialWidth || cabinetType.default_width_mm);
+        setHeight(cabinetType.default_height_mm);  
+        setDepth(cabinetType.default_depth_mm);
+      }
+    };
     
-    // If this cabinet has price ranges, use the minimum width of the first range (like the table does)
-    if (!initialWidth && cabinetType.id) {
-      // The table uses range.min_width_mm, so the popup should too for price consistency
-      newDefaultWidth = 600; // Default to match the table's first range minimum
-    }
-    
-    setWidth(newDefaultWidth);
-    setHeight(cabinetType.default_height_mm);  
-    setDepth(cabinetType.default_depth_mm);
+    fetchPriceRanges();
   }, [cabinetType.id, initialWidth]);
   useEffect(() => {
     if (open) {
@@ -264,6 +281,12 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
 
     const hardwareCost = 45; // Default hardware cost
 
+    console.log('🏷️ POPUP - Cabinet Type:', cabinetType.name);
+    console.log('📏 POPUP - Dimensions:', width, 'x', height, 'x', depth);
+    console.log('🚪 POPUP - Door Style Finish:', doorStyleFinish);
+    console.log('🎨 POPUP - Final Color:', finalColor);
+    console.log('💰 POPUP - Hardware Cost:', hardwareCost);
+
     const calculatedPrice = calculateCabinetPrice(
       cabinetType,
       width,
@@ -276,6 +299,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       hardwareCost
     );
 
+    console.log('💵 POPUP - Final Price:', calculatedPrice);
     return calculatedPrice;
   };
 
