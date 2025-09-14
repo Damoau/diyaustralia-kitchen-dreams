@@ -178,7 +178,9 @@ const BaseCabinetsPricing = () => {
             hardwareOptions: hardwareOptions || []
           });
 
-          console.log(`💵 PRICE FOR ${finish.door_style.name} ${width}mm: $${price}`);
+          console.log(`💵💵💵 FINAL PRICE FOR ${finish.door_style.name} ${width}mm: $${price} 💵💵💵`);
+          console.log(`📊 BREAKDOWN: Carcass + Door(${finish.door_style.base_rate_per_sqm}/m²×${(width * height / 1000000).toFixed(4)}m²) + Hardware + GST = $${price}`);
+          
           newPriceData[selectedCabinetType][finish.door_style.id][range.id] = price;
         }
       }
@@ -348,9 +350,14 @@ const BaseCabinetsPricing = () => {
                           {doorStyles.map((style) => (
                             <td key={style.id} className="text-center p-3">
                               {priceData[selectedCabinetType]?.[style.id]?.[range.id] ? (
-                                <span className="font-semibold text-primary">
-                                  {formatPrice(priceData[selectedCabinetType][style.id][range.id])}
-                                </span>
+                                <div>
+                                  <span className="font-semibold text-primary block">
+                                    {formatPrice(priceData[selectedCabinetType][style.id][range.id])}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    Rate: ${style.base_rate_per_sqm}/m²
+                                  </span>
+                                </div>
                               ) : (
                                 <span className="text-muted-foreground">-</span>
                               )}
