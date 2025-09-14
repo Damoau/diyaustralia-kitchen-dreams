@@ -286,7 +286,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   {/* Left: Larger Image Only */}
                   <div className="space-y-3">
                     <div 
-                      className="w-full h-64 bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                      className="w-full h-80 bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
                       onClick={() => getCurrentCabinetImage() && setShowFullScreenImage(true)}
                     >
                       {getCurrentCabinetImage() ? (
@@ -303,8 +303,30 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                     </div>
                   </div>
 
-                  {/* Right: Dimensions, Door Style, Color, and Hardware */}
+                  {/* Right: Price, Dimensions, Door Style, Color, and Hardware */}
                   <div className="space-y-3">
+                    {/* Price Display at Top */}
+                    <Card className="bg-primary/5 border-primary/20">
+                      <CardContent className="p-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Total Price</p>
+                            <p className="text-2xl font-bold text-primary">
+                              {pricingService.formatPrice(price * quantity)}
+                            </p>
+                            {quantity > 1 && (
+                              <p className="text-xs text-muted-foreground">
+                                {pricingService.formatPrice(price)} × {quantity}
+                              </p>
+                            )}
+                          </div>
+                          <Badge variant="secondary" className="text-xs">
+                            Live Pricing
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+
                     {/* Compact Dimensions */}
                     <div className="space-y-2">
                       <h3 className="font-medium text-base">Dimensions</h3>
@@ -407,30 +429,8 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                 </div>
               </div>
 
-              {/* Compact Price Display and Actions */}
+              {/* Quantity and Actions */}
               <div className="space-y-3">
-                {/* Compact Price Card */}
-                <Card className="bg-primary/5 border-primary/20">
-                  <CardContent className="p-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Total Price</p>
-                        <p className="text-2xl font-bold text-primary">
-                          {pricingService.formatPrice(price * quantity)}
-                        </p>
-                        {quantity > 1 && (
-                          <p className="text-xs text-muted-foreground">
-                            {pricingService.formatPrice(price)} × {quantity}
-                          </p>
-                        )}
-                      </div>
-                      <Badge variant="secondary" className="text-xs">
-                        Live Pricing
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-
                 {/* Quantity and Chunky Add to Cart */}
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
