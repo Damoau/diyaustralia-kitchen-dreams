@@ -126,11 +126,28 @@ const BaseCabinetsPricing = () => {
 
   // Calculate prices when data is available
   const calculatePrices = async () => {
-    if (!selectedCabinetType || !cabinetTypeFinishes || !priceRanges || !cabinetParts || !globalSettings) return;
+    if (!selectedCabinetType || !priceRanges || !cabinetParts || !globalSettings) return;
 
     console.log('=== CALCULATE PRICES START ===');
     console.log('Selected cabinet type ID:', selectedCabinetType);
-    console.log('Available finishes:', cabinetTypeFinishes.map(f => ({ 
+
+    // BYPASS REACT QUERY - Fetch fresh data directly
+    const { data: freshFinishes, error: finishError } = await supabase
+      .from('cabinet_type_finishes')
+      .select(`
+        *,
+        door_style:door_styles(*)
+      `)
+      .eq('cabinet_type_id', selectedCabinetType)
+      .eq('active', true)
+      .order('sort_order');
+
+    if (finishError) {
+      console.error('Error fetching fresh finishes:', finishError);
+      return;
+    }
+
+    console.log('🔥 BYPASSED CACHE - FRESH FINISHES:', freshFinishes?.map(f => ({ 
       id: f.id, 
       doorStyle: f.door_style?.name, 
       rate: f.door_style?.base_rate_per_sqm 
@@ -168,9 +185,10 @@ const BaseCabinetsPricing = () => {
       .eq('active', true);
 
     try {
-      for (const finish of cabinetTypeFinishes) {
+      for (const finish of freshFinishes || []) {
         if (!finish.door_style) continue;
         
+        console.log('💰 PROCESSING FINISH:', finish.door_style.name, 'Rate:', finish.door_style.base_rate_per_sqm);
         newPriceData[selectedCabinetType][finish.door_style.id] = {};
 
         for (const range of priceRanges) {
@@ -243,12 +261,12 @@ const BaseCabinetsPricing = () => {
 
   // Trigger calculation when dependencies change
   useEffect(() => {
-    if (selectedCabinetType && cabinetTypeFinishes && priceRanges && cabinetParts && globalSettings) {
-      console.log('🚀 STARTING PRICE CALCULATION');
+    if (selectedCabinetType && priceRanges && cabinetParts && globalSettings) {
+      console.log('🚀 STARTING PRICE CALCULATION - BYPASSING CACHED FINISHES');
       setPriceData({});
       calculatePrices();
     }
-  }, [selectedCabinetType, cabinetTypeFinishes, priceRanges, cabinetParts, globalSettings]);
+  }, [selectedCabinetType, priceRanges, cabinetParts, globalSettings]);
 
   const doorStyles = cabinetTypeFinishes?.map(f => f.door_style).filter(Boolean) as DoorStyle[] || [];
 
