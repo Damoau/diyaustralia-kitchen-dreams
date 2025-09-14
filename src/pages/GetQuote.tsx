@@ -104,14 +104,17 @@ const GetQuote = () => {
               <h2 className="text-3xl font-bold text-foreground mb-12 text-center">Simple 5-Step Process</h2>
               
               {/* Vertical Timeline */}
-              <div className="space-y-8 flex-1 relative">
-                {/* Continuous timeline line */}
-                <div className="absolute left-8 top-8 bottom-8 w-0.5 bg-gradient-to-b from-primary to-primary/30"></div>
-                
+              <div className="space-y-8 flex-1">
                 {processSteps.map((step, index) => (
                   <div key={index} className="relative flex items-start gap-6">
+                    {/* Timeline line segment */}
+                    {index < processSteps.length - 1 && (
+                      <div className="absolute left-1/2 transform -translate-x-1/2 top-16 w-0.5 h-8 bg-gradient-to-b from-primary to-primary/30" 
+                           style={{ left: '32px' }}></div>
+                    )}
+                    
                     {/* Step icon */}
-                    <div className="relative z-10 p-4 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full border-2 border-primary/20 shadow-lg">
+                    <div className="relative z-10 p-4 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full border-2 border-primary/20 shadow-lg w-16 h-16 flex items-center justify-center">
                       {step.icon}
                     </div>
                     
