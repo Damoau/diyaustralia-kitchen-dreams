@@ -325,10 +325,17 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
               </div>
             )}
 
-            {/* Quantity */}
-            <div>
-              <Label className="text-sm font-medium">Quantity</Label>
-              <div className="flex items-center gap-2 mt-1">
+            
+            {/* Total Price */}
+            <div className="bg-muted/30 rounded-lg p-4 text-center">
+              <p className="text-sm text-muted-foreground mb-1">Total Price</p>
+              <p className="text-2xl font-bold text-primary">{formatPrice(totalPrice * quantity)}</p>
+            </div>
+            
+            {/* Quantity and Add to Cart Button */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm font-medium">QTY:</Label>
                 <Button
                   variant="outline"
                   size="icon"
@@ -343,7 +350,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   value={quantity}
                   onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
                   min={1}
-                  className="text-center w-20"
+                  className="text-center w-16"
                 />
                 <Button
                   variant="outline"
@@ -354,24 +361,16 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
+              <Button
+                onClick={handleAddToCart}
+                disabled={!selectedFinish || !selectedDoorStyle || isAddingToCart}
+                className="flex-1"
+                size="lg"
+              >
+                <ShoppingCart className="mr-2 h-5 w-5" />
+                {isAddingToCart ? 'Adding...' : 'Add to Cart'}
+              </Button>
             </div>
-            
-            {/* Total Price */}
-            <div className="bg-muted/30 rounded-lg p-4 text-center">
-              <p className="text-sm text-muted-foreground mb-1">Total Price</p>
-              <p className="text-2xl font-bold text-primary">{formatPrice(totalPrice * quantity)}</p>
-            </div>
-            
-            {/* Add to Cart Button */}
-            <Button
-              onClick={handleAddToCart}
-              disabled={!selectedFinish || !selectedDoorStyle || isAddingToCart}
-              className="w-full"
-              size="lg"
-            >
-              <ShoppingCart className="mr-2 h-5 w-5" />
-              {isAddingToCart ? 'Adding...' : 'Add to Quote'}
-            </Button>
           </div>
         )}
       </DialogContent>
