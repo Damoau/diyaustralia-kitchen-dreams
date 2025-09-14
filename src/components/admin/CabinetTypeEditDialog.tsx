@@ -36,7 +36,9 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
     default_height_mm: 720,
     default_depth_mm: 560,
     drawer_count: 0,
-    active: true
+    active: true,
+    min_price: 0,
+    max_price: 10000
   });
 
   useEffect(() => {
@@ -48,7 +50,9 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
         default_height_mm: cabinetType.default_height_mm,
         default_depth_mm: cabinetType.default_depth_mm,
         drawer_count: cabinetType.drawer_count,
-        active: cabinetType.active
+        active: cabinetType.active,
+        min_price: (cabinetType as any).min_price || 0,
+        max_price: (cabinetType as any).max_price || 10000
       });
     } else {
       setFormData({
@@ -58,7 +62,9 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
         default_height_mm: 720,
         default_depth_mm: 560,
         drawer_count: 0,
-        active: true
+        active: true,
+        min_price: 0,
+        max_price: 10000
       });
     }
   }, [cabinetType]);
@@ -144,6 +150,29 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
                     type="number"
                     value={formData.default_depth_mm}
                     onChange={(e) => setFormData({ ...formData, default_depth_mm: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label htmlFor="min_price">Min Price ($)</Label>
+                  <Input
+                    id="min_price"
+                    type="number"
+                    step="0.01"
+                    value={formData.min_price}
+                    onChange={(e) => setFormData({ ...formData, min_price: parseFloat(e.target.value) || 0 })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="max_price">Max Price ($)</Label>
+                  <Input
+                    id="max_price"
+                    type="number"
+                    step="0.01"
+                    value={formData.max_price}
+                    onChange={(e) => setFormData({ ...formData, max_price: parseFloat(e.target.value) || 0 })}
                   />
                 </div>
               </div>
