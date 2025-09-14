@@ -16,6 +16,7 @@ import { useCart } from "@/hooks/useCart";
 import { formatPrice } from "@/lib/pricing";
 import { useToast } from "@/hooks/use-toast";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { RefreshImagesButton } from "@/components/RefreshImagesButton";
 
 const CabinetPricesNew = () => {
@@ -284,22 +285,40 @@ const CabinetPricesNew = () => {
                            .filter((ctf: any) => ctf.image_url) // Only show finishes with images
                            .map((ctf: any) => (
                              <CarouselItem key={ctf.id} className="pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
-                               <div className="relative group">
-                                 <img 
-                                   src={ctf.image_url} 
-                                   alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
-                                   className="w-full h-48 object-cover rounded-lg border shadow-sm"
-                                   onError={(e) => {
-                                     console.error("Image failed to load:", ctf.image_url);
-                                     e.currentTarget.style.display = "none";
-                                   }}
-                                 />
-                                 <div className="absolute bottom-0 left-0 right-0 p-3">
-                                   <p className="text-center text-sm font-medium text-white">
-                                     {ctf.door_style?.name}
-                                   </p>
-                                 </div>
-                               </div>
+                               <Dialog>
+                                 <DialogTrigger asChild>
+                                   <div className="relative group cursor-pointer hover:opacity-90 transition-opacity">
+                                     <img 
+                                       src={ctf.image_url} 
+                                       alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
+                                       className="w-full h-48 object-cover rounded-lg border shadow-sm"
+                                       onError={(e) => {
+                                         console.error("Image failed to load:", ctf.image_url);
+                                         e.currentTarget.style.display = "none";
+                                       }}
+                                     />
+                                     <div className="absolute bottom-0 left-0 right-0 p-3">
+                                       <p className="text-center text-sm font-medium text-black drop-shadow-sm">
+                                         {ctf.door_style?.name}
+                                       </p>
+                                     </div>
+                                   </div>
+                                 </DialogTrigger>
+                                 <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+                                   <div className="relative">
+                                     <img 
+                                       src={ctf.image_url} 
+                                       alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
+                                       className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+                                     />
+                                     <div className="absolute bottom-4 left-0 right-0 text-center">
+                                       <h3 className="text-white text-xl font-semibold bg-black/60 backdrop-blur-sm rounded-lg mx-auto px-4 py-2 inline-block">
+                                         {ctf.door_style?.name}
+                                       </h3>
+                                     </div>
+                                   </div>
+                                 </DialogContent>
+                               </Dialog>
                              </CarouselItem>
                            ))}
                        </CarouselContent>
