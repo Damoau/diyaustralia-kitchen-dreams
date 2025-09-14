@@ -78,36 +78,36 @@ const Shop = () => {
           {/* Category Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {categories.map((category) => (
-              <Card key={category.id} className="group hover:shadow-elegant transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
-                {/* Full-width image */}
-                <div className="aspect-video md:aspect-square bg-muted flex items-center justify-center overflow-hidden">
-                  <img 
-                    src={category.image} 
-                    alt={category.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                
-                <CardHeader className="text-center">
-                  <div className="mb-4">
-                    {category.icon}
+              <Link key={category.id} to={category.path} className="group">
+                <Card className="h-full hover:shadow-elegant transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden cursor-pointer">
+                  {/* Full-width image */}
+                  <div className="aspect-video md:aspect-square bg-muted flex items-center justify-center overflow-hidden">
+                    <img 
+                      src={category.image} 
+                      alt={category.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                   </div>
-                  <CardTitle className="text-xl mb-2">{category.title}</CardTitle>
-                  <CardDescription className="text-sm">
-                    {category.description}
-                  </CardDescription>
-                </CardHeader>
-                
-                <CardContent className="pt-0">
-                  {/* Full-width button */}
-                  <Button asChild className="w-full" size="lg">
-                    <Link to={category.path}>
+                  
+                  <CardHeader className="text-center">
+                    <div className="mb-4">
+                      {category.icon}
+                    </div>
+                    <CardTitle className="text-xl mb-2">{category.title}</CardTitle>
+                    <CardDescription className="text-sm">
+                      {category.description}
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent className="pt-0">
+                    {/* Full-width button */}
+                    <Button className="w-full" size="lg">
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       Browse Collection
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
 
