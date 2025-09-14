@@ -9,8 +9,9 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Minus, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { CabinetType, Brand, Finish, Color, DoorStyle, CabinetPart, GlobalSettings } from '@/types/cabinet';
+import { CabinetType, Brand, Finish, Color, DoorStyle, CabinetPart, GlobalSettings, CabinetTypeFinish } from '@/types/cabinet';
 import { generateCutlist, parseGlobalSettings, formatPrice } from '@/lib/pricing';
+import { calculateCabinetPrice } from '@/lib/dynamicPricing';
 import { useCart } from '@/hooks/useCart';
 import { HardwareCostPreview } from './HardwareCostPreview';
 
@@ -33,6 +34,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
   const [cabinetParts, setCabinetParts] = useState<CabinetPart[]>([]);
   const [globalSettings, setGlobalSettings] = useState<GlobalSettings[]>([]);
+  const [cabinetTypeFinishes, setCabinetTypeFinishes] = useState<CabinetTypeFinish[]>([]);
   
   const [selectedBrand, setSelectedBrand] = useState<string>('');
   const [selectedFinish, setSelectedFinish] = useState<string>('');
@@ -95,7 +97,8 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
         doorStylesRes,
         cabinetPartsRes,
         settingsRes,
-        hardwareRequirementsRes
+        hardwareRequirementsRes,
+        cabinetTypeFinishesRes
       ] = await Promise.all([
         supabase.from('brands').select('*').eq('active', true),
         supabase.from('finishes').select('*').eq('active', true),
@@ -112,7 +115,14 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
             hardware_brand:hardware_brands(name),
             hardware_product:hardware_products(name, cost_per_unit)
           )
-        `).eq('cabinet_type_id', cabinetType.id).eq('active', true)
+        `).eq('cabinet_type_id', cabinetType.id).eq('active', true),
+        // Fetch cabinet type finishes for images
+        supabase.from('cabinet_type_finishes').select(`
+          *,
+          door_style:door_styles(*),
+          door_style_finish:door_style_finishes!cabinet_type_finishes_door_style_finish_id_fkey(*),
+          color:colors(*)
+        `).eq('cabinet_type_id', cabinetType.id).eq('active', true).order('sort_order')
       ]);
 
       if (brandsRes.data) {
@@ -142,6 +152,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       }
       if (cabinetPartsRes.data) setCabinetParts(cabinetPartsRes.data);
       if (settingsRes.data) setGlobalSettings(settingsRes.data);
+      if (cabinetTypeFinishesRes.data) setCabinetTypeFinishes(cabinetTypeFinishesRes.data);
       
     } catch (error) {
       console.error('Error loading configurator data:', error);
@@ -169,21 +180,56 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   };
 
   const calculatePrice = () => {
-    if (!selectedFinish || !selectedDoorStyle || cabinetParts.length === 0) {
+    if (!selectedFinish || !selectedDoorStyle || cabinetParts.length === 0 || globalSettings.length === 0) {
       return 0;
     }
 
-    const configuration = getCurrentConfiguration();
-    const settings = parseGlobalSettings(globalSettings);
+    const doorStyle = doorStyles.find(ds => ds.id === selectedDoorStyle);
+    const color = colors.find(c => c.id === selectedColor);
     
-    // Calculate hardware cost based on selected options
-    let hardwareCost = 0;
-    // This will be implemented with actual product costs in HardwareCostPreview
-    
-    const cutlist = generateCutlist(configuration, cabinetParts, settings);
-    
-    // Add hardware cost to the total
-    return cutlist.totalCost + hardwareCost;
+    if (!doorStyle || !color) {
+      return 0;
+    }
+
+    // Create door style finish object from selected data
+    const doorStyleFinish = {
+      id: selectedDoorStyle,
+      name: doorStyle.name + ' Finish',
+      rate_per_sqm: doorStyle.base_rate_per_sqm || 150,
+      door_style_id: selectedDoorStyle,
+      door_style: doorStyle,
+      active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      sort_order: 0
+    };
+
+    const hardwareCost = 45; // Default hardware cost
+
+    return calculateCabinetPrice(
+      cabinetType,
+      width,
+      height,
+      depth,
+      doorStyleFinish,
+      color,
+      cabinetParts,
+      globalSettings,
+      hardwareCost
+    );
+  };
+
+  // Get the current cabinet image based on selected door style
+  const getCurrentCabinetImage = () => {
+    if (selectedDoorStyle && cabinetTypeFinishes.length > 0) {
+      const matchingFinish = cabinetTypeFinishes.find(
+        (ctf: any) => ctf.door_style_id === selectedDoorStyle && ctf.image_url
+      );
+      if (matchingFinish) {
+        return matchingFinish.image_url;
+      }
+    }
+    return cabinetType.product_image_url;
   };
 
   const handleAddToCart = async () => {
@@ -222,9 +268,9 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
             {/* Cabinet Info Section */}
             <div className="flex gap-4">
               <div className="flex-shrink-0">
-                {cabinetType.product_image_url ? (
+                {getCurrentCabinetImage() ? (
                   <img 
-                    src={cabinetType.product_image_url} 
+                    src={getCurrentCabinetImage()} 
                     alt={cabinetType.name}
                     className="w-20 h-20 object-cover rounded border-2 border-primary"
                   />
@@ -335,7 +381,6 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
             {/* Quantity and Add to Cart Button */}
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
-                <Label className="text-sm font-medium">QTY:</Label>
                 <Button
                   variant="outline"
                   size="icon"
