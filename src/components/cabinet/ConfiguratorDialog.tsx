@@ -14,6 +14,8 @@ import { useCart } from '@/hooks/useCart';
 import { useDynamicPricing } from '@/hooks/useDynamicPricing';
 import { pricingService } from '@/services/pricingService';
 import { PriceBreakdown } from './PriceBreakdown';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 interface ConfiguratorDialogProps {
   cabinetType: CabinetType;
@@ -60,9 +62,6 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       if (firstFinish.door_style?.id) {
         setSelectedDoorStyle(firstFinish.door_style.id);
       }
-      if (firstFinish.color?.id) {
-        setSelectedColor(firstFinish.color.id);
-      }
     }
   }, [cabinetTypeFinishes, selectedDoorStyle]);
 
@@ -75,7 +74,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
 
   const handleAddToCart = async () => {
     const selectedDoorStyleObj = cabinetTypeFinishes?.find(f => f.door_style?.id === selectedDoorStyle)?.door_style;
-    const selectedColorObj = cabinetTypeFinishes?.find(f => f.color?.id === selectedColor)?.color;
+    const selectedColorObj = availableColors?.find(c => c.id === selectedColor);
 
     const configuration = {
       cabinetType,
@@ -109,8 +108,37 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
     return cabinetType.product_image_url;
   };
 
+  // Fetch colors for the selected door style
+  const { data: availableColors } = useQuery({
+    queryKey: ['colors-for-door-style', selectedDoorStyle],
+    queryFn: async () => {
+      if (!selectedDoorStyle) return [];
+      const { data, error } = await supabase
+        .from('colors')
+        .select('*, door_styles!colors_door_style_id_fkey(*)')
+        .eq('door_style_id', selectedDoorStyle)
+        .eq('active', true)
+        .order('name');
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!selectedDoorStyle,
+  });
+
+  // Reset color when door style changes
+  useEffect(() => {
+    if (selectedDoorStyle && availableColors && availableColors.length > 0) {
+      // Auto-select first available color for the selected door style
+      if (!selectedColor || !availableColors.find(c => c.id === selectedColor)) {
+        setSelectedColor(availableColors[0].id);
+      }
+    } else {
+      // Clear color selection if no door style or no colors available
+      setSelectedColor('');
+    }
+  }, [selectedDoorStyle, availableColors, selectedColor]);
+
   const availableDoorStyles = cabinetTypeFinishes?.map(f => f.door_style).filter(Boolean) || [];
-  const availableColors = cabinetTypeFinishes?.flatMap(f => f.color).filter(Boolean) || [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -249,7 +277,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                       <SelectValue placeholder="Select color" />
                     </SelectTrigger>
                     <SelectContent>
-                      {availableColors.map((color) => (
+                      {(availableColors || []).map((color) => (
                         <SelectItem key={color.id} value={color.id}>
                           <div className="flex items-center gap-2">
                             {color.hex_code && (
@@ -324,7 +352,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                           created_at: new Date().toISOString(),
                           door_style: availableDoorStyles.find(s => s.id === selectedDoorStyle)
                         }}
-                        color={availableColors.find(c => c.id === selectedColor)}
+                        color={availableColors?.find(c => c.id === selectedColor)}
                         hardwareCost={45}
                         totalPrice={price}
                       />
