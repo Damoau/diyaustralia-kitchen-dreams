@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Upload, Calculator, FileText, Truck, MapPin, Star, Shield, Award, Factory, ChevronDown } from "lucide-react";
+import { CheckCircle, Upload, Calculator, FileText, Truck, MapPin, Star, ChevronDown } from "lucide-react";
 import QuoteForm from "@/components/QuoteForm";
 import { useState, useEffect } from "react";
 import logoBlum from "@/assets/logo-blum.png";
@@ -28,36 +28,23 @@ const GetQuote = () => {
   const processSteps = [{
     icon: <Upload className="h-12 w-12 text-primary" />,
     title: "Upload Plans",
-    description: "Share your kitchen plans from any source"
+    description: "Send us your hand drawings, Bunnings plans, IKEA kitchen designs, or plans from any kitchen company. We work with any format - photos, PDFs, or even rough sketches on paper."
   }, {
     icon: <Calculator className="h-12 w-12 text-primary" />,
     title: "Get Quote",
-    description: "Receive detailed pricing within 24 hours"
+    description: "Our expert team analyzes your plans and provides a detailed, itemized quote within 24 hours. Includes material costs, hardware options, and delivery estimates with no hidden fees."
   }, {
     icon: <FileText className="h-12 w-12 text-primary" />,
     title: "Approve Design",
-    description: "Professional drawings with measurements"
+    description: "Receive professional CAD drawings with precise measurements and 3D renderings. Make any adjustments needed before we finalize your custom cabinet specifications."
   }, {
     icon: <CheckCircle className="h-12 w-12 text-primary" />,
     title: "Production",
-    description: "Custom manufacturing begins"
+    description: "Your cabinets are custom manufactured in our Australian facility using premium materials and precision machinery. Track your order progress through our production stages."
   }, {
     icon: <Truck className="h-12 w-12 text-primary" />,
     title: "Delivery",
-    description: "Pre-drilled, labeled, ready to install"
-  }];
-  const trustBadges = [{
-    icon: <Factory className="h-8 w-8 text-primary" />,
-    title: "Australian-Made",
-    description: "Locally manufactured quality"
-  }, {
-    icon: <Award className="h-8 w-8 text-primary" />,
-    title: "Premium Materials",
-    description: "Top-grade components"
-  }, {
-    icon: <Shield className="h-8 w-8 text-primary" />,
-    title: "10-Year Warranty",
-    description: "Comprehensive coverage"
+    description: "Receive your cabinets pre-drilled, labeled, and ready to install. Flat-pack delivery Australia-wide or assembled delivery to selected metro areas with white-glove service."
   }];
   const testimonials = [{
     name: "Sarah M.",
@@ -109,21 +96,6 @@ const GetQuote = () => {
               Australian-made custom cabinets • Any size, any style • Fast Australia-wide delivery
             </p>
             
-          </div>
-
-          {/* Trust Badges */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-            {trustBadges.map((badge, index) => (
-              <Card key={index} className="text-center p-6 hover:shadow-lg transition-shadow">
-                <CardContent className="space-y-4">
-                  <div className="flex justify-center">
-                    {badge.icon}
-                  </div>
-                  <h3 className="font-semibold text-foreground">{badge.title}</h3>
-                  <p className="text-sm text-muted-foreground">{badge.description}</p>
-                </CardContent>
-              </Card>
-            ))}
           </div>
 
           <div className="grid lg:grid-cols-2 gap-16 mb-16 lg:items-stretch">
