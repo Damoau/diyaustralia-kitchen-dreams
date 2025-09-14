@@ -299,7 +299,7 @@ const BaseCabinets = () => {
                                      <span className="text-white opacity-0 group-hover:opacity-100 font-medium">View Full Size</span>
                                    </div>
                                    <div className="absolute bottom-2 left-0 right-0 text-center">
-                                     <span className="bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                                     <span className="text-black text-xs px-2 py-1 rounded font-medium bg-white/80">
                                        {cabinetType.name}
                                      </span>
                                    </div>
@@ -350,7 +350,7 @@ const BaseCabinets = () => {
                                        <span className="text-white opacity-0 group-hover:opacity-100 font-medium">View Full Size</span>
                                      </div>
                                      <div className="absolute bottom-2 left-0 right-0 text-center">
-                                       <span className="bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                                       <span className="text-black text-xs px-2 py-1 rounded font-medium bg-white/80">
                                          {ctf.door_style?.name || 'Unknown Style'}
                                        </span>
                                      </div>
