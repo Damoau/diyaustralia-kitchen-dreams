@@ -158,7 +158,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md sm:max-w-4xl max-h-[95vh] overflow-y-auto mx-2 sm:mx-8 p-3 sm:p-6">
+      <DialogContent className="max-w-md md:max-w-5xl max-h-[95vh] overflow-y-auto mx-2 sm:mx-8 p-3 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
@@ -177,146 +177,304 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
             </div>
           ) : (
             <>
-              {/* Cabinet Image */}
-              <div className="flex justify-center">
-                <div 
-                  className="w-20 h-20 bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={() => getCurrentCabinetImage() && setShowFullScreenImage(true)}
-                >
-                  {getCurrentCabinetImage() ? (
-                    <img
-                      src={getCurrentCabinetImage()}
-                      alt={cabinetType.name}
-                      className="w-full h-full object-cover"
+              {/* Mobile Layout: Stacked */}
+              <div className="md:hidden space-y-4">
+                {/* Cabinet Image */}
+                <div className="flex justify-center">
+                  <div 
+                    className="w-20 h-20 bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => getCurrentCabinetImage() && setShowFullScreenImage(true)}
+                  >
+                    {getCurrentCabinetImage() ? (
+                      <img
+                        src={getCurrentCabinetImage()}
+                        alt={cabinetType.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+                        No Image
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Dimensions */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <Label className="text-xs">Width (mm)</Label>
+                    <Input
+                      type="number"
+                      value={width === 0 ? '' : width}
+                      onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
+                      onBlur={() => setTouchedFields(prev => ({ ...prev, width: true }))}
+                      min={cabinetType.min_width_mm || 100}
+                      max={cabinetType.max_width_mm || 2000}
+                      className="mt-1 h-8 text-sm"
                     />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
-                      No Image
-                    </div>
-                  )}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {cabinetType.min_width_mm || 100}-{cabinetType.max_width_mm || 2000}
+                    </p>
+                    {touchedFields.width && (width < (cabinetType.min_width_mm || 100) || width > (cabinetType.max_width_mm || 2000)) && (
+                      <p className="text-xs text-destructive mt-1">Outside range</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-xs">Height (mm)</Label>
+                    <Input
+                      type="number"
+                      value={height === 0 ? '' : height}
+                      onChange={(e) => setHeight(e.target.value === '' ? 0 : Number(e.target.value))}
+                      onBlur={() => setTouchedFields(prev => ({ ...prev, height: true }))}
+                      min={cabinetType.min_height_mm || 100}
+                      max={cabinetType.max_height_mm || 3000}
+                      className="mt-1 h-8 text-sm"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {cabinetType.min_height_mm || 100}-{cabinetType.max_height_mm || 3000}
+                    </p>
+                    {touchedFields.height && (height < (cabinetType.min_height_mm || 100) || height > (cabinetType.max_height_mm || 3000)) && (
+                      <p className="text-xs text-destructive mt-1">Outside range</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-xs">Depth (mm)</Label>
+                    <Input
+                      type="number"
+                      value={depth === 0 ? '' : depth}
+                      onChange={(e) => setDepth(e.target.value === '' ? 0 : Number(e.target.value))}
+                      onBlur={() => setTouchedFields(prev => ({ ...prev, depth: true }))}
+                      min={cabinetType.min_depth_mm || 100}
+                      max={cabinetType.max_depth_mm || 1000}
+                      className="mt-1 h-8 text-sm"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {cabinetType.min_depth_mm || 100}-{cabinetType.max_depth_mm || 1000}
+                    </p>
+                    {touchedFields.depth && (depth < (cabinetType.min_depth_mm || 100) || depth > (cabinetType.max_depth_mm || 1000)) && (
+                      <p className="text-xs text-destructive mt-1">Outside range</p>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Dimensions */}
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <Label className="text-xs">Width (mm)</Label>
-                  <Input
-                    type="number"
-                    value={width === 0 ? '' : width}
-                    onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
-                    onBlur={() => setTouchedFields(prev => ({ ...prev, width: true }))}
-                    min={cabinetType.min_width_mm || 100}
-                    max={cabinetType.max_width_mm || 2000}
-                    className="mt-1 h-8 text-sm"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {cabinetType.min_width_mm || 100}-{cabinetType.max_width_mm || 2000}
-                  </p>
-                  {touchedFields.width && (width < (cabinetType.min_width_mm || 100) || width > (cabinetType.max_width_mm || 2000)) && (
-                    <p className="text-xs text-destructive mt-1">Outside range</p>
-                  )}
-                </div>
-                <div>
-                  <Label className="text-xs">Height (mm)</Label>
-                  <Input
-                    type="number"
-                    value={height === 0 ? '' : height}
-                    onChange={(e) => setHeight(e.target.value === '' ? 0 : Number(e.target.value))}
-                    onBlur={() => setTouchedFields(prev => ({ ...prev, height: true }))}
-                    min={cabinetType.min_height_mm || 100}
-                    max={cabinetType.max_height_mm || 3000}
-                    className="mt-1 h-8 text-sm"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {cabinetType.min_height_mm || 100}-{cabinetType.max_height_mm || 3000}
-                  </p>
-                  {touchedFields.height && (height < (cabinetType.min_height_mm || 100) || height > (cabinetType.max_height_mm || 3000)) && (
-                    <p className="text-xs text-destructive mt-1">Outside range</p>
-                  )}
-                </div>
-                <div>
-                  <Label className="text-xs">Depth (mm)</Label>
-                  <Input
-                    type="number"
-                    value={depth === 0 ? '' : depth}
-                    onChange={(e) => setDepth(e.target.value === '' ? 0 : Number(e.target.value))}
-                    onBlur={() => setTouchedFields(prev => ({ ...prev, depth: true }))}
-                    min={cabinetType.min_depth_mm || 100}
-                    max={cabinetType.max_depth_mm || 1000}
-                    className="mt-1 h-8 text-sm"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {cabinetType.min_depth_mm || 100}-{cabinetType.max_depth_mm || 1000}
-                  </p>
-                  {touchedFields.depth && (depth < (cabinetType.min_depth_mm || 100) || depth > (cabinetType.max_depth_mm || 1000)) && (
-                    <p className="text-xs text-destructive mt-1">Outside range</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Door Style, Color & Hardware Selection */}
-              <div className="grid grid-cols-1 gap-2">
-                <div>
-                  <Label className="text-xs">Door Style</Label>
-                  <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
-                    <SelectTrigger className="mt-1 h-8">
-                      <SelectValue placeholder="Select door style" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableDoorStyles.map((style) => (
-                        <SelectItem key={style.id} value={style.id}>
-                          <div className="flex items-center justify-between w-full">
-                            <span className="text-sm">{style.name}</span>
-                            <Badge variant="outline" className="ml-2 text-xs">
-                              {pricingService.formatPrice(style.base_rate_per_sqm)}/m²
-                            </Badge>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label className="text-xs">Color</Label>
-                  <Select value={selectedColor} onValueChange={setSelectedColor}>
-                    <SelectTrigger className="mt-1 h-8">
-                      <SelectValue placeholder="Select color" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(availableColors || []).map((color) => (
-                        <SelectItem key={color.id} value={color.id}>
-                          <div className="flex items-center gap-2">
-                            {color.hex_code && (
-                              <div
-                                className="w-4 h-4 rounded border"
-                                style={{ backgroundColor: color.hex_code }}
-                              />
-                            )}
-                            <span className="text-sm">{color.name}</span>
-                            {color.surcharge_rate_per_sqm > 0 && (
+                {/* Door Style, Color & Hardware Selection */}
+                <div className="grid grid-cols-1 gap-2">
+                  <div>
+                    <Label className="text-xs">Door Style</Label>
+                    <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
+                      <SelectTrigger className="mt-1 h-8">
+                        <SelectValue placeholder="Select door style" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableDoorStyles.map((style) => (
+                          <SelectItem key={style.id} value={style.id}>
+                            <div className="flex items-center justify-between w-full">
+                              <span className="text-sm">{style.name}</span>
                               <Badge variant="outline" className="ml-2 text-xs">
-                                +{pricingService.formatPrice(color.surcharge_rate_per_sqm)}/m²
+                                {pricingService.formatPrice(style.base_rate_per_sqm)}/m²
                               </Badge>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-xs">Color</Label>
+                    <Select value={selectedColor} onValueChange={setSelectedColor}>
+                      <SelectTrigger className="mt-1 h-8">
+                        <SelectValue placeholder="Select color" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(availableColors || []).map((color) => (
+                          <SelectItem key={color.id} value={color.id}>
+                            <div className="flex items-center gap-2">
+                              {color.hex_code && (
+                                <div
+                                  className="w-4 h-4 rounded border"
+                                  style={{ backgroundColor: color.hex_code }}
+                                />
+                              )}
+                              <span className="text-sm">{color.name}</span>
+                              {color.surcharge_rate_per_sqm > 0 && (
+                                <Badge variant="outline" className="ml-2 text-xs">
+                                  +{pricingService.formatPrice(color.surcharge_rate_per_sqm)}/m²
+                                </Badge>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Hardware Brand Selection */}
+                  <div>
+                    <Label className="text-xs">Hardware Brand</Label>
+                    <HardwareBrandSelector
+                      cabinetType={cabinetType}
+                      selectedBrandId={selectedHardwareBrand}
+                      onBrandChange={setSelectedHardwareBrand}
+                      quantity={quantity}
+                      compact={true}
+                    />
+                  </div>
                 </div>
-                
-                {/* Hardware Brand Selection */}
-                <div>
-                  <Label className="text-xs">Hardware Brand</Label>
-                  <HardwareBrandSelector
-                    cabinetType={cabinetType}
-                    selectedBrandId={selectedHardwareBrand}
-                    onBrandChange={setSelectedHardwareBrand}
-                    quantity={quantity}
-                    compact={true}
-                  />
+              </div>
+
+              {/* Desktop/Tablet Layout: Side by side */}
+              <div className="hidden md:block">
+                <div className="grid grid-cols-2 gap-8">
+                  {/* Left: Large Image */}
+                  <div className="space-y-4">
+                    <div 
+                      className="w-full h-80 bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => getCurrentCabinetImage() && setShowFullScreenImage(true)}
+                    >
+                      {getCurrentCabinetImage() ? (
+                        <img
+                          src={getCurrentCabinetImage()}
+                          alt={cabinetType.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                          No Image Available
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right: Dimensions and Controls */}
+                  <div className="space-y-4">
+                    {/* Dimensions */}
+                    <div className="space-y-4">
+                      <h3 className="font-medium text-lg">Dimensions</h3>
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="text-sm">Width (mm)</Label>
+                          <Input
+                            type="number"
+                            value={width === 0 ? '' : width}
+                            onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
+                            onBlur={() => setTouchedFields(prev => ({ ...prev, width: true }))}
+                            min={cabinetType.min_width_mm || 100}
+                            max={cabinetType.max_width_mm || 2000}
+                            className="mt-1"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Range: {cabinetType.min_width_mm || 100}-{cabinetType.max_width_mm || 2000}mm
+                          </p>
+                          {touchedFields.width && (width < (cabinetType.min_width_mm || 100) || width > (cabinetType.max_width_mm || 2000)) && (
+                            <p className="text-xs text-destructive mt-1">Outside valid range</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label className="text-sm">Height (mm)</Label>
+                          <Input
+                            type="number"
+                            value={height === 0 ? '' : height}
+                            onChange={(e) => setHeight(e.target.value === '' ? 0 : Number(e.target.value))}
+                            onBlur={() => setTouchedFields(prev => ({ ...prev, height: true }))}
+                            min={cabinetType.min_height_mm || 100}
+                            max={cabinetType.max_height_mm || 3000}
+                            className="mt-1"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Range: {cabinetType.min_height_mm || 100}-{cabinetType.max_height_mm || 3000}mm
+                          </p>
+                          {touchedFields.height && (height < (cabinetType.min_height_mm || 100) || height > (cabinetType.max_height_mm || 3000)) && (
+                            <p className="text-xs text-destructive mt-1">Outside valid range</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label className="text-sm">Depth (mm)</Label>
+                          <Input
+                            type="number"
+                            value={depth === 0 ? '' : depth}
+                            onChange={(e) => setDepth(e.target.value === '' ? 0 : Number(e.target.value))}
+                            onBlur={() => setTouchedFields(prev => ({ ...prev, depth: true }))}
+                            min={cabinetType.min_depth_mm || 100}
+                            max={cabinetType.max_depth_mm || 1000}
+                            className="mt-1"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Range: {cabinetType.min_depth_mm || 100}-{cabinetType.max_depth_mm || 1000}mm
+                          </p>
+                          {touchedFields.depth && (depth < (cabinetType.min_depth_mm || 100) || depth > (cabinetType.max_depth_mm || 1000)) && (
+                            <p className="text-xs text-destructive mt-1">Outside valid range</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Style Options */}
+                    <div className="space-y-3">
+                      <h3 className="font-medium text-lg">Style Options</h3>
+                      <div>
+                        <Label className="text-sm">Door Style</Label>
+                        <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select door style" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableDoorStyles.map((style) => (
+                              <SelectItem key={style.id} value={style.id}>
+                                <div className="flex items-center justify-between w-full">
+                                  <span>{style.name}</span>
+                                  <Badge variant="outline" className="ml-2">
+                                    {pricingService.formatPrice(style.base_rate_per_sqm)}/m²
+                                  </Badge>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm">Color</Label>
+                        <Select value={selectedColor} onValueChange={setSelectedColor}>
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select color" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(availableColors || []).map((color) => (
+                              <SelectItem key={color.id} value={color.id}>
+                                <div className="flex items-center gap-2">
+                                  {color.hex_code && (
+                                    <div
+                                      className="w-4 h-4 rounded border"
+                                      style={{ backgroundColor: color.hex_code }}
+                                    />
+                                  )}
+                                  <span>{color.name}</span>
+                                  {color.surcharge_rate_per_sqm > 0 && (
+                                    <Badge variant="outline" className="ml-2">
+                                      +{pricingService.formatPrice(color.surcharge_rate_per_sqm)}/m²
+                                    </Badge>
+                                  )}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Hardware Brand Selection */}
+                      <div>
+                        <Label className="text-sm">Hardware Brand</Label>
+                        <HardwareBrandSelector
+                          cabinetType={cabinetType}
+                          selectedBrandId={selectedHardwareBrand}
+                          onBrandChange={setSelectedHardwareBrand}
+                          quantity={quantity}
+                          compact={false}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
