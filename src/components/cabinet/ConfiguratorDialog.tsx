@@ -93,6 +93,8 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
     try {
       setIsLoading(true);
       
+      console.log('🔍 Loading data for cabinet type:', cabinetType.id, cabinetType.name);
+      
       const [
         brandsRes,
         finishesRes,
@@ -160,7 +162,16 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
         });
         setSelectedHardwareOptions(defaultSelections);
       }
-      if (cabinetPartsRes.data) setCabinetParts(cabinetPartsRes.data);
+      console.log('📦 Cabinet parts query result:', cabinetPartsRes);
+      if (cabinetPartsRes.error) {
+        console.error('❌ Cabinet parts query error:', cabinetPartsRes.error);
+      }
+      if (cabinetPartsRes.data) {
+        console.log('✅ Setting cabinet parts:', cabinetPartsRes.data.length, 'parts');
+        setCabinetParts(cabinetPartsRes.data);
+      } else {
+        console.log('⚠️ No cabinet parts data received');
+      }
       if (settingsRes.data) setGlobalSettings(settingsRes.data);
       if (cabinetTypeFinishesRes.data) {
         setCabinetTypeFinishes(cabinetTypeFinishesRes.data);
