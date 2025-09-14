@@ -95,18 +95,6 @@ const CabinetPricesNew = () => {
         .order('cabinet_type_id', { ascending: true })
         .order('sort_order', { ascending: true });
       if (error) throw error;
-      
-      console.log('Cabinet Type Finishes loaded:', {
-        total: data?.length || 0,
-        withImages: data?.filter((item: any) => item.image_url)?.length || 0,
-        data: data?.map((item: any) => ({
-          id: item.id,
-          cabinetTypeId: item.cabinet_type_id,
-          imageUrl: item.image_url,
-          doorStyle: item.door_style?.name
-        })) || []
-      });
-      
       return data as any[];
     },
   });
@@ -261,17 +249,6 @@ const CabinetPricesNew = () => {
               ctf.cabinet_type_id === cabinetType.id && ctf.active
             ).sort((a: any, b: any) => a.sort_order - b.sort_order) || [];
 
-            console.log(`Cabinet type ${cabinetType.name}:`, {
-              totalFinishes: typeFinishes.length,
-              finishesWithImages: typeFinishes.filter(ctf => ctf.image_url).length,
-              finishes: typeFinishes.map(ctf => ({
-                id: ctf.id,
-                hasImage: !!ctf.image_url,
-                imageUrl: ctf.image_url,
-                doorStyleName: ctf.door_style?.name
-              }))
-            });
-
             if (typeFinishes.length === 0) {
               return (
                 <div key={cabinetType.id} className="mb-12">
@@ -298,24 +275,6 @@ const CabinetPricesNew = () => {
                      </span>
                    )}
                   </h2>
-                  
-                  {/* Debug Info - Temporary */}
-                  <div className="mb-4 p-4 bg-gray-100 rounded text-sm">
-                    <p><strong>Debug Info for {cabinetType.name}:</strong></p>
-                    <p>Total finishes: {typeFinishes.length}</p>
-                    <p>Finishes with images: {typeFinishes.filter((ctf: any) => ctf.image_url).length}</p>
-                    <p>Should show carousel: {typeFinishes.some((ctf: any) => ctf.image_url) ? 'YES' : 'NO'}</p>
-                    {typeFinishes.length > 0 && (
-                      <div>
-                        <p><strong>Finishes:</strong></p>
-                        {typeFinishes.map((ctf: any) => (
-                          <div key={ctf.id} className="ml-4">
-                            • {ctf.door_style?.name || 'No door style'} - Image: {ctf.image_url || 'No image'}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
                   
                   {/* Cabinet Type + Door Style Images Carousel */}
                  {typeFinishes.some((ctf: any) => ctf.image_url) && (
