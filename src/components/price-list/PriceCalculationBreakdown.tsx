@@ -75,7 +75,7 @@ export function PriceCalculationBreakdown({ cabinetType, doorStyle, color, price
     <Card className="mt-4 border-orange-200 bg-orange-50">
       <CardHeader>
         <CardTitle className="text-orange-800">
-          Price Calculation Breakdown - {cabinetType?.name || 'Cabinet'} ({doorStyle?.name || 'Style'} - {color?.name || 'Color'})
+          Price Calculation Breakdown - {cabinetType?.name || 'Cabinet'} ({doorStyle?.name || 'Style'} - {color?.name || 'Color'}) [FRESH: {new Date().toLocaleTimeString()}]
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">

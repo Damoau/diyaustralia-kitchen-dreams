@@ -167,13 +167,20 @@ const BaseCabinetsPricing = () => {
         newPriceData[selectedCabinetType][finish.door_style.id] = {};
 
         for (const range of freshRanges || []) {
-          const width = (range.min_width_mm + range.max_width_mm) / 2;
+          // FOR POLY - USE 600MM WIDTH AND PURE WHITE COLOR
+          let width, colorToUse;
+          if (finish.door_style.name === 'Poly') {
+            width = 600; // FIXED 600mm for Poly as per formula
+            colorToUse = whiteColor;
+            console.log('🎯 POLY DETECTED - USING FIXED 600MM WIDTH AND WHITE COLOR');
+          } else {
+            width = (range.min_width_mm + range.max_width_mm) / 2;
+            colorToUse = blackColor;
+          }
+
           const height = cabinets?.default_height_mm || 720;
           const depth = cabinets?.default_depth_mm || 560;
 
-          // Use correct color based on door style
-          const colorToUse = finish.door_style.name === 'Poly' ? whiteColor : blackColor;
-          
           const price = pricingService.calculatePrice({
             cabinetType: cabinets as CabinetType,
             width,
@@ -190,8 +197,6 @@ const BaseCabinetsPricing = () => {
           });
 
           console.log(`💵💵💵 FINAL PRICE FOR ${finish.door_style.name} ${width}mm: $${price} 💵💵💵`);
-          console.log(`📊 BREAKDOWN: Carcass + Door(${finish.door_style.base_rate_per_sqm}/m²×${(width * height / 1000000).toFixed(4)}m²) + Hardware + GST = $${price}`);
-          
           newPriceData[selectedCabinetType][finish.door_style.id][range.id] = price;
         }
       }
