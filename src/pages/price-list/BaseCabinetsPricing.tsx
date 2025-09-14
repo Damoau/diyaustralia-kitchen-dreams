@@ -86,7 +86,11 @@ const BaseCabinetsPricing = () => {
   // Calculate prices COMPLETELY FRESH - no dependencies on React Query
   const calculatePricesFromScratch = async (cabinetId?: string) => {
     const targetCabinetId = cabinetId || selectedCabinetType;
-    if (!targetCabinetId || targetCabinetId === 'all') return;
+    console.log('🎯 CALCULATE PRICES FOR:', targetCabinetId, 'Type:', typeof targetCabinetId);
+    if (!targetCabinetId || targetCabinetId === 'all') {
+      console.log('❌ SKIPPING - Invalid cabinet ID or "all" selected');
+      return;
+    }
     
     console.log('🔥🔥🔥 COMPLETE FRESH CALCULATION START - TIMESTAMP:', new Date().toISOString());
     setIsCalculating(true);
@@ -217,12 +221,18 @@ const BaseCabinetsPricing = () => {
       }
 
       setPriceData(newPriceData);
+      console.log('💾 PRICE DATA SAVED FOR CABINET:', targetCabinetId, 'Data:', newPriceData[targetCabinetId]);
       setDebugData({
         cabinet: cabinets,
         finishes: freshFinishes,
         ranges: freshRanges,
         parts: freshParts,
         settings: freshSettings
+      });
+      console.log('🐛 DEBUG DATA SET:', {
+        cabinetName: cabinets?.name,
+        finishesCount: freshFinishes?.length,
+        rangesCount: freshRanges?.length
       });
 
     } catch (error) {
@@ -247,6 +257,12 @@ const BaseCabinetsPricing = () => {
   }, [baseCabinets, selectedCabinetType]);
 
   const doorStyles = debugData?.finishes?.map(f => f.door_style).filter(Boolean) as DoorStyle[] || [];
+  console.log('🚪 DOOR STYLES CALCULATED:', {
+    debugDataExists: !!debugData,
+    finishesCount: debugData?.finishes?.length || 0,
+    doorStylesCount: doorStyles.length,
+    doorStyles: doorStyles.map(ds => ds.name)
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 pt-24 pb-12">
@@ -397,6 +413,15 @@ const BaseCabinetsPricing = () => {
               <CardContent>
                 {Object.keys(priceData).length > 0 && priceData[cabinet.id] && doorStyles.length > 0 ? (
                   <div className="space-y-6">
+                    {(() => {
+                      console.log('🔍 PRICING TABLE CHECK for', cabinet.name, ':', {
+                        hasPriceData: !!priceData[cabinet.id],
+                        doorStylesCount: doorStyles.length,
+                        priceDataKeys: Object.keys(priceData),
+                        cabinetId: cabinet.id
+                      });
+                      return null;
+                    })()}
                     {/* Price Table */}
                     <div className="overflow-x-auto">
                       <table className="w-full border-collapse">
