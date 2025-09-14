@@ -114,6 +114,13 @@ All colors MUST be HSL.
   }
 }
 
+@layer components {
+  .carousel-image {
+    @apply w-full h-48 object-contain rounded-lg border border-gray-200 bg-white;
+    object-position: center bottom;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;

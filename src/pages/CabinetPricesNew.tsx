@@ -277,11 +277,10 @@ const CabinetPricesNew = () => {
                              <Dialog>
                                <DialogTrigger asChild>
                                  <div className="relative group cursor-pointer hover:opacity-90 transition-opacity">
-                                   <img 
-                                     src={cabinetType.product_image_url} 
-                                     alt={`${cabinetType.name} Cabinet`}
-                                     className="w-full h-48 object-contain rounded-lg border border-gray-200 bg-white"
-                                     style={{ objectPosition: 'center bottom' }}
+                                    <img 
+                                      src={cabinetType.product_image_url} 
+                                      alt={`${cabinetType.name} Cabinet`}
+                                      className="carousel-image"
                                      onError={(e) => {
                                        console.error("Cabinet image failed to load:", cabinetType.product_image_url);
                                        e.currentTarget.style.display = "none";
@@ -317,11 +316,10 @@ const CabinetPricesNew = () => {
                                <DialogTrigger asChild>
                                  <div className="relative group cursor-pointer hover:opacity-90 transition-opacity">
                                    {ctf.image_url ? (
-                                     <img 
-                                       src={ctf.image_url} 
-                                       alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
-                                       className="w-full h-48 object-contain rounded-lg border border-gray-200 bg-white"
-                                       style={{ objectPosition: 'center bottom' }}
+                                      <img 
+                                        src={ctf.image_url} 
+                                        alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
+                                        className="carousel-image"
                                        onError={(e) => {
                                          console.error("Finish image failed to load:", ctf.image_url);
                                          e.currentTarget.style.display = "none";
