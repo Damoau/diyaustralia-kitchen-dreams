@@ -42,7 +42,7 @@ export function PriceCalculationBreakdown({ cabinetType, doorStyle, color, price
 
   if (!cabinetType || !doorStyle || !color || !priceRanges?.length || !settings) return null;
 
-  const width = 600; // Use 600mm as baseline for breakdown example
+  const width = 600; // Use exact 600mm to match popup calculations
   const height = cabinetType.default_height_mm || 720;
   const depth = cabinetType.default_depth_mm || 560;
   const doorQty = 1; // Custom qty as requested

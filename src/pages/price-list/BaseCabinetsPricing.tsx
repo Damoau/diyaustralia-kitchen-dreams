@@ -167,7 +167,7 @@ const BaseCabinetsPricing = () => {
         newPriceData[selectedCabinetType][finish.door_style.id] = {};
 
         for (const range of freshRanges || []) {
-          const width = (range.min_width_mm + range.max_width_mm) / 2;
+          const width = range.min_width_mm; // Use minimum width instead of average to match popup
           const height = cabinets?.default_height_mm || 720;
           const depth = cabinets?.default_depth_mm || 560;
 
