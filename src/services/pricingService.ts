@@ -90,6 +90,15 @@ class PricingService {
   }
 
   calculatePrice(params: PriceCalculationParams): number {
+    console.log('🚨🚨🚨 PRICING SERVICE CALLED!!! 🚨🚨🚨', new Date().toISOString());
+    console.log('🚨 PARAMS:', JSON.stringify({
+      cabinetName: params.cabinetType?.name,
+      doorStyle: params.doorStyle?.name,
+      doorStyleRate: params.doorStyle?.base_rate_per_sqm,
+      color: params.color?.name,
+      colorSurcharge: params.color?.surcharge_rate_per_sqm,
+      dimensions: { width: params.width, height: params.height, depth: params.depth }
+    }, null, 2));
     const {
       cabinetType,
       width,
@@ -204,6 +213,9 @@ class PricingService {
       roundedTotal: Math.round(finalTotal)
     });
 
+    console.log('🚨 FINAL RESULT:', Math.round(finalTotal));
+    console.log('🚨🚨🚨 PRICING SERVICE COMPLETE!!! 🚨🚨🚨');
+    
     return Math.round(finalTotal);
   }
 

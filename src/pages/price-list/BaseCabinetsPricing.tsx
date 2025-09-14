@@ -34,6 +34,8 @@ interface PriceData {
 }
 
 const BaseCabinetsPricing = () => {
+  console.log('🔥🔥🔥 COMPONENT LOADED 🔥🔥🔥', new Date().toISOString());
+  
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedCabinetType, setSelectedCabinetType] = useState<string>('');
