@@ -133,11 +133,11 @@ const BaseCabinets = () => {
 
           {/* Cabinet Grid */}
           {cabinetTypes.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
               {cabinetTypes.map((cabinet) => (
                 <Card key={cabinet.id} className="group hover:shadow-elegant transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm">
-                  <CardHeader>
-                    <div className="aspect-square bg-muted rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                  <CardHeader className="pb-3">
+                    <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                       {cabinet.product_image_url ? (
                         <img 
                           src={cabinet.product_image_url} 
@@ -145,35 +145,20 @@ const BaseCabinets = () => {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       ) : (
-                        <Package className="h-16 w-16 text-muted-foreground/50" />
+                        <Package className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground/50" />
                       )}
                     </div>
-                    <CardTitle className="text-xl">{cabinet.name}</CardTitle>
-                    {cabinet.short_description && (
-                      <p className="text-sm text-muted-foreground">{cabinet.short_description}</p>
-                    )}
+                    <CardTitle className="text-sm md:text-lg leading-tight">{cabinet.name}</CardTitle>
                   </CardHeader>
                   
-                  <CardContent className="space-y-2">
-                    <div className="text-sm text-muted-foreground">
-                      <p>Size: {cabinet.min_width_mm}-{cabinet.max_width_mm}mm W</p>
-                      <p>Height: {cabinet.default_height_mm}mm</p>
-                      <p>Depth: {cabinet.default_depth_mm}mm</p>
-                    </div>
-                    {cabinet.subcategory && (
-                      <Badge variant="outline" className="text-xs">
-                        {cabinet.subcategory.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </Badge>
-                    )}
-                  </CardContent>
-
-                  <CardFooter>
+                  <CardFooter className="pt-0">
                     <Button 
-                      className="w-full"
+                      className="w-full text-xs md:text-sm h-8 md:h-10"
                       onClick={() => handleCreateCabinet(cabinet)}
                     >
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                      Create Your Cabinet
+                      <ShoppingCart className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                      <span className="hidden sm:inline">Create Your Cabinet</span>
+                      <span className="sm:hidden">Configure</span>
                     </Button>
                   </CardFooter>
                 </Card>
