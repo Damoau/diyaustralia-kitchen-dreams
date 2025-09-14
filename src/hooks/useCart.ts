@@ -14,50 +14,51 @@ export function useCart() {
   const getOrCreateCart = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      let cartQuery;
 
       if (user) {
-        // Authenticated user
-        cartQuery = supabase
+        // Authenticated user - use RLS-protected query
+        const { data: existingCart } = await supabase
           .from('carts')
           .select('*')
           .eq('user_id', user.id)
           .single();
+
+        if (existingCart) {
+          setCart(existingCart);
+          return existingCart;
+        }
+
+        // Create new cart for authenticated user
+        const { data: newCart, error } = await supabase
+          .from('carts')
+          .insert([{ user_id: user.id, name: 'My Cabinet Quote' }])
+          .select()
+          .single();
+
+        if (error) throw error;
+        setCart(newCart);
+        return newCart;
       } else {
-        // Guest user - use session storage
+        // Guest user - handle locally without RLS queries
         const sessionId = sessionStorage.getItem('guest_cart_id') || 
           `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         sessionStorage.setItem('guest_cart_id', sessionId);
         
-        cartQuery = supabase
-          .from('carts')
-          .select('*')
-          .eq('session_id', sessionId)
-          .single();
+        // For guest users, we'll use a local cart representation
+        // and only create server-side cart when actually needed (like checkout)
+        const guestCart = {
+          id: sessionId,
+          session_id: sessionId,
+          name: 'My Cabinet Quote',
+          user_id: null,
+          total_amount: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        
+        setCart(guestCart as any);
+        return guestCart as any;
       }
-
-      const { data: existingCart } = await cartQuery;
-
-      if (existingCart) {
-        setCart(existingCart);
-        return existingCart;
-      }
-
-      // Create new cart
-      const newCartData = user 
-        ? { user_id: user.id, name: 'My Cabinet Quote' }
-        : { session_id: sessionStorage.getItem('guest_cart_id'), name: 'My Cabinet Quote' };
-
-      const { data: newCart, error } = await supabase
-        .from('carts')
-        .insert([newCartData])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setCart(newCart);
-      return newCart;
     } catch (error) {
       console.error('Error getting/creating cart:', error);
       toast({
