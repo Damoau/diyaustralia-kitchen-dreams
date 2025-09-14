@@ -68,7 +68,7 @@ class PricingService {
       hmrRate: settingsMap['hmr_rate_per_sqm'],
       gstRate: settingsMap['gst_rate'] || 0.1,
       wastageFactor: settingsMap['wastage_factor'] || 1.1,
-      hardwareBaseCost: settingsMap['hardware_base_cost'] || 45
+      hardwareBaseCost: settingsMap['hardware_base_cost'] || 0
     };
   }
 
