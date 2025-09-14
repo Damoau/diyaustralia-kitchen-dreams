@@ -13,6 +13,7 @@ export interface DoorStyle {
   base_rate_per_sqm: number;
   active: boolean;
   created_at: string;
+  image_url?: string;
 }
 
 export interface Finish {

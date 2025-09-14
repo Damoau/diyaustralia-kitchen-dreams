@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trash2, Plus, Settings } from 'lucide-react';
+import { Trash2, Plus, Settings, Upload, Image } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { DoorStyle, Brand } from '@/types/cabinet';
@@ -14,6 +14,8 @@ export function DoorStylesManager() {
   const { toast } = useToast();
   const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploadingImages, setUploadingImages] = useState<{ [key: string]: boolean }>({});
+  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   useEffect(() => {
     fetchData();
@@ -106,6 +108,53 @@ export function DoorStylesManager() {
     setDoorStyles(doorStyles.filter(style => style.id !== id));
   };
 
+  const handleImageUpload = async (styleId: string, file: File) => {
+    if (!file) return;
+
+    setUploadingImages(prev => ({ ...prev, [styleId]: true }));
+
+    try {
+      // Create unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${styleId}-${Date.now()}.${fileExt}`;
+
+      // Upload to Supabase storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('door-style-images')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('door-style-images')
+        .getPublicUrl(fileName);
+
+      const publicUrl = urlData.publicUrl;
+
+      // Update door style with image URL
+      await updateDoorStyle(styleId, { image_url: publicUrl });
+
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImages(prev => ({ ...prev, [styleId]: false }));
+    }
+  };
+
+  const triggerFileInput = (styleId: string) => {
+    fileInputRefs.current[styleId]?.click();
+  };
+
   if (loading) {
     return <div>Loading door styles...</div>;
   }
@@ -127,6 +176,7 @@ export function DoorStylesManager() {
                 <TableHead>Name</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Base Rate ($/sqm)</TableHead>
+                <TableHead>Image</TableHead>
                 <TableHead>Active</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -170,6 +220,41 @@ export function DoorStylesManager() {
                         updateDoorStyle(style.id, { base_rate_per_sqm: Number.isNaN(val) ? 0 : val });
                       }}
                     />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {style.image_url && (
+                        <img 
+                          src={style.image_url} 
+                          alt={style.name}
+                          className="w-12 h-12 object-cover rounded border"
+                        />
+                      )}
+                      <input
+                        ref={(el) => { fileInputRefs.current[style.id] = el; }}
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleImageUpload(style.id, file);
+                        }}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => triggerFileInput(style.id)}
+                        disabled={uploadingImages[style.id]}
+                      >
+                        {uploadingImages[style.id] ? (
+                          <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
+                        ) : style.image_url ? (
+                          <Image className="h-4 w-4" />
+                        ) : (
+                          <Upload className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Select
