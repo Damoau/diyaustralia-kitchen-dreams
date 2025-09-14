@@ -19,6 +19,11 @@ import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import PriceList from "./pages/PriceList";
+import BaseCabinetsPricing from "./pages/price-list/BaseCabinetsPricing";
+import TopCabinetsPricing from "./pages/price-list/TopCabinetsPricing";
+import PantryCabinetsPricing from "./pages/price-list/PantryCabinetsPricing";
+import DressPanelsPricing from "./pages/price-list/DressPanelsPricing";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +46,11 @@ const App = () => (
           <Route path="/get-quote" element={<GetQuote />} />
           <Route path="/manufacturing" element={<Manufacturing />} />
           <Route path="/kitchen-styles" element={<KitchenStyles />} />
+          <Route path="/price-list" element={<PriceList />} />
+          <Route path="/price-list/base-cabinets" element={<BaseCabinetsPricing />} />
+          <Route path="/price-list/top-cabinets" element={<TopCabinetsPricing />} />
+          <Route path="/price-list/pantry-cabinets" element={<PantryCabinetsPricing />} />
+          <Route path="/price-list/dress-panels" element={<DressPanelsPricing />} />
           <Route path="/auth" element={<Auth />} />
           <Route 
             path="/admin" 
