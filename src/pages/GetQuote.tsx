@@ -104,14 +104,12 @@ const GetQuote = () => {
               <h2 className="text-3xl font-bold text-foreground mb-12 text-center">Simple 5-Step Process</h2>
               
               {/* Vertical Timeline */}
-              <div className="space-y-8 flex-1">
+              <div className="space-y-8 flex-1 relative">
+                {/* Continuous timeline line */}
+                <div className="absolute left-8 top-8 bottom-8 w-0.5 bg-gradient-to-b from-primary to-primary/30"></div>
+                
                 {processSteps.map((step, index) => (
                   <div key={index} className="relative flex items-start gap-6">
-                    {/* Timeline line */}
-                    {index < processSteps.length - 1 && (
-                      <div className="absolute left-8 top-20 w-0.5 h-12 bg-gradient-to-b from-primary to-primary/30"></div>
-                    )}
-                    
                     {/* Step icon */}
                     <div className="relative z-10 p-4 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full border-2 border-primary/20 shadow-lg">
                       {step.icon}
@@ -168,18 +166,6 @@ const GetQuote = () => {
               <QuoteForm />
             </div>
           </div>
-
-          {/* Trusted Suppliers */}
-          <Card className="mb-16 bg-gradient-to-r from-muted/30 to-background">
-            <CardContent className="p-8 text-center">
-              <h3 className="text-xl font-semibold text-foreground mb-6">Trusted by Premium Suppliers</h3>
-              <div className="flex justify-center items-center gap-8 flex-wrap opacity-70 grayscale hover:grayscale-0 transition-all duration-300">
-                {supplierLogos.map((supplier, index) => <div key={index} className="w-20 h-12 flex items-center justify-center">
-                    <img src={supplier.logo} alt={`${supplier.name} logo`} className="max-w-full max-h-full object-contain" />
-                  </div>)}
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Customer Testimonials */}
           <div className="mb-16">
