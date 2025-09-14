@@ -336,18 +336,7 @@ export function CellConfigPopup({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Cabinet Header */}
-          <div className="text-center">
-            <h3 className="font-medium text-lg">{cabinetType.name}</h3>
-            <p className="text-sm text-muted-foreground">
-              {selectedDoorStyle 
-                ? doorStyles.find(ds => ds.id === selectedDoorStyle)?.name || 'Loading...'
-                : (finish as any)?.door_style?.name || 'Select door style'
-              }
-            </p>
-          </div>
-
-          {/* Image and Dimensions */}
+          {/* Image and Cabinet Info */}
           <div className="flex items-start gap-4">
             {/* Cabinet Image */}
             <div 
@@ -397,8 +386,20 @@ export function CellConfigPopup({
               })()}
             </div>
             
-            {/* Dimensions */}
+            {/* Cabinet Info and Dimensions */}
             <div className="flex-1 space-y-3">
+              {/* Cabinet Name */}
+              <div>
+                <h3 className="font-medium text-lg">{cabinetType.name}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {selectedDoorStyle 
+                    ? doorStyles.find(ds => ds.id === selectedDoorStyle)?.name || 'Loading...'
+                    : (finish as any)?.door_style?.name || 'Select door style'
+                  }
+                </p>
+              </div>
+              
+              {/* Dimensions */}
               <div>
                 <Label htmlFor="width" className="text-xs">Width (mm)</Label>
                 <Input
