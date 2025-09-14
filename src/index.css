@@ -119,6 +119,24 @@ All colors MUST be HSL.
     @apply w-full h-48 object-contain rounded-lg border border-gray-200 bg-white;
     object-position: center bottom;
   }
+  
+  .price-table-disabled {
+    pointer-events: none !important;
+    cursor: default !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+  }
+  
+  .price-table-disabled * {
+    pointer-events: none !important;
+    cursor: default !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+  }
 }
 
 @layer base {

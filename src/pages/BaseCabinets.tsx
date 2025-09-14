@@ -334,7 +334,13 @@ const BaseCabinets = () => {
                         ))}
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody 
+                      className="select-none price-table-disabled"
+                      style={{ 
+                        pointerEvents: 'none',
+                        cursor: 'default'
+                      }}
+                    >
                        {typeData.sizes?.map((sizeData: any, sizeIndex: number) => (
                          <tr key={sizeIndex}>
                            <td className="border border-gray-300 px-4 py-3 font-medium">
@@ -343,22 +349,24 @@ const BaseCabinets = () => {
                              {sizeData.price?.map((price: number, priceIndex: number) => (
                                <td 
                                  key={priceIndex} 
-                                 className="border border-gray-300 px-4 py-3 text-center"
-                                 onClick={(e) => {
-                                   e.preventDefault();
-                                   e.stopPropagation();
-                                   return false;
+                                 className="border border-gray-300 px-4 py-3 text-center select-none"
+                                 style={{ 
+                                   pointerEvents: 'none',
+                                   cursor: 'default',
+                                   userSelect: 'none'
                                  }}
-                                 style={{ pointerEvents: 'none' }}
                                >
                                  <span 
-                                   className="text-lg font-bold px-2 py-1 w-full inline-block"
+                                   className="text-lg font-bold px-2 py-1 w-full inline-block select-none"
                                    style={{ 
                                      color: 'hsl(var(--foreground))', 
                                      textDecoration: 'none', 
                                      cursor: 'default',
                                      pointerEvents: 'none',
-                                     userSelect: 'text'
+                                     userSelect: 'none',
+                                     WebkitUserSelect: 'none',
+                                     MozUserSelect: 'none',
+                                     msUserSelect: 'none'
                                    }}
                                  >
                                    {formatPrice(price)}
