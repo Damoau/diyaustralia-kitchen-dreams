@@ -11,6 +11,7 @@ import { formatPrice } from "@/lib/pricing";
 import { pricingService } from "@/services/pricingService";
 import { CabinetType } from "@/types/cabinet";
 import { PriceCalculationBreakdown } from "@/components/price-list/PriceCalculationBreakdown";
+import { CabinetPricingTable } from "@/components/price-list/CabinetPricingTable";
 
 interface DoorStyle {
   id: string;
@@ -146,7 +147,7 @@ const BaseCabinetsPricing = () => {
         .select('*')
         .eq('active', true);
       
-      const titusBrand = hardwareBrands?.find(brand => brand.name === 'Titus');
+      const titusBrand = hardwareBrands?.find(brand => brand.name.toLowerCase().includes('titus'));
       const defaultHardwareBrandId = titusBrand?.id || null;
 
       const { data: hardwareRequirements } = await supabase
@@ -344,129 +345,11 @@ const BaseCabinetsPricing = () => {
 
         {/* Cabinet Cards Display */}
         {(selectedCabinetType === 'all' ? baseCabinets : baseCabinets?.filter(c => c.id === selectedCabinetType))?.map((cabinet) => (
-          <Card key={cabinet.id} className="space-y-0 mb-8">
-            {/* Cabinet Name Header */}
-            <CardHeader className="text-center border-b">
-              <CardTitle className="text-4xl font-bold">
-                {cabinet.name}
-              </CardTitle>
-            </CardHeader>
-            
-            {/* Door Style Finishes Carousel */}
-            {debugData?.finishes && debugData.finishes.length > 0 && (
-              <div className="border-b">
-                <CardContent className="pb-6">
-                  <Carousel className="w-full">
-                    <CarouselContent className="-ml-2 md:-ml-4">
-                      {debugData.finishes.map((finish: any) => (
-                        <CarouselItem key={finish.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
-                          <Card 
-                            className="cursor-pointer transition-all duration-200 hover:shadow-md hover:ring-1 hover:ring-primary/50 overflow-hidden hover-scale"
-                            onClick={() => finish.image_url && setEnlargedImage({
-                              url: finish.image_url,
-                              name: finish.door_style?.name || 'Door Style'
-                            })}
-                          >
-                            <div className="relative aspect-[4/3] w-full">
-                              {finish.image_url ? (
-                                <img 
-                                  src={finish.image_url} 
-                                  alt={finish.door_style?.name || 'Door Style'}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-muted flex items-center justify-center">
-                                  <Package className="h-12 w-12 text-muted-foreground" />
-                                </div>
-                              )}
-                              {/* Text overlay at bottom - black text with drop shadow, no white box */}
-                              <div className="absolute bottom-0 left-0 right-0 p-3">
-                                <h3 className="font-semibold text-center text-sm text-black drop-shadow-md">
-                                  {finish.door_style?.name}
-                                </h3>
-                              </div>
-                            </div>
-                          </Card>
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                    <CarouselPrevious />
-                    <CarouselNext />
-                  </Carousel>
-                </CardContent>
-              </div>
-            )}
-
-            {/* Pricing Table */}
-            <div>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Pricing Table</CardTitle>
-                  {isCalculating && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm">Calculating...</span>
-                    </div>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                {Object.keys(priceData).length > 0 && priceData[cabinet.id] && doorStyles.length > 0 ? (
-                  <div className="space-y-6">
-                    {(() => {
-                      console.log('🔍 PRICING TABLE CHECK for', cabinet.name, ':', {
-                        hasPriceData: !!priceData[cabinet.id],
-                        doorStylesCount: doorStyles.length,
-                        priceDataKeys: Object.keys(priceData),
-                        cabinetId: cabinet.id
-                      });
-                      return null;
-                    })()}
-                    {/* Price Table */}
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse">
-                        <thead>
-                          <tr>
-                            <th className="text-left p-3 bg-muted font-semibold border">Door Style</th>
-                            {debugData?.ranges?.map((range: PriceRange) => (
-                              <th key={range.id} className="text-center p-3 bg-muted font-semibold border min-w-24">
-                                <div className="text-sm">{range.label}</div>
-                                <div className="text-xs text-muted-foreground font-normal">
-                                  {range.min_width_mm}mm - {range.max_width_mm}mm
-                                </div>
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {doorStyles.map((doorStyle) => (
-                            <tr key={doorStyle.id} className="hover:bg-muted/50">
-                              <td className="p-3 font-medium border">{doorStyle.name}</td>
-                              {debugData?.ranges?.map((range: PriceRange) => {
-                                const price = priceData[cabinet.id]?.[doorStyle.id]?.[range.id];
-                                return (
-                                  <td key={range.id} className="p-3 text-center border">
-                                    {price ? formatPrice(price) : '-'}
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Package className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
-                    <p className="text-muted-foreground">
-                      {isCalculating ? 'Calculating prices...' : `No pricing data available for ${cabinet.name}`}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </div>
-          </Card>
+          <CabinetPricingTable 
+            key={cabinet.id} 
+            cabinet={cabinet}
+            onImageEnlarge={setEnlargedImage}
+          />
         ))}
 
         {/* Enlarged Image Modal */}
