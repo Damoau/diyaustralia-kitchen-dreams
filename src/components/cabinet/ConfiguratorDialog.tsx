@@ -218,9 +218,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Configuration Panel */}
-            <div className="space-y-6">
+          <div className="space-y-6">
               {/* Dimensions */}
               <Card>
                 <CardHeader>
@@ -361,90 +359,43 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                 onHardwareChange={setSelectedHardwareOptions}
                 quantity={quantity}
               />
-            </div>
-
-            {/* Summary Panel */}
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Order Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Cabinet Type:</span>
-                    <span>{cabinetType.name}</span>
+            
+            {/* Quantity and Add to Cart */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="font-medium">Quantity:</span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      disabled={quantity <= 1}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="w-12 text-center">{quantity}</span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setQuantity(quantity + 1)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
                   </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Dimensions:</span>
-                    <span>{width} × {height} × {depth}mm</span>
-                  </div>
-
-                  {selectedFinish && (
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">Finish:</span>
-                      <span>{finishes.find(f => f.id === selectedFinish)?.name}</span>
-                    </div>
-                  )}
-
-                  {selectedColor && (
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">Color:</span>
-                      <span>{colors.find(c => c.id === selectedColor)?.name}</span>
-                    </div>
-                  )}
-
-                  {selectedDoorStyle && (
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">Door Style:</span>
-                      <span>{doorStyles.find(ds => ds.id === selectedDoorStyle)?.name}</span>
-                    </div>
-                  )}
-
-
-                  <Separator />
-
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Quantity:</span>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        disabled={quantity <= 1}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <span className="w-12 text-center">{quantity}</span>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setQuantity(quantity + 1)}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="flex items-center justify-between text-lg font-bold">
-                    <span>Total Price (inc. GST):</span>
-                    <span className="text-primary">{formatPrice(totalPrice)}</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Button
-                onClick={handleAddToCart}
-                disabled={!selectedFinish || !selectedDoorStyle || isAddingToCart}
-                className="w-full"
-                size="lg"
-              >
-                <ShoppingCart className="mr-2 h-5 w-5" />
-                {isAddingToCart ? 'Adding...' : 'Add to Cart'}
-              </Button>
-            </div>
+                </div>
+                
+                <Button
+                  onClick={handleAddToCart}
+                  disabled={!selectedFinish || !selectedDoorStyle || isAddingToCart}
+                  className="w-full"
+                  size="lg"
+                >
+                  <ShoppingCart className="mr-2 h-5 w-5" />
+                  {isAddingToCart ? 'Adding...' : 'Add to Cart'}
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         )}
       </DialogContent>
