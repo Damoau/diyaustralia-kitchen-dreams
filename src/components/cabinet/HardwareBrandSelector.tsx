@@ -14,6 +14,7 @@ interface HardwareBrandSelectorProps {
   selectedBrandId: string;
   onBrandChange: (brandId: string) => void;
   quantity?: number;
+  compact?: boolean;
 }
 
 interface HardwareRequirement {
@@ -40,7 +41,7 @@ interface BrandCost {
   }>;
 }
 
-export function HardwareBrandSelector({ cabinetType, selectedBrandId, onBrandChange, quantity = 1 }: HardwareBrandSelectorProps) {
+export function HardwareBrandSelector({ cabinetType, selectedBrandId, onBrandChange, quantity = 1, compact = false }: HardwareBrandSelectorProps) {
   const [brandCosts, setBrandCosts] = useState<Record<string, BrandCost>>({});
 
   const { data: hardwareBrands } = useQuery({
@@ -155,6 +156,13 @@ export function HardwareBrandSelector({ cabinetType, selectedBrandId, onBrandCha
   }, [hardwareBrands, selectedBrandId, onBrandChange]);
 
   if (!hardwareRequirements || hardwareRequirements.length === 0) {
+    if (compact) {
+      return (
+        <div className="text-sm text-muted-foreground">
+          No hardware requirements configured
+        </div>
+      );
+    }
     return (
       <Card className="border-l-4 border-l-yellow-500 bg-yellow-50 dark:bg-yellow-950/20">
         <CardContent className="p-4">
@@ -171,6 +179,13 @@ export function HardwareBrandSelector({ cabinetType, selectedBrandId, onBrandCha
   }
 
   if (!hardwareBrands || hardwareBrands.length === 0) {
+    if (compact) {
+      return (
+        <div className="text-sm text-muted-foreground">
+          No hardware brands available
+        </div>
+      );
+    }
     return (
       <Card className="border-l-4 border-l-yellow-500 bg-yellow-50 dark:bg-yellow-950/20">
         <CardContent className="p-4">
@@ -184,6 +199,33 @@ export function HardwareBrandSelector({ cabinetType, selectedBrandId, onBrandCha
   }
 
   const selectedBrandCost = brandCosts[selectedBrandId];
+
+  if (compact) {
+    return (
+      <Select value={selectedBrandId} onValueChange={onBrandChange}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select hardware brand" />
+        </SelectTrigger>
+        <SelectContent>
+          {hardwareBrands.map((brand) => {
+            const cost = brandCosts[brand.id];
+            return (
+              <SelectItem key={brand.id} value={brand.id}>
+                <div className="flex justify-between items-center w-full">
+                  <span>{brand.name}</span>
+                  {cost && (
+                    <Badge variant="outline" className="ml-2">
+                      {formatPrice(cost.totalCost)}
+                    </Badge>
+                  )}
+                </div>
+              </SelectItem>
+            );
+          })}
+        </SelectContent>
+      </Select>
+    );
+  }
 
   return (
     <Card className="border-l-4 border-l-orange-500 bg-orange-50 dark:bg-orange-950/20">

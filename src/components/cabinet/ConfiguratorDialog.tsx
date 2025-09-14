@@ -257,8 +257,8 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                 </div>
               </div>
 
-              {/* Door Style & Color Selection */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Door Style, Color & Hardware Selection */}
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label>Door Style</Label>
                   <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
@@ -308,16 +308,18 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-
-              {/* Hardware Brand Selection */}
-              <div>
-                <HardwareBrandSelector
-                  cabinetType={cabinetType}
-                  selectedBrandId={selectedHardwareBrand}
-                  onBrandChange={setSelectedHardwareBrand}
-                  quantity={quantity}
-                />
+                
+                {/* Hardware Brand Selection */}
+                <div>
+                  <Label>Hardware Brand</Label>
+                  <HardwareBrandSelector
+                    cabinetType={cabinetType}
+                    selectedBrandId={selectedHardwareBrand}
+                    onBrandChange={setSelectedHardwareBrand}
+                    quantity={quantity}
+                    compact={true}
+                  />
+                </div>
               </div>
 
               {/* Price Display */}
