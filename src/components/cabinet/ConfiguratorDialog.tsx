@@ -76,15 +76,18 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
     }
   }, [selectedDoorStyle, finishes]);
 
-  // Update brand when finish changes
+  // Auto-select first available options when data loads
   useEffect(() => {
-    if (selectedFinish) {
-      const finish = finishes.find(f => f.id === selectedFinish);
-      if (finish && finish.brand_id !== selectedBrand) {
-        setSelectedBrand(finish.brand_id);
-      }
+    if (doorStyles.length > 0 && !selectedDoorStyle) {
+      setSelectedDoorStyle(doorStyles[0].id);
     }
-  }, [selectedFinish, finishes]);
+    if (colors.length > 0 && !selectedColor) {
+      setSelectedColor(colors[0].id);
+    }
+    if (finishes.length > 0 && !selectedFinish) {
+      setSelectedFinish(finishes[0].id);
+    }
+  }, [doorStyles, colors, finishes, selectedDoorStyle, selectedColor, selectedFinish]);
 
   const loadData = async () => {
     try {
@@ -133,9 +136,16 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       }
       
       if (finishesRes.data) setFinishes(finishesRes.data);
-      if (colorsRes.data) setColors(colorsRes.data);
+      if (colorsRes.data) {
+        setColors(colorsRes.data);
+        // Auto-select first color
+        if (colorsRes.data.length > 0 && !selectedColor) {
+          setSelectedColor(colorsRes.data[0].id);
+        }
+      }
       if (doorStylesRes.data) {
         setDoorStyles(doorStylesRes.data);
+        // Auto-select first door style
         if (doorStylesRes.data.length > 0 && !selectedDoorStyle) {
           setSelectedDoorStyle(doorStylesRes.data[0].id);
         }
@@ -152,7 +162,13 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       }
       if (cabinetPartsRes.data) setCabinetParts(cabinetPartsRes.data);
       if (settingsRes.data) setGlobalSettings(settingsRes.data);
-      if (cabinetTypeFinishesRes.data) setCabinetTypeFinishes(cabinetTypeFinishesRes.data);
+      if (cabinetTypeFinishesRes.data) {
+        setCabinetTypeFinishes(cabinetTypeFinishesRes.data);
+        // Auto-select first finish
+        if (finishesRes.data && finishesRes.data.length > 0 && !selectedFinish) {
+          setSelectedFinish(finishesRes.data[0].id);
+        }
+      }
       
     } catch (error) {
       console.error('Error loading configurator data:', error);
@@ -180,22 +196,41 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   };
 
   const calculatePrice = () => {
-    if (!selectedFinish || !selectedDoorStyle || cabinetParts.length === 0 || globalSettings.length === 0) {
+    if (!selectedDoorStyle || cabinetParts.length === 0 || globalSettings.length === 0) {
       return 0;
     }
 
     const doorStyle = doorStyles.find(ds => ds.id === selectedDoorStyle);
     const color = colors.find(c => c.id === selectedColor);
     
-    if (!doorStyle || !color) {
+    if (!doorStyle) {
+      console.log('Door style not found:', selectedDoorStyle);
       return 0;
     }
 
-    // Create door style finish object from selected data
+    if (!color) {
+      console.log('Color not found, using default');
+    }
+
+    // Use default color if none selected
+    const finalColor = color || {
+      id: 'default',
+      name: 'Standard',
+      surcharge_rate_per_sqm: 0,
+      door_style_id: selectedDoorStyle,
+      active: true,
+      created_at: new Date().toISOString(),
+      hex_code: '#ffffff',
+      sort_order: 0
+    };
+
+    // Create door style finish object - use actual finish rate if selected, otherwise use door style base rate
     const doorStyleFinish = {
       id: selectedDoorStyle,
       name: doorStyle.name + ' Finish',
-      rate_per_sqm: doorStyle.base_rate_per_sqm || 150,
+      rate_per_sqm: selectedFinish ? 
+        (finishes.find(f => f.id === selectedFinish)?.rate_per_sqm || 0) : 
+        doorStyle.base_rate_per_sqm || 150,
       door_style_id: selectedDoorStyle,
       door_style: doorStyle,
       active: true,
@@ -204,19 +239,32 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       sort_order: 0
     };
 
+    console.log('Calculating price with:', {
+      width,
+      height, 
+      depth,
+      doorStyleFinish,
+      finalColor,
+      cabinetPartsLength: cabinetParts.length,
+      globalSettingsLength: globalSettings.length
+    });
+
     const hardwareCost = 45; // Default hardware cost
 
-    return calculateCabinetPrice(
+    const calculatedPrice = calculateCabinetPrice(
       cabinetType,
       width,
       height,
       depth,
       doorStyleFinish,
-      color,
+      finalColor,
       cabinetParts,
       globalSettings,
       hardwareCost
     );
+
+    console.log('Calculated price:', calculatedPrice);
+    return calculatedPrice;
   };
 
   // Get the current cabinet image based on selected door style
@@ -251,6 +299,13 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   const currentDoorStyleColors = colors.filter(c => c.door_style_id === selectedDoorStyle);
   const currentDoorStyleFinishes = finishes.filter(f => f.active); // All finishes for now
   const totalPrice = calculatePrice();
+
+  // Trigger price recalculation when key values change
+  useEffect(() => {
+    if (selectedDoorStyle && colors.length > 0 && cabinetParts.length > 0 && globalSettings.length > 0) {
+      console.log('Price calculation triggered by state change');
+    }
+  }, [selectedDoorStyle, selectedColor, selectedFinish, width, height, depth, quantity, colors, cabinetParts, globalSettings]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -353,7 +408,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                     <SelectValue placeholder="Select color" />
                   </SelectTrigger>
                   <SelectContent>
-                    {currentDoorStyleColors.map(color => (
+                    {(currentDoorStyleColors.length > 0 ? currentDoorStyleColors : colors.slice(0, 5)).map(color => (
                       <SelectItem key={color.id} value={color.id}>
                         <div className="flex items-center gap-2">
                           {color.hex_code && (
@@ -362,7 +417,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                               style={{ backgroundColor: color.hex_code }}
                             />
                           )}
-                          {color.name}
+                          {color.name} (+{formatPrice(color.surcharge_rate_per_sqm || 0)}/m²)
                         </div>
                       </SelectItem>
                     ))}
