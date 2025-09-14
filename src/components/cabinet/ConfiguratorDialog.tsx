@@ -171,46 +171,6 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
             </div>
           ) : (
             <>
-              {/* Cabinet Info */}
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
-                <div className="flex-shrink-0 self-center sm:self-start">
-                  <div className="w-16 h-16 sm:w-24 sm:h-24 bg-muted rounded-lg overflow-hidden mx-auto sm:mx-0">
-                    {getCurrentCabinetImage() ? (
-                      <img
-                        src={getCurrentCabinetImage()}
-                        alt={cabinetType.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
-                        No Image
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex-grow text-center sm:text-left">
-                  <h3 className="text-base sm:text-xl font-semibold">{cabinetType.name}</h3>
-                  <p className="text-muted-foreground text-sm">Base Cabinet</p>
-                  {cabinetType.short_description && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {cabinetType.short_description}
-                    </p>
-                  )}
-                  <div className="flex flex-wrap gap-1 mt-1 justify-center sm:justify-start">
-                    <Badge variant="secondary" className="text-xs">
-                      {cabinetType.door_count} Door{cabinetType.door_count !== 1 ? 's' : ''}
-                    </Badge>
-                    {cabinetType.drawer_count > 0 && (
-                      <Badge variant="secondary" className="text-xs">
-                        {cabinetType.drawer_count} Drawer{cabinetType.drawer_count !== 1 ? 's' : ''}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
               {/* Dimensions */}
               <div className="grid grid-cols-3 gap-2">
                 <div>
@@ -328,7 +288,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-muted-foreground">Total Price</p>
-                      <p className="text-xl sm:text-3xl font-bold text-primary">
+                      <p className="text-xl sm:text-2xl font-bold text-primary">
                         {pricingService.formatPrice(price * quantity)}
                       </p>
                       {quantity > 1 && (
@@ -337,9 +297,6 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                         </p>
                       )}
                     </div>
-                    <Badge variant="secondary" className="animate-pulse text-xs">
-                      Live Pricing
-                    </Badge>
                   </div>
                 </CardContent>
               </Card>
@@ -347,12 +304,12 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
               {/* Price Breakdown */}
               {priceBreakdown && (
                 <Collapsible open={showPriceBreakdown} onOpenChange={setShowPriceBreakdown}>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-muted rounded text-sm">
-                    <span className="font-medium">View Price Breakdown</span>
+                  <CollapsibleTrigger className="flex items-center justify-center w-full p-2 hover:bg-muted rounded text-xs text-muted-foreground">
+                    <span>View Breakdown</span>
                     {showPriceBreakdown ? (
-                      <ChevronUp className="h-3 w-3" />
+                      <ChevronUp className="h-3 w-3 ml-1" />
                     ) : (
-                      <ChevronDown className="h-3 w-3" />
+                      <ChevronDown className="h-3 w-3 ml-1" />
                     )}
                   </CollapsibleTrigger>
                   <CollapsibleContent>
@@ -383,26 +340,28 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                 </Collapsible>
               )}
 
-              {/* Quantity & Actions */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <Label>Quantity</Label>
-                  <div className="flex items-center gap-2">
+              {/* Quantity & Add to Cart - Same Line */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs">Qty</Label>
+                  <div className="flex items-center gap-1">
                     <Button
                       variant="outline"
-                      size="icon"
+                      size="sm"
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
                       disabled={quantity <= 1}
+                      className="h-7 w-7 p-0"
                     >
-                      <Minus className="h-4 w-4" />
+                      <Minus className="h-3 w-3" />
                     </Button>
-                    <span className="w-12 text-center font-medium">{quantity}</span>
+                    <span className="w-6 text-center font-medium text-sm">{quantity}</span>
                     <Button
                       variant="outline"
-                      size="icon"
+                      size="sm"
                       onClick={() => setQuantity(quantity + 1)}
+                      className="h-7 w-7 p-0"
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
@@ -410,7 +369,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                 <Button
                   onClick={handleAddToCart}
                   disabled={isAddingToCart || !selectedDoorStyle || !selectedHardwareBrand}
-                  className="min-w-32 w-full sm:w-auto"
+                  className="flex-1 h-9"
                 >
                   {isAddingToCart ? (
                     <span className="text-sm">Adding...</span>
