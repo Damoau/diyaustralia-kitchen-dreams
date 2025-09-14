@@ -75,6 +75,11 @@ export function CellConfigPopup({
       setHeight(cabinetType.default_height_mm);
       setDepth(cabinetType.default_depth_mm);
       setCalculatedPrice(initialPrice);
+      
+      // Clear previous selections to ensure fresh start
+      setSelectedDoorStyle('');
+      setSelectedColor('');
+      setSelectedHardwareOptions({});
     }
   }, [isOpen, initialWidth, initialPrice, cabinetType]);
 
@@ -83,13 +88,18 @@ export function CellConfigPopup({
     if (isOpen) {
       loadDoorStyles();
       loadHardwareRequirements();
-      
-      // Set initial door style from the passed finish config
-      if (finish && (finish as any).door_style_id) {
-        setSelectedDoorStyle((finish as any).door_style_id);
-      }
     }
-  }, [isOpen, cabinetType.id, finish]);
+  }, [isOpen, cabinetType.id]);
+
+  // Set door style from finish config when door styles are loaded
+  useEffect(() => {
+    if (doorStyles.length > 0 && finish && (finish as any).door_style_id) {
+      setSelectedDoorStyle((finish as any).door_style_id);
+    } else if (doorStyles.length > 0 && !selectedDoorStyle) {
+      // Fallback to first door style if no specific door style from finish config
+      setSelectedDoorStyle(doorStyles[0].id);
+    }
+  }, [doorStyles, finish]);
 
   // Load colors when door style changes
   useEffect(() => {
@@ -131,20 +141,9 @@ export function CellConfigPopup({
 
   // Recalculate price when any parameter changes
   useEffect(() => {
-    console.log('Price calculation useEffect triggered:', {
-      selectedDoorStyle,
-      selectedColor,
-      doorStylesLength: doorStyles.length,
-      colorsLength: colors.length,
-      hardwareOptionsCount: Object.keys(selectedHardwareOptions).length
-    });
-
     // Only calculate if we have the required data
     if (selectedDoorStyle && selectedColor && doorStyles.length > 0 && colors.length > 0) {
-      console.log('Conditions met, calculating price...');
       calculatePrice();
-    } else {
-      console.log('Conditions not met for price calculation');
     }
   }, [width, height, depth, selectedDoorStyle, selectedColor, selectedHardwareOptions, doorStyles, colors, hardwareRequirements]);
 
@@ -159,23 +158,7 @@ export function CellConfigPopup({
       
       if (error) throw error;
       
-      // For now, show all active door styles
-      // TODO: Filter by brand compatibility when brand-door style relationships are defined
       setDoorStyles(data || []);
-      
-      // Set door style from finish config if available, otherwise use first door style
-      if (finish && (finish as any).door_style_id && data) {
-        const finishDoorStyle = data.find(ds => ds.id === (finish as any).door_style_id);
-        if (finishDoorStyle) {
-          setSelectedDoorStyle(finishDoorStyle.id);
-          return;
-        }
-      }
-      
-      // Fallback to first door style if no specific door style from finish config
-      if (data && data.length > 0 && !selectedDoorStyle) {
-        setSelectedDoorStyle(data[0].id);
-      }
     } catch (error) {
       console.error('Error loading door styles:', error);
     }
@@ -222,26 +205,10 @@ export function CellConfigPopup({
 
   const calculatePrice = async () => {
     try {
-      console.log('Calculating price with:', {
-        selectedDoorStyle,
-        selectedColor,
-        width,
-        height,
-        depth,
-        doorStylesLength: doorStyles.length,
-        colorsLength: colors.length
-      });
-
       const doorStyle = doorStyles.find(ds => ds.id === selectedDoorStyle);
       const color = colors.find(c => c.id === selectedColor);
       
-      console.log('Found door style:', doorStyle);
-      console.log('Found color:', color);
-      
-      if (!doorStyle || !color) {
-        console.log('Missing door style or color, cannot calculate price');
-        return;
-      }
+      if (!doorStyle || !color) return;
 
       // Calculate hardware cost based on selected options
       let totalHardwareCost = 0;
@@ -261,8 +228,6 @@ export function CellConfigPopup({
         }
       }
 
-      console.log('Total hardware cost:', totalHardwareCost);
-
       // Create a door style finish object from the selected door style
       const doorStyleFinish = {
         id: `temp-${selectedDoorStyle}`,
@@ -274,8 +239,6 @@ export function CellConfigPopup({
         created_at: new Date().toISOString(),
         door_style: doorStyle
       };
-
-      console.log('Door style finish for calculation:', doorStyleFinish);
 
       // Use the selected door style finish instead of the original finish
       const price = calculateCabinetPrice(
@@ -290,7 +253,6 @@ export function CellConfigPopup({
         totalHardwareCost
       );
 
-      console.log('Calculated price:', price);
       setCalculatedPrice(price);
     } catch (error) {
       console.error('Error calculating price:', error);
@@ -431,10 +393,7 @@ export function CellConfigPopup({
             <Label className="text-xs">Door Style</Label>
             <Select 
               value={selectedDoorStyle} 
-              onValueChange={(value) => {
-                console.log('Door style changed from', selectedDoorStyle, 'to', value);
-                setSelectedDoorStyle(value);
-              }}
+              onValueChange={setSelectedDoorStyle}
             >
               <SelectTrigger className="h-8">
                 <SelectValue placeholder="Select door style" />
