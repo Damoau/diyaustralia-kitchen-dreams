@@ -38,25 +38,39 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
-    /* Modern design tokens */
+    /* Modern design tokens - Cabinet Industry Theme */
     --blue-light: 217 91% 95%;
     --blue-dark: 217 91% 35%;
     --gray-light: 210 20% 96%;
     --gray-dark: 0 0% 15%;
     
-    /* Modern gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--blue-dark)));
-    --gradient-section: linear-gradient(180deg, hsl(var(--blue-light)), hsl(var(--background)));
-    --gradient-card: linear-gradient(135deg, hsl(var(--background)), hsl(var(--gray-light)));
+    /* Wood & Cabinet Industry Colors */
+    --wood-warm: 32 65% 85%;
+    --wood-rich: 25 45% 35%;
+    --wood-dark: 20 35% 25%;
+    --cabinet-gold: 45 80% 75%;
+    --cabinet-silver: 220 10% 80%;
+    --premium-copper: 15 85% 60%;
+    --luxury-cream: 42 25% 96%;
     
-    /* Modern shadows */
-    --shadow-modern: 0 10px 40px -10px hsl(var(--primary) / 0.15);
-    --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.08);
-    --shadow-elevated: 0 25px 50px -12px hsl(0 0% 0% / 0.15);
+    /* Enhanced gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--wood-rich)));
+    --gradient-section: linear-gradient(180deg, hsl(var(--luxury-cream)), hsl(var(--background)));
+    --gradient-card: linear-gradient(145deg, hsl(var(--background)), hsl(var(--wood-warm)));
+    --gradient-premium: linear-gradient(135deg, hsl(var(--cabinet-gold)), hsl(var(--premium-copper)));
+    --gradient-price: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--premium-copper)));
+    
+    /* Professional shadows */
+    --shadow-modern: 0 10px 40px -10px hsl(var(--wood-rich) / 0.2);
+    --shadow-card: 0 8px 32px -8px hsl(var(--wood-dark) / 0.12);
+    --shadow-elevated: 0 25px 60px -12px hsl(var(--wood-dark) / 0.18);
+    --shadow-price: 0 6px 24px -6px hsl(var(--primary) / 0.3);
+    --shadow-image: 0 12px 40px -8px hsl(0 0% 0% / 0.15);
     
     /* Smooth transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-elegant: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
     --sidebar-background: 0 0% 98%;
 

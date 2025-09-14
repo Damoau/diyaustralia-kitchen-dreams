@@ -222,17 +222,20 @@ const CabinetPricesNew = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="pt-32 pb-16 bg-gradient-to-b from-background to-muted/20">
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6">
-              Cabinet <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">Pricing</span>
+      <section className="relative pt-32 pb-20 bg-gradient-section overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-hero opacity-10"></div>
+        <div className="container mx-auto px-4 relative">
+          <div className="text-center max-w-5xl mx-auto animate-fade-in">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-8">
+              Premium Cabinet 
+              <span className="block text-transparent bg-clip-text bg-gradient-premium mt-2">
+                Pricing
+              </span>
             </h1>
-            <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-              Dynamic pricing based on your cabinet configurations. Click any price to configure and add to quote.
+            <p className="text-xl md:text-2xl text-muted-foreground mb-10 leading-relaxed max-w-3xl mx-auto">
+              Discover our dynamic pricing system. Click any price to customize your perfect cabinet configuration and add to your quote.
             </p>
-            <RefreshImagesButton className="mt-4" />
-            
+            <RefreshImagesButton className="bg-gradient-premium text-white hover:shadow-elevated transition-all duration-300 px-8 py-3 rounded-xl font-semibold" />
           </div>
         </div>
       </section>
@@ -266,104 +269,145 @@ const CabinetPricesNew = () => {
             }
 
             return (
-              <div key={cabinetType.id} className="mb-12">
-                <h2 className="text-2xl font-semibold mb-6">
-                  {cabinetType.name}
-                  {!typeData.hasConfiguredRanges && (
-                    <span className="ml-2 text-sm font-normal text-orange-600">
-                      (Using default ranges - configure in admin for custom ranges)
-                    </span>
+              <div key={cabinetType.id} className="mb-16 animate-slide-up">
+                <div className="bg-white rounded-3xl shadow-card overflow-hidden border border-wood-warm/20">
+                  <div className="bg-gradient-to-r from-wood-rich via-wood-dark to-wood-rich p-8">
+                    <h2 className="text-3xl font-bold text-white mb-3">
+                      {cabinetType.name}
+                    </h2>
+                    {!typeData.hasConfiguredRanges && (
+                      <div className="inline-flex items-center gap-2 bg-cabinet-gold/20 text-cabinet-gold px-4 py-2 rounded-full text-sm font-medium">
+                        <div className="w-2 h-2 bg-cabinet-gold rounded-full animate-pulse"></div>
+                        Using default ranges - configure in admin for custom ranges
+                      </div>
+                    )}
+                  </div>
+                 
+                  {/* Cabinet Type + Door Style Images Carousel */}
+                  {typeFinishes.some((ctf: any) => ctf.image_url) && (
+                    <div className="mb-12">
+                      <h3 className="text-lg font-semibold text-wood-rich mb-6 text-center">Available Door Styles</h3>
+                      <Carousel className="w-full max-w-6xl mx-auto">
+                        <CarouselContent className="-ml-4">
+                          {typeFinishes
+                            .filter((ctf: any) => ctf.image_url)
+                            .map((ctf: any) => (
+                              <CarouselItem key={ctf.id} className="pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <div className="group cursor-pointer">
+                                      <div className="relative overflow-hidden rounded-2xl shadow-image hover:shadow-elevated transition-all duration-300 group-hover:scale-[1.02]">
+                                        <img 
+                                          src={ctf.image_url} 
+                                          alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
+                                          className="w-full h-48 object-cover"
+                                          onError={(e) => {
+                                            console.error("Image failed to load:", ctf.image_url);
+                                            e.currentTarget.style.display = "none";
+                                          }}
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                        <div className="absolute bottom-0 left-0 right-0 p-4">
+                                          <p className="text-center text-sm font-semibold text-white drop-shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                                            {ctf.door_style?.name}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-4xl max-h-[90vh] p-0 border-0 bg-transparent">
+                                    <div className="relative rounded-2xl overflow-hidden">
+                                      <img 
+                                        src={ctf.image_url} 
+                                        alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
+                                        className="w-full h-auto max-h-[80vh] object-contain"
+                                      />
+                                      <div className="absolute bottom-6 left-0 right-0 text-center">
+                                        <h3 className="text-white text-2xl font-bold bg-gradient-to-r from-black/80 to-black/60 backdrop-blur-md rounded-2xl mx-auto px-6 py-3 inline-block shadow-elevated">
+                                          {ctf.door_style?.name}
+                                        </h3>
+                                      </div>
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
+                              </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                        <CarouselPrevious className="bg-white/90 hover:bg-white shadow-card border-0" />
+                        <CarouselNext className="bg-white/90 hover:bg-white shadow-card border-0" />
+                      </Carousel>
+                    </div>
                   )}
-                 </h2>
                  
-                 {/* Cabinet Type + Door Style Images Carousel */}
-                 {typeFinishes.some((ctf: any) => ctf.image_url) && (
-                   <div className="mb-8">
-                     <Carousel className="w-full max-w-5xl mx-auto">
-                       <CarouselContent className="-ml-2 md:-ml-4">
-                         {typeFinishes
-                           .filter((ctf: any) => ctf.image_url) // Only show finishes with images
-                           .map((ctf: any) => (
-                             <CarouselItem key={ctf.id} className="pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
-                               <Dialog>
-                                 <DialogTrigger asChild>
-                                   <div className="relative group cursor-pointer hover:opacity-90 transition-opacity">
-                                     <img 
-                                       src={ctf.image_url} 
-                                       alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
-                                       className="w-auto h-auto max-w-full rounded-lg border shadow-sm"
-                                       onError={(e) => {
-                                         console.error("Image failed to load:", ctf.image_url);
-                                         e.currentTarget.style.display = "none";
-                                       }}
-                                     />
-                                     <div className="absolute bottom-0 left-0 right-0 p-3">
-                                       <p className="text-center text-sm font-medium text-black drop-shadow-sm">
-                                         {ctf.door_style?.name}
-                                       </p>
-                                     </div>
-                                   </div>
-                                 </DialogTrigger>
-                                 <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-                                   <div className="relative">
-                                     <img 
-                                       src={ctf.image_url} 
-                                       alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
-                                       className="w-auto h-auto max-w-full rounded-lg"
-                                     />
-                                     <div className="absolute bottom-4 left-0 right-0 text-center">
-                                       <h3 className="text-white text-xl font-semibold bg-black/60 backdrop-blur-sm rounded-lg mx-auto px-4 py-2 inline-block">
-                                         {ctf.door_style?.name}
-                                       </h3>
-                                     </div>
-                                   </div>
-                                 </DialogContent>
-                               </Dialog>
-                             </CarouselItem>
-                           ))}
-                       </CarouselContent>
-                       <CarouselPrevious />
-                       <CarouselNext />
-                     </Carousel>
-                   </div>
-                 )}
-                 
-                 <div className="overflow-x-auto">
-                  <table className="w-full border-collapse border border-gray-300">
-                    <thead>
-                      <tr className="bg-muted">
-                        <th className="border border-gray-300 px-4 py-3 text-left font-medium">
-                          Size Range
-                        </th>
-                        {typeFinishes.map((ctf: any) => (
-                          <th key={ctf.id} className="border border-gray-300 px-4 py-3 text-center font-medium min-w-[120px]">
-                            {ctf.door_style?.name || 'Unknown Style'}
-                            {ctf.door_style_finish?.name && ` - ${ctf.door_style_finish.name}`}
-                            {ctf.color && ` (${ctf.color.name})`}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {typeData.sizes?.map((sizeData: any, index: number) => (
-                        <tr key={index} className="hover:bg-muted/50">
-                          <td className="border border-gray-300 px-4 py-3 font-medium">
-                            {sizeData.range}
-                          </td>
-                           {sizeData.price?.map((price: number, priceIndex: number) => (
-                             <td key={priceIndex} className="border border-gray-300 px-4 py-3 text-center">
-                               <button
-                                 onClick={() => handleCellClick(cabinetType, sizeData.range, price, typeFinishes[priceIndex])}
-                                 className="text-lg font-bold text-primary hover:text-primary/80 hover:bg-primary/10 cursor-pointer transition-all rounded px-2 py-1 w-full"
-                               >
-                                 {formatPrice(price)}
-                               </button>
-                             </td>
-                           ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  {/* Modern Card-Based Pricing Grid */}
+                  <div className="grid gap-6 lg:gap-8">
+                    {typeData.sizes?.map((sizeData: any, index: number) => (
+                      <div 
+                        key={index} 
+                        className="bg-gradient-card rounded-3xl shadow-card hover:shadow-elevated transition-all duration-300 border border-wood-warm/30 overflow-hidden"
+                      >
+                        <div className="bg-gradient-to-r from-wood-rich to-wood-dark p-6">
+                          <h3 className="text-xl font-bold text-white mb-2">
+                            Size Range: {sizeData.range}
+                          </h3>
+                          <p className="text-wood-warm text-sm">
+                            Choose your preferred door style and finish
+                          </p>
+                        </div>
+                        
+                        <div className="p-6">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {sizeData.price?.map((price: number, priceIndex: number) => {
+                              const finish = typeFinishes[priceIndex];
+                              return (
+                                <div 
+                                  key={priceIndex}
+                                  className="group bg-white rounded-2xl shadow-card hover:shadow-price transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer hover:scale-[1.02]"
+                                  onClick={() => handleCellClick(cabinetType, sizeData.range, price, finish)}
+                                >
+                                  <div className="p-5">
+                                    <div className="flex items-center justify-between mb-3">
+                                      <div className="w-3 h-3 rounded-full bg-gradient-premium"></div>
+                                      <span className="text-xs font-medium text-wood-rich bg-wood-warm px-2 py-1 rounded-full">
+                                        {finish?.door_style?.name || 'Standard'}
+                                      </span>
+                                    </div>
+                                    
+                                    <div className="text-center">
+                                      <div className="text-2xl font-bold text-primary mb-1 group-hover:bg-gradient-price group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300">
+                                        {formatPrice(price)}
+                                      </div>
+                                      
+                                      {finish?.door_style_finish?.name && (
+                                        <p className="text-xs text-muted-foreground mb-2">
+                                          {finish.door_style_finish.name}
+                                        </p>
+                                      )}
+                                      
+                                      {finish?.color && (
+                                        <div className="flex items-center justify-center gap-2">
+                                          <div className="w-2 h-2 rounded-full bg-wood-rich"></div>
+                                          <span className="text-xs text-wood-dark font-medium">
+                                            {finish.color.name}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+                                    
+                                    <div className="mt-4 pt-3 border-t border-gray-100">
+                                      <button className="w-full text-xs font-semibold text-primary group-hover:text-white group-hover:bg-gradient-price transition-all duration-300 py-2 rounded-lg">
+                                        Configure & Quote
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             );

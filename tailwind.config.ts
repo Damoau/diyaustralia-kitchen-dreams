@@ -63,6 +63,19 @@ export default {
 					light: 'hsl(var(--gray-light))',
 					dark: 'hsl(var(--gray-dark))'
 				},
+				wood: {
+					warm: 'hsl(var(--wood-warm))',
+					rich: 'hsl(var(--wood-rich))',
+					dark: 'hsl(var(--wood-dark))'
+				},
+				cabinet: {
+					gold: 'hsl(var(--cabinet-gold))',
+					silver: 'hsl(var(--cabinet-silver))'
+				},
+				premium: {
+					copper: 'hsl(var(--premium-copper))',
+					cream: 'hsl(var(--luxury-cream))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -95,11 +108,40 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fadeIn': {
+					'0%': { opacity: '0', transform: 'translateY(20px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
+				},
+				'slideUp': {
+					'0%': { opacity: '0', transform: 'translateY(40px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
+				},
+				'scaleIn': {
+					'0%': { opacity: '0', transform: 'scale(0.95)' },
+					'100%': { opacity: '1', transform: 'scale(1)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fadeIn 0.6s ease-out',
+				'slide-up': 'slideUp 0.5s ease-out',
+				'scale-in': 'scaleIn 0.4s ease-out'
+			},
+			boxShadow: {
+				'modern': 'var(--shadow-modern)',
+				'card': 'var(--shadow-card)',
+				'elevated': 'var(--shadow-elevated)',
+				'price': 'var(--shadow-price)',
+				'image': 'var(--shadow-image)'
+			},
+			backgroundImage: {
+				'gradient-hero': 'var(--gradient-hero)',
+				'gradient-section': 'var(--gradient-section)',
+				'gradient-card': 'var(--gradient-card)',
+				'gradient-premium': 'var(--gradient-premium)',
+				'gradient-price': 'var(--gradient-price)'
 			}
 		}
 	},
