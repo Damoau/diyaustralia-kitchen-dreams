@@ -335,42 +335,59 @@ const BaseCabinets = () => {
                       </tr>
                     </thead>
                     <tbody 
-                      className="select-none price-table-disabled"
+                      className="price-table-disabled"
                       style={{ 
                         pointerEvents: 'none',
-                        cursor: 'default'
+                        cursor: 'default',
+                        userSelect: 'none'
                       }}
                     >
                        {typeData.sizes?.map((sizeData: any, sizeIndex: number) => (
-                         <tr key={sizeIndex}>
+                         <tr 
+                           key={sizeIndex}
+                           style={{ 
+                             pointerEvents: 'none',
+                             cursor: 'default'
+                           }}
+                         >
                            <td className="border border-gray-300 px-4 py-3 font-medium">
                              {sizeData.range}
                            </td>
                              {sizeData.price?.map((price: number, priceIndex: number) => (
                                <td 
                                  key={priceIndex} 
-                                 className="border border-gray-300 px-4 py-3 text-center select-none"
+                                 className="border border-gray-300 px-4 py-3 text-center"
                                  style={{ 
                                    pointerEvents: 'none',
                                    cursor: 'default',
                                    userSelect: 'none'
                                  }}
+                                 onMouseDown={(e) => e.preventDefault()}
+                                 onMouseUp={(e) => e.preventDefault()}
+                                 onClick={(e) => {
+                                   e.preventDefault();
+                                   e.stopPropagation();
+                                   return false;
+                                 }}
                                >
-                                 <span 
-                                   className="text-lg font-bold px-2 py-1 w-full inline-block select-none"
+                                 <div 
+                                   className="text-lg font-bold px-2 py-1 w-full"
                                    style={{ 
                                      color: 'hsl(var(--foreground))', 
-                                     textDecoration: 'none', 
-                                     cursor: 'default',
                                      pointerEvents: 'none',
-                                     userSelect: 'none',
-                                     WebkitUserSelect: 'none',
-                                     MozUserSelect: 'none',
-                                     msUserSelect: 'none'
+                                     cursor: 'default',
+                                     userSelect: 'none'
+                                   }}
+                                   onMouseDown={(e) => e.preventDefault()}
+                                   onMouseUp={(e) => e.preventDefault()}
+                                   onClick={(e) => {
+                                     e.preventDefault();
+                                     e.stopPropagation();
+                                     return false;
                                    }}
                                  >
                                    {formatPrice(price)}
-                                 </span>
+                                 </div>
                                </td>
                              ))}
                          </tr>
