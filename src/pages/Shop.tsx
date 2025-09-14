@@ -58,14 +58,14 @@ const Shop = () => {
               Browse our complete range of kitchen cabinets. Configure and customize each cabinet to your exact specifications.
             </p>
 
-            {/* Quick Navigation Buttons */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-12">
+            {/* Quick Navigation Buttons - Mobile Only */}
+            <div className="grid grid-cols-2 gap-3 mb-12 md:hidden">
               {categories.map((category) => (
                 <Button 
                   key={category.id}
                   asChild 
                   variant="outline" 
-                  className="h-12 text-xs md:text-sm font-medium"
+                  className="h-12 text-xs font-medium"
                 >
                   <Link to={category.path}>
                     {category.title}
