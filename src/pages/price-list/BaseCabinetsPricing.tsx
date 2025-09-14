@@ -62,15 +62,23 @@ const BaseCabinetsPricing = () => {
   const { data: baseCabinets, isLoading: loadingCabinets } = useQuery({
     queryKey: ['base-cabinets'],
     queryFn: async () => {
+      console.log('🔍 FETCHING BASE CABINETS...');
       const { data, error } = await supabase
         .from('cabinet_types')
         .select('*')
         .eq('category', 'base')
         .eq('active', true)
         .order('name');
+      console.log('📦 CABINET DATA FETCHED:', { count: data?.length, error, data });
       if (error) throw error;
       return data as CabinetType[];
     }
+  });
+
+  console.log('🔥 COMPONENT STATE:', { 
+    baseCabinets: baseCabinets?.length, 
+    loadingCabinets, 
+    selectedCabinetType 
   });
 
   // Calculate prices COMPLETELY FRESH - no dependencies on React Query
