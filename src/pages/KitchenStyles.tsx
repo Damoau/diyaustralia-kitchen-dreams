@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import shadowlineImage from "@/assets/shadowline-kitchen.jpg";
 
 const KitchenStyles = () => {
   const styles = [
@@ -9,7 +10,7 @@ const KitchenStyles = () => {
       name: "Shadowline",
       description: "The Shadowline's classic look has a high-end feel. You can customize the doors to any colour to personalise your kitchen design. You'll love spending time in this kitchen for many years to come.",
       features: ["High-end classic look", "Customizable colours", "Matt, Satin, Gloss finishes"],
-      image: "/lovable-uploads/b6d88c5d-54f3-4b8d-9ac4-6fdf2711d29e.png"
+      image: shadowlineImage
     },
     {
       name: "Shaker",
