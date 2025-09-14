@@ -125,6 +125,47 @@ export const useDynamicPricing = ({
     refetchInterval: refreshInterval
   });
 
+  // Fetch hardware requirements for this cabinet type
+  const { data: hardwareRequirements } = useQuery({
+    queryKey: ['hardware-requirements', cabinetTypeId],
+    queryFn: async () => {
+      if (!cabinetTypeId) return [];
+      const { data, error } = await supabase
+        .from('cabinet_hardware_requirements')
+        .select(`
+          *,
+          hardware_type:hardware_types(*)
+        `)
+        .eq('cabinet_type_id', cabinetTypeId)
+        .eq('active', true);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!cabinetTypeId,
+    refetchInterval: refreshInterval
+  });
+
+  // Fetch hardware options for the selected brand
+  const { data: hardwareOptions } = useQuery({
+    queryKey: ['hardware-options', cabinetTypeId, hardwareBrandId],
+    queryFn: async () => {
+      if (!cabinetTypeId || !hardwareBrandId || hardwareBrandId === 'none') return [];
+      const { data, error } = await supabase
+        .from('cabinet_hardware_options')
+        .select(`
+          *,
+          hardware_product:hardware_products(*),
+          requirement:cabinet_hardware_requirements(*)
+        `)
+        .eq('hardware_brand_id', hardwareBrandId)
+        .eq('active', true);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!cabinetTypeId && !!hardwareBrandId && hardwareBrandId !== 'none',
+    refetchInterval: refreshInterval
+  });
+
   // Fetch cabinet type finishes
   const { data: cabinetTypeFinishes } = useQuery({
     queryKey: ['cabinet-type-finishes', cabinetTypeId],
@@ -164,7 +205,10 @@ export const useDynamicPricing = ({
         globalSettings,
         doorStyle,
         color,
-        quantity
+        quantity,
+        hardwareBrandId,
+        hardwareRequirements: hardwareRequirements || [],
+        hardwareOptions: hardwareOptions || []
       });
 
       console.log('Dynamic pricing result:', {
@@ -181,7 +225,7 @@ export const useDynamicPricing = ({
       console.error('Error calculating price:', error);
       return 0;
     }
-  }, [cabinetType, width, height, depth, cabinetParts, globalSettings, doorStyle, color, quantity]);
+  }, [cabinetType, width, height, depth, cabinetParts, globalSettings, doorStyle, color, quantity, hardwareBrandId, hardwareRequirements, hardwareOptions]);
 
   // Get price breakdown
   const priceBreakdown = useMemo(() => {
@@ -199,11 +243,14 @@ export const useDynamicPricing = ({
       globalSettings,
       doorStyle,
       color,
-      quantity
+      quantity,
+      hardwareBrandId,
+      hardwareRequirements: hardwareRequirements || [],
+      hardwareOptions: hardwareOptions || []
     });
 
     return pricingService.getLastBreakdown();
-  }, [cabinetType, width, height, depth, cabinetParts, globalSettings, doorStyle, color, quantity]);
+  }, [cabinetType, width, height, depth, cabinetParts, globalSettings, doorStyle, color, quantity, hardwareBrandId, hardwareRequirements, hardwareOptions]);
 
   // Generate price table data
   const priceTableData = useMemo(() => {
@@ -237,6 +284,7 @@ export const useDynamicPricing = ({
       doorStyleId?: string;
       colorId?: string;
       quantity?: number;
+      hardwareBrandId?: string;
     }) => {
       if (!cabinetType || !cabinetParts || !globalSettings) {
         return 0;
@@ -251,10 +299,13 @@ export const useDynamicPricing = ({
         globalSettings,
         doorStyle: params.doorStyleId === doorStyleId ? doorStyle : null,
         color: params.colorId === colorId ? color : null,
-        quantity: params.quantity || quantity
+        quantity: params.quantity || quantity,
+        hardwareBrandId: params.hardwareBrandId || hardwareBrandId,
+        hardwareRequirements: hardwareRequirements || [],
+        hardwareOptions: hardwareOptions || []
       });
     };
-  }, [cabinetType, cabinetParts, globalSettings, doorStyle, color, width, height, depth, quantity, doorStyleId, colorId]);
+  }, [cabinetType, cabinetParts, globalSettings, doorStyle, color, width, height, depth, quantity, doorStyleId, colorId, hardwareBrandId, hardwareRequirements, hardwareOptions]);
 
   return {
     // Data
@@ -265,6 +316,8 @@ export const useDynamicPricing = ({
     color,
     priceRanges,
     cabinetTypeFinishes,
+    hardwareRequirements,
+    hardwareOptions,
     
     // Calculated values
     price: calculatedPrice,

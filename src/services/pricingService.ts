@@ -10,6 +10,9 @@ interface PriceCalculationParams {
   doorStyle?: any;
   color?: any;
   quantity?: number;
+  hardwareBrandId?: string;
+  hardwareRequirements?: any[];
+  hardwareOptions?: any[];
 }
 
 interface PriceTableParams {
@@ -92,7 +95,10 @@ class PricingService {
       globalSettings,
       doorStyle,
       color,
-      quantity = 1
+      quantity = 1,
+      hardwareBrandId,
+      hardwareRequirements = [],
+      hardwareOptions = []
     } = params;
 
     const settings = this.parseGlobalSettings(globalSettings);
@@ -145,8 +151,39 @@ class PricingService {
       });
     }
 
-    // Hardware cost
-    const hardwareCost = settings.hardwareBaseCost;
+    // Hardware cost - calculate based on admin configuration
+    let hardwareCost = 0;
+    if (hardwareBrandId && hardwareBrandId !== 'none' && hardwareRequirements.length > 0) {
+      hardwareRequirements.forEach(requirement => {
+        // Find matching option for this requirement and selected brand
+        const matchingOption = hardwareOptions.find(option => 
+          option.requirement_id === requirement.id && 
+          option.hardware_brand_id === hardwareBrandId
+        );
+        
+        if (matchingOption && matchingOption.hardware_product) {
+          const costPerUnit = matchingOption.hardware_product.cost_per_unit || 0;
+          const unitsNeeded = requirement.units_per_scope || 1;
+          const requirementCost = costPerUnit * unitsNeeded * quantity;
+          hardwareCost += requirementCost;
+          
+          console.log('Hardware calculation:', {
+            requirement: requirement.hardware_type?.name,
+            brand: hardwareBrandId,
+            product: matchingOption.hardware_product.name,
+            costPerUnit,
+            unitsNeeded,
+            quantity,
+            requirementCost,
+            totalHardwareCost: hardwareCost
+          });
+        }
+      });
+    } else {
+      // No hardware selected
+      hardwareCost = 0;
+      console.log('No hardware selected, cost = 0');
+    }
 
     // Calculate totals
     const subtotal = (carcassCosts.total + doorCosts.total + hardwareCost) * quantity;
