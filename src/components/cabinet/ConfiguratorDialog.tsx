@@ -160,8 +160,8 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md md:max-w-5xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-8 p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-lg">
-            <ShoppingCart className="h-4 w-4" />
+          <DialogTitle className="flex items-center gap-2 text-lg text-primary">
+            <ShoppingCart className="h-4 w-4 text-primary" />
             {cabinetType.name}
           </DialogTitle>
           <DialogDescription className="sr-only">
