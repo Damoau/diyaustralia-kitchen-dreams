@@ -113,7 +113,17 @@ const GetQuote = () => {
 
           {/* Trust Badges */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-            {trustBadges.map((badge, index) => {})}
+            {trustBadges.map((badge, index) => (
+              <Card key={index} className="text-center p-6 hover:shadow-lg transition-shadow">
+                <CardContent className="space-y-4">
+                  <div className="flex justify-center">
+                    {badge.icon}
+                  </div>
+                  <h3 className="font-semibold text-foreground">{badge.title}</h3>
+                  <p className="text-sm text-muted-foreground">{badge.description}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
           <div className="grid lg:grid-cols-2 gap-16 mb-16">
@@ -121,44 +131,36 @@ const GetQuote = () => {
             <div>
               <h2 className="text-3xl font-bold text-foreground mb-12 text-center">Simple 5-Step Process</h2>
               
-              {/* Desktop Timeline */}
-              <div className="hidden md:block">
-                <div className="relative">
-                  {/* Timeline line */}
-                  <div className="absolute top-16 left-0 right-0 h-0.5 bg-primary/20"></div>
-                  <div className="flex justify-between items-start">
-                    {processSteps.map((step, index) => <div key={index} className="flex flex-col items-center text-center max-w-[160px]">
-                        <div className="p-4 bg-white shadow-lg rounded-full border-4 border-primary/20 mb-4 relative z-10">
-                          {step.icon}
-                        </div>
-                        <h3 className="font-semibold text-sm text-foreground mb-2">
+              {/* Vertical Timeline */}
+              <div className="space-y-8">
+                {processSteps.map((step, index) => (
+                  <div key={index} className="relative flex items-start gap-6">
+                    {/* Timeline line */}
+                    {index < processSteps.length - 1 && (
+                      <div className="absolute left-8 top-20 w-0.5 h-12 bg-gradient-to-b from-primary to-primary/30"></div>
+                    )}
+                    
+                    {/* Step icon */}
+                    <div className="relative z-10 p-4 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full border-2 border-primary/20 shadow-lg">
+                      {step.icon}
+                    </div>
+                    
+                    {/* Step content */}
+                    <div className="flex-1 min-w-0 pt-2">
+                      <div className="flex items-center gap-3 mb-3">
+                        <Badge variant="secondary" className="text-xs font-medium">
+                          Step {index + 1}
+                        </Badge>
+                        <h3 className="text-lg font-semibold text-foreground">
                           {step.title}
                         </h3>
-                        <p className="text-xs text-muted-foreground leading-tight">
-                          {step.description}
-                        </p>
-                      </div>)}
+                      </div>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {step.description}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Mobile Timeline */}
-              <div className="md:hidden space-y-6">
-                {processSteps.map((step, index) => <Card key={index} className="p-4">
-                    <CardContent className="flex items-center gap-4">
-                      <div className="flex-shrink-0 p-3 bg-primary/10 rounded-lg">
-                        {step.icon}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground mb-1">
-                          {step.title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {step.description}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>)}
+                ))}
               </div>
 
               {/* Australia Map */}
