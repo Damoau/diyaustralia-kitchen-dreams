@@ -323,20 +323,20 @@ const BaseCabinets = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {typeData.sizes?.map((sizeData: any, sizeIndex: number) => (
-                        <tr key={sizeIndex} className="hover:bg-muted/50">
-                          <td className="border border-gray-300 px-4 py-3 font-medium">
-                            {sizeData.range}
-                          </td>
-                           {sizeData.price?.map((price: number, priceIndex: number) => (
-                             <td key={priceIndex} className="border border-gray-300 px-4 py-3 text-center">
-                               <div className="text-lg font-bold text-primary px-2 py-1 w-full">
-                                 {formatPrice(price)}
-                               </div>
-                             </td>
-                           ))}
-                        </tr>
-                      ))}
+                       {typeData.sizes?.map((sizeData: any, sizeIndex: number) => (
+                         <tr key={sizeIndex}>
+                           <td className="border border-gray-300 px-4 py-3 font-medium">
+                             {sizeData.range}
+                           </td>
+                            {sizeData.price?.map((price: number, priceIndex: number) => (
+                              <td key={priceIndex} className="border border-gray-300 px-4 py-3 text-center">
+                                <div className="text-lg font-bold text-primary px-2 py-1 w-full">
+                                  {formatPrice(price)}
+                                </div>
+                              </td>
+                            ))}
+                         </tr>
+                       ))}
                     </tbody>
                   </table>
                 </div>
