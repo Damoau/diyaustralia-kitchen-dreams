@@ -16,7 +16,7 @@ import { useCart } from "@/hooks/useCart";
 import { formatPrice } from "@/lib/pricing";
 import { useToast } from "@/hooks/use-toast";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { RefreshImagesButton } from "@/components/RefreshImagesButton";
 
 const CabinetPricesNew = () => {
@@ -264,59 +264,107 @@ const CabinetPricesNew = () => {
                    )}
                   </h2>
                   
-                  {/* Cabinet Type + Door Style Images Carousel */}
-                 {typeFinishes.some((ctf: any) => ctf.image_url) && (
-                   <div className="mb-8">
-                     <Carousel className="w-full max-w-5xl mx-auto">
-                       <CarouselContent className="-ml-2 md:-ml-4">
-                         {typeFinishes
-                           .filter((ctf: any) => ctf.image_url) // Only show finishes with images
-                           .map((ctf: any) => (
-                             <CarouselItem key={ctf.id} className="pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
-                               <Dialog>
-                                 <DialogTrigger asChild>
-                                   <div className="relative group cursor-pointer hover:opacity-90 transition-opacity">
-                                     <img 
-                                       src={ctf.image_url} 
-                                       alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
-                                       className="w-auto h-auto max-w-full rounded-lg border shadow-sm"
-                                       onError={(e) => {
-                                         console.error("Image failed to load:", ctf.image_url);
-                                         e.currentTarget.style.display = "none";
-                                       }}
-                                     />
-                                     <div className="absolute bottom-0 left-0 right-0 p-3">
-                                       <p className="text-center text-sm font-medium text-black drop-shadow-sm">
-                                         {ctf.door_style?.name}
-                                       </p>
-                                     </div>
-                                   </div>
-                                 </DialogTrigger>
-                                 <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-                                   <div className="relative">
-                                     <img 
-                                       src={ctf.image_url} 
-                                       alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
-                                       className="w-auto h-auto max-w-full rounded-lg"
-                                     />
-                                     <div className="absolute bottom-4 left-0 right-0 text-center">
-                                       <h3 className="text-white text-xl font-semibold bg-black/60 backdrop-blur-sm rounded-lg mx-auto px-4 py-2 inline-block">
-                                         {ctf.door_style?.name}
-                                       </h3>
-                                     </div>
-                                   </div>
-                                 </DialogContent>
-                               </Dialog>
-                             </CarouselItem>
-                           ))}
-                       </CarouselContent>
-                       <CarouselPrevious />
-                       <CarouselNext />
-                     </Carousel>
-                   </div>
-                 )}
-                 
-                 <div className="overflow-x-auto">
+                  {/* Cabinet Images Carousel - Always show */}
+                  <div className="mb-8">
+                    <div className="text-center mb-4">
+                      <h3 className="text-lg font-medium text-muted-foreground">Available Finishes</h3>
+                    </div>
+                    <Carousel className="w-full max-w-5xl mx-auto">
+                      <CarouselContent className="-ml-2 md:-ml-4">
+                        {/* Show cabinet type image if available */}
+                        {cabinetType.product_image_url && (
+                          <CarouselItem className="pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <div className="relative group cursor-pointer hover:opacity-90 transition-opacity">
+                                  <img 
+                                    src={cabinetType.product_image_url} 
+                                    alt={`${cabinetType.name} Cabinet`}
+                                    className="w-full h-48 object-cover rounded-lg border shadow-sm"
+                                    onError={(e) => {
+                                      console.error("Cabinet image failed to load:", cabinetType.product_image_url);
+                                      e.currentTarget.style.display = "none";
+                                    }}
+                                  />
+                                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-3 rounded-b-lg">
+                                    <p className="text-center text-sm font-medium text-white">
+                                      {cabinetType.name}
+                                    </p>
+                                  </div>
+                                </div>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+                                <div className="relative">
+                                  <img 
+                                    src={cabinetType.product_image_url} 
+                                    alt={`${cabinetType.name} Cabinet`}
+                                    className="w-full h-auto max-w-full rounded-lg"
+                                  />
+                                  <DialogTitle className="absolute top-4 left-4 bg-black/50 text-white px-3 py-1 rounded">
+                                    {cabinetType.name}
+                                  </DialogTitle>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          </CarouselItem>
+                        )}
+                        
+                        {/* Show door style finishes */}
+                        {typeFinishes.map((ctf: any) => (
+                          <CarouselItem key={ctf.id} className="pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <div className="relative group cursor-pointer hover:opacity-90 transition-opacity">
+                                  {ctf.image_url ? (
+                                    <img 
+                                      src={ctf.image_url} 
+                                      alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
+                                      className="w-full h-48 object-cover rounded-lg border shadow-sm"
+                                      onError={(e) => {
+                                        console.error("Finish image failed to load:", ctf.image_url);
+                                        e.currentTarget.style.display = "none";
+                                      }}
+                                    />
+                                  ) : (
+                                    <div className="w-full h-48 bg-muted/30 rounded-lg border shadow-sm flex items-center justify-center">
+                                      <span className="text-sm text-muted-foreground">No Image</span>
+                                    </div>
+                                  )}
+                                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-3 rounded-b-lg">
+                                    <p className="text-center text-sm font-medium text-white">
+                                      {ctf.door_style?.name || 'Unknown Style'}
+                                    </p>
+                                  </div>
+                                </div>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+                                <div className="relative">
+                                  {ctf.image_url ? (
+                                    <img 
+                                      src={ctf.image_url} 
+                                      alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
+                                      className="w-full h-auto max-w-full rounded-lg"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-64 bg-muted/30 rounded-lg flex items-center justify-center">
+                                      <span className="text-lg text-muted-foreground">No Image Available</span>
+                                    </div>
+                                  )}
+                                  <DialogTitle className="absolute top-4 left-4 bg-black/50 text-white px-3 py-1 rounded">
+                                    {ctf.door_style?.name || 'Unknown Style'}
+                                  </DialogTitle>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      <CarouselPrevious />
+                      <CarouselNext />
+                    </Carousel>
+                  </div>
+                  
+                  <div className="overflow-x-auto">
                   <table className="w-full border-collapse border border-gray-300">
                     <thead>
                       <tr className="bg-muted">
