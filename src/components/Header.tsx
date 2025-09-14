@@ -114,7 +114,7 @@ const Header = () => {
             </Button>
           )}
           
-          <Button variant="hero" size="sm" className="px-6 hidden sm:flex">
+          <Button variant="hero" size="sm" className="px-6 hidden sm:flex" onClick={() => navigate('/get-quote')}>
             Get Quote
           </Button>
           
@@ -214,7 +214,7 @@ const Header = () => {
                       Sign In
                     </Button>
                   )}
-                  <Button variant="hero" size="lg" className="w-full">
+                  <Button variant="hero" size="lg" className="w-full" onClick={() => navigate('/get-quote')}>
                     Get Free Quote
                   </Button>
                 </div>
