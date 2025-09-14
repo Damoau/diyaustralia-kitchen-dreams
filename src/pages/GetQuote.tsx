@@ -28,23 +28,23 @@ const GetQuote = () => {
   const processSteps = [{
     icon: <Upload className="h-12 w-12 text-primary" />,
     title: "Upload Plans",
-    description: "Send us your hand drawings, Bunnings plans, IKEA kitchen designs, or plans from any kitchen company. We work with any format - photos, PDFs, or even rough sketches on paper."
+    description: "Share your kitchen plans from any source - IKEA, Bunnings, other kitchen companies, or hand-sketched designs"
   }, {
     icon: <Calculator className="h-12 w-12 text-primary" />,
-    title: "Get Quote",
-    description: "Our expert team analyzes your plans and provides a detailed, itemized quote within 24 hours. Includes material costs, hardware options, and delivery estimates with no hidden fees."
+    title: "Receive Your Quote",
+    description: "We'll provide a detailed quote for your custom cabinet solution"
   }, {
     icon: <FileText className="h-12 w-12 text-primary" />,
-    title: "Approve Design",
-    description: "Receive professional CAD drawings with precise measurements and 3D renderings. Make any adjustments needed before we finalize your custom cabinet specifications."
+    title: "10% Deposit & Drawings",
+    description: "If you're happy to proceed, pay a 10% deposit and we'll arrange professional drawings with on-site measurements"
   }, {
     icon: <CheckCircle className="h-12 w-12 text-primary" />,
-    title: "Production",
-    description: "Your cabinets are custom manufactured in our Australian facility using premium materials and precision machinery. Track your order progress through our production stages."
+    title: "Approval & Production",
+    description: "Once you approve the drawings, we'll send DocuSign for final approval and start production"
   }, {
     icon: <Truck className="h-12 w-12 text-primary" />,
-    title: "Delivery",
-    description: "Receive your cabinets pre-drilled, labeled, and ready to install. Flat-pack delivery Australia-wide or assembled delivery to selected metro areas with white-glove service."
+    title: "Delivery & Assembly",
+    description: "Receive your cabinets flat-packed or assembled, all pre-drilled and labeled for easy installation"
   }];
   const testimonials = [{
     name: "Sarah M.",
@@ -135,68 +135,29 @@ const GetQuote = () => {
                 ))}
               </div>
 
-              {/* Delivery Options */}
+              {/* Delivery Areas */}
               <Card className="mt-12 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
                 <CardContent className="p-8">
-                  <div className="text-center mb-8">
-                    <div className="flex items-center justify-center gap-3 mb-4">
-                      <Truck className="h-8 w-8 text-primary" />
-                      <h3 className="text-2xl font-semibold text-foreground">Delivery Options</h3>
-                    </div>
-                    <p className="text-muted-foreground">Choose the delivery method that works best for you</p>
+                  <div className="flex items-center gap-3 mb-6">
+                    <MapPin className="h-8 w-8 text-primary" />
+                    <h3 className="text-2xl font-semibold text-foreground">Delivery Areas</h3>
                   </div>
                   
-                  <div className="space-y-6">
-                    {/* Flat Pack Option */}
-                    <div className="bg-white/80 rounded-xl p-6 border border-primary/10">
-                      <div className="flex items-start gap-4">
-                        <div className="p-3 bg-primary/10 rounded-lg flex-shrink-0">
-                          <MapPin className="h-6 w-6 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-3">
-                            <h4 className="text-lg font-semibold text-foreground">Flat Pack Delivery</h4>
-                            <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
-                              Australia-Wide
-                            </Badge>
-                          </div>
-                          <p className="text-muted-foreground mb-3">
-                            Ready-to-assemble cabinets delivered to your door with all hardware and detailed instructions.
-                          </p>
-                          <div className="flex flex-wrap gap-2 text-sm">
-                            <span className="px-3 py-1 bg-primary/5 text-primary rounded-full">Free shipping over $2000</span>
-                            <span className="px-3 py-1 bg-primary/5 text-primary rounded-full">5-10 business days</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Assembled Option */}
-                    <div className="bg-white/80 rounded-xl p-6 border border-primary/10">
-                      <div className="flex items-start gap-4">
-                        <div className="p-3 bg-primary/10 rounded-lg flex-shrink-0">
-                          <CheckCircle className="h-6 w-6 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-3">
-                            <h4 className="text-lg font-semibold text-foreground">Assembled Delivery</h4>
-                            <Badge variant="outline" className="border-orange-200 text-orange-700">
-                              Metro Areas
-                            </Badge>
-                          </div>
-                          <p className="text-muted-foreground mb-3">
-                            Fully assembled cabinets delivered and positioned in your home by our professional team.
-                          </p>
-                          <div className="flex flex-wrap gap-2 text-sm mb-3">
-                            <span className="px-3 py-1 bg-primary/5 text-primary rounded-full">White glove service</span>
-                            <span className="px-3 py-1 bg-primary/5 text-primary rounded-full">Installation ready</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            Available in Sydney, Melbourne, Brisbane, Perth, Adelaide metro areas
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                  <p className="text-muted-foreground mb-6">We can transport to depots across Australia:</p>
+                  
+                  <div className="flex flex-wrap gap-3 justify-center">
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200 px-4 py-2 text-base">
+                      NSW
+                    </Badge>
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-200 px-4 py-2 text-base">
+                      QLD
+                    </Badge>
+                    <Badge variant="secondary" className="bg-orange-100 text-orange-700 border-orange-200 px-4 py-2 text-base">
+                      VIC
+                    </Badge>
+                    <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200 px-4 py-2 text-base">
+                      SA
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
