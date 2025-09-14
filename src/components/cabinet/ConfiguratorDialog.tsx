@@ -469,7 +469,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                           <SelectValue placeholder="Select hardware brand" />
                         </SelectTrigger>
                         <SelectContent className="bg-background border z-50">
-                          <SelectItem value="">No Hardware</SelectItem>
+                          <SelectItem value="none">No Hardware</SelectItem>
                           <SelectItem value="blum">Blum</SelectItem>
                           <SelectItem value="titus">Titus</SelectItem>
                         </SelectContent>
