@@ -46,12 +46,6 @@ export interface CabinetType {
   default_width_mm: number;
   default_height_mm: number;
   default_depth_mm: number;
-  min_width_mm?: number;
-  max_width_mm?: number;
-  min_height_mm?: number;
-  max_height_mm?: number;
-  min_depth_mm?: number;
-  max_depth_mm?: number;
   door_count: number;
   drawer_count: number;
   active: boolean;

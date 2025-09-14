@@ -336,9 +336,9 @@ export function CellConfigPopup({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Image and Cabinet Info */}
+          {/* Cabinet Image Display */}
           <div className="flex items-start gap-4">
-            {/* Cabinet Image */}
+            {/* Large Cabinet Image */}
             <div 
               className="w-32 h-32 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors flex-shrink-0"
               onClick={() => {
@@ -386,77 +386,60 @@ export function CellConfigPopup({
               })()}
             </div>
             
-            {/* Cabinet Info and Dimensions */}
-            <div className="flex-1 space-y-3">
-              {/* Cabinet Name */}
-              <div>
-                <h3 className="font-medium text-lg">{cabinetType.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {selectedDoorStyle 
-                    ? doorStyles.find(ds => ds.id === selectedDoorStyle)?.name || 'Loading...'
-                    : (finish as any)?.door_style?.name || 'Select door style'
-                  }
-                </p>
-              </div>
-              
-              {/* Dimensions */}
-              <div>
-                <Label htmlFor="width" className="text-xs">Width (mm)</Label>
-                <Input
-                  id="width"
-                  type="number"
-                  value={width}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setWidth(value === '' ? '' : value);
-                  }}
-                  className="h-8"
-                />
-                {cabinetType.min_width_mm && cabinetType.max_width_mm && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Range: {cabinetType.min_width_mm}-{cabinetType.max_width_mm}mm
-                  </p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="height" className="text-xs">Height (mm)</Label>
-                <Input
-                  id="height"
-                  type="number"
-                  value={height}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setHeight(value === '' ? '' : value);
-                  }}
-                  className="h-8"
-                />
-                {cabinetType.min_height_mm && cabinetType.max_height_mm && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Range: {cabinetType.min_height_mm}-{cabinetType.max_height_mm}mm
-                  </p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="depth" className="text-xs">Depth (mm)</Label>
-                <Input
-                  id="depth"
-                  type="number"
-                  value={depth}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setDepth(value === '' ? '' : value);
-                  }}
-                  className="h-8"
-                />
-                {cabinetType.min_depth_mm && cabinetType.max_depth_mm && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Range: {cabinetType.min_depth_mm}-{cabinetType.max_depth_mm}mm
-                  </p>
-                )}
-              </div>
+            {/* Cabinet Details */}
+            <div className="flex-1">
+              <h3 className="font-medium text-lg">{cabinetType.name}</h3>
+              <p className="text-sm text-muted-foreground">
+                {selectedDoorStyle 
+                  ? doorStyles.find(ds => ds.id === selectedDoorStyle)?.name || 'Loading...'
+                  : (finish as any)?.door_style?.name || 'Select door style'
+                }
+              </p>
             </div>
           </div>
 
+          {/* Dimensions */}
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label htmlFor="width" className="text-xs">Width (mm)</Label>
+              <Input
+                id="width"
+                type="number"
+                value={width}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setWidth(value === '' ? '' : value);
+                }}
+                className="h-8"
+              />
+            </div>
+            <div>
+              <Label htmlFor="height" className="text-xs">Height (mm)</Label>
+              <Input
+                id="height"
+                type="number"
+                value={height}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setHeight(value === '' ? '' : value);
+                }}
+                className="h-8"
+              />
+            </div>
+            <div>
+              <Label htmlFor="depth" className="text-xs">Depth (mm)</Label>
+              <Input
+                id="depth"
+                type="number"
+                value={depth}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setDepth(value === '' ? '' : value);
+                }}
+                className="h-8"
+              />
+            </div>
+          </div>
 
           {/* Door Style */}
           <div>
