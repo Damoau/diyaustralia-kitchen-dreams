@@ -66,6 +66,7 @@ interface CabinetType {
   door_count: number;
   drawer_count: number;
   active: boolean;
+  product_image_url?: string;
 }
 
 const Admin = () => {
@@ -148,6 +149,7 @@ const Admin = () => {
           default_width_mm: cabinetType.default_width_mm || 300,
           default_height_mm: cabinetType.default_height_mm || 720,
           default_depth_mm: cabinetType.default_depth_mm || 560,
+          product_image_url: cabinetType.product_image_url || null,
           active: cabinetType.active ?? true
         });
       }

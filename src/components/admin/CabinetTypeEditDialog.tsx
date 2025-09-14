@@ -6,8 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { Upload, X, Image as ImageIcon } from "lucide-react";
 import { CabinetTypePricingSetup } from "./CabinetTypePricingSetup";
 import { CabinetHardwareSetup } from "./CabinetHardwareSetup";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface CabinetType {
   id: string;
@@ -20,6 +24,7 @@ interface CabinetType {
   door_count: number;
   drawer_count: number;
   active: boolean;
+  product_image_url?: string;
 }
 
 interface CabinetTypeEditDialogProps {
@@ -30,6 +35,7 @@ interface CabinetTypeEditDialogProps {
 }
 
 const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: CabinetTypeEditDialogProps) => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -44,8 +50,12 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
     min_depth_mm: 200,
     max_depth_mm: 800,
     drawer_count: 0,
-    active: true
+    active: true,
+    product_image_url: ""
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     if (cabinetType) {
@@ -63,8 +73,10 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
         min_depth_mm: (cabinetType as any).min_depth_mm || 200,
         max_depth_mm: (cabinetType as any).max_depth_mm || 800,
         drawer_count: cabinetType.drawer_count,
-        active: cabinetType.active
+        active: cabinetType.active,
+        product_image_url: cabinetType.product_image_url || ""
       });
+      setImagePreview(cabinetType.product_image_url || "");
     } else {
       setFormData({
         name: "",
@@ -80,18 +92,99 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
         min_depth_mm: 200,
         max_depth_mm: 800,
         drawer_count: 0,
-        active: true
+        active: true,
+        product_image_url: ""
       });
+      setImagePreview("");
     }
   }, [cabinetType]);
 
-  const handleSave = () => {
-    const saveData = {
-      id: cabinetType?.id,
-      ...formData,
-      subcategory: formData.subcategory.length > 0 ? formData.subcategory.join(',') : null
-    };
-    onSave(saveData as any);
+  const handleSave = async () => {
+    try {
+      let finalImageUrl = formData.product_image_url;
+      
+      // Upload image if a new file was selected
+      if (imageFile) {
+        setUploadingImage(true);
+        const fileName = `cabinet-types/${Date.now()}-${imageFile.name}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('door-style-images')
+          .upload(fileName, imageFile);
+
+        if (uploadError) {
+          toast({
+            title: "Error",
+            description: "Failed to upload image: " + uploadError.message,
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('door-style-images')
+          .getPublicUrl(fileName);
+
+        finalImageUrl = urlData.publicUrl;
+        setUploadingImage(false);
+      }
+
+      const saveData = {
+        id: cabinetType?.id,
+        ...formData,
+        product_image_url: finalImageUrl,
+        subcategory: formData.subcategory.length > 0 ? formData.subcategory.join(',') : null
+      };
+      
+      onSave(saveData as any);
+    } catch (error) {
+      setUploadingImage(false);
+      toast({
+        title: "Error",
+        description: "Failed to save cabinet type",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Error",
+          description: "Please select an image file",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "Image size must be less than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setImageFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview("");
+    setFormData({ ...formData, product_image_url: "" });
   };
 
   const categories = ["base", "wall", "tall", "panels"];
@@ -150,15 +243,71 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
           </TabsList>
           
           <TabsContent value="basic" className="space-y-4">
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                </div>
+
+                {/* Product Image Upload */}
+                <div className="grid gap-2">
+                  <Label>Product Image</Label>
+                  <Card className="p-4">
+                    <CardContent className="p-0">
+                      <div className="flex flex-col gap-4">
+                        {imagePreview ? (
+                          <div className="relative">
+                            <img
+                              src={imagePreview}
+                              alt="Product preview"
+                              className="w-32 h-32 object-cover rounded-lg border"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                              onClick={removeImage}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="w-32 h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center">
+                            <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
+                          </div>
+                        )}
+                        
+                        <div className="flex gap-2">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            id="image-upload"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => document.getElementById('image-upload')?.click()}
+                            disabled={uploadingImage}
+                          >
+                            <Upload className="h-4 w-4 mr-2" />
+                            {uploadingImage ? 'Uploading...' : 'Upload Image'}
+                          </Button>
+                        </div>
+                        
+                        <p className="text-xs text-muted-foreground">
+                          Recommended: Square image, max 5MB (JPG, PNG, WEBP)
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -353,8 +502,8 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleSave}>
-                Save
+              <Button onClick={handleSave} disabled={uploadingImage}>
+                {uploadingImage ? 'Uploading...' : 'Save'}
               </Button>
             </div>
           </TabsContent>
