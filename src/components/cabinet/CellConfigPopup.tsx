@@ -59,6 +59,7 @@ export function CellConfigPopup({
   const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
   const [colors, setColors] = useState<Color[]>([]);
   const [hardwareRequirements, setHardwareRequirements] = useState<HardwareRequirement[]>([]);
+  const [cabinetTypeFinishes, setCabinetTypeFinishes] = useState<any[]>([]);
   
   const { toast } = useToast();
   const { addToCart, isLoading: isAddingToCart } = useCart();
@@ -89,6 +90,7 @@ export function CellConfigPopup({
     if (isOpen) {
       loadDoorStyles();
       loadHardwareRequirements();
+      loadCabinetTypeFinishes();
     }
   }, [isOpen, cabinetType.id]);
 
@@ -201,6 +203,24 @@ export function CellConfigPopup({
       setHardwareRequirements(data || []);
     } catch (error) {
       console.error('Error loading hardware requirements:', error);
+    }
+  };
+
+  const loadCabinetTypeFinishes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('cabinet_type_finishes')
+        .select(`
+          *,
+          door_style:door_styles(*)
+        `)
+        .eq('cabinet_type_id', cabinetType.id)
+        .eq('active', true);
+
+      if (error) throw error;
+      setCabinetTypeFinishes(data || []);
+    } catch (error) {
+      console.error('Error loading cabinet type finishes:', error);
     }
   };
 
@@ -352,7 +372,16 @@ export function CellConfigPopup({
             >
               {(() => {
                 const currentDoorStyle = selectedDoorStyle ? doorStyles.find(ds => ds.id === selectedDoorStyle) : null;
-                const imageUrl = currentDoorStyle?.image_url || (finish as any)?.image_url || cabinetType.product_image_url;
+                
+                // Prioritize cabinet_type_finishes image that matches the selected door style
+                const matchingCabinetTypeFinish = cabinetTypeFinishes.find(ctf => 
+                  ctf.door_style_id === selectedDoorStyle
+                );
+                
+                const imageUrl = matchingCabinetTypeFinish?.image_url || 
+                                currentDoorStyle?.image_url || 
+                                (finish as any)?.image_url || 
+                                cabinetType.product_image_url;
 
                 return imageUrl ? (
                   <img 
