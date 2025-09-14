@@ -208,9 +208,9 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Configure {cabinetType.name}</DialogTitle>
+          <DialogTitle>Configure Cabinet</DialogTitle>
         </DialogHeader>
 
         {isLoading ? (
@@ -218,184 +218,160 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : (
-          <div className="space-y-6">
-              {/* Dimensions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Dimensions (mm)</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="width">Width</Label>
-                      <Input
-                        id="width"
-                        type="number"
-                        value={width}
-                        onChange={(e) => setWidth(Number(e.target.value))}
-                        min={100}
-                        max={2000}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="height">Height</Label>
-                      <Input
-                        id="height"
-                        type="number"
-                        value={height}
-                        onChange={(e) => setHeight(Number(e.target.value))}
-                        min={100}
-                        max={3000}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="depth">Depth</Label>
-                      <Input
-                        id="depth"
-                        type="number"
-                        value={depth}
-                        onChange={(e) => setDepth(Number(e.target.value))}
-                        min={100}
-                        max={1000}
-                      />
-                    </div>
+          <div className="space-y-4">
+            {/* Cabinet Info Section */}
+            <div className="flex gap-4">
+              <div className="flex-shrink-0">
+                {cabinetType.product_image_url ? (
+                  <img 
+                    src={cabinetType.product_image_url} 
+                    alt={cabinetType.name}
+                    className="w-20 h-20 object-cover rounded border-2 border-primary"
+                  />
+                ) : (
+                  <div className="w-20 h-20 bg-muted rounded border-2 border-primary flex items-center justify-center">
+                    <span className="text-xs text-muted-foreground text-center">{cabinetType.name}</span>
                   </div>
-                </CardContent>
-              </Card>
+                )}
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">{cabinetType.name}</h3>
+                <p className="text-muted-foreground">Base Cabinet</p>
+                <p className="text-sm text-muted-foreground">
+                  {selectedDoorStyle ? doorStyles.find(ds => ds.id === selectedDoorStyle)?.name : 'Select style'}
+                </p>
+              </div>
+            </div>
 
-              {/* Door Style - First Selection */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Door Style</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select door style" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {doorStyles.map(style => (
-                        <SelectItem key={style.id} value={style.id}>
-                          {style.name}
-                          <Badge variant="secondary" className="ml-2">
-                            {formatPrice(style.base_rate_per_sqm)}/m²
-                          </Badge>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </CardContent>
-              </Card>
+            <p className="text-sm font-medium text-muted-foreground">Available Door Styles</p>
 
-              {/* Color Selection - Second */}
-              {selectedDoorStyle && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Color</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-2">
-                      {currentDoorStyleColors.map(color => (
-                        <div
-                          key={color.id}
-                          className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                            selectedColor === color.id
-                              ? 'border-primary bg-primary/10'
-                              : 'border-border hover:border-primary/50'
-                          }`}
-                          onClick={() => setSelectedColor(color.id)}
-                        >
-                          <div className="flex items-center gap-2">
-                            {color.hex_code && (
-                              <div
-                                className="w-4 h-4 rounded border"
-                                style={{ backgroundColor: color.hex_code }}
-                              />
-                            )}
-                            <span className="text-sm font-medium">{color.name}</span>
-                          </div>
-                          {color.surcharge_rate_per_sqm > 0 && (
-                            <div className="text-xs text-muted-foreground mt-1">
-                              +{formatPrice(color.surcharge_rate_per_sqm)}/m²
-                            </div>
+            {/* Dimensions */}
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground">Width (mm)</Label>
+                <Input
+                  type="number"
+                  value={width}
+                  onChange={(e) => setWidth(Number(e.target.value))}
+                  min={100}
+                  max={2000}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Height (mm)</Label>
+                <Input
+                  type="number"
+                  value={height}
+                  onChange={(e) => setHeight(Number(e.target.value))}
+                  min={100}
+                  max={3000}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Depth (mm)</Label>
+                <Input
+                  type="number"
+                  value={depth}
+                  onChange={(e) => setDepth(Number(e.target.value))}
+                  min={100}
+                  max={1000}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            {/* Door Style */}
+            <div>
+              <Label className="text-sm font-medium">Door Style</Label>
+              <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select door style" />
+                </SelectTrigger>
+                <SelectContent>
+                  {doorStyles.map(style => (
+                    <SelectItem key={style.id} value={style.id}>
+                      {style.name} {formatPrice(style.base_rate_per_sqm)}/m²
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Color Selection */}
+            {selectedDoorStyle && (
+              <div>
+                <Label className="text-sm font-medium">Color</Label>
+                <Select value={selectedColor} onValueChange={setSelectedColor}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select color" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currentDoorStyleColors.map(color => (
+                      <SelectItem key={color.id} value={color.id}>
+                        <div className="flex items-center gap-2">
+                          {color.hex_code && (
+                            <div
+                              className="w-3 h-3 rounded border"
+                              style={{ backgroundColor: color.hex_code }}
+                            />
                           )}
+                          {color.name}
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
-              {/* Finish Selection - Third */}
-              {selectedDoorStyle && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Finish</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Select value={selectedFinish} onValueChange={setSelectedFinish}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select finish" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {currentDoorStyleFinishes.map(finish => (
-                          <SelectItem key={finish.id} value={finish.id}>
-                            {finish.name} ({brands.find(b => b.id === finish.brand_id)?.name})
-                            <Badge variant="secondary" className="ml-2">
-                              {formatPrice(finish.rate_per_sqm)}/m²
-                            </Badge>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Hardware Selection */}
-              <HardwareCostPreview 
-                cabinetType={cabinetType}
-                selectedHardwareOptions={selectedHardwareOptions}
-                onHardwareChange={setSelectedHardwareOptions}
-                quantity={quantity}
-              />
-            
-            {/* Quantity and Add to Cart */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="font-medium">Quantity:</span>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      disabled={quantity <= 1}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <span className="w-12 text-center">{quantity}</span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setQuantity(quantity + 1)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                
+            {/* Quantity */}
+            <div>
+              <Label className="text-sm font-medium">Quantity</Label>
+              <div className="flex items-center gap-2 mt-1">
                 <Button
-                  onClick={handleAddToCart}
-                  disabled={!selectedFinish || !selectedDoorStyle || isAddingToCart}
-                  className="w-full"
-                  size="lg"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1}
+                  className="h-9 w-9"
                 >
-                  <ShoppingCart className="mr-2 h-5 w-5" />
-                  {isAddingToCart ? 'Adding...' : 'Add to Cart'}
+                  <Minus className="h-4 w-4" />
                 </Button>
-              </CardContent>
-            </Card>
+                <Input
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+                  min={1}
+                  className="text-center w-20"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="h-9 w-9"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            {/* Total Price */}
+            <div className="bg-muted/30 rounded-lg p-4 text-center">
+              <p className="text-sm text-muted-foreground mb-1">Total Price</p>
+              <p className="text-2xl font-bold text-primary">{formatPrice(totalPrice * quantity)}</p>
+            </div>
+            
+            {/* Add to Cart Button */}
+            <Button
+              onClick={handleAddToCart}
+              disabled={!selectedFinish || !selectedDoorStyle || isAddingToCart}
+              className="w-full"
+              size="lg"
+            >
+              <ShoppingCart className="mr-2 h-5 w-5" />
+              {isAddingToCart ? 'Adding...' : 'Add to Quote'}
+            </Button>
           </div>
         )}
       </DialogContent>
