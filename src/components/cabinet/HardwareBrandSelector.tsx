@@ -203,7 +203,7 @@ export function HardwareBrandSelector({ cabinetType, selectedBrandId, onBrandCha
   if (compact) {
     return (
       <Select value={selectedBrandId} onValueChange={onBrandChange}>
-        <SelectTrigger>
+        <SelectTrigger className="h-8">
           <SelectValue placeholder="Select hardware brand" />
         </SelectTrigger>
         <SelectContent>
@@ -212,9 +212,9 @@ export function HardwareBrandSelector({ cabinetType, selectedBrandId, onBrandCha
             return (
               <SelectItem key={brand.id} value={brand.id}>
                 <div className="flex justify-between items-center w-full">
-                  <span>{brand.name}</span>
+                  <span className="text-sm">{brand.name}</span>
                   {cost && (
-                    <Badge variant="outline" className="ml-2">
+                    <Badge variant="outline" className="ml-2 text-xs">
                       {formatPrice(cost.totalCost)}
                     </Badge>
                   )}

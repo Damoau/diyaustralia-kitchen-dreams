@@ -152,7 +152,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-8">
+      <DialogContent className="max-w-md sm:max-w-4xl max-h-[95vh] overflow-y-auto mx-2 sm:mx-8 p-3 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
@@ -160,21 +160,21 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-3 sm:space-y-6">
           {isLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-pulse space-y-4">
-                <div className="h-4 bg-muted rounded w-3/4 mx-auto"></div>
-                <div className="h-4 bg-muted rounded w-1/2 mx-auto"></div>
+            <div className="text-center py-4 sm:py-8">
+              <div className="animate-pulse space-y-2 sm:space-y-4">
+                <div className="h-3 sm:h-4 bg-muted rounded w-3/4 mx-auto"></div>
+                <div className="h-3 sm:h-4 bg-muted rounded w-1/2 mx-auto"></div>
               </div>
-              <p className="text-muted-foreground mt-4">Loading configuration options...</p>
+              <p className="text-muted-foreground mt-2 sm:mt-4 text-sm">Loading configuration options...</p>
             </div>
           ) : (
             <>
               {/* Cabinet Info */}
-              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
                 <div className="flex-shrink-0 self-center sm:self-start">
-                  <div className="w-24 h-24 sm:w-32 sm:h-32 bg-muted rounded-lg overflow-hidden mx-auto sm:mx-0">
+                  <div className="w-16 h-16 sm:w-24 sm:h-24 bg-muted rounded-lg overflow-hidden mx-auto sm:mx-0">
                     {getCurrentCabinetImage() ? (
                       <img
                         src={getCurrentCabinetImage()}
@@ -182,26 +182,26 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+                      <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
                         No Image
                       </div>
                     )}
                   </div>
                 </div>
                 <div className="flex-grow text-center sm:text-left">
-                  <h3 className="text-lg sm:text-xl font-semibold">{cabinetType.name}</h3>
-                  <p className="text-muted-foreground">Base Cabinet</p>
+                  <h3 className="text-base sm:text-xl font-semibold">{cabinetType.name}</h3>
+                  <p className="text-muted-foreground text-sm">Base Cabinet</p>
                   {cabinetType.short_description && (
-                    <p className="text-sm text-muted-foreground mt-2">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {cabinetType.short_description}
                     </p>
                   )}
-                  <div className="flex flex-wrap gap-2 mt-2 justify-center sm:justify-start">
-                    <Badge variant="secondary">
+                  <div className="flex flex-wrap gap-1 mt-1 justify-center sm:justify-start">
+                    <Badge variant="secondary" className="text-xs">
                       {cabinetType.door_count} Door{cabinetType.door_count !== 1 ? 's' : ''}
                     </Badge>
                     {cabinetType.drawer_count > 0 && (
-                      <Badge variant="secondary">
+                      <Badge variant="secondary" className="text-xs">
                         {cabinetType.drawer_count} Drawer{cabinetType.drawer_count !== 1 ? 's' : ''}
                       </Badge>
                     )}
@@ -212,65 +212,65 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
               <Separator />
 
               {/* Dimensions */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Width (mm)</Label>
+                  <Label className="text-xs">Width (mm)</Label>
                   <Input
                     type="number"
                     value={width}
                     onChange={(e) => setWidth(Number(e.target.value))}
                     min={cabinetType.min_width_mm || 100}
                     max={cabinetType.max_width_mm || 2000}
-                    className="mt-1"
+                    className="mt-1 h-8 text-sm"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Range: {cabinetType.min_width_mm || 100}-{cabinetType.max_width_mm || 2000}mm
+                    {cabinetType.min_width_mm || 100}-{cabinetType.max_width_mm || 2000}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Height (mm)</Label>
+                  <Label className="text-xs">Height (mm)</Label>
                   <Input
                     type="number"
                     value={height}
                     onChange={(e) => setHeight(Number(e.target.value))}
                     min={cabinetType.min_height_mm || 100}
                     max={cabinetType.max_height_mm || 3000}
-                    className="mt-1"
+                    className="mt-1 h-8 text-sm"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Range: {cabinetType.min_height_mm || 100}-{cabinetType.max_height_mm || 3000}mm
+                    {cabinetType.min_height_mm || 100}-{cabinetType.max_height_mm || 3000}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Depth (mm)</Label>
+                  <Label className="text-xs">Depth (mm)</Label>
                   <Input
                     type="number"
                     value={depth}
                     onChange={(e) => setDepth(Number(e.target.value))}
                     min={cabinetType.min_depth_mm || 100}
                     max={cabinetType.max_depth_mm || 1000}
-                    className="mt-1"
+                    className="mt-1 h-8 text-sm"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Range: {cabinetType.min_depth_mm || 100}-{cabinetType.max_depth_mm || 1000}mm
+                    {cabinetType.min_depth_mm || 100}-{cabinetType.max_depth_mm || 1000}
                   </p>
                 </div>
               </div>
 
               {/* Door Style, Color & Hardware Selection */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-2">
                 <div>
-                  <Label>Door Style</Label>
+                  <Label className="text-xs">Door Style</Label>
                   <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
-                    <SelectTrigger className="mt-1">
+                    <SelectTrigger className="mt-1 h-8">
                       <SelectValue placeholder="Select door style" />
                     </SelectTrigger>
                     <SelectContent>
                       {availableDoorStyles.map((style) => (
                         <SelectItem key={style.id} value={style.id}>
                           <div className="flex items-center justify-between w-full">
-                            <span>{style.name}</span>
-                            <Badge variant="outline" className="ml-2">
+                            <span className="text-sm">{style.name}</span>
+                            <Badge variant="outline" className="ml-2 text-xs">
                               {pricingService.formatPrice(style.base_rate_per_sqm)}/m²
                             </Badge>
                           </div>
@@ -281,9 +281,9 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                 </div>
                 
                 <div>
-                  <Label>Color</Label>
+                  <Label className="text-xs">Color</Label>
                   <Select value={selectedColor} onValueChange={setSelectedColor}>
-                    <SelectTrigger className="mt-1">
+                    <SelectTrigger className="mt-1 h-8">
                       <SelectValue placeholder="Select color" />
                     </SelectTrigger>
                     <SelectContent>
@@ -296,9 +296,9 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                                 style={{ backgroundColor: color.hex_code }}
                               />
                             )}
-                            <span>{color.name}</span>
+                            <span className="text-sm">{color.name}</span>
                             {color.surcharge_rate_per_sqm > 0 && (
-                              <Badge variant="outline" className="ml-2">
+                              <Badge variant="outline" className="ml-2 text-xs">
                                 +{pricingService.formatPrice(color.surcharge_rate_per_sqm)}/m²
                               </Badge>
                             )}
@@ -311,7 +311,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                 
                 {/* Hardware Brand Selection */}
                 <div>
-                  <Label>Hardware Brand</Label>
+                  <Label className="text-xs">Hardware Brand</Label>
                   <HardwareBrandSelector
                     cabinetType={cabinetType}
                     selectedBrandId={selectedHardwareBrand}
@@ -324,20 +324,20 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
 
               {/* Price Display */}
               <Card className="bg-primary/5 border-primary/20">
-                <CardContent className="p-4">
+                <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">Total Price</p>
-                      <p className="text-3xl font-bold text-primary">
+                      <p className="text-xs text-muted-foreground">Total Price</p>
+                      <p className="text-xl sm:text-3xl font-bold text-primary">
                         {pricingService.formatPrice(price * quantity)}
                       </p>
                       {quantity > 1 && (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {pricingService.formatPrice(price)} × {quantity}
                         </p>
                       )}
                     </div>
-                    <Badge variant="secondary" className="animate-pulse">
+                    <Badge variant="secondary" className="animate-pulse text-xs">
                       Live Pricing
                     </Badge>
                   </div>
@@ -347,16 +347,16 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
               {/* Price Breakdown */}
               {priceBreakdown && (
                 <Collapsible open={showPriceBreakdown} onOpenChange={setShowPriceBreakdown}>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-muted rounded">
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-muted rounded text-sm">
                     <span className="font-medium">View Price Breakdown</span>
                     {showPriceBreakdown ? (
-                      <ChevronUp className="h-4 w-4" />
+                      <ChevronUp className="h-3 w-3" />
                     ) : (
-                      <ChevronDown className="h-4 w-4" />
+                      <ChevronDown className="h-3 w-3" />
                     )}
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <div className="mt-4">
+                    <div className="mt-2">
                       <PriceBreakdown
                         cabinetType={cabinetType}
                         width={width}
@@ -413,11 +413,11 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   className="min-w-32 w-full sm:w-auto"
                 >
                   {isAddingToCart ? (
-                    <>Adding...</>
+                    <span className="text-sm">Adding...</span>
                   ) : (
                     <>
                       <ShoppingCart className="h-4 w-4 mr-2" />
-                      Add to Cart
+                      <span className="text-sm">Add to Cart</span>
                     </>
                   )}
                 </Button>
