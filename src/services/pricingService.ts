@@ -102,7 +102,7 @@ class PricingService {
     const carcassArea = {
       backs: (width * height / 1000000) * quantities.backs,
       bottoms: (width * depth / 1000000) * quantities.bottoms,
-      sides: (height * depth / 1000000) * quantities.sides
+      sides: (height * depth / 1000000) * quantities.sides // Fixed: was using width * depth, should be height * depth
     };
 
     const carcassCosts = {

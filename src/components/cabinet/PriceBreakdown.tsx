@@ -60,7 +60,7 @@ export function PriceBreakdown({
   // Calculate individual costs
   const backCost = (widthM * heightM) * qtyBacks * settings.hmrRate;
   const bottomCost = (widthM * depthM) * qtyBottoms * settings.hmrRate;
-  const sideCost = (widthM * depthM) * qtySides * settings.hmrRate;
+  const sideCost = (heightM * depthM) * qtySides * settings.hmrRate; // Fixed: should be height × depth, not width × depth
   
   // Door cost breakdown
   const doorStyleBaseRate = doorStyleFinish?.door_style?.base_rate_per_sqm || 0;
@@ -127,7 +127,7 @@ export function PriceBreakdown({
             <div className="flex justify-between items-center">
               <span>Side panels ({qtySides}x):</span>
               <span className="font-mono text-xs">
-                {widthM.toFixed(3)} × {depthM.toFixed(3)} × {qtySides} × ${settings.hmrRate} = {formatPrice(sideCost)}
+                {heightM.toFixed(3)} × {depthM.toFixed(3)} × {qtySides} × ${settings.hmrRate} = {formatPrice(sideCost)}
               </span>
             </div>
           </div>
