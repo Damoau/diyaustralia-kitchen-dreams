@@ -15,7 +15,7 @@ import { calculateHardwareCost } from "@/lib/hardwarePricing";
 import { useCart } from "@/hooks/useCart";
 import { formatPrice } from "@/lib/pricing";
 import { useToast } from "@/hooks/use-toast";
-import { HardwareBreakdown } from "@/components/cabinet/HardwareBreakdown";
+import { RefreshImagesButton } from "@/components/RefreshImagesButton";
 
 const CabinetPricesNew = () => {
   
@@ -75,10 +75,11 @@ const CabinetPricesNew = () => {
     },
   });
 
-  const { data: cabinetTypeFinishes } = useQuery({
+  const { data: cabinetTypeFinishes, refetch: refetchFinishes } = useQuery({
         queryKey: ['cabinet-type-finishes'],
         refetchOnWindowFocus: true, // Refetch when window gains focus
         staleTime: 0, // Always consider data stale
+        refetchInterval: 5000, // Refetch every 5 seconds to catch new images
     queryFn: async () => {
       const { data, error } = await supabase
         .from('cabinet_type_finishes' as any)
@@ -228,6 +229,7 @@ const CabinetPricesNew = () => {
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
               Dynamic pricing based on your cabinet configurations. Click any price to configure and add to quote.
             </p>
+            <RefreshImagesButton className="mt-4" />
             
           </div>
         </div>
@@ -275,13 +277,18 @@ const CabinetPricesNew = () => {
                  {/* Cabinet Type + Door Style Images */}
                  {typeFinishes.some((ctf: any) => ctf.image_url) && (
                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-                     {typeFinishes.map((ctf: any) => (
-                       ctf.image_url && (
+                     {typeFinishes
+                       .filter((ctf: any) => ctf.image_url) // Only show finishes with images
+                       .map((ctf: any) => (
                          <div key={ctf.id} className="relative group">
                            <img 
                              src={ctf.image_url} 
                              alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
                              className="w-full h-48 object-cover rounded-lg border shadow-sm"
+                             onError={(e) => {
+                               console.error('Image failed to load:', ctf.image_url);
+                               e.currentTarget.style.display = 'none';
+                             }}
                            />
                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent rounded-b-lg p-3">
                              <p className="text-white font-medium text-sm">
@@ -294,8 +301,7 @@ const CabinetPricesNew = () => {
                              </p>
                            </div>
                          </div>
-                       )
-                     ))}
+                       ))}
                    </div>
                  )}
                  
