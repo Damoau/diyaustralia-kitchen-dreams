@@ -171,7 +171,7 @@ const BaseCabinetsPricing = () => {
         for (const range of freshRanges || []) {
           // FOR POLY - USE 600MM WIDTH AND PURE WHITE COLOR
           let width, colorToUse;
-          if (finish.door_style.name === 'Poly') {
+          if (finish.door_style.name.trim() === 'Poly') {
             width = 600; // FIXED 600mm for Poly as per formula
             colorToUse = whiteColor;
             console.log('🎯 POLY DETECTED - USING FIXED 600MM WIDTH AND WHITE COLOR');
