@@ -388,11 +388,8 @@ export function CellConfigPopup({
                     key={`cabinet-image-${selectedDoorStyle || 'default'}`} // Force re-render when door style changes
                     src={imageUrl} 
                     alt={`${cabinetType.name} - ${currentDoorStyle?.name || (finish as any)?.door_style?.name || 'Cabinet'}`}
-                    className="w-full h-full transition-all duration-300"
+                    className="carousel-image transition-all duration-300"
                     style={{
-                      objectFit: 'cover',
-                      objectPosition: 'center',
-                      imageRendering: 'auto',
                       width: '100%',
                       height: '100%',
                       minWidth: '0',
