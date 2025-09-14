@@ -64,7 +64,7 @@ const GetQuote = () => {
               
               <div className="space-y-6">
                 {processSteps.map((step, index) => (
-                  <Card key={index} className="border-l-4 border-l-primary">
+                  <Card key={index}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         <div className="flex-shrink-0 p-3 bg-primary/10 rounded-lg">
