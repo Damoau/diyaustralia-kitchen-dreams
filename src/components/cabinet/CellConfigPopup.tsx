@@ -336,25 +336,59 @@ export function CellConfigPopup({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Cabinet Info with Image */}
-          <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-            {/* Cabinet Image */}
-            {cabinetType.product_image_url && (
-              <div className="flex-shrink-0">
-                <img 
-                  src={cabinetType.product_image_url} 
-                  alt={cabinetType.name}
-                  className="w-12 h-12 object-cover rounded border"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
-              </div>
-            )}
+          {/* Cabinet Image Display */}
+          <div className="flex items-start gap-4">
+            {/* Large Cabinet Image */}
+            <div 
+              className="w-32 h-32 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors flex-shrink-0"
+              onClick={() => {
+                const imageUrl = (() => {
+                  // First priority: Door style image if available
+                  if (selectedDoorStyle) {
+                    const doorStyle = doorStyles.find(ds => ds.id === selectedDoorStyle);
+                    if (doorStyle?.image_url) return doorStyle.image_url;
+                  }
+                  // Fallback: Cabinet type image
+                  return cabinetType.product_image_url;
+                })();
+                
+                if (imageUrl) {
+                  window.open(imageUrl, '_blank');
+                }
+              }}
+            >
+              {(() => {
+                // Determine which image to show (door style image takes priority)
+                const imageUrl = (() => {
+                  if (selectedDoorStyle) {
+                    const doorStyle = doorStyles.find(ds => ds.id === selectedDoorStyle);
+                    if (doorStyle?.image_url) return doorStyle.image_url;
+                  }
+                  return cabinetType.product_image_url;
+                })();
+
+                return imageUrl ? (
+                  <img 
+                    src={imageUrl} 
+                    alt={`${cabinetType.name} - ${selectedDoorStyle 
+                      ? doorStyles.find(ds => ds.id === selectedDoorStyle)?.name || ''
+                      : (finish as any)?.door_style?.name || ''
+                    }`}
+                    className="w-full h-full object-cover rounded-md"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      e.currentTarget.parentElement!.innerHTML = '<span class="text-xs text-muted-foreground text-center">No image available</span>';
+                    }}
+                  />
+                ) : (
+                  <span className="text-xs text-muted-foreground text-center">No image available</span>
+                );
+              })()}
+            </div>
             
             {/* Cabinet Details */}
-            <div className="flex-1 text-center">
-              <h3 className="font-medium">{cabinetType.name}</h3>
+            <div className="flex-1">
+              <h3 className="font-medium text-lg">{cabinetType.name}</h3>
               <p className="text-sm text-muted-foreground">
                 {selectedDoorStyle 
                   ? doorStyles.find(ds => ds.id === selectedDoorStyle)?.name || 'Loading...'
