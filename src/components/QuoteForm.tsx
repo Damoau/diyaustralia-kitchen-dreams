@@ -137,7 +137,7 @@ export default function QuoteForm({ onClose }: QuoteFormProps) {
   const watchKitchenStyle = form.watch("kitchenStyle");
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full max-w-2xl mx-auto border-blue-200 bg-gradient-to-br from-blue-50/50 to-white shadow-lg shadow-blue-100/50">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-center">Get Your Cabinet Quote</CardTitle>
         <p className="text-center text-muted-foreground">
