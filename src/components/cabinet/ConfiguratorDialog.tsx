@@ -158,7 +158,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md md:max-w-4xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-8 p-4 sm:p-6">
+      <DialogContent className="max-w-md md:max-w-5xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-8 p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
             <ShoppingCart className="h-4 w-4" />
@@ -282,11 +282,11 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
 
               {/* Desktop/Tablet Layout: More Compact Side by side */}
               <div className="hidden md:block">
-                <div className="grid grid-cols-2 gap-6">
-                  {/* Left: Compact Image and Hardware */}
+                <div className="grid grid-cols-2 gap-8">
+                  {/* Left: Larger Image Only */}
                   <div className="space-y-3">
                     <div 
-                      className="w-full h-48 bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                      className="w-full h-64 bg-muted rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
                       onClick={() => getCurrentCabinetImage() && setShowFullScreenImage(true)}
                     >
                       {getCurrentCabinetImage() ? (
@@ -301,24 +301,9 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                         </div>
                       )}
                     </div>
-                    
-                    {/* Hardware under image */}
-                    <div>
-                      <Label className="text-sm">Hardware Brand</Label>
-                      <Select value={selectedHardwareBrand} onValueChange={setSelectedHardwareBrand}>
-                        <SelectTrigger className="mt-1 h-9">
-                          <SelectValue placeholder="Select hardware" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-background border z-50">
-                          <SelectItem value="none">No Hardware</SelectItem>
-                          <SelectItem value="blum">Blum</SelectItem>
-                          <SelectItem value="titus">Titus</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
                   </div>
 
-                  {/* Right: Dimensions, Door Style and Color */}
+                  {/* Right: Dimensions, Door Style, Color, and Hardware */}
                   <div className="space-y-3">
                     {/* Compact Dimensions */}
                     <div className="space-y-2">
@@ -401,6 +386,21 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                             </SelectContent>
                           </Select>
                         </div>
+                      </div>
+                      
+                      {/* Hardware under Door Style and Color */}
+                      <div>
+                        <Label className="text-sm">Hardware Brand</Label>
+                        <Select value={selectedHardwareBrand} onValueChange={setSelectedHardwareBrand}>
+                          <SelectTrigger className="mt-1 h-9">
+                            <SelectValue placeholder="Select hardware" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border z-50">
+                            <SelectItem value="none">No Hardware</SelectItem>
+                            <SelectItem value="blum">Blum</SelectItem>
+                            <SelectItem value="titus">Titus</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   </div>
