@@ -162,16 +162,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
         });
         setSelectedHardwareOptions(defaultSelections);
       }
-      console.log('📦 Cabinet parts query result:', cabinetPartsRes);
-      if (cabinetPartsRes.error) {
-        console.error('❌ Cabinet parts query error:', cabinetPartsRes.error);
-      }
-      if (cabinetPartsRes.data) {
-        console.log('✅ Setting cabinet parts:', cabinetPartsRes.data.length, 'parts');
-        setCabinetParts(cabinetPartsRes.data);
-      } else {
-        console.log('⚠️ No cabinet parts data received');
-      }
+      if (cabinetPartsRes.data) setCabinetParts(cabinetPartsRes.data);
       if (settingsRes.data) setGlobalSettings(settingsRes.data);
       if (cabinetTypeFinishesRes.data) {
         setCabinetTypeFinishes(cabinetTypeFinishesRes.data);
@@ -207,36 +198,14 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   };
 
   const calculatePrice = () => {
-    console.log('=== PRICE CALCULATION DEBUG ===');
-    console.log('selectedDoorStyle:', selectedDoorStyle);
-    console.log('cabinetParts length:', cabinetParts.length);
-    console.log('globalSettings length:', globalSettings.length);
-    
-    if (!selectedDoorStyle) {
-      console.log('❌ No door style selected');
-      return 0;
-    }
-    
-    if (cabinetParts.length === 0) {
-      console.log('❌ No cabinet parts loaded');
-      return 0;
-    }
-    
-    if (globalSettings.length === 0) {
-      console.log('❌ No global settings loaded');
+    if (!selectedDoorStyle || cabinetParts.length === 0 || globalSettings.length === 0) {
       return 0;
     }
 
     const doorStyle = doorStyles.find(ds => ds.id === selectedDoorStyle);
     const color = colors.find(c => c.id === selectedColor);
     
-    console.log('Found doorStyle:', doorStyle?.name, 'rate:', doorStyle?.base_rate_per_sqm);
-    console.log('Found color:', color?.name, 'surcharge:', color?.surcharge_rate_per_sqm);
-    console.log('Selected finish ID:', selectedFinish);
-    console.log('Available finishes:', finishes.length);
-
     if (!doorStyle) {
-      console.log('❌ Door style not found in doorStyles array');
       return 0;
     }
 
@@ -268,16 +237,12 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       sort_order: 0
     };
 
-    console.log('Door style finish rate:', doorStyleFinish.rate_per_sqm);
-    console.log('Dimensions:', { width, height, depth });
-    console.log('Calling calculateCabinetPrice with all params...');
-
     const hardwareCost = 45; // Default hardware cost
 
     const calculatedPrice = calculateCabinetPrice(
       cabinetType,
       width,
-      height,
+      height, 
       depth,
       doorStyleFinish,
       finalColor,
@@ -286,9 +251,6 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       hardwareCost
     );
 
-    console.log('Final calculated price:', calculatedPrice);
-    console.log('=== END PRICE CALCULATION DEBUG ===');
-    
     return calculatedPrice;
   };
 
