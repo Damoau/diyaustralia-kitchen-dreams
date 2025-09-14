@@ -77,27 +77,22 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
     const selectedDoorStyleObj = cabinetTypeFinishes?.find(f => f.door_style?.id === selectedDoorStyle)?.door_style;
     const selectedColorObj = cabinetTypeFinishes?.find(f => f.color?.id === selectedColor)?.color;
 
-    const cartItem = {
-      cabinet_type_id: cabinetType.id,
-      width_mm: width,
-      height_mm: height,
-      depth_mm: depth,
+    const configuration = {
+      cabinetType,
+      width,
+      height,
+      depth,
       quantity,
-      door_style_id: selectedDoorStyle || null,
-      color_id: selectedColor || null,
-      finish_id: null, // Not using separate finishes anymore
-      unit_price: price,
-      total_price: price * quantity,
-      configuration: {
-        cabinetType: cabinetType.name,
-        doorStyle: selectedDoorStyleObj?.name || 'Standard',
-        color: selectedColorObj?.name || 'Standard',
-        dimensions: { width, height, depth }
-      }
+      doorStyle: selectedDoorStyleObj,
+      color: selectedColorObj,
+      finish: null, // Not using separate finishes anymore
+      hardwareBrand: null
     };
 
     try {
-      await addToCart(cartItem);
+      const { parseGlobalSettings } = await import('@/lib/pricing');
+      const settings = parseGlobalSettings(globalSettings || []);
+      await addToCart(configuration, cabinetParts || [], settings);
       onOpenChange(false);
     } catch (error) {
       console.error('Error adding to cart:', error);
@@ -331,6 +326,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                         }}
                         color={availableColors.find(c => c.id === selectedColor)}
                         hardwareCost={45}
+                        totalPrice={price}
                       />
                     </div>
                   </CollapsibleContent>
