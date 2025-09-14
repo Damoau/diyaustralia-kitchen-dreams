@@ -280,7 +280,7 @@ const CabinetPricesNew = () => {
                                   <img 
                                     src={cabinetType.product_image_url} 
                                     alt={`${cabinetType.name} Cabinet`}
-                                    className="w-full h-56 object-contain rounded-lg"
+                                    className="w-full h-56 object-contain rounded-lg border"
                                     style={{ imageRendering: 'crisp-edges' }}
                                     onError={(e) => {
                                       console.error("Cabinet image failed to load:", cabinetType.product_image_url);
@@ -320,7 +320,7 @@ const CabinetPricesNew = () => {
                                     <img 
                                       src={ctf.image_url} 
                                       alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
-                                      className="w-full h-56 object-contain rounded-lg"
+                                      className="w-full h-56 object-contain rounded-lg border"
                                       style={{ imageRendering: 'crisp-edges' }}
                                       onError={(e) => {
                                         console.error("Finish image failed to load:", ctf.image_url);
@@ -328,7 +328,7 @@ const CabinetPricesNew = () => {
                                       }}
                                     />
                                   ) : (
-                                    <div className="w-full h-56 bg-muted/30 rounded-lg flex items-center justify-center">
+                                    <div className="w-full h-56 bg-muted/30 rounded-lg border flex items-center justify-center">
                                       <span className="text-sm text-muted-foreground">No Image</span>
                                     </div>
                                   )}
