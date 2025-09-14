@@ -170,12 +170,12 @@ export const CabinetPricingTable = ({ cabinet, onImageEnlarge }: CabinetPricingT
                           );
                         }
 
-                        // Calculate price using the middle width of the range and default height/depth
-                        const middleWidth = Math.round((range.min_width_mm + range.max_width_mm) / 2);
+                        // Calculate price using the maximum width of the range and default height/depth
+                        const maxWidth = range.max_width_mm;
                         
                         try {
                           const price = calculateCustomPrice({
-                            width: middleWidth,
+                            width: maxWidth,
                             height: cabinetType.default_height_mm,
                             depth: cabinetType.default_depth_mm,
                             doorStyleId: doorStyle.id,
