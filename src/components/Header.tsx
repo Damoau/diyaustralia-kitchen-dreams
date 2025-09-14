@@ -50,9 +50,6 @@ const Header = () => {
               <a href="/kitchen-styles" className="text-foreground hover:text-primary transition-colors font-medium">
                 Kitchen Styles
               </a>
-              <a href="/pricing" className="text-foreground hover:text-primary transition-colors font-medium">
-                Pricing
-              </a>
               <a href="#gallery" className="text-foreground hover:text-primary transition-colors font-medium">
                 Gallery
               </a>
@@ -177,12 +174,6 @@ const Header = () => {
                         className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
                       >
                         Kitchen Styles
-                      </a>
-                      <a 
-                        href="/pricing" 
-                        className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
-                      >
-                        Pricing
                       </a>
                       <a 
                         href="#gallery" 
