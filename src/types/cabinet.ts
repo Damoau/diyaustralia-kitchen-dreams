@@ -104,6 +104,7 @@ export interface CabinetTypeFinish {
   door_style_finish?: DoorStyleFinish;
   door_style?: DoorStyle;
   color?: Color;
+  image_url?: string;
 }
 
 export interface CabinetPart {

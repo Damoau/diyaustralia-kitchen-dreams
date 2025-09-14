@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, Plus, Zap, Calculator } from 'lucide-react';
+import { Trash2, Plus, Zap, Calculator, Upload, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { CabinetTypePriceRange, CabinetType } from '@/types/cabinet';
 import { useToast } from '@/hooks/use-toast';
@@ -33,6 +33,7 @@ interface CabinetTypeFinish {
   door_style_finish_id?: string;
   sort_order: number;
   active: boolean;
+  image_url?: string;
 }
 
 interface CabinetTypePricingSetupProps {
@@ -58,6 +59,8 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
   const [showHardwareExplanation, setShowHardwareExplanation] = useState(false);
   const [showDoorStyleIssue, setShowDoorStyleIssue] = useState(false);
   const [showRoundingDemo, setShowRoundingDemo] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState<Set<string>>(new Set());
+  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   useEffect(() => {
     if (cabinetTypeId && user && !authLoading) {
@@ -307,6 +310,76 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
     return cabinetTypeFinishes.some(finish => finish.door_style_id === doorStyleId);
   };
 
+  const handleImageUpload = async (finishId: string, file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingImages(prev => new Set([...prev, finishId]));
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${finishId}-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('door-style-images')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('door-style-images')
+        .getPublicUrl(fileName);
+
+      const { error: updateError } = await supabase
+        .from('cabinet_type_finishes')
+        .update({ image_url: publicUrl })
+        .eq('id', finishId);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Update local state
+      setCabinetTypeFinishes(prev => 
+        prev.map(finish => 
+          finish.id === finishId 
+            ? { ...finish, image_url: publicUrl }
+            : finish
+        )
+      );
+
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImages(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(finishId);
+        return newSet;
+      });
+    }
+  };
+
+  const triggerFileInput = (finishId: string) => {
+    fileInputRefs.current[finishId]?.click();
+  };
+
   const autoGenerateRanges = async () => {
     if (autoGenMin >= autoGenMax) {
       toast({
@@ -412,13 +485,69 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
             <CardTitle>Selected Door Styles for This Cabinet Type</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {cabinetTypeFinishes.map((finish) => {
                 const doorStyle = doorStyles.find(ds => ds.id === finish.door_style_id);
                 return doorStyle ? (
-                  <div key={finish.id} className="flex items-center justify-between p-2 border rounded bg-green-50">
-                    <span className="text-sm font-medium">{doorStyle.name}</span>
-                    <span className="text-xs text-muted-foreground">${doorStyle.base_rate_per_sqm}/m²</span>
+                  <div key={finish.id} className="p-4 border rounded-lg bg-green-50 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{doorStyle.name}</span>
+                      <span className="text-xs text-muted-foreground">${doorStyle.base_rate_per_sqm}/m²</span>
+                    </div>
+                    
+                    {/* Image preview and upload */}
+                    <div className="space-y-2">
+                      {finish.image_url ? (
+                        <div className="relative">
+                          <img 
+                            src={finish.image_url} 
+                            alt={`${doorStyle.name} cabinet`}
+                            className="w-full h-32 object-cover rounded border"
+                          />
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="absolute top-2 right-2"
+                            onClick={() => triggerFileInput(finish.id)}
+                            disabled={uploadingImages.has(finish.id)}
+                          >
+                            <Upload className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="w-full h-32 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center bg-gray-50">
+                          <ImageIcon className="h-8 w-8 text-gray-400 mb-2" />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => triggerFileInput(finish.id)}
+                            disabled={uploadingImages.has(finish.id)}
+                          >
+                            {uploadingImages.has(finish.id) ? (
+                              "Uploading..."
+                            ) : (
+                              <>
+                                <Upload className="h-3 w-3 mr-1" />
+                                Upload Image
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
+                      
+                      <input
+                        ref={el => fileInputRefs.current[finish.id] = el}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleImageUpload(finish.id, file);
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
                 ) : null;
               })}

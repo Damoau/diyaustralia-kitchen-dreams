@@ -189,6 +189,7 @@ export type Database = {
           door_style_finish_id: string | null
           door_style_id: string | null
           id: string
+          image_url: string | null
           sort_order: number
           updated_at: string
         }
@@ -201,6 +202,7 @@ export type Database = {
           door_style_finish_id?: string | null
           door_style_id?: string | null
           id?: string
+          image_url?: string | null
           sort_order?: number
           updated_at?: string
         }
@@ -213,6 +215,7 @@ export type Database = {
           door_style_finish_id?: string | null
           door_style_id?: string | null
           id?: string
+          image_url?: string | null
           sort_order?: number
           updated_at?: string
         }

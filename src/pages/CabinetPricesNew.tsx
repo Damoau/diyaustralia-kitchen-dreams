@@ -272,20 +272,23 @@ const CabinetPricesNew = () => {
                   )}
                  </h2>
                  
-                 {/* Door Style Images */}
-                 {typeFinishes.some((ctf: any) => ctf.door_style?.image_url) && (
+                 {/* Cabinet Type + Door Style Images */}
+                 {typeFinishes.some((ctf: any) => ctf.image_url) && (
                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
                      {typeFinishes.map((ctf: any) => (
-                       ctf.door_style?.image_url && (
+                       ctf.image_url && (
                          <div key={ctf.id} className="relative group">
                            <img 
-                             src={ctf.door_style.image_url} 
-                             alt={ctf.door_style.name}
+                             src={ctf.image_url} 
+                             alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
                              className="w-full h-48 object-cover rounded-lg border shadow-sm"
                            />
                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent rounded-b-lg p-3">
                              <p className="text-white font-medium text-sm">
-                               {ctf.door_style.name}
+                               {cabinetType.name}
+                             </p>
+                             <p className="text-white/90 text-xs">
+                               {ctf.door_style?.name}
                                {ctf.door_style_finish?.name && ` - ${ctf.door_style_finish.name}`}
                                {ctf.color && ` (${ctf.color.name})`}
                              </p>
