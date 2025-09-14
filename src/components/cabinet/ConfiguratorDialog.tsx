@@ -8,10 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ShoppingCart, Minus, Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { ShoppingCart, Minus, Plus, ChevronDown, ChevronUp, Lock, Unlock } from 'lucide-react';
 import { CabinetType } from '@/types/cabinet';
 import { useCart } from '@/hooks/useCart';
 import { useDynamicPricing } from '@/hooks/useDynamicPricing';
+import { useCabinetPreferences } from '@/hooks/useCabinetPreferences';
 import { pricingService } from '@/services/pricingService';
 import { PriceBreakdown } from './PriceBreakdown';
 import { HardwareBrandSelector } from './HardwareBrandSelector';
@@ -43,6 +44,9 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   const [showFullScreenImage, setShowFullScreenImage] = useState(false);
 
   const { addToCart, isLoading: isAddingToCart } = useCart();
+
+  // Cabinet preferences for lock-in functionality
+  const { preferences, locks, updatePreference, toggleLock, getLockedPreferences } = useCabinetPreferences();
 
   // Use dynamic pricing hook for real-time price calculation
   const {
@@ -80,6 +84,65 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
     setHeight(cabinetType.default_height_mm);
     setDepth(cabinetType.default_depth_mm);
   }, [cabinetType.id, initialWidth]);
+
+  // Apply locked preferences when dialog opens
+  useEffect(() => {
+    if (open) {
+      const lockedPrefs = getLockedPreferences();
+      
+      if (locks.height && lockedPrefs.height) {
+        setHeight(lockedPrefs.height);
+      }
+      if (locks.depth && lockedPrefs.depth) {
+        setDepth(lockedPrefs.depth);
+      }
+      if (locks.doorStyle && lockedPrefs.doorStyleId) {
+        setSelectedDoorStyle(lockedPrefs.doorStyleId);
+      }
+      if (locks.color && lockedPrefs.colorId) {
+        setSelectedColor(lockedPrefs.colorId);
+      }
+      if (locks.hardware && lockedPrefs.hardwareBrandId) {
+        setSelectedHardwareBrand(lockedPrefs.hardwareBrandId);
+      }
+    }
+  }, [open, locks, getLockedPreferences]);
+
+  // Update preferences when values change
+  const handleHeightChange = (value: number) => {
+    setHeight(value);
+    if (locks.height) {
+      updatePreference('height', value);
+    }
+  };
+
+  const handleDepthChange = (value: number) => {
+    setDepth(value);
+    if (locks.depth) {
+      updatePreference('depth', value);
+    }
+  };
+
+  const handleDoorStyleChange = (value: string) => {
+    setSelectedDoorStyle(value);
+    if (locks.doorStyle) {
+      updatePreference('doorStyleId', value);
+    }
+  };
+
+  const handleColorChange = (value: string) => {
+    setSelectedColor(value);
+    if (locks.color) {
+      updatePreference('colorId', value);
+    }
+  };
+
+  const handleHardwareChange = (value: string) => {
+    setSelectedHardwareBrand(value);
+    if (locks.hardware) {
+      updatePreference('hardwareBrandId', value);
+    }
+  };
 
   const handleAddToCart = async () => {
     const selectedDoorStyleObj = cabinetTypeFinishes?.find(f => f.door_style?.id === selectedDoorStyle)?.door_style;
@@ -215,21 +278,21 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                   </div>
                   <div>
                     <Label className="text-xs">Height</Label>
-                    <Input
-                      type="number"
-                      value={height === 0 ? '' : height}
-                      onChange={(e) => setHeight(e.target.value === '' ? 0 : Number(e.target.value))}
-                      className="mt-1 h-7 text-xs"
-                    />
+                     <Input
+                       type="number"
+                       value={height === 0 ? '' : height}
+                       onChange={(e) => handleHeightChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                       className={`mt-1 h-7 text-xs ${locks.height ? 'border-primary border-2' : ''}`}
+                     />
                   </div>
                   <div>
                     <Label className="text-xs">Depth</Label>
-                    <Input
-                      type="number"
-                      value={depth === 0 ? '' : depth}
-                      onChange={(e) => setDepth(e.target.value === '' ? 0 : Number(e.target.value))}
-                      className="mt-1 h-7 text-xs"
-                    />
+                     <Input
+                       type="number"
+                       value={depth === 0 ? '' : depth}
+                       onChange={(e) => handleDepthChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                       className={`mt-1 h-7 text-xs ${locks.depth ? 'border-primary border-2' : ''}`}
+                     />
                   </div>
                 </div>
 
@@ -330,103 +393,155 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                       </CardContent>
                     </Card>
 
-                    {/* Compact Dimensions */}
-                    <div className="space-y-2">
-                      <h3 className="font-medium text-base">Dimensions</h3>
-                      <div className="grid grid-cols-3 gap-2">
-                        <div>
-                          <Label className="text-xs">Width (mm)</Label>
-                          <Input
-                            type="number"
-                            value={width === 0 ? '' : width}
-                            onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
-                            className="mt-1 h-8 text-sm"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-xs">Height (mm)</Label>
-                          <Input
-                            type="number"
-                            value={height === 0 ? '' : height}
-                            onChange={(e) => setHeight(e.target.value === '' ? 0 : Number(e.target.value))}
-                            className="mt-1 h-8 text-sm"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-xs">Depth (mm)</Label>
-                          <Input
-                            type="number"
-                            value={depth === 0 ? '' : depth}
-                            onChange={(e) => setDepth(e.target.value === '' ? 0 : Number(e.target.value))}
-                            className="mt-1 h-8 text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
+                     {/* Compact Dimensions */}
+                     <div className="space-y-2">
+                       <h3 className="font-medium text-base">Dimensions</h3>
+                       <div className="grid grid-cols-3 gap-2">
+                         <div>
+                           <div className="flex items-center gap-1">
+                             <Label className="text-xs">Width (mm)</Label>
+                           </div>
+                           <Input
+                             type="number"
+                             value={width === 0 ? '' : width}
+                             onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
+                             className="mt-1 h-8 text-sm"
+                           />
+                         </div>
+                         <div>
+                           <div className="flex items-center gap-1">
+                             <Label className="text-xs">Height (mm)</Label>
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               onClick={() => toggleLock('height')}
+                               className="h-4 w-4 p-0 hover:bg-primary/10"
+                             >
+                               {locks.height ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                             </Button>
+                           </div>
+                           <Input
+                             type="number"
+                             value={height === 0 ? '' : height}
+                             onChange={(e) => handleHeightChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                             className={`mt-1 h-8 text-sm ${locks.height ? 'border-primary border-2' : ''}`}
+                           />
+                         </div>
+                         <div>
+                           <div className="flex items-center gap-1">
+                             <Label className="text-xs">Depth (mm)</Label>
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               onClick={() => toggleLock('depth')}
+                               className="h-4 w-4 p-0 hover:bg-primary/10"
+                             >
+                               {locks.depth ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                             </Button>
+                           </div>
+                           <Input
+                             type="number"
+                             value={depth === 0 ? '' : depth}
+                             onChange={(e) => handleDepthChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                             className={`mt-1 h-8 text-sm ${locks.depth ? 'border-primary border-2' : ''}`}
+                           />
+                         </div>
+                       </div>
+                     </div>
 
                     {/* Door Style and Color in same row */}
                     <div className="space-y-2">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <Label className="text-sm">Door Style</Label>
-                          <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
-                            <SelectTrigger className="mt-1 h-9">
-                              <SelectValue placeholder="Select style" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-background border z-50">
-                              {availableDoorStyles.map((style) => (
-                                <SelectItem key={style.id} value={style.id}>
-                                  <div className="flex items-center justify-between w-full">
-                                    <span>{style.name}</span>
-                                    <Badge variant="outline" className="ml-2 text-xs">
-                                      {pricingService.formatPrice(style.base_rate_per_sqm)}/m²
-                                    </Badge>
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <div>
-                          <Label className="text-sm">Color</Label>
-                          <Select value={selectedColor} onValueChange={setSelectedColor}>
-                            <SelectTrigger className="mt-1 h-9">
-                              <SelectValue placeholder="Select color" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-background border z-50">
-                              {(availableColors || []).map((color) => (
-                                <SelectItem key={color.id} value={color.id}>
-                                  <div className="flex items-center gap-2">
-                                    {color.hex_code && (
-                                      <div
-                                        className="w-3 h-3 rounded border"
-                                        style={{ backgroundColor: color.hex_code }}
-                                      />
-                                    )}
-                                    <span>{color.name}</span>
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
+                       <div className="grid grid-cols-2 gap-3">
+                         <div>
+                           <div className="flex items-center gap-1">
+                             <Label className="text-sm">Door Style</Label>
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               onClick={() => toggleLock('doorStyle')}
+                               className="h-4 w-4 p-0 hover:bg-primary/10"
+                             >
+                               {locks.doorStyle ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                             </Button>
+                           </div>
+                           <Select value={selectedDoorStyle} onValueChange={handleDoorStyleChange}>
+                             <SelectTrigger className={`mt-1 h-9 ${locks.doorStyle ? 'border-primary border-2' : ''}`}>
+                               <SelectValue placeholder="Select style" />
+                             </SelectTrigger>
+                             <SelectContent className="bg-background border z-50">
+                               {availableDoorStyles.map((style) => (
+                                 <SelectItem key={style.id} value={style.id}>
+                                   <div className="flex items-center justify-between w-full">
+                                     <span>{style.name}</span>
+                                     <Badge variant="outline" className="ml-2 text-xs">
+                                       {pricingService.formatPrice(style.base_rate_per_sqm)}/m²
+                                     </Badge>
+                                   </div>
+                                 </SelectItem>
+                               ))}
+                             </SelectContent>
+                           </Select>
+                         </div>
+                         
+                         <div>
+                           <div className="flex items-center gap-1">
+                             <Label className="text-sm">Color</Label>
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               onClick={() => toggleLock('color')}
+                               className="h-4 w-4 p-0 hover:bg-primary/10"
+                             >
+                               {locks.color ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                             </Button>
+                           </div>
+                           <Select value={selectedColor} onValueChange={handleColorChange}>
+                             <SelectTrigger className={`mt-1 h-9 ${locks.color ? 'border-primary border-2' : ''}`}>
+                               <SelectValue placeholder="Select color" />
+                             </SelectTrigger>
+                             <SelectContent className="bg-background border z-50">
+                               {(availableColors || []).map((color) => (
+                                 <SelectItem key={color.id} value={color.id}>
+                                   <div className="flex items-center gap-2">
+                                     {color.hex_code && (
+                                       <div
+                                         className="w-3 h-3 rounded border"
+                                         style={{ backgroundColor: color.hex_code }}
+                                       />
+                                     )}
+                                     <span>{color.name}</span>
+                                   </div>
+                                 </SelectItem>
+                               ))}
+                             </SelectContent>
+                           </Select>
+                         </div>
+                       </div>
                       
-                      {/* Hardware under Door Style and Color */}
-                      <div>
-                        <Label className="text-sm">Hardware Brand</Label>
-                        <Select value={selectedHardwareBrand} onValueChange={setSelectedHardwareBrand}>
-                          <SelectTrigger className="mt-1 h-9">
-                            <SelectValue placeholder="Select hardware" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-background border z-50">
-                            <SelectItem value="none">No Hardware</SelectItem>
-                            <SelectItem value="blum">Blum</SelectItem>
-                            <SelectItem value="titus">Titus</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                       {/* Hardware under Door Style and Color */}
+                       <div>
+                         <div className="flex items-center gap-1">
+                           <Label className="text-sm">Hardware Brand</Label>
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             onClick={() => toggleLock('hardware')}
+                             className="h-4 w-4 p-0 hover:bg-primary/10"
+                           >
+                             {locks.hardware ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                           </Button>
+                         </div>
+                         <Select value={selectedHardwareBrand} onValueChange={handleHardwareChange}>
+                           <SelectTrigger className={`mt-1 h-9 ${locks.hardware ? 'border-primary border-2' : ''}`}>
+                             <SelectValue placeholder="Select hardware" />
+                           </SelectTrigger>
+                           <SelectContent className="bg-background border z-50">
+                             <SelectItem value="none">No Hardware</SelectItem>
+                             <SelectItem value="blum">Blum</SelectItem>
+                             <SelectItem value="titus">Titus</SelectItem>
+                           </SelectContent>
+                         </Select>
+                       </div>
                     </div>
                   </div>
                 </div>
