@@ -280,8 +280,7 @@ const CabinetPricesNew = () => {
                                    <img 
                                      src={cabinetType.product_image_url} 
                                      alt={`${cabinetType.name} Cabinet`}
-                                     className="w-full h-48 object-cover rounded-lg border border-gray-200"
-                                     style={{ imageRendering: 'crisp-edges' }}
+                                     className="w-full h-48 object-contain rounded-lg border border-gray-200 bg-white"
                                      onError={(e) => {
                                        console.error("Cabinet image failed to load:", cabinetType.product_image_url);
                                        e.currentTarget.style.display = "none";
@@ -320,8 +319,7 @@ const CabinetPricesNew = () => {
                                      <img 
                                        src={ctf.image_url} 
                                        alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
-                                       className="w-full h-48 object-cover rounded-lg border border-gray-200"
-                                       style={{ imageRendering: 'crisp-edges' }}
+                                       className="w-full h-48 object-contain rounded-lg border border-gray-200 bg-white"
                                        onError={(e) => {
                                          console.error("Finish image failed to load:", ctf.image_url);
                                          e.currentTarget.style.display = "none";
