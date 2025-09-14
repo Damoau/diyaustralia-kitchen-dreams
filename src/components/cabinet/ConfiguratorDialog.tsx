@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -164,6 +164,9 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
             <ShoppingCart className="h-4 w-4" />
             {cabinetType.name}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Configure your cabinet dimensions, style, and options
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 sm:space-y-4">
@@ -312,11 +315,11 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                           <div>
                             <p className="text-xs text-muted-foreground">Total Price</p>
                             <p className="text-2xl font-bold text-primary">
-                              {pricingService.formatPrice(price * quantity)}
+                              {pricingService.formatPrice(price)}
                             </p>
                             {quantity > 1 && (
                               <p className="text-xs text-muted-foreground">
-                                {pricingService.formatPrice(price)} × {quantity}
+                                {pricingService.formatPrice(price / quantity)} × {quantity}
                               </p>
                             )}
                           </div>
