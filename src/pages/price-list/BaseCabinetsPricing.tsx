@@ -45,10 +45,17 @@ const BaseCabinetsPricing = () => {
 
   // Clear all cached data when component mounts
   useEffect(() => {
-    console.log('🗑️ CLEARING ALL CACHE');
+    console.log('🔥🔥🔥 AGGRESSIVE CACHE CLEAR 🔥🔥🔥', new Date().toISOString());
     queryClient.clear();
+    localStorage.clear();
     setPriceData({});
     setDebugData(null);
+    // Force browser to not cache this page
+    if ('caches' in window) {
+      caches.keys().then(names => {
+        names.forEach(name => caches.delete(name));
+      });
+    }
   }, [queryClient]);
 
   // Fetch base cabinets
@@ -258,6 +265,9 @@ const BaseCabinetsPricing = () => {
             <Button onClick={calculatePricesFromScratch} variant="outline" size="sm">
               🔄 Force Recalculate
             </Button>
+            <Button onClick={() => window.location.reload()} variant="outline" size="sm">
+              🌊 Hard Refresh
+            </Button>
           </div>
         </div>
 
@@ -319,7 +329,7 @@ const BaseCabinetsPricing = () => {
                   <h2 className="text-2xl font-bold text-foreground mb-2">
                     {baseCabinets?.find(c => c.id === selectedCabinetType)?.name}
                   </h2>
-                  <CardTitle>Pricing Table - {new Date().toLocaleTimeString()}</CardTitle>
+                  <CardTitle>Pricing Table - CACHE BUST: {Date.now()}</CardTitle>
                 </div>
                 {isCalculating && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
