@@ -2,119 +2,293 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Upload, Calculator, FileText, Truck, MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, Upload, Calculator, FileText, Truck, MapPin, Star, Shield, Award, Factory, ChevronDown } from "lucide-react";
 import QuoteForm from "@/components/QuoteForm";
+import { useState, useEffect } from "react";
+import logoBlum from "@/assets/logo-blum.png";
+import logoTitus from "@/assets/logo-titus.png";
+import logoPolytec from "@/assets/logo-polytec.png";
+import logoLaminex from "@/assets/logo-laminex.png";
 
 const GetQuote = () => {
+  const [isSticky, setIsSticky] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsSticky(window.scrollY > 200);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToForm = () => {
+    document.getElementById('quote-form')?.scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'start'
+    });
+  };
+
   const processSteps = [
     {
-      icon: <Upload className="h-8 w-8 text-primary" />,
-      title: "1. Upload Your Plans",
-      description: "Share your kitchen plans from any source - IKEA, Bunnings, other kitchen companies, or hand-sketched designs"
+      icon: <Upload className="h-12 w-12 text-primary" />,
+      title: "Upload Plans",
+      description: "Share your kitchen plans from any source"
     },
     {
-      icon: <Calculator className="h-8 w-8 text-primary" />,
-      title: "2. Receive Your Quote",
-      description: "We'll provide a detailed quote for your custom cabinet solution"
+      icon: <Calculator className="h-12 w-12 text-primary" />,
+      title: "Get Quote",
+      description: "Receive detailed pricing within 24 hours"
     },
     {
-      icon: <FileText className="h-8 w-8 text-primary" />,
-      title: "3. 10% Deposit & Drawings",
-      description: "If you're happy to proceed, pay a 10% deposit and we'll arrange professional drawings with on-site measurements"
+      icon: <FileText className="h-12 w-12 text-primary" />,
+      title: "Approve Design",
+      description: "Professional drawings with measurements"
     },
     {
-      icon: <CheckCircle className="h-8 w-8 text-primary" />,
-      title: "4. Approval & Production",
-      description: "Once you approve the drawings, we'll send DocuSign for final approval and start production"
+      icon: <CheckCircle className="h-12 w-12 text-primary" />,
+      title: "Production",
+      description: "Custom manufacturing begins"
     },
     {
-      icon: <Truck className="h-8 w-8 text-primary" />,
-      title: "5. Delivery & Assembly",
-      description: "Receive your cabinets flat-packed or assembled, all pre-drilled and labeled for easy installation"
+      icon: <Truck className="h-12 w-12 text-primary" />,
+      title: "Delivery",
+      description: "Pre-drilled, labeled, ready to install"
     }
   ];
 
-  const deliveryAreas = [
-    { state: "NSW", color: "bg-blue-100 text-blue-800" },
-    { state: "QLD", color: "bg-green-100 text-green-800" },
-    { state: "VIC", color: "bg-purple-100 text-purple-800" },
-    { state: "SA", color: "bg-orange-100 text-orange-800" }
+  const trustBadges = [
+    {
+      icon: <Factory className="h-8 w-8 text-primary" />,
+      title: "Australian-Made",
+      description: "Locally manufactured quality"
+    },
+    {
+      icon: <Award className="h-8 w-8 text-primary" />,
+      title: "Premium Materials",
+      description: "Top-grade components"
+    },
+    {
+      icon: <Shield className="h-8 w-8 text-primary" />,
+      title: "10-Year Warranty",
+      description: "Comprehensive coverage"
+    }
+  ];
+
+  const testimonials = [
+    {
+      name: "Sarah M.",
+      location: "Sydney, NSW",
+      rating: 5,
+      text: "Exceptional quality cabinets at half the price of major retailers. The installation was seamless!"
+    },
+    {
+      name: "David K.",
+      location: "Melbourne, VIC", 
+      rating: 5,
+      text: "Professional service from quote to delivery. Our kitchen transformation exceeded expectations."
+    },
+    {
+      name: "Emma L.",
+      location: "Brisbane, QLD",
+      rating: 5,
+      text: "Custom sizing was perfect for our unique space. Highly recommend for anyone wanting quality cabinets."
+    }
+  ];
+
+  const supplierLogos = [
+    { name: "Blum", logo: logoBlum },
+    { name: "Titus", logo: logoTitus }, 
+    { name: "Polytec", logo: logoPolytec },
+    { name: "Laminex", logo: logoLaminex }
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
       <Header />
       
+      {/* Sticky Mobile CTA */}
+      {isSticky && (
+        <div className="fixed bottom-4 left-4 right-4 z-50 lg:hidden">
+          <Button 
+            onClick={scrollToForm}
+            className="w-full bg-primary text-white shadow-lg animate-fade-in"
+            size="lg"
+          >
+            Get My Free Quote Now
+          </Button>
+        </div>
+      )}
+      
       <main className="pt-24 pb-12">
         <div className="container mx-auto px-4">
           {/* Hero Section */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6 gradient-text">
+          <div className="text-center mb-16">
+            <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 gradient-text">
               Get Your Custom Kitchen Quote
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              From concept to completion - we make custom kitchen cabinets accessible and affordable across Australia
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto mb-8 leading-relaxed">
+              Australian-made custom cabinets • Any size, any style • Fast Australia-wide delivery
             </p>
+            <Button 
+              onClick={scrollToForm}
+              className="bg-primary text-white hover:bg-primary/90 shadow-lg px-8 py-6 text-lg"
+              size="lg"
+            >
+              Get Started - Free Quote <ChevronDown className="ml-2 h-5 w-5" />
+            </Button>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-12 mb-12">
-            {/* Process Section */}
+          {/* Trust Badges */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+            {trustBadges.map((badge, index) => (
+              <Card key={index} className="text-center p-6 hover:shadow-lg transition-shadow">
+                <CardContent className="flex flex-col items-center space-y-4">
+                  <div className="p-4 bg-primary/10 rounded-full">
+                    {badge.icon}
+                  </div>
+                  <h3 className="font-semibold text-lg text-foreground">{badge.title}</h3>
+                  <p className="text-muted-foreground text-sm">{badge.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-16 mb-16">
+            {/* Process Timeline */}
             <div>
-              <h2 className="text-3xl font-bold text-foreground mb-8">Our Simple 5-Step Process</h2>
+              <h2 className="text-3xl font-bold text-foreground mb-12 text-center">Simple 5-Step Process</h2>
               
-              <div className="space-y-6">
-                {processSteps.map((step, index) => (
-                  <Card key={index}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 p-3 bg-primary/10 rounded-lg">
+              {/* Desktop Timeline */}
+              <div className="hidden md:block">
+                <div className="relative">
+                  {/* Timeline line */}
+                  <div className="absolute top-16 left-0 right-0 h-0.5 bg-primary/20"></div>
+                  <div className="flex justify-between items-start">
+                    {processSteps.map((step, index) => (
+                      <div key={index} className="flex flex-col items-center text-center max-w-[160px]">
+                        <div className="p-4 bg-white shadow-lg rounded-full border-4 border-primary/20 mb-4 relative z-10">
                           {step.icon}
                         </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-foreground mb-2">
-                            {step.title}
-                          </h3>
-                          <p className="text-muted-foreground">
-                            {step.description}
-                          </p>
-                        </div>
+                        <h3 className="font-semibold text-sm text-foreground mb-2">
+                          {step.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground leading-tight">
+                          {step.description}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile Timeline */}
+              <div className="md:hidden space-y-6">
+                {processSteps.map((step, index) => (
+                  <Card key={index} className="p-4">
+                    <CardContent className="flex items-center gap-4">
+                      <div className="flex-shrink-0 p-3 bg-primary/10 rounded-lg">
+                        {step.icon}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground mb-1">
+                          {step.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {step.description}
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
 
-              {/* Delivery Information */}
-              <Card className="mt-8 bg-gradient-to-r from-primary/5 to-blue-500/5">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <MapPin className="h-6 w-6 text-primary" />
-                    <h3 className="text-xl font-semibold text-foreground">Delivery Areas</h3>
+              {/* Australia Map */}
+              <Card className="mt-12 bg-gradient-to-r from-primary/5 to-blue-500/5">
+                <CardContent className="p-8 text-center">
+                  <div className="flex items-center justify-center gap-3 mb-6">
+                    <MapPin className="h-8 w-8 text-primary" />
+                    <h3 className="text-2xl font-semibold text-foreground">Australia-Wide Delivery</h3>
                   </div>
-                  <p className="text-muted-foreground mb-4">
-                    We can transport to depots across Australia:
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {deliveryAreas.map((area, index) => (
-                      <Badge key={index} variant="secondary" className={area.color}>
-                        {area.state}
-                      </Badge>
-                    ))}
+                  
+                  {/* Simple Australia outline SVG */}
+                  <div className="max-w-md mx-auto mb-6">
+                    <svg viewBox="0 0 400 300" className="w-full h-48">
+                      <path 
+                        d="M50 150 Q80 100 120 120 L200 110 Q280 100 320 130 L350 160 Q360 200 340 220 L300 240 Q250 250 200 240 L120 250 Q80 230 60 200 Q40 180 50 150 Z"
+                        fill="hsl(var(--primary) / 0.2)"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth="2"
+                        className="animate-pulse"
+                      />
+                      <circle cx="120" cy="180" r="4" fill="hsl(var(--primary))" />
+                      <circle cx="200" cy="200" r="4" fill="hsl(var(--primary))" />
+                      <circle cx="280" cy="170" r="4" fill="hsl(var(--primary))" />
+                      <circle cx="320" cy="210" r="4" fill="hsl(var(--primary))" />
+                      <text x="120" y="195" className="text-xs fill-primary" textAnchor="middle">NSW</text>
+                      <text x="200" y="215" className="text-xs fill-primary" textAnchor="middle">VIC</text>
+                      <text x="280" y="185" className="text-xs fill-primary" textAnchor="middle">QLD</text>
+                      <text x="320" y="225" className="text-xs fill-primary" textAnchor="middle">SA</text>
+                    </svg>
                   </div>
-                  <div className="mt-4 p-4 bg-white/50 rounded-lg">
-                    <p className="text-sm text-muted-foreground">
-                      <strong>Flat Pack:</strong> Available Australia-wide<br />
-                      <strong>Assembled:</strong> Selected areas only<br />
-                      <strong>Pre-drilled & Labeled:</strong> All cabinets come with cabinet numbers matching your drawings for easy assembly
-                    </p>
+                  
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="p-3 bg-white/50 rounded-lg">
+                      <strong className="text-primary">Flat Pack:</strong> Australia-wide
+                    </div>
+                    <div className="p-3 bg-white/50 rounded-lg">
+                      <strong className="text-primary">Assembled:</strong> Selected areas
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
             {/* Quote Form */}
-            <div>
+            <div id="quote-form">
               <QuoteForm />
+            </div>
+          </div>
+
+          {/* Trusted Suppliers */}
+          <Card className="mb-16 bg-gradient-to-r from-muted/30 to-background">
+            <CardContent className="p-8 text-center">
+              <h3 className="text-xl font-semibold text-foreground mb-6">Trusted by Premium Suppliers</h3>
+              <div className="flex justify-center items-center gap-8 flex-wrap opacity-70 grayscale hover:grayscale-0 transition-all duration-300">
+                {supplierLogos.map((supplier, index) => (
+                  <div key={index} className="w-20 h-12 flex items-center justify-center">
+                    <img 
+                      src={supplier.logo} 
+                      alt={`${supplier.name} logo`}
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Customer Testimonials */}
+          <div className="mb-16">
+            <h3 className="text-2xl font-bold text-center text-foreground mb-8">What Our Customers Say</h3>
+            <div className="grid md:grid-cols-3 gap-6">
+              {testimonials.map((testimonial, index) => (
+                <Card key={index} className="p-6 hover:shadow-lg transition-shadow">
+                  <CardContent className="space-y-4">
+                    <div className="flex gap-1">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                      ))}
+                    </div>
+                    <p className="text-muted-foreground italic">"{testimonial.text}"</p>
+                    <div className="pt-2 border-t">
+                      <p className="font-semibold text-foreground">{testimonial.name}</p>
+                      <p className="text-sm text-muted-foreground">{testimonial.location}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </div>

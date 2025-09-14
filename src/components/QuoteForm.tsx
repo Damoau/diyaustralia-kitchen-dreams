@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -28,8 +29,8 @@ const quoteFormSchema = z.object({
   
   // Project Details
   projectType: z.enum(["new-kitchen", "renovation", "replacement", "other"]),
-  approximateBudget: z.enum(["under-10k", "10k-20k", "20k-40k", "40k-plus", "not-sure"]),
-  timeframe: z.enum(["asap", "1-3-months", "3-6-months", "6-plus-months", "flexible"]),
+  approximateBudget: z.enum(["under-10k", "10k-20k", "20k-40k", "40k-plus", "not-sure"]).optional(),
+  timeframe: z.enum(["asap", "1-3-months", "3-6-months", "6-plus-months", "flexible"]).optional(),
   
   // Additional Details
   additionalNotes: z.string().optional(),
@@ -41,7 +42,7 @@ interface QuoteFormProps {
   onClose?: () => void;
 }
 
-export default function QuoteForm({ onClose }: QuoteFormProps) {
+function QuoteForm({ onClose }: QuoteFormProps) {
   const { toast } = useToast();
   const [files, setFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,8 +59,8 @@ export default function QuoteForm({ onClose }: QuoteFormProps) {
       cabinetFinish: "",
       colorPreference: "",
       projectType: "new-kitchen",
-      approximateBudget: "not-sure",
-      timeframe: "flexible",
+      approximateBudget: undefined,
+      timeframe: undefined,
       additionalNotes: "",
     },
   });
@@ -139,10 +140,15 @@ export default function QuoteForm({ onClose }: QuoteFormProps) {
   return (
     <Card className="w-full max-w-2xl mx-auto border-blue-500 bg-blue-50/30">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center">Get Your Cabinet Quote</CardTitle>
+        <CardTitle className="text-2xl font-bold text-center text-primary">Get Your Cabinet Quote</CardTitle>
         <p className="text-center text-muted-foreground">
-          Fill out the form below and we'll provide you with a detailed quote within 24 hours.
+          Fill out the essentials below and we'll provide you with a detailed quote within 24 hours.
         </p>
+        <div className="flex justify-center">
+          <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300">
+            ✓ No Obligation Quote
+          </Badge>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <Form {...form}>
@@ -331,11 +337,11 @@ export default function QuoteForm({ onClose }: QuoteFormProps) {
                   name="approximateBudget"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Approximate Budget</FormLabel>
+                      <FormLabel>Budget <span className="text-muted-foreground text-sm">(Optional)</span></FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue />
+                            <SelectValue placeholder="Select budget" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -355,11 +361,11 @@ export default function QuoteForm({ onClose }: QuoteFormProps) {
                   name="timeframe"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Timeframe</FormLabel>
+                      <FormLabel>Timeframe <span className="text-muted-foreground text-sm">(Optional)</span></FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue />
+                            <SelectValue placeholder="Select timeframe" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -443,15 +449,26 @@ export default function QuoteForm({ onClose }: QuoteFormProps) {
             />
 
             {/* Submit Button */}
-            <div className="flex gap-4">
-              <Button type="submit" disabled={isSubmitting} className="flex-1">
-                {isSubmitting ? "Submitting..." : "Submit Quote Request"}
-              </Button>
-              {onClose && (
-                <Button type="button" variant="outline" onClick={onClose}>
-                  Cancel
+            <div className="space-y-4">
+              <div className="text-center p-4 bg-gradient-to-r from-primary/10 to-blue-500/10 rounded-lg">
+                <p className="text-primary font-semibold text-lg">
+                  🎉 You're one step away from your free custom quote!
+                </p>
+                <p className="text-muted-foreground text-sm mt-1">
+                  Join hundreds of satisfied customers across Australia
+                </p>
+              </div>
+              
+              <div className="flex gap-4">
+                <Button type="submit" disabled={isSubmitting} className="flex-1 bg-primary hover:bg-primary/90 text-white py-6 text-lg">
+                  {isSubmitting ? "Submitting..." : "Get My Free Quote Now"}
                 </Button>
-              )}
+                {onClose && (
+                  <Button type="button" variant="outline" onClick={onClose}>
+                    Cancel
+                  </Button>
+                )}
+              </div>
             </div>
           </form>
         </Form>
@@ -459,3 +476,5 @@ export default function QuoteForm({ onClose }: QuoteFormProps) {
     </Card>
   );
 }
+
+export default QuoteForm;
