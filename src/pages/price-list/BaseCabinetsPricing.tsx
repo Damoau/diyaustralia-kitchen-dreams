@@ -139,7 +139,7 @@ const BaseCabinetsPricing = () => {
         `)
         .eq('active', true);
 
-      // 7. Get Black color fresh
+      // 7. Get colors for different door styles
       const { data: blackColor } = await supabase
         .from('colors')
         .select('*')
@@ -147,7 +147,14 @@ const BaseCabinetsPricing = () => {
         .eq('active', true)
         .single();
 
-      console.log('🎨 BLACK COLOR DATA:', blackColor);
+      const { data: whiteColor } = await supabase
+        .from('colors')
+        .select('*')
+        .eq('name', 'Pure White')
+        .eq('active', true)
+        .single();
+
+      console.log('🎨 COLORS DATA:', { blackColor, whiteColor });
 
       // 8. Calculate prices with fresh data
       const newPriceData: PriceData = {};
@@ -164,6 +171,9 @@ const BaseCabinetsPricing = () => {
           const height = cabinets?.default_height_mm || 720;
           const depth = cabinets?.default_depth_mm || 560;
 
+          // Use correct color based on door style
+          const colorToUse = finish.door_style.name === 'Poly' ? whiteColor : blackColor;
+          
           const price = pricingService.calculatePrice({
             cabinetType: cabinets as CabinetType,
             width,
@@ -173,7 +183,7 @@ const BaseCabinetsPricing = () => {
             cabinetParts: freshParts || [],
             globalSettings: freshSettings || [],
             doorStyle: finish.door_style,
-            color: blackColor,
+            color: colorToUse,
             hardwareBrandId: defaultHardwareBrandId,
             hardwareRequirements: hardwareRequirements || [],
             hardwareOptions: hardwareOptions || []
