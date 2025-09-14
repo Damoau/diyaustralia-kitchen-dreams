@@ -312,6 +312,13 @@ export const useDynamicPricing = ({
         return 0;
       }
 
+      console.log('🔍 calculateCustomPrice called with:', {
+        doorStyleId: params.doorStyleId,
+        colorId: params.colorId,
+        width: params.width,
+        cabinetTypeFinishes: cabinetTypeFinishes?.length
+      });
+
       // Find door style and color from available data if different IDs are provided
       const targetDoorStyle = params.doorStyleId ? 
         cabinetTypeFinishes?.find(f => f.door_style?.id === params.doorStyleId)?.door_style : 
@@ -321,15 +328,15 @@ export const useDynamicPricing = ({
         cabinetTypeFinishes?.find(f => f.color?.id === params.colorId)?.color :
         color;
 
-      console.log('🔍 calculateCustomPrice lookup:', {
-        requestedDoorStyleId: params.doorStyleId,
-        foundDoorStyle: targetDoorStyle?.name,
-        foundDoorStyleRate: targetDoorStyle?.base_rate_per_sqm,
-        availableFinishes: cabinetTypeFinishes?.length,
-        availableDoorStyles: cabinetTypeFinishes?.map(f => ({
-          id: f.door_style?.id,
-          name: f.door_style?.name,
-          rate: f.door_style?.base_rate_per_sqm
+      console.log('🎯 Found door style:', {
+        requestedId: params.doorStyleId,
+        foundName: targetDoorStyle?.name,
+        foundRate: targetDoorStyle?.base_rate_per_sqm,
+        allAvailableStyles: cabinetTypeFinishes?.map(f => ({
+          finishId: f.id,
+          doorStyleId: f.door_style?.id,
+          doorStyleName: f.door_style?.name,
+          doorStyleRate: f.door_style?.base_rate_per_sqm
         }))
       });
 
