@@ -7,13 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Minus, Plus } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ShoppingCart, Minus, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { CabinetType, Brand, Finish, Color, DoorStyle, CabinetPart, GlobalSettings, CabinetTypeFinish } from '@/types/cabinet';
 import { generateCutlist, parseGlobalSettings, formatPrice } from '@/lib/pricing';
 import { calculateCabinetPrice } from '@/lib/dynamicPricing';
 import { useCart } from '@/hooks/useCart';
 import { HardwareCostPreview } from './HardwareCostPreview';
+import { PriceBreakdown } from './PriceBreakdown';
 
 interface ConfiguratorDialogProps {
   cabinetType: CabinetType;
@@ -27,6 +29,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   const [height, setHeight] = useState(cabinetType.default_height_mm);
   const [depth, setDepth] = useState(cabinetType.default_depth_mm);
   const [quantity, setQuantity] = useState(1);
+  const [showPriceBreakdown, setShowPriceBreakdown] = useState(false);
   
   const [brands, setBrands] = useState<Brand[]>([]);
   const [finishes, setFinishes] = useState<Finish[]>([]);
@@ -419,6 +422,46 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
               <p className="text-sm text-muted-foreground mb-1">Total Price</p>
               <p className="text-2xl font-bold text-primary">{formatPrice(totalPrice * quantity)}</p>
             </div>
+
+            {/* Price Breakdown */}
+            <Collapsible open={showPriceBreakdown} onOpenChange={setShowPriceBreakdown}>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-2 h-auto">
+                  <span className="text-sm font-medium">View Price Breakdown</span>
+                  {showPriceBreakdown ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-2">
+                {totalPrice > 0 && selectedDoorStyle && cabinetParts.length > 0 && globalSettings.length > 0 && (
+                  <PriceBreakdown
+                    cabinetType={cabinetType}
+                    width={width}
+                    height={height}
+                    depth={depth}
+                    doorStyleFinish={{
+                      id: selectedDoorStyle,
+                      name: doorStyles.find(ds => ds.id === selectedDoorStyle)?.name + ' Finish' || '',
+                      rate_per_sqm: finishes.find(f => f.id === selectedFinish)?.rate_per_sqm || 
+                        doorStyles.find(ds => ds.id === selectedDoorStyle)?.base_rate_per_sqm || 150,
+                      door_style_id: selectedDoorStyle,
+                      door_style: doorStyles.find(ds => ds.id === selectedDoorStyle),
+                      active: true,
+                      created_at: new Date().toISOString(),
+                      sort_order: 0
+                    }}
+                    color={colors.find(c => c.id === selectedColor)}
+                    cabinetParts={cabinetParts}
+                    globalSettings={globalSettings}
+                    hardwareCost={45}
+                    totalPrice={totalPrice}
+                  />
+                )}
+              </CollapsibleContent>
+            </Collapsible>
             
             {/* Quantity and Add to Cart Button */}
             <div className="flex items-center gap-3">
