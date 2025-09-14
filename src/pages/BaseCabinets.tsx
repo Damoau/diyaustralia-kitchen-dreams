@@ -216,7 +216,7 @@ const BaseCabinets = () => {
               Base <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">Cabinets</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-              Quality base cabinets for your kitchen. Click any price to configure and add to your quote.
+              Quality base cabinets for your kitchen. Use the Add to Cart buttons to configure and add to your quote.
             </p>
             
             <div className="bg-muted/40 rounded-md px-4 py-3 mb-6 max-w-3xl mx-auto text-sm">
@@ -279,13 +279,28 @@ const BaseCabinets = () => {
 
             return (
               <div key={cabinetType.id} className="mb-12">
-                <h2 className="text-2xl font-semibold mb-6">
-                  {cabinetType.name}
-                  {!typeData.hasConfiguredRanges && (
-                    <span className="ml-2 text-sm font-normal text-orange-600">
-                      (Using default ranges - configure in admin for custom ranges)
-                    </span>
-                  )}
+                <h2 className="text-2xl font-semibold mb-6 flex items-center justify-between">
+                  <span>
+                    {cabinetType.name}
+                    {!typeData.hasConfiguredRanges && (
+                      <span className="ml-2 text-sm font-normal text-orange-600">
+                        (Using default ranges - configure in admin for custom ranges)
+                      </span>
+                    )}
+                  </span>
+                  <Button 
+                    onClick={() => {
+                      // Add first available configuration to cart
+                      const firstFinish = typeFinishes[0];
+                      const firstSize = typeData.sizes?.[0];
+                      if (firstFinish && firstSize) {
+                        handleCellClick(cabinetType, firstSize.range, firstSize.price[0], firstFinish);
+                      }
+                    }}
+                    className="ml-4"
+                  >
+                    Add to Cart
+                  </Button>
                  </h2>
                  
                  <div className="overflow-x-auto">
@@ -315,12 +330,9 @@ const BaseCabinets = () => {
                           </td>
                            {sizeData.price?.map((price: number, priceIndex: number) => (
                              <td key={priceIndex} className="border border-gray-300 px-4 py-3 text-center">
-                               <button
-                                 onClick={() => handleCellClick(cabinetType, sizeData.range, price, typeFinishes[priceIndex])}
-                                 className="text-lg font-bold text-primary hover:text-primary/80 hover:bg-primary/10 cursor-pointer transition-all rounded px-2 py-1 w-full"
-                               >
+                               <div className="text-lg font-bold text-primary px-2 py-1 w-full">
                                  {formatPrice(price)}
-                               </button>
+                               </div>
                              </td>
                            ))}
                         </tr>

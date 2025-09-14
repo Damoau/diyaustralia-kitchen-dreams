@@ -646,12 +646,12 @@ export function CellConfigPopup({
                 Adding...
               </>
             ) : (
-              <>
-                <ShoppingCart className="mr-2 h-4 w-4" />
-                Add to Quote
-              </>
-            )}
-          </Button>
+               <>
+                 <ShoppingCart className="mr-2 h-4 w-4" />
+                 Add to Cart
+               </>
+             )}
+           </Button>
         </div>
       </DialogContent>
 
