@@ -339,9 +339,9 @@ export function CellConfigPopup({
         <div className="space-y-4">
           {/* Cabinet Header with Image */}
           <div className="flex items-start gap-4">
-            {/* Main Cabinet Image - Updates with door style selection */}
+            {/* Main Cabinet Image - High quality display */}
             <div 
-              className="w-32 h-32 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors flex-shrink-0"
+              className="w-32 h-32 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors flex-shrink-0 overflow-hidden"
               onClick={() => {
                 const currentDoorStyle = selectedDoorStyle ? doorStyles.find(ds => ds.id === selectedDoorStyle) : null;
                 const imageUrl = currentDoorStyle?.image_url || (finish as any)?.image_url || cabinetType.product_image_url;
@@ -359,28 +359,32 @@ export function CellConfigPopup({
                     key={`cabinet-image-${selectedDoorStyle || 'default'}`} // Force re-render when door style changes
                     src={imageUrl} 
                     alt={`${cabinetType.name} - ${currentDoorStyle?.name || (finish as any)?.door_style?.name || 'Cabinet'}`}
-                    className="w-full h-full object-cover rounded-md transition-all duration-300"
+                    className="w-full h-full transition-all duration-300"
                     style={{
+                      objectFit: 'cover',
+                      objectPosition: 'center',
                       imageRendering: 'auto',
-                      maxWidth: '100%',
-                      height: 'auto',
-                      objectFit: 'cover'
+                      width: '100%',
+                      height: '100%',
+                      minWidth: '0',
+                      minHeight: '0'
                     }}
                     onError={(e) => {
                       console.error('Cabinet image failed to load:', imageUrl);
                       e.currentTarget.style.display = "none";
                       const parent = e.currentTarget.parentElement;
                       if (parent) {
-                        parent.innerHTML = '<span class="text-xs text-muted-foreground text-center">Image failed to load</span>';
+                        parent.innerHTML = '<span class="text-xs text-muted-foreground text-center p-2">Image failed to load</span>';
                       }
                     }}
                     onLoad={() => {
                       console.log('Cabinet image updated:', imageUrl, 'Door style:', currentDoorStyle?.name);
                     }}
                     loading="eager"
+                    decoding="async"
                   />
                 ) : (
-                  <div className="text-center">
+                  <div className="text-center p-2">
                     <span className="text-xs text-muted-foreground">No image available</span>
                   </div>
                 );
@@ -402,7 +406,7 @@ export function CellConfigPopup({
             </div>
           </div>
 
-          {/* Door Style Image Carousel - All images compressed for optimal display */}
+          {/* Door Style Image Carousel - Compressed and optimized images */}
           {doorStyles.length > 0 && (
             <div className="space-y-2">
               <Label className="text-xs">Available Door Styles ({doorStyles.filter(s => s.image_url).length} options)</Label>
@@ -411,7 +415,7 @@ export function CellConfigPopup({
                   style.image_url && (
                     <div 
                       key={style.id}
-                      className={`w-20 h-20 bg-muted/30 rounded-lg border-2 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-all duration-200 flex-shrink-0 ${
+                      className={`w-20 h-20 bg-muted/30 rounded-lg border-2 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-all duration-200 flex-shrink-0 overflow-hidden ${
                         selectedDoorStyle === style.id ? 'border-primary ring-2 ring-primary/20 scale-105' : 'border-dashed border-muted-foreground/20'
                       }`}
                       onClick={() => {
@@ -423,20 +427,31 @@ export function CellConfigPopup({
                       <img 
                         src={style.image_url} 
                         alt={style.name}
-                        className="w-full h-full object-cover rounded-md transition-all duration-200"
+                        className="w-full h-full transition-all duration-200"
                         style={{
-                          maxWidth: '100%',
-                          height: 'auto',
-                          objectFit: 'cover'
+                          objectFit: 'cover',
+                          objectPosition: 'center',
+                          imageRendering: 'crisp-edges',
+                          width: '100%',
+                          height: '100%',
+                          minWidth: '0',
+                          minHeight: '0'
                         }}
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
                           const parent = e.currentTarget.parentElement;
                           if (parent) {
-                            parent.innerHTML = '<span class="text-xs text-muted-foreground text-center">No image</span>';
+                            parent.innerHTML = '<span class="text-xs text-muted-foreground text-center p-1">No image</span>';
                           }
                         }}
+                        onLoad={(e) => {
+                          // Ensure image maintains quality after load
+                          const img = e.currentTarget;
+                          img.style.imageRendering = 'auto';
+                          console.log('Door style image loaded:', style.name);
+                        }}
                         loading="lazy"
+                        decoding="async"
                       />
                     </div>
                   )
