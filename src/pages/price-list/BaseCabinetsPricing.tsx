@@ -350,6 +350,52 @@ const BaseCabinetsPricing = () => {
           </Card>
         )}
 
+        {/* Door Style Finishes Carousel */}
+        {selectedCabinetType && debugData?.finishes && debugData.finishes.length > 0 && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Available Door Styles for {baseCabinets?.find(c => c.id === selectedCabinetType)?.name}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Carousel className="w-full">
+                <CarouselContent className="-ml-2 md:-ml-4">
+                  {debugData.finishes.map((finish: any) => (
+                    <CarouselItem key={finish.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                      <Card className="cursor-pointer transition-all duration-200 hover:shadow-md hover:ring-1 hover:ring-primary/50">
+                        <CardContent className="p-4">
+                          <div className="w-full h-32 bg-muted rounded-md mb-3 flex items-center justify-center">
+                            {finish.image_url ? (
+                              <img 
+                                src={finish.image_url} 
+                                alt={finish.door_style?.name || 'Door Style'}
+                                className="w-full h-full object-cover rounded-md"
+                              />
+                            ) : (
+                              <div className="flex flex-col items-center justify-center text-muted-foreground">
+                                <Package className="h-8 w-8 mb-1" />
+                                <span className="text-xs">No Image</span>
+                              </div>
+                            )}
+                          </div>
+                          <h3 className="font-semibold text-sm mb-2">{finish.door_style?.name}</h3>
+                          <p className="text-xs text-muted-foreground mb-2">
+                            ${finish.door_style?.base_rate_per_sqm}/m²
+                          </p>
+                          <Badge variant="outline" className="text-xs">
+                            Door Style
+                          </Badge>
+                        </CardContent>
+                      </Card>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Pricing Table */}
         {selectedCabinetType && (
           <Card key={`pricing-${selectedCabinetType}-${Date.now()}`}>
