@@ -291,13 +291,20 @@ const BaseCabinetsPricing = () => {
                         onClick={() => setSelectedCabinetType(cabinet.id)}
                       >
                         <CardContent className="p-4">
-                          {cabinet.product_image_url && (
-                            <img 
-                              src={cabinet.product_image_url} 
-                              alt={cabinet.name}
-                              className="w-full h-32 object-cover rounded-md mb-3"
-                            />
-                          )}
+                          <div className="w-full h-32 bg-muted rounded-md mb-3 flex items-center justify-center">
+                            {cabinet.product_image_url ? (
+                              <img 
+                                src={cabinet.product_image_url} 
+                                alt={cabinet.name}
+                                className="w-full h-full object-cover rounded-md"
+                              />
+                            ) : (
+                              <div className="flex flex-col items-center justify-center text-muted-foreground">
+                                <Package className="h-8 w-8 mb-1" />
+                                <span className="text-xs">No Image</span>
+                              </div>
+                            )}
+                          </div>
                           <h3 className="font-semibold text-sm mb-2">{cabinet.name}</h3>
                           <p className="text-xs text-muted-foreground mb-2">{cabinet.short_description}</p>
                           <div className="flex gap-1 flex-wrap">
