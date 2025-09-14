@@ -169,12 +169,12 @@ const BaseCabinetsPricing = () => {
         newPriceData[selectedCabinetType][finish.door_style.id] = {};
 
         for (const range of freshRanges || []) {
-          // FOR POLY - USE 600MM WIDTH AND PURE WHITE COLOR
+          // FOR POLY - USE PURE WHITE COLOR BUT ACTUAL RANGE WIDTH
           let width, colorToUse;
           if (finish.door_style.name.trim() === 'Poly') {
-            width = 600; // FIXED 600mm for Poly as per formula
-            colorToUse = whiteColor;
-            console.log('🎯 POLY DETECTED - USING FIXED 600MM WIDTH AND WHITE COLOR');
+            width = (range.min_width_mm + range.max_width_mm) / 2; // Use actual range width
+            colorToUse = whiteColor; // Use Pure White (0 surcharge)
+            console.log('🎯 POLY DETECTED - USING RANGE WIDTH:', width, 'MM AND WHITE COLOR');
           } else {
             width = (range.min_width_mm + range.max_width_mm) / 2;
             colorToUse = blackColor;
