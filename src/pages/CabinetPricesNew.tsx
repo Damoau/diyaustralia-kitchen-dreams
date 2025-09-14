@@ -286,8 +286,8 @@ const CabinetPricesNew = () => {
                                       e.currentTarget.style.display = "none";
                                     }}
                                   />
-                                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-3 rounded-b-lg">
-                                    <p className="text-center text-sm font-medium text-white">
+                                  <div className="absolute bottom-0 left-0 right-0 p-3 rounded-b-lg">
+                                    <p className="text-center text-sm font-medium text-black bg-white/80 backdrop-blur-sm rounded px-2 py-1 mx-auto inline-block">
                                       {cabinetType.name}
                                     </p>
                                   </div>
@@ -300,7 +300,7 @@ const CabinetPricesNew = () => {
                                     alt={`${cabinetType.name} Cabinet`}
                                     className="w-full h-auto max-w-full rounded-lg"
                                   />
-                                  <DialogTitle className="absolute top-4 left-4 bg-black/50 text-white px-3 py-1 rounded">
+                                  <DialogTitle className="absolute top-4 left-4 bg-white/80 backdrop-blur-sm text-black px-3 py-1 rounded">
                                     {cabinetType.name}
                                   </DialogTitle>
                                 </div>
@@ -330,8 +330,8 @@ const CabinetPricesNew = () => {
                                       <span className="text-sm text-muted-foreground">No Image</span>
                                     </div>
                                   )}
-                                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-3 rounded-b-lg">
-                                    <p className="text-center text-sm font-medium text-white">
+                                  <div className="absolute bottom-0 left-0 right-0 p-3 rounded-b-lg">
+                                    <p className="text-center text-sm font-medium text-black bg-white/80 backdrop-blur-sm rounded px-2 py-1 mx-auto inline-block">
                                       {ctf.door_style?.name || 'Unknown Style'}
                                     </p>
                                   </div>
@@ -350,7 +350,7 @@ const CabinetPricesNew = () => {
                                       <span className="text-lg text-muted-foreground">No Image Available</span>
                                     </div>
                                   )}
-                                  <DialogTitle className="absolute top-4 left-4 bg-black/50 text-white px-3 py-1 rounded">
+                                  <DialogTitle className="absolute top-4 left-4 bg-white/80 backdrop-blur-sm text-black px-3 py-1 rounded">
                                     {ctf.door_style?.name || 'Unknown Style'}
                                   </DialogTitle>
                                 </div>

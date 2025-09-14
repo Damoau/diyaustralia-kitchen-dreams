@@ -342,31 +342,53 @@ export function CellConfigPopup({
             <div 
               className="w-24 h-24 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors flex-shrink-0"
               onClick={() => {
-                if (cabinetType.product_image_url) {
-                  window.open(cabinetType.product_image_url, '_blank');
+                const imageUrl = (() => {
+                  // First priority: Use finish image if available (matches carousel)
+                  if ((finish as any)?.image_url) {
+                    return (finish as any).image_url;
+                  }
+                  // Fallback: Cabinet type image
+                  return cabinetType.product_image_url;
+                })();
+                
+                if (imageUrl) {
+                  window.open(imageUrl, '_blank');
                 }
               }}
             >
-              {cabinetType.product_image_url ? (
-                <img 
-                  src={cabinetType.product_image_url} 
-                  alt={cabinetType.name}
-                  className="w-full h-full object-cover rounded-md"
-                  onError={(e) => {
-                    console.error('Cabinet image failed to load:', cabinetType.product_image_url);
-                    e.currentTarget.style.display = "none";
-                    e.currentTarget.parentElement!.innerHTML = '<span class="text-xs text-muted-foreground text-center">Image failed to load</span>';
-                  }}
-                  onLoad={() => {
-                    console.log('Cabinet image loaded successfully:', cabinetType.product_image_url);
-                  }}
-                />
-              ) : (
-                <div className="text-center">
-                  <span className="text-xs text-muted-foreground">No image available</span>
-                  <p className="text-xs text-red-500 mt-1">product_image_url: {cabinetType.product_image_url || 'null/undefined'}</p>
-                </div>
-              )}
+              {(() => {
+                // Determine which image to show (finish image takes priority to match carousel)
+                const imageUrl = (() => {
+                  if ((finish as any)?.image_url) {
+                    return (finish as any).image_url;
+                  }
+                  return cabinetType.product_image_url;
+                })();
+
+                return imageUrl ? (
+                  <img 
+                    src={imageUrl} 
+                    alt={`${cabinetType.name} - ${(finish as any)?.door_style?.name || 'Finish'}`}
+                    className="w-full h-full object-cover rounded-md"
+                    onError={(e) => {
+                      console.error('Cabinet image failed to load:', imageUrl);
+                      e.currentTarget.style.display = "none";
+                      e.currentTarget.parentElement!.innerHTML = '<span class="text-xs text-muted-foreground text-center">Image failed to load</span>';
+                    }}
+                    onLoad={() => {
+                      console.log('Cabinet image loaded successfully:', imageUrl);
+                    }}
+                  />
+                ) : (
+                  <div className="text-center">
+                    <span className="text-xs text-muted-foreground">No image available</span>
+                    <p className="text-xs text-red-500 mt-1">
+                      finish_image: {(finish as any)?.image_url || 'null'}<br/>
+                      cabinet_image: {cabinetType.product_image_url || 'null'}
+                    </p>
+                  </div>
+                );
+              })()}
             </div>
             
             {/* Cabinet Details */}
