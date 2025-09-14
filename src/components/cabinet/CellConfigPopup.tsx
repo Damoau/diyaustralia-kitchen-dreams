@@ -47,9 +47,9 @@ export function CellConfigPopup({
   cabinetParts,
   globalSettings 
 }: CellConfigPopupProps) {
-  const [width, setWidth] = useState(initialWidth);
-  const [height, setHeight] = useState(cabinetType.default_height_mm);
-  const [depth, setDepth] = useState(cabinetType.default_depth_mm);
+  const [width, setWidth] = useState<number | string>(initialWidth);
+  const [height, setHeight] = useState<number | string>(cabinetType.default_height_mm);
+  const [depth, setDepth] = useState<number | string>(cabinetType.default_depth_mm);
   const [selectedDoorStyle, setSelectedDoorStyle] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedHardwareOptions, setSelectedHardwareOptions] = useState<Record<string, string>>({});
@@ -210,6 +210,11 @@ export function CellConfigPopup({
       
       if (!doorStyle || !color) return;
 
+      // Convert string values to numbers for calculation
+      const widthNum = typeof width === 'string' ? parseInt(width) || 0 : width;
+      const heightNum = typeof height === 'string' ? parseInt(height) || 0 : height;
+      const depthNum = typeof depth === 'string' ? parseInt(depth) || 0 : depth;
+
       // Calculate hardware cost based on selected options
       let totalHardwareCost = 0;
       for (const req of hardwareRequirements) {
@@ -243,9 +248,9 @@ export function CellConfigPopup({
       // Use the selected door style finish instead of the original finish
       const price = calculateCabinetPrice(
         cabinetType,
-        width,
-        height,
-        depth,
+        widthNum,
+        heightNum,
+        depthNum,
         doorStyleFinish,
         color,
         cabinetParts,
@@ -282,11 +287,16 @@ export function CellConfigPopup({
         return;
       }
 
+      // Convert string values to numbers for configuration
+      const widthNum = typeof width === 'string' ? parseInt(width) || 0 : width;
+      const heightNum = typeof height === 'string' ? parseInt(height) || 0 : height;
+      const depthNum = typeof depth === 'string' ? parseInt(depth) || 0 : depth;
+
       const configuration = {
         cabinetType,
-        width,
-        height,
-        depth,
+        width: widthNum,
+        height: heightNum,
+        depth: depthNum,
         quantity: 1,
         finish,
         color: color || undefined,
@@ -362,7 +372,10 @@ export function CellConfigPopup({
                 id="width"
                 type="number"
                 value={width}
-                onChange={(e) => setWidth(parseInt(e.target.value) || 0)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setWidth(value === '' ? '' : value);
+                }}
                 className="h-8"
               />
             </div>
@@ -372,7 +385,10 @@ export function CellConfigPopup({
                 id="height"
                 type="number"
                 value={height}
-                onChange={(e) => setHeight(parseInt(e.target.value) || 0)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setHeight(value === '' ? '' : value);
+                }}
                 className="h-8"
               />
             </div>
@@ -382,7 +398,10 @@ export function CellConfigPopup({
                 id="depth"
                 type="number"
                 value={depth}
-                onChange={(e) => setDepth(parseInt(e.target.value) || 0)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setDepth(value === '' ? '' : value);
+                }}
                 className="h-8"
               />
             </div>
