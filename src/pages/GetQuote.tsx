@@ -137,8 +137,28 @@ const GetQuote = () => {
                 ))}
               </div>
 
+              {/* Quality Partners Section */}
+              <Card className="mt-8 bg-gradient-to-br from-secondary/5 to-muted/10 border-secondary/20">
+                <CardContent className="p-8 text-center">
+                  <h3 className="text-xl font-semibold text-foreground mb-4">Trusted Quality Partners</h3>
+                  <p className="text-muted-foreground mb-6">We use premium hardware and materials from Australia's leading suppliers</p>
+                  
+                  <div className="flex flex-wrap items-center justify-center gap-8">
+                    {supplierLogos.map((supplier, index) => (
+                      <div key={index} className="flex items-center justify-center w-24 h-16 grayscale hover:grayscale-0 transition-all duration-300 opacity-70 hover:opacity-100">
+                        <img 
+                          src={supplier.logo} 
+                          alt={`${supplier.name} logo`}
+                          className="max-w-full max-h-full object-contain"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Delivery Areas */}
-              <Card className="mt-12 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+              <Card className="mt-6 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
                 <CardContent className="p-8">
                   <div className="flex items-center gap-3 mb-6">
                     <MapPin className="h-8 w-8 text-primary" />
