@@ -410,7 +410,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                             <SelectValue placeholder="Select hardware" />
                           </SelectTrigger>
                           <SelectContent className="bg-background border z-50">
-                            <SelectItem value="">No Hardware</SelectItem>
+                            <SelectItem value="none">No Hardware</SelectItem>
                             <SelectItem value="c808f420-ad8b-4c23-a9c8-1553f5373fb9">Blum</SelectItem>
                             <SelectItem value="c8000cad-7a41-4feb-ab7d-6c49e5a54e4f">Titus</SelectItem>
                           </SelectContent>
