@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +35,7 @@ interface PriceData {
 
 const BaseCabinetsPricing = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [selectedCabinetType, setSelectedCabinetType] = useState<string>('');
   const [priceData, setPriceData] = useState<PriceData>({});
   const [isCalculating, setIsCalculating] = useState(false);
@@ -229,11 +230,16 @@ const BaseCabinetsPricing = () => {
   // Trigger calculation when dependencies change
   useEffect(() => {
     if (selectedCabinetType && cabinetTypeFinishes && priceRanges && cabinetParts && globalSettings) {
+      // Invalidate all queries to force fresh data
+      queryClient.invalidateQueries();
       // Clear existing price data to force recalculation
       setPriceData({});
-      calculatePrices();
+      // Add delay to ensure cache is cleared
+      setTimeout(() => {
+        calculatePrices();
+      }, 100);
     }
-  }, [selectedCabinetType, cabinetTypeFinishes, priceRanges, cabinetParts, globalSettings]);
+  }, [selectedCabinetType, cabinetTypeFinishes, priceRanges, cabinetParts, globalSettings, queryClient]);
 
   const doorStyles = cabinetTypeFinishes?.map(f => f.door_style).filter(Boolean) as DoorStyle[] || [];
 
