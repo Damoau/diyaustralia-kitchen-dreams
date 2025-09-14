@@ -13,6 +13,7 @@ interface CabinetType {
   id: string;
   name: string;
   category: string;
+  subcategory?: string;
   default_width_mm: number;
   default_height_mm: number;
   default_depth_mm: number;
@@ -32,6 +33,7 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
   const [formData, setFormData] = useState({
     name: "",
     category: "",
+    subcategory: "",
     default_width_mm: 300,
     default_height_mm: 720,
     default_depth_mm: 560,
@@ -52,6 +54,7 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
       setFormData({
         name: cabinetType.name,
         category: cabinetType.category,
+        subcategory: (cabinetType as any).subcategory || "",
         default_width_mm: cabinetType.default_width_mm,
         default_height_mm: cabinetType.default_height_mm,
         default_depth_mm: cabinetType.default_depth_mm,
@@ -70,6 +73,7 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
       setFormData({
         name: "",
         category: "",
+        subcategory: "",
         default_width_mm: 300,
         default_height_mm: 720,
         default_depth_mm: 560,
@@ -94,7 +98,44 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
     });
   };
 
-  const categories = ["base", "wall", "tall", "specialty"];
+  const categories = ["base", "wall", "tall", "panels"];
+  
+  // Dynamic subcategories based on selected category
+  const getSubcategoriesForCategory = (category: string) => {
+    switch (category) {
+      case 'base':
+        return [
+          { value: 'doors', label: 'Doors' },
+          { value: 'drawers', label: 'Drawers' },
+          { value: 'corners', label: 'Corners' },
+          { value: 'appliance_cabinets', label: 'Appliance Cabinets' },
+          { value: 'bin_cabinets', label: 'Bin Cabinets' }
+        ];
+      case 'wall':
+        return [
+          { value: 'doors', label: 'Doors' },
+          { value: 'appliance_cabinets', label: 'Appliance Cabinets' },
+          { value: 'lift_up_systems', label: 'Lift-Up Systems' },
+          { value: 'corners', label: 'Corners' }
+        ];
+      case 'tall':
+        return [
+          { value: 'doors', label: 'Doors' },
+          { value: 'corners', label: 'Corners' },
+          { value: 'appliance_cabinets', label: 'Appliance Cabinets' }
+        ];
+      case 'panels':
+        return [
+          { value: 'base', label: 'Base' },
+          { value: 'top', label: 'Top' },
+          { value: 'pantry', label: 'Pantry' }
+        ];
+      default:
+        return [];
+    }
+  };
+
+  const availableSubcategories = getSubcategoriesForCategory(formData.category);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -123,23 +164,45 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
                 />
               </div>
               
-              <div className="grid gap-2">
-                <Label htmlFor="category">Category</Label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) => setFormData({ ...formData, category: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => setFormData({ ...formData, category: value, subcategory: "" })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category.charAt(0).toUpperCase() + category.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="subcategory">Filter Category</Label>
+                  <Select
+                    value={formData.subcategory}
+                    onValueChange={(value) => setFormData({ ...formData, subcategory: value })}
+                    disabled={!formData.category || availableSubcategories.length === 0}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select filter option" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableSubcategories.map((subcategory) => (
+                        <SelectItem key={subcategory.value} value={subcategory.value}>
+                          {subcategory.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               
               <div className="grid grid-cols-3 gap-2">

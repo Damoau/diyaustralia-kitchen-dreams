@@ -59,6 +59,7 @@ interface CabinetType {
   id: string;
   name: string;
   category: string;
+  subcategory?: string;
   default_width_mm: number;
   default_height_mm: number;
   default_depth_mm: number;
@@ -143,6 +144,7 @@ const Admin = () => {
         await supabase.from('cabinet_types').insert({
           name: cabinetType.name,
           category: cabinetType.category,
+          subcategory: cabinetType.subcategory || null,
           default_width_mm: cabinetType.default_width_mm || 300,
           default_height_mm: cabinetType.default_height_mm || 720,
           default_depth_mm: cabinetType.default_depth_mm || 560,
