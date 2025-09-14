@@ -135,35 +135,67 @@ const GetQuote = () => {
                 ))}
               </div>
 
-              {/* Australia Map */}
-              <Card className="mt-12 bg-gradient-to-r from-primary/5 to-blue-500/5">
-                <CardContent className="p-8 text-center">
-                  <div className="flex items-center justify-center gap-3 mb-6">
-                    <MapPin className="h-8 w-8 text-primary" />
-                    <h3 className="text-2xl font-semibold text-foreground">Australia-Wide Delivery</h3>
-                  </div>
-                  
-                  {/* Simple Australia outline SVG */}
-                  <div className="max-w-md mx-auto mb-6">
-                    <svg viewBox="0 0 400 300" className="w-full h-48">
-                      <path d="M50 150 Q80 100 120 120 L200 110 Q280 100 320 130 L350 160 Q360 200 340 220 L300 240 Q250 250 200 240 L120 250 Q80 230 60 200 Q40 180 50 150 Z" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" strokeWidth="2" className="animate-pulse" />
-                      <circle cx="120" cy="180" r="4" fill="hsl(var(--primary))" />
-                      <circle cx="200" cy="200" r="4" fill="hsl(var(--primary))" />
-                      <circle cx="280" cy="170" r="4" fill="hsl(var(--primary))" />
-                      <circle cx="320" cy="210" r="4" fill="hsl(var(--primary))" />
-                      <text x="120" y="195" className="text-xs fill-primary" textAnchor="middle">NSW</text>
-                      <text x="200" y="215" className="text-xs fill-primary" textAnchor="middle">VIC</text>
-                      <text x="280" y="185" className="text-xs fill-primary" textAnchor="middle">QLD</text>
-                      <text x="320" y="225" className="text-xs fill-primary" textAnchor="middle">SA</text>
-                    </svg>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="p-3 bg-white/50 rounded-lg">
-                      <strong className="text-primary">Flat Pack:</strong> Australia-wide
+              {/* Delivery Options */}
+              <Card className="mt-12 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+                <CardContent className="p-8">
+                  <div className="text-center mb-8">
+                    <div className="flex items-center justify-center gap-3 mb-4">
+                      <Truck className="h-8 w-8 text-primary" />
+                      <h3 className="text-2xl font-semibold text-foreground">Delivery Options</h3>
                     </div>
-                    <div className="p-3 bg-white/50 rounded-lg">
-                      <strong className="text-primary">Assembled:</strong> Selected areas
+                    <p className="text-muted-foreground">Choose the delivery method that works best for you</p>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    {/* Flat Pack Option */}
+                    <div className="bg-white/80 rounded-xl p-6 border border-primary/10">
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 bg-primary/10 rounded-lg flex-shrink-0">
+                          <MapPin className="h-6 w-6 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <h4 className="text-lg font-semibold text-foreground">Flat Pack Delivery</h4>
+                            <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
+                              Australia-Wide
+                            </Badge>
+                          </div>
+                          <p className="text-muted-foreground mb-3">
+                            Ready-to-assemble cabinets delivered to your door with all hardware and detailed instructions.
+                          </p>
+                          <div className="flex flex-wrap gap-2 text-sm">
+                            <span className="px-3 py-1 bg-primary/5 text-primary rounded-full">Free shipping over $2000</span>
+                            <span className="px-3 py-1 bg-primary/5 text-primary rounded-full">5-10 business days</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Assembled Option */}
+                    <div className="bg-white/80 rounded-xl p-6 border border-primary/10">
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 bg-primary/10 rounded-lg flex-shrink-0">
+                          <CheckCircle className="h-6 w-6 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <h4 className="text-lg font-semibold text-foreground">Assembled Delivery</h4>
+                            <Badge variant="outline" className="border-orange-200 text-orange-700">
+                              Metro Areas
+                            </Badge>
+                          </div>
+                          <p className="text-muted-foreground mb-3">
+                            Fully assembled cabinets delivered and positioned in your home by our professional team.
+                          </p>
+                          <div className="flex flex-wrap gap-2 text-sm mb-3">
+                            <span className="px-3 py-1 bg-primary/5 text-primary rounded-full">White glove service</span>
+                            <span className="px-3 py-1 bg-primary/5 text-primary rounded-full">Installation ready</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Available in Sydney, Melbourne, Brisbane, Perth, Adelaide metro areas
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
