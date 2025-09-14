@@ -287,8 +287,8 @@ const CabinetPricesNew = () => {
                                        e.currentTarget.style.display = "none";
                                      }}
                                    />
-                                   <div className="absolute bottom-2 left-2">
-                                     <p className="text-sm font-medium text-foreground bg-white/80 px-2 py-1 rounded">
+                                   <div className="absolute bottom-2 left-0 right-0">
+                                     <p className="text-center text-sm font-medium text-white drop-shadow-lg">
                                        {cabinetType.name}
                                      </p>
                                    </div>
@@ -332,8 +332,8 @@ const CabinetPricesNew = () => {
                                        <span className="text-sm text-muted-foreground">No Image</span>
                                      </div>
                                    )}
-                                   <div className="absolute bottom-2 left-2">
-                                     <p className="text-sm font-medium text-foreground bg-white/80 px-2 py-1 rounded">
+                                   <div className="absolute bottom-2 left-0 right-0">
+                                     <p className="text-center text-sm font-medium text-white drop-shadow-lg">
                                        {ctf.door_style?.name || 'Unknown Style'}
                                      </p>
                                    </div>
