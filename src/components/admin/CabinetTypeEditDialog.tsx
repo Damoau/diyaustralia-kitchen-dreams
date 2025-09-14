@@ -33,7 +33,7 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
   const [formData, setFormData] = useState({
     name: "",
     category: "",
-    subcategory: "",
+    subcategory: [] as string[],
     default_width_mm: 300,
     default_height_mm: 720,
     default_depth_mm: 560,
@@ -44,9 +44,7 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
     min_depth_mm: 200,
     max_depth_mm: 800,
     drawer_count: 0,
-    active: true,
-    min_price: 0,
-    max_price: 10000
+    active: true
   });
 
   useEffect(() => {
@@ -54,7 +52,7 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
       setFormData({
         name: cabinetType.name,
         category: cabinetType.category,
-        subcategory: (cabinetType as any).subcategory || "",
+        subcategory: (cabinetType as any).subcategory ? (cabinetType as any).subcategory.split(',') : [],
         default_width_mm: cabinetType.default_width_mm,
         default_height_mm: cabinetType.default_height_mm,
         default_depth_mm: cabinetType.default_depth_mm,
@@ -65,15 +63,13 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
         min_depth_mm: (cabinetType as any).min_depth_mm || 200,
         max_depth_mm: (cabinetType as any).max_depth_mm || 800,
         drawer_count: cabinetType.drawer_count,
-        active: cabinetType.active,
-        min_price: (cabinetType as any).min_price || 0,
-        max_price: (cabinetType as any).max_price || 10000
+        active: cabinetType.active
       });
     } else {
       setFormData({
         name: "",
         category: "",
-        subcategory: "",
+        subcategory: [] as string[],
         default_width_mm: 300,
         default_height_mm: 720,
         default_depth_mm: 560,
@@ -84,18 +80,18 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
         min_depth_mm: 200,
         max_depth_mm: 800,
         drawer_count: 0,
-        active: true,
-        min_price: 0,
-        max_price: 10000
+        active: true
       });
     }
   }, [cabinetType]);
 
   const handleSave = () => {
-    onSave({
+    const saveData = {
       id: cabinetType?.id,
-      ...formData
-    });
+      ...formData,
+      subcategory: formData.subcategory.length > 0 ? formData.subcategory.join(',') : null
+    };
+    onSave(saveData as any);
   };
 
   const categories = ["base", "wall", "tall", "panels"];
@@ -169,7 +165,7 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
                   <Label htmlFor="category">Category</Label>
                   <Select
                     value={formData.category}
-                    onValueChange={(value) => setFormData({ ...formData, category: value, subcategory: "" })}
+                    onValueChange={(value) => setFormData({ ...formData, category: value, subcategory: [] })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
@@ -185,23 +181,42 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
                 </div>
                 
                 <div className="grid gap-2">
-                  <Label htmlFor="subcategory">Filter Category</Label>
-                  <Select
-                    value={formData.subcategory}
-                    onValueChange={(value) => setFormData({ ...formData, subcategory: value })}
-                    disabled={!formData.category || availableSubcategories.length === 0}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select filter option" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableSubcategories.map((subcategory) => (
-                        <SelectItem key={subcategory.value} value={subcategory.value}>
-                          {subcategory.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="subcategory">Filter Categories</Label>
+                  <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
+                    {availableSubcategories.length > 0 ? (
+                      availableSubcategories.map((subcategory) => (
+                        <div key={subcategory.value} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`subcategory-${subcategory.value}`}
+                            checked={formData.subcategory.includes(subcategory.value)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({ 
+                                  ...formData, 
+                                  subcategory: [...formData.subcategory, subcategory.value] 
+                                });
+                              } else {
+                                setFormData({ 
+                                  ...formData, 
+                                  subcategory: formData.subcategory.filter(s => s !== subcategory.value) 
+                                });
+                              }
+                            }}
+                            className="rounded border-gray-300"
+                          />
+                          <Label 
+                            htmlFor={`subcategory-${subcategory.value}`}
+                            className="text-sm font-normal cursor-pointer"
+                          >
+                            {subcategory.label}
+                          </Label>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Select a category first</p>
+                    )}
+                  </div>
                 </div>
               </div>
               
@@ -323,28 +338,6 @@ const CabinetTypeEditDialog = ({ cabinetType, open, onOpenChange, onSave }: Cabi
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label htmlFor="min_price">Min Price ($)</Label>
-                  <Input
-                    id="min_price"
-                    type="number"
-                    step="0.01"
-                    value={formData.min_price}
-                    onChange={(e) => setFormData({ ...formData, min_price: parseFloat(e.target.value) || 0 })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="max_price">Max Price ($)</Label>
-                  <Input
-                    id="max_price"
-                    type="number"
-                    step="0.01"
-                    value={formData.max_price}
-                    onChange={(e) => setFormData({ ...formData, max_price: parseFloat(e.target.value) || 0 })}
-                  />
-                </div>
-              </div>
               
               <div className="flex items-center space-x-2">
                 <Switch

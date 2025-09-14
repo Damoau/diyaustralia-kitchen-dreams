@@ -43,7 +43,7 @@ const TopCabinets = () => {
         .order("subcategory_display_order", { ascending: true });
 
       if (selectedFilter !== 'all') {
-        query = query.eq("subcategory", selectedFilter);
+        query = query.or(`subcategory.eq.${selectedFilter},subcategory.like.%${selectedFilter}%`);
       }
 
       const { data, error } = await query;
