@@ -69,6 +69,17 @@ export function PriceBreakdown({
   const totalDoorRate = doorStyleBaseRate + doorStyleFinishRate + colorSurcharge;
   const doorCost = (widthM * heightM) * qtyDoors * totalDoorRate;
   
+  console.log('PriceBreakdown door calculation:', {
+    doorStyleFinish,
+    doorStyleBaseRate,
+    doorStyleFinishRate,
+    colorSurcharge,
+    totalDoorRate,
+    qtyDoors,
+    area: widthM * heightM,
+    doorCost
+  });
+  
   // Totals (no wastage applied)
   const subtotal = backCost + bottomCost + sideCost + doorCost + hardwareCost;
   const gstAmount = subtotal * settings.gstRate;

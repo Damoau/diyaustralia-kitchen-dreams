@@ -744,7 +744,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                           doorStyleFinish={{
                             id: selectedDoorStyle,
                             name: availableDoorStyles.find(s => s.id === selectedDoorStyle)?.name || 'Standard',
-                            rate_per_sqm: availableDoorStyles.find(s => s.id === selectedDoorStyle)?.base_rate_per_sqm || 0,
+                            rate_per_sqm: 0, // Don't duplicate base rate here
                             door_style_id: selectedDoorStyle,
                             sort_order: 0,
                             active: true,
