@@ -153,6 +153,14 @@ class PricingService {
 
     // Hardware cost - calculate based on admin configuration
     let hardwareCost = 0;
+    console.log('Hardware calculation inputs:', {
+      hardwareBrandId,
+      hardwareRequirementsCount: hardwareRequirements.length,
+      hardwareOptionsCount: hardwareOptions.length,
+      hardwareRequirements: hardwareRequirements.map(r => ({ id: r.id, type: r.hardware_type?.name, units: r.units_per_scope })),
+      hardwareOptions: hardwareOptions.map(o => ({ id: o.id, brandId: o.hardware_brand_id, requirementId: o.requirement_id, product: o.hardware_product?.name, cost: o.hardware_product?.cost_per_unit }))
+    });
+    
     if (hardwareBrandId && hardwareBrandId !== 'none' && hardwareRequirements.length > 0) {
       hardwareRequirements.forEach(requirement => {
         // Find matching option for this requirement and selected brand
@@ -160,6 +168,16 @@ class PricingService {
           option.requirement_id === requirement.id && 
           option.hardware_brand_id === hardwareBrandId
         );
+        
+        console.log('Looking for hardware option:', {
+          requirementId: requirement.id,
+          hardwareBrandId,
+          matchingOption: matchingOption ? {
+            id: matchingOption.id,
+            product: matchingOption.hardware_product?.name,
+            cost: matchingOption.hardware_product?.cost_per_unit
+          } : 'NOT FOUND'
+        });
         
         if (matchingOption && matchingOption.hardware_product) {
           const costPerUnit = matchingOption.hardware_product.cost_per_unit || 0;
@@ -180,9 +198,11 @@ class PricingService {
         }
       });
     } else {
-      // No hardware selected
-      hardwareCost = 0;
-      console.log('No hardware selected, cost = 0');
+      console.log('No hardware calculation because:', {
+        hardwareBrandId,
+        isNone: hardwareBrandId === 'none',
+        requirementsLength: hardwareRequirements.length
+      });
     }
 
     // Calculate totals
