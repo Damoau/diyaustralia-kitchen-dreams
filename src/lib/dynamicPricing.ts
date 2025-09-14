@@ -105,9 +105,8 @@ export function calculateCabinetPrice(
   // Sum all costs
   const subtotal = backCost + bottomCost + sideCost + doorCost + hardwareCost;
   
-  // Apply wastage factor and GST
-  const subtotalWithWastage = subtotal * (1 + settings.wastageFactor);
-  const totalCost = subtotalWithWastage * (1 + settings.gstRate);
+  // Apply GST directly to subtotal (no wastage)
+  const totalCost = subtotal * (1 + settings.gstRate);
   
   return Math.round(totalCost); // Round to nearest dollar
 }

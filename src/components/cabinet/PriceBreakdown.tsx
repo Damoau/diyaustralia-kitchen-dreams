@@ -68,12 +68,10 @@ export function PriceBreakdown({
   const totalDoorRate = doorStyleBaseRate + doorStyleFinishRate + colorSurcharge + carcassMaterialRate;
   const doorCost = (widthM * heightM) * qtyDoors * totalDoorRate;
   
-  // Totals
+  // Totals (no wastage applied)
   const subtotal = backCost + bottomCost + sideCost + doorCost + hardwareCost;
-  const wastageAmount = subtotal * settings.wastageFactor;
-  const subtotalWithWastage = subtotal + wastageAmount;
-  const gstAmount = subtotalWithWastage * settings.gstRate;
-  const finalTotal = subtotalWithWastage + gstAmount;
+  const gstAmount = subtotal * settings.gstRate;
+  const finalTotal = subtotal + gstAmount;
 
   return (
     <Card className="w-full">
@@ -164,11 +162,6 @@ export function PriceBreakdown({
           <div className="flex justify-between items-center">
             <span>Subtotal:</span>
             <span>{formatPrice(subtotal)}</span>
-          </div>
-          
-          <div className="flex justify-between items-center text-sm text-muted-foreground">
-            <span>Wastage ({(settings.wastageFactor * 100).toFixed(1)}%):</span>
-            <span>{formatPrice(wastageAmount)}</span>
           </div>
           
           <div className="flex justify-between items-center text-sm text-muted-foreground">

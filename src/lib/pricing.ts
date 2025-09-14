@@ -104,7 +104,7 @@ export function generateCutlist(
     hardwareCost = hardwareQuantity * settings.hardwareBaseCost;
   }
 
-  // Total cost (excluding GST for now)
+  // Total cost (no wastage applied)
   const subtotal = carcassCost + doorCost + hardwareCost;
   const totalCost = subtotal * (1 + settings.gstRate);
 
@@ -152,8 +152,8 @@ function calculateCarcassCost(
   
   const totalCarcassCost = backCost + bottomCost + sideCost;
   
-  // Apply wastage factor
-  return totalCarcassCost * (1 + settings.wastageFactor);
+  // Return without wastage factor
+  return totalCarcassCost;
 }
 
 // Calculate door cost using your specific formula
@@ -181,8 +181,8 @@ function calculateDoorCost(
   
   const doorCost = (widthM * heightM) * qtyDoors * totalDoorRate;
   
-  // Apply wastage factor
-  return doorCost * (1 + settings.wastageFactor);
+  // Return without wastage factor
+  return doorCost;
 }
 
 export function formatPrice(price: number): string {
