@@ -145,20 +145,39 @@ export const useDynamicPricing = ({
     refetchInterval: refreshInterval
   });
 
-  // Fetch hardware options for the selected brand
+  // Fetch hardware options for the selected brand and cabinet type
   const { data: hardwareOptions } = useQuery({
     queryKey: ['hardware-options', cabinetTypeId, hardwareBrandId],
     queryFn: async () => {
       if (!cabinetTypeId || !hardwareBrandId || hardwareBrandId === 'none') return [];
+      
+      // First get the requirements for this cabinet type
+      const { data: requirements, error: reqError } = await supabase
+        .from('cabinet_hardware_requirements')
+        .select('id')
+        .eq('cabinet_type_id', cabinetTypeId)
+        .eq('active', true);
+      
+      if (reqError) throw reqError;
+      if (!requirements?.length) return [];
+      
+      const requirementIds = requirements.map(r => r.id);
+      
+      // Then get options that match both the brand and these requirements
       const { data, error } = await supabase
         .from('cabinet_hardware_options')
         .select(`
           *,
           hardware_product:hardware_products(*),
-          requirement:cabinet_hardware_requirements(*)
+          requirement:cabinet_hardware_requirements(
+            *,
+            hardware_type:hardware_types(*)
+          )
         `)
         .eq('hardware_brand_id', hardwareBrandId)
-        .eq('active', true);
+        .eq('active', true)
+        .in('requirement_id', requirementIds);
+        
       if (error) throw error;
       return data || [];
     },
