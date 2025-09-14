@@ -342,9 +342,12 @@ const BaseCabinets = () => {
                            </td>
                              {sizeData.price?.map((price: number, priceIndex: number) => (
                                <td key={priceIndex} className="border border-gray-300 px-4 py-3 text-center">
-                                 <div className="text-lg font-bold text-foreground px-2 py-1 w-full">
+                                 <span 
+                                   className="text-lg font-bold px-2 py-1 w-full inline-block"
+                                   style={{ color: 'hsl(var(--foreground))', textDecoration: 'none', cursor: 'default' }}
+                                 >
                                    {formatPrice(price)}
-                                 </div>
+                                 </span>
                                </td>
                              ))}
                          </tr>
