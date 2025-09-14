@@ -152,7 +152,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-8">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
@@ -172,9 +172,9 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
           ) : (
             <>
               {/* Cabinet Info */}
-              <div className="flex gap-6">
-                <div className="flex-shrink-0">
-                  <div className="w-32 h-32 bg-muted rounded-lg overflow-hidden">
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                <div className="flex-shrink-0 self-center sm:self-start">
+                  <div className="w-24 h-24 sm:w-32 sm:h-32 bg-muted rounded-lg overflow-hidden mx-auto sm:mx-0">
                     {getCurrentCabinetImage() ? (
                       <img
                         src={getCurrentCabinetImage()}
@@ -188,15 +188,15 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                     )}
                   </div>
                 </div>
-                <div className="flex-grow">
-                  <h3 className="text-xl font-semibold">{cabinetType.name}</h3>
+                <div className="flex-grow text-center sm:text-left">
+                  <h3 className="text-lg sm:text-xl font-semibold">{cabinetType.name}</h3>
                   <p className="text-muted-foreground">Base Cabinet</p>
                   {cabinetType.short_description && (
                     <p className="text-sm text-muted-foreground mt-2">
                       {cabinetType.short_description}
                     </p>
                   )}
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex flex-wrap gap-2 mt-2 justify-center sm:justify-start">
                     <Badge variant="secondary">
                       {cabinetType.door_count} Door{cabinetType.door_count !== 1 ? 's' : ''}
                     </Badge>
@@ -212,7 +212,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
               <Separator />
 
               {/* Dimensions */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <Label className="text-xs text-muted-foreground">Width (mm)</Label>
                   <Input
@@ -258,7 +258,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
               </div>
 
               {/* Door Style, Color & Hardware Selection */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label>Door Style</Label>
                   <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
@@ -384,7 +384,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
               )}
 
               {/* Quantity & Actions */}
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <Label>Quantity</Label>
                   <div className="flex items-center gap-2">
@@ -410,7 +410,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                 <Button
                   onClick={handleAddToCart}
                   disabled={isAddingToCart || !selectedDoorStyle || !selectedHardwareBrand}
-                  className="min-w-32"
+                  className="min-w-32 w-full sm:w-auto"
                 >
                   {isAddingToCart ? (
                     <>Adding...</>
