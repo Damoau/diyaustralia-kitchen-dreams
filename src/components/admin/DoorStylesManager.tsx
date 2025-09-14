@@ -169,6 +169,39 @@ export function DoorStylesManager() {
     fileInputRefs.current[styleId]?.click();
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent, styleId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+    
+    if (imageFile) {
+      handleImageUpload(styleId, imageFile);
+    } else {
+      toast({
+        title: "Error",
+        description: "Please drop an image file",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return <div>Loading door styles...</div>;
   }
@@ -236,7 +269,14 @@ export function DoorStylesManager() {
                     />
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
+                    <div 
+                      className="flex items-center gap-2 p-2 border-2 border-dashed border-gray-200 rounded hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer"
+                      onDrop={(e) => handleDrop(e, style.id)}
+                      onDragOver={handleDragOver}
+                      onDragEnter={handleDragEnter}
+                      onDragLeave={handleDragLeave}
+                      onClick={() => triggerFileInput(style.id)}
+                    >
                       {style.image_url && (
                         <img 
                           src={style.image_url} 
@@ -254,20 +294,16 @@ export function DoorStylesManager() {
                           if (file) handleImageUpload(style.id, file);
                         }}
                       />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => triggerFileInput(style.id)}
-                        disabled={uploadingImages[style.id]}
-                      >
+                      <div className="flex flex-col items-center gap-1">
                         {uploadingImages[style.id] ? (
                           <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
-                        ) : style.image_url ? (
-                          <Image className="h-4 w-4" />
                         ) : (
-                          <Upload className="h-4 w-4" />
+                          <Upload className="h-4 w-4 text-gray-400" />
                         )}
-                      </Button>
+                        <span className="text-xs text-gray-500">
+                          {uploadingImages[style.id] ? 'Uploading...' : 'Drop or click'}
+                        </span>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>

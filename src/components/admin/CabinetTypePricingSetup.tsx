@@ -385,6 +385,39 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
     fileInputRefs.current[finishId]?.click();
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent, finishId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+    
+    if (imageFile) {
+      handleImageUpload(finishId, imageFile);
+    } else {
+      toast({
+        title: "Error",
+        description: "Please drop an image file",
+        variant: "destructive",
+      });
+    }
+  };
+
   const autoGenerateRanges = async () => {
     if (autoGenMin >= autoGenMax) {
       toast({
@@ -503,7 +536,13 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                     {/* Image preview and upload */}
                     <div className="space-y-2">
                       {finish.image_url ? (
-                        <div className="relative">
+                        <div 
+                          className="relative"
+                          onDrop={(e) => handleDrop(e, finish.id)}
+                          onDragOver={handleDragOver}
+                          onDragEnter={handleDragEnter}
+                          onDragLeave={handleDragLeave}
+                        >
                           <img 
                             src={finish.image_url} 
                             alt={`${doorStyle.name} cabinet`}
@@ -520,23 +559,37 @@ export function CabinetTypePricingSetup({ cabinetTypeId }: CabinetTypePricingSet
                           </Button>
                         </div>
                       ) : (
-                        <div className="w-full h-32 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center bg-gray-50">
+                        <div 
+                          className="w-full h-32 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center bg-gray-50 hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer"
+                          onDrop={(e) => handleDrop(e, finish.id)}
+                          onDragOver={handleDragOver}
+                          onDragEnter={handleDragEnter}
+                          onDragLeave={handleDragLeave}
+                          onClick={() => triggerFileInput(finish.id)}
+                        >
                           <ImageIcon className="h-8 w-8 text-gray-400 mb-2" />
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => triggerFileInput(finish.id)}
-                            disabled={uploadingImages.has(finish.id)}
-                          >
+                          <div className="text-center">
                             {uploadingImages.has(finish.id) ? (
-                              "Uploading..."
+                              <span className="text-sm text-muted-foreground">Uploading...</span>
                             ) : (
                               <>
-                                <Upload className="h-3 w-3 mr-1" />
-                                Upload Image
+                                <p className="text-sm text-muted-foreground mb-1">
+                                  Drop image here or click to upload
+                                </p>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    triggerFileInput(finish.id);
+                                  }}
+                                >
+                                  <Upload className="h-3 w-3 mr-1" />
+                                  Upload Image
+                                </Button>
                               </>
                             )}
-                          </Button>
+                          </div>
                         </div>
                       )}
                       
