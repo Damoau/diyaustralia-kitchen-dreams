@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -266,84 +267,173 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                 </div>
 
                 {/* Compact Dimensions Grid */}
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <Label className="text-xs">Width</Label>
-                    <Input
-                      type="number"
-                      value={width === 0 ? '' : width}
-                      onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
-                      className="mt-1 h-7 text-xs"
-                    />
+                <TooltipProvider>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <Label className="text-xs">Width</Label>
+                      <Input
+                        type="number"
+                        value={width === 0 ? '' : width}
+                        onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
+                        className="mt-1 h-7 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Height</Label>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          value={height === 0 ? '' : height}
+                          onChange={(e) => handleHeightChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                          className={`mt-1 h-7 text-xs pr-8 ${locks.height ? 'border-primary border-2' : ''}`}
+                        />
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleLock('height')}
+                              className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 p-0 hover:bg-primary/10"
+                            >
+                              {locks.height ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Lock this height setting for all future cabinet configurations</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Depth</Label>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          value={depth === 0 ? '' : depth}
+                          onChange={(e) => handleDepthChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                          className={`mt-1 h-7 text-xs pr-8 ${locks.depth ? 'border-primary border-2' : ''}`}
+                        />
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleLock('depth')}
+                              className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 p-0 hover:bg-primary/10"
+                            >
+                              {locks.depth ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Lock this depth setting for all future cabinet configurations</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <Label className="text-xs">Height</Label>
-                     <Input
-                       type="number"
-                       value={height === 0 ? '' : height}
-                       onChange={(e) => handleHeightChange(e.target.value === '' ? 0 : Number(e.target.value))}
-                       className={`mt-1 h-7 text-xs ${locks.height ? 'border-primary border-2' : ''}`}
-                     />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Depth</Label>
-                     <Input
-                       type="number"
-                       value={depth === 0 ? '' : depth}
-                       onChange={(e) => handleDepthChange(e.target.value === '' ? 0 : Number(e.target.value))}
-                       className={`mt-1 h-7 text-xs ${locks.depth ? 'border-primary border-2' : ''}`}
-                     />
-                  </div>
-                </div>
+                </TooltipProvider>
 
                 {/* Compact Selection Grid */}
-                <div className="grid grid-cols-1 gap-2">
-                  <div>
-                    <Label className="text-xs">Door Style</Label>
-                    <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
-                      <SelectTrigger className="mt-1 h-7 text-xs">
-                        <SelectValue placeholder="Select style" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background border z-50">
-                        {availableDoorStyles.map((style) => (
-                          <SelectItem key={style.id} value={style.id}>
-                            <span className="text-xs">{style.name}</span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                <TooltipProvider>
+                  <div className="grid grid-cols-1 gap-2">
+                    <div>
+                      <Label className="text-xs">Door Style</Label>
+                      <div className="relative">
+                        <Select value={selectedDoorStyle} onValueChange={handleDoorStyleChange}>
+                          <SelectTrigger className={`mt-1 h-7 text-xs pr-8 ${locks.doorStyle ? 'border-primary border-2' : ''}`}>
+                            <SelectValue placeholder="Select style" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border z-50">
+                            {availableDoorStyles.map((style) => (
+                              <SelectItem key={style.id} value={style.id}>
+                                <span className="text-xs">{style.name}</span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleLock('doorStyle')}
+                              className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 p-0 hover:bg-primary/10 z-10"
+                            >
+                              {locks.doorStyle ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Lock this door style for all future cabinet configurations</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-xs">Color</Label>
+                      <div className="relative">
+                        <Select value={selectedColor} onValueChange={handleColorChange}>
+                          <SelectTrigger className={`mt-1 h-7 text-xs pr-8 ${locks.color ? 'border-primary border-2' : ''}`}>
+                            <SelectValue placeholder="Select color" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border z-50">
+                            {(availableColors || []).map((color) => (
+                              <SelectItem key={color.id} value={color.id}>
+                                <span className="text-xs">{color.name}</span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleLock('color')}
+                              className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 p-0 hover:bg-primary/10 z-10"
+                            >
+                              {locks.color ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Lock this color for all future cabinet configurations</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-xs">Hardware</Label>
+                      <div className="relative">
+                        <Select value={selectedHardwareBrand} onValueChange={handleHardwareChange}>
+                          <SelectTrigger className={`mt-1 h-7 text-xs pr-8 ${locks.hardware ? 'border-primary border-2' : ''}`}>
+                            <SelectValue placeholder="Select hardware" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border z-50">
+                            <SelectItem value="none">No Hardware</SelectItem>
+                            <SelectItem value="blum">Blum</SelectItem>
+                            <SelectItem value="titus">Titus</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleLock('hardware')}
+                              className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 p-0 hover:bg-primary/10 z-10"
+                            >
+                              {locks.hardware ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Lock this hardware selection for all future cabinet configurations</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div>
-                    <Label className="text-xs">Color</Label>
-                    <Select value={selectedColor} onValueChange={setSelectedColor}>
-                      <SelectTrigger className="mt-1 h-7 text-xs">
-                        <SelectValue placeholder="Select color" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background border z-50">
-                        {(availableColors || []).map((color) => (
-                          <SelectItem key={color.id} value={color.id}>
-                            <span className="text-xs">{color.name}</span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label className="text-xs">Hardware</Label>
-                    <Select value={selectedHardwareBrand} onValueChange={setSelectedHardwareBrand}>
-                      <SelectTrigger className="mt-1 h-7 text-xs">
-                        <SelectValue placeholder="Select hardware" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background border z-50">
-                        <SelectItem value="none">No Hardware</SelectItem>
-                        <SelectItem value="blum">Blum</SelectItem>
-                        <SelectItem value="titus">Titus</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                </TooltipProvider>
               </div>
 
               {/* Desktop/Tablet Layout: More Compact Side by side */}
@@ -393,156 +483,194 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                       </CardContent>
                     </Card>
 
-                     {/* Compact Dimensions */}
-                     <div className="space-y-2">
-                       <h3 className="font-medium text-base">Dimensions</h3>
-                       <div className="grid grid-cols-3 gap-2">
-                         <div>
-                           <div className="flex items-center gap-1">
-                             <Label className="text-xs">Width (mm)</Label>
-                           </div>
-                           <Input
-                             type="number"
-                             value={width === 0 ? '' : width}
-                             onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
-                             className="mt-1 h-8 text-sm"
-                           />
-                         </div>
-                         <div>
-                           <div className="flex items-center gap-1">
-                             <Label className="text-xs">Height (mm)</Label>
-                             <Button
-                               variant="ghost"
-                               size="sm"
-                               onClick={() => toggleLock('height')}
-                               className="h-4 w-4 p-0 hover:bg-primary/10"
-                             >
-                               {locks.height ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
-                             </Button>
-                           </div>
-                           <Input
-                             type="number"
-                             value={height === 0 ? '' : height}
-                             onChange={(e) => handleHeightChange(e.target.value === '' ? 0 : Number(e.target.value))}
-                             className={`mt-1 h-8 text-sm ${locks.height ? 'border-primary border-2' : ''}`}
-                           />
-                         </div>
-                         <div>
-                           <div className="flex items-center gap-1">
-                             <Label className="text-xs">Depth (mm)</Label>
-                             <Button
-                               variant="ghost"
-                               size="sm"
-                               onClick={() => toggleLock('depth')}
-                               className="h-4 w-4 p-0 hover:bg-primary/10"
-                             >
-                               {locks.depth ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
-                             </Button>
-                           </div>
-                           <Input
-                             type="number"
-                             value={depth === 0 ? '' : depth}
-                             onChange={(e) => handleDepthChange(e.target.value === '' ? 0 : Number(e.target.value))}
-                             className={`mt-1 h-8 text-sm ${locks.depth ? 'border-primary border-2' : ''}`}
-                           />
-                         </div>
-                       </div>
-                     </div>
+                    {/* Compact Dimensions */}
+                    <TooltipProvider>
+                      <div className="space-y-2">
+                        <h3 className="font-medium text-base">Dimensions</h3>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <Label className="text-xs">Width (mm)</Label>
+                            <Input
+                              type="number"
+                              value={width === 0 ? '' : width}
+                              onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
+                              className="mt-1 h-8 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs">Height (mm)</Label>
+                            <div className="relative">
+                              <Input
+                                type="number"
+                                value={height === 0 ? '' : height}
+                                onChange={(e) => handleHeightChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                                className={`mt-1 h-8 text-sm pr-8 ${locks.height ? 'border-primary border-2' : ''}`}
+                              />
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => toggleLock('height')}
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-primary/10"
+                                  >
+                                    {locks.height ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Lock this height setting for all future cabinet configurations</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </div>
+                          <div>
+                            <Label className="text-xs">Depth (mm)</Label>
+                            <div className="relative">
+                              <Input
+                                type="number"
+                                value={depth === 0 ? '' : depth}
+                                onChange={(e) => handleDepthChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                                className={`mt-1 h-8 text-sm pr-8 ${locks.depth ? 'border-primary border-2' : ''}`}
+                              />
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => toggleLock('depth')}
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-primary/10"
+                                  >
+                                    {locks.depth ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Lock this depth setting for all future cabinet configurations</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </TooltipProvider>
 
                     {/* Door Style and Color in same row */}
-                    <div className="space-y-2">
-                       <div className="grid grid-cols-2 gap-3">
-                         <div>
-                           <div className="flex items-center gap-1">
+                    <TooltipProvider>
+                      <div className="space-y-2">
+                         <div className="grid grid-cols-2 gap-3">
+                           <div>
                              <Label className="text-sm">Door Style</Label>
-                             <Button
-                               variant="ghost"
-                               size="sm"
-                               onClick={() => toggleLock('doorStyle')}
-                               className="h-4 w-4 p-0 hover:bg-primary/10"
-                             >
-                               {locks.doorStyle ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
-                             </Button>
+                             <div className="relative">
+                               <Select value={selectedDoorStyle} onValueChange={handleDoorStyleChange}>
+                                 <SelectTrigger className={`mt-1 h-9 pr-8 ${locks.doorStyle ? 'border-primary border-2' : ''}`}>
+                                   <SelectValue placeholder="Select style" />
+                                 </SelectTrigger>
+                                 <SelectContent className="bg-background border z-50">
+                                   {availableDoorStyles.map((style) => (
+                                     <SelectItem key={style.id} value={style.id}>
+                                       <div className="flex items-center justify-between w-full">
+                                         <span>{style.name}</span>
+                                         <Badge variant="outline" className="ml-2 text-xs">
+                                           {pricingService.formatPrice(style.base_rate_per_sqm)}/m²
+                                         </Badge>
+                                       </div>
+                                     </SelectItem>
+                                   ))}
+                                 </SelectContent>
+                               </Select>
+                               <Tooltip>
+                                 <TooltipTrigger asChild>
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     onClick={() => toggleLock('doorStyle')}
+                                     className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-primary/10 z-10"
+                                   >
+                                     {locks.doorStyle ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                                   </Button>
+                                 </TooltipTrigger>
+                                 <TooltipContent>
+                                   <p>Lock this door style for all future cabinet configurations</p>
+                                 </TooltipContent>
+                               </Tooltip>
+                             </div>
                            </div>
-                           <Select value={selectedDoorStyle} onValueChange={handleDoorStyleChange}>
-                             <SelectTrigger className={`mt-1 h-9 ${locks.doorStyle ? 'border-primary border-2' : ''}`}>
-                               <SelectValue placeholder="Select style" />
-                             </SelectTrigger>
-                             <SelectContent className="bg-background border z-50">
-                               {availableDoorStyles.map((style) => (
-                                 <SelectItem key={style.id} value={style.id}>
-                                   <div className="flex items-center justify-between w-full">
-                                     <span>{style.name}</span>
-                                     <Badge variant="outline" className="ml-2 text-xs">
-                                       {pricingService.formatPrice(style.base_rate_per_sqm)}/m²
-                                     </Badge>
-                                   </div>
-                                 </SelectItem>
-                               ))}
-                             </SelectContent>
-                           </Select>
-                         </div>
-                         
-                         <div>
-                           <div className="flex items-center gap-1">
+                           
+                           <div>
                              <Label className="text-sm">Color</Label>
-                             <Button
-                               variant="ghost"
-                               size="sm"
-                               onClick={() => toggleLock('color')}
-                               className="h-4 w-4 p-0 hover:bg-primary/10"
-                             >
-                               {locks.color ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
-                             </Button>
+                             <div className="relative">
+                               <Select value={selectedColor} onValueChange={handleColorChange}>
+                                 <SelectTrigger className={`mt-1 h-9 pr-8 ${locks.color ? 'border-primary border-2' : ''}`}>
+                                   <SelectValue placeholder="Select color" />
+                                 </SelectTrigger>
+                                 <SelectContent className="bg-background border z-50">
+                                   {(availableColors || []).map((color) => (
+                                     <SelectItem key={color.id} value={color.id}>
+                                       <div className="flex items-center gap-2">
+                                         {color.hex_code && (
+                                           <div
+                                             className="w-3 h-3 rounded border"
+                                             style={{ backgroundColor: color.hex_code }}
+                                           />
+                                         )}
+                                         <span>{color.name}</span>
+                                       </div>
+                                     </SelectItem>
+                                   ))}
+                                 </SelectContent>
+                               </Select>
+                               <Tooltip>
+                                 <TooltipTrigger asChild>
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     onClick={() => toggleLock('color')}
+                                     className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-primary/10 z-10"
+                                   >
+                                     {locks.color ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                                   </Button>
+                                 </TooltipTrigger>
+                                 <TooltipContent>
+                                   <p>Lock this color for all future cabinet configurations</p>
+                                 </TooltipContent>
+                               </Tooltip>
+                             </div>
                            </div>
-                           <Select value={selectedColor} onValueChange={handleColorChange}>
-                             <SelectTrigger className={`mt-1 h-9 ${locks.color ? 'border-primary border-2' : ''}`}>
-                               <SelectValue placeholder="Select color" />
-                             </SelectTrigger>
-                             <SelectContent className="bg-background border z-50">
-                               {(availableColors || []).map((color) => (
-                                 <SelectItem key={color.id} value={color.id}>
-                                   <div className="flex items-center gap-2">
-                                     {color.hex_code && (
-                                       <div
-                                         className="w-3 h-3 rounded border"
-                                         style={{ backgroundColor: color.hex_code }}
-                                       />
-                                     )}
-                                     <span>{color.name}</span>
-                                   </div>
-                                 </SelectItem>
-                               ))}
-                             </SelectContent>
-                           </Select>
                          </div>
-                       </div>
-                      
-                       {/* Hardware under Door Style and Color */}
-                       <div>
-                         <div className="flex items-center gap-1">
+                        
+
+                         {/* Hardware under Door Style and Color */}
+                         <div>
                            <Label className="text-sm">Hardware Brand</Label>
-                           <Button
-                             variant="ghost"
-                             size="sm"
-                             onClick={() => toggleLock('hardware')}
-                             className="h-4 w-4 p-0 hover:bg-primary/10"
-                           >
-                             {locks.hardware ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
-                           </Button>
+                           <div className="relative">
+                             <Select value={selectedHardwareBrand} onValueChange={handleHardwareChange}>
+                               <SelectTrigger className={`mt-1 h-9 pr-8 ${locks.hardware ? 'border-primary border-2' : ''}`}>
+                                 <SelectValue placeholder="Select hardware" />
+                               </SelectTrigger>
+                               <SelectContent className="bg-background border z-50">
+                                 <SelectItem value="none">No Hardware</SelectItem>
+                                 <SelectItem value="blum">Blum</SelectItem>
+                                 <SelectItem value="titus">Titus</SelectItem>
+                               </SelectContent>
+                             </Select>
+                             <Tooltip>
+                               <TooltipTrigger asChild>
+                                 <Button
+                                   variant="ghost"
+                                   size="sm"
+                                   onClick={() => toggleLock('hardware')}
+                                   className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-primary/10 z-10"
+                                 >
+                                   {locks.hardware ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                                 </Button>
+                               </TooltipTrigger>
+                               <TooltipContent>
+                                 <p>Lock this hardware selection for all future cabinet configurations</p>
+                               </TooltipContent>
+                             </Tooltip>
+                           </div>
                          </div>
-                         <Select value={selectedHardwareBrand} onValueChange={handleHardwareChange}>
-                           <SelectTrigger className={`mt-1 h-9 ${locks.hardware ? 'border-primary border-2' : ''}`}>
-                             <SelectValue placeholder="Select hardware" />
-                           </SelectTrigger>
-                           <SelectContent className="bg-background border z-50">
-                             <SelectItem value="none">No Hardware</SelectItem>
-                             <SelectItem value="blum">Blum</SelectItem>
-                             <SelectItem value="titus">Titus</SelectItem>
-                           </SelectContent>
-                         </Select>
-                       </div>
-                    </div>
+                      </div>
+                    </TooltipProvider>
                   </div>
                 </div>
               </div>
