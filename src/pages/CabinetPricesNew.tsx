@@ -280,14 +280,15 @@ const CabinetPricesNew = () => {
                                   <img 
                                     src={cabinetType.product_image_url} 
                                     alt={`${cabinetType.name} Cabinet`}
-                                    className="w-full h-48 object-cover rounded-lg border shadow-sm"
+                                    className="w-full h-48 object-contain rounded-lg border shadow-sm"
+                                    style={{ imageRendering: 'crisp-edges' }}
                                     onError={(e) => {
                                       console.error("Cabinet image failed to load:", cabinetType.product_image_url);
                                       e.currentTarget.style.display = "none";
                                     }}
                                   />
-                                  <div className="absolute bottom-0 left-0 right-0 p-3 rounded-b-lg">
-                                    <p className="text-center text-sm font-medium text-black bg-white/80 backdrop-blur-sm rounded px-2 py-1 mx-auto inline-block">
+                                  <div className="absolute bottom-0 left-0 right-0 p-2">
+                                    <p className="text-center text-sm font-medium text-foreground">
                                       {cabinetType.name}
                                     </p>
                                   </div>
@@ -319,7 +320,8 @@ const CabinetPricesNew = () => {
                                     <img 
                                       src={ctf.image_url} 
                                       alt={`${cabinetType.name} - ${ctf.door_style?.name}`}
-                                      className="w-full h-48 object-cover rounded-lg border shadow-sm"
+                                      className="w-full h-48 object-contain rounded-lg border shadow-sm"
+                                      style={{ imageRendering: 'crisp-edges' }}
                                       onError={(e) => {
                                         console.error("Finish image failed to load:", ctf.image_url);
                                         e.currentTarget.style.display = "none";
@@ -330,8 +332,8 @@ const CabinetPricesNew = () => {
                                       <span className="text-sm text-muted-foreground">No Image</span>
                                     </div>
                                   )}
-                                  <div className="absolute bottom-0 left-0 right-0 p-3 rounded-b-lg">
-                                    <p className="text-center text-sm font-medium text-black bg-white/80 backdrop-blur-sm rounded px-2 py-1 mx-auto inline-block">
+                                  <div className="absolute bottom-0 left-0 right-0 p-2">
+                                    <p className="text-center text-sm font-medium text-foreground">
                                       {ctf.door_style?.name || 'Unknown Style'}
                                     </p>
                                   </div>
