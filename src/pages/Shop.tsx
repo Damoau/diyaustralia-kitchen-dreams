@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingCart, Package, Layers, Home, Wrench } from "lucide-react";
+import baseCabinetsImage from "@/assets/base-cabinets-hero.jpg";
 
 const Shop = () => {
   const categories = [
@@ -13,7 +14,7 @@ const Shop = () => {
       description: 'Foundation cabinets for your kitchen workspace',
       icon: <Home className="h-12 w-12 text-primary" />,
       path: '/shop/base-cabinets',
-      image: '/lovable-uploads/1fa9627e-0972-4137-b95b-ef3bcb26b66c.png' // Placeholder
+      image: baseCabinetsImage
     },
     {
       id: 'top-cabinets',
