@@ -16,6 +16,8 @@ import {
   MapPin,
   Download
 } from "lucide-react";
+import { OrderApprovals } from "./OrderApprovals";
+import { useApprovals } from "@/hooks/useApprovals";
 
 interface OrderDetailProps {
   orderId: string;
@@ -23,6 +25,7 @@ interface OrderDetailProps {
 
 export const OrderDetail = ({ orderId }: OrderDetailProps) => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const { approvals, isLoading: approvalsLoading, fetchApprovals } = useApprovals(orderId);
 
   // Mock data - in real app this would come from API
   const order = {
@@ -116,6 +119,13 @@ export const OrderDetail = ({ orderId }: OrderDetailProps) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Customer Approvals */}
+          <OrderApprovals 
+            orderId={orderId} 
+            approvals={approvals}
+            onUpdate={fetchApprovals}
+          />
+
           {/* Production Timeline */}
           <Card>
             <CardHeader>
