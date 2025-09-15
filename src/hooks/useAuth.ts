@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+type UserRole = 'admin' | 'customer' | 'sales_rep' | 'fulfilment';
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [roleKnown, setRoleKnown] = useState(false);
 
   useEffect(() => {
@@ -20,13 +23,14 @@ export const useAuth = () => {
         setIsLoading(true);
         // Defer Supabase call to avoid deadlocks
         setTimeout(() => {
-          checkAdminRole(session.user!.id).finally(() => {
+          checkUserRoles(session.user!.id).finally(() => {
             setRoleKnown(true);
             setIsLoading(false);
           });
         }, 0);
       } else {
         setIsAdmin(false);
+        setUserRoles([]);
         setRoleKnown(true);
         setIsLoading(false);
       }
@@ -39,7 +43,7 @@ export const useAuth = () => {
 
       if (session?.user) {
         setIsLoading(true);
-        checkAdminRole(session.user.id).finally(() => {
+        checkUserRoles(session.user.id).finally(() => {
           setRoleKnown(true);
           setIsLoading(false);
         });
@@ -52,20 +56,26 @@ export const useAuth = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const checkAdminRole = async (userId: string) => {
+  const checkUserRoles = async (userId: string) => {
     try {
-      console.log('Checking admin role for user:', userId);
+      console.log('Checking user roles for user:', userId);
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId)
-        .eq('role', 'admin')
-        .maybeSingle();
+        .eq('user_id', userId);
       
-      console.log('Admin role query result:', data, 'error:', error);
-      setIsAdmin(!!data && !error);
+      console.log('User roles query result:', data, 'error:', error);
+      if (data && !error) {
+        const roles = data.map(r => r.role as UserRole);
+        setUserRoles(roles);
+        setIsAdmin(roles.includes('admin'));
+      } else {
+        setUserRoles([]);
+        setIsAdmin(false);
+      }
     } catch (error) {
-      console.log('Error checking admin role:', error);
+      console.log('Error checking user roles:', error);
+      setUserRoles([]);
       setIsAdmin(false);
     }
   };
@@ -74,6 +84,11 @@ export const useAuth = () => {
     setIsLoading(true);
     await supabase.auth.signOut();
     setIsAdmin(false);
+    setUserRoles([]);
+  };
+
+  const hasRole = (role: UserRole): boolean => {
+    return userRoles.includes(role);
   };
 
   return {
@@ -81,8 +96,10 @@ export const useAuth = () => {
     session,
     isLoading,
     isAdmin,
+    userRoles,
     roleKnown,
     signOut,
+    hasRole,
     isAuthenticated: !!user
   };
 };

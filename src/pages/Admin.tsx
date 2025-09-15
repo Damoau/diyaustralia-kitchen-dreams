@@ -260,14 +260,88 @@ const Admin = () => {
           </div>
 
           <Tabs defaultValue="door-styles" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-8">
+              <TabsTrigger value="products">Products</TabsTrigger>
               <TabsTrigger value="door-styles">Door Styles</TabsTrigger>
               <TabsTrigger value="colors">Colors</TabsTrigger>
               <TabsTrigger value="cabinet-types">Cabinet Types</TabsTrigger>
               <TabsTrigger value="hardware">Hardware</TabsTrigger>
+              <TabsTrigger value="files">Files</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
               <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="products">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Product Catalog Management</CardTitle>
+                  <CardDescription>
+                    Manage your product catalog with options (Style → Colour → Finish) and variants
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12">
+                    <h3 className="text-lg font-semibold mb-4">Product Catalog</h3>
+                    <p className="text-muted-foreground mb-6">
+                      This is where you'll manage your complete product catalog including:
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-semibold mb-2">Products</h4>
+                        <p className="text-sm text-muted-foreground">Create and manage your main product categories (Base Cabinets, Wall Cabinets, etc.)</p>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-semibold mb-2">Options & Dependencies</h4>
+                        <p className="text-sm text-muted-foreground">Set up Style → Colour → Finish dependencies with validation rules</p>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-semibold mb-2">Variants & SKUs</h4>
+                        <p className="text-sm text-muted-foreground">Auto-generate variants from option combinations with unique SKUs</p>
+                      </div>
+                    </div>
+                    <div className="mt-8">
+                      <Button disabled className="bg-primary/20 text-primary">
+                        Product Management (Coming in Step 2)
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="files">
+              <Card>
+                <CardHeader>
+                  <CardTitle>File Management</CardTitle>
+                  <CardDescription>
+                    Manage customer uploads, plans, photos, and specifications
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12">
+                    <h3 className="text-lg font-semibold mb-4">File Management System</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Centralized file management for customer projects:
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-semibold mb-2">Customer Files</h4>
+                        <p className="text-sm text-muted-foreground">Plans, photos, specifications uploaded by customers</p>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-semibold mb-2">Project Documentation</h4>
+                        <p className="text-sm text-muted-foreground">Internal notes, drawings, and project files</p>
+                      </div>
+                    </div>
+                    <div className="mt-8">
+                      <Button disabled className="bg-primary/20 text-primary">
+                        File Management (Coming in Step 3)
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
             <TabsContent value="door-styles">
               <DoorStylesManager />
