@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuditLog } from '@/hooks/useAuditLog';
+import { useRateLimit } from '@/hooks/useRateLimit';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 export interface CheckoutData {
   id: string;
@@ -46,6 +49,14 @@ export const useCheckout = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { user, session } = useAuth();
+  const { logEvent } = useAuditLog();
+  const { trackCheckoutEvent } = useAnalytics();
+  
+  // Rate limiting for authentication attempts
+  const authRateLimit = useRateLimit('checkout_auth', {
+    maxAttempts: 5,
+    windowMinutes: 15,
+  });
 
   const startCheckout = async (cartId: string) => {
     setIsLoading(true);
@@ -67,6 +78,23 @@ export const useCheckout = () => {
       if (error) throw error;
 
       setCheckout(data as CheckoutData);
+      
+      // 6.8 Telemetry: Track checkout started
+      trackCheckoutEvent('started', { 
+        checkout_id: data.id,
+        cart_id: cartId,
+        user_authenticated: !!user?.id 
+      });
+
+      // 6.5 Security: Audit log checkout start
+      await logEvent({
+        actor_id: user?.id,
+        scope: 'checkout',
+        scope_id: data.id,
+        action: 'checkout.started',
+        after_data: { cart_id: cartId, session_id: sessionId }
+      });
+
       return data;
     } catch (error: any) {
       console.error('Error starting checkout:', error);
