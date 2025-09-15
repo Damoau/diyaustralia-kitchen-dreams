@@ -17,6 +17,8 @@ import {
   Download
 } from "lucide-react";
 import { OrderApprovals } from "./OrderApprovals";
+import { PaymentScheduleWidget } from "./PaymentScheduleWidget";
+import { ShippingTracker } from './ShippingTracker';
 import { useApprovals } from "@/hooks/useApprovals";
 
 interface OrderDetailProps {
@@ -187,54 +189,14 @@ export const OrderDetail = ({ orderId }: OrderDetailProps) => {
             </CardContent>
           </Card>
 
-          {/* Shipping Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Shipping Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Truck className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-medium">Status:</span>
-                  <Badge variant="outline">
-                    {order.shipping.status === "not_shipped" ? "Not Shipped" : order.shipping.status}
-                  </Badge>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-medium">Estimated Ship Date:</span>
-                  <span>{order.shipping.estimatedShipDate}</span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Package className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-medium">Pallets:</span>
-                  <span>{order.shipping.palletCount}</span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-medium">Dimensions:</span>
-                  <span>{order.shipping.dimensions}</span>
-                </div>
+          <PaymentScheduleWidget
+            orderId={orderId}
+            onPaymentComplete={() => {
+              console.log('Payment completed');
+            }}
+          />
 
-                {order.shipping.trackingNumber && (
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Tracking:</span>
-                    <a 
-                      href="#" 
-                      className="text-primary hover:underline"
-                      onClick={(e) => e.preventDefault()}
-                    >
-                      {order.shipping.trackingNumber}
-                    </a>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <ShippingTracker orderId={orderId} />
         </div>
 
         {/* Sidebar */}
