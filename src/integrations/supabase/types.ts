@@ -300,6 +300,7 @@ export type Database = {
           backs_qty: number | null
           base_price: number | null
           bottoms_qty: number | null
+          cabinet_style: string | null
           category: string
           created_at: string
           default_depth_mm: number
@@ -311,6 +312,8 @@ export type Database = {
           drawer_count: number
           id: string
           is_featured: boolean | null
+          left_side_depth_mm: number | null
+          left_side_width_mm: number | null
           long_description: string | null
           max_depth_mm: number | null
           max_height_mm: number | null
@@ -322,7 +325,13 @@ export type Database = {
           min_width_mm: number | null
           name: string
           product_image_url: string | null
+          qty_left_back: number | null
+          qty_left_side: number | null
+          qty_right_back: number | null
+          qty_right_side: number | null
           range_id: string | null
+          right_side_depth_mm: number | null
+          right_side_width_mm: number | null
           short_description: string | null
           sides_qty: number | null
           stock_quantity: number | null
@@ -334,6 +343,7 @@ export type Database = {
           backs_qty?: number | null
           base_price?: number | null
           bottoms_qty?: number | null
+          cabinet_style?: string | null
           category: string
           created_at?: string
           default_depth_mm: number
@@ -345,6 +355,8 @@ export type Database = {
           drawer_count?: number
           id?: string
           is_featured?: boolean | null
+          left_side_depth_mm?: number | null
+          left_side_width_mm?: number | null
           long_description?: string | null
           max_depth_mm?: number | null
           max_height_mm?: number | null
@@ -356,7 +368,13 @@ export type Database = {
           min_width_mm?: number | null
           name: string
           product_image_url?: string | null
+          qty_left_back?: number | null
+          qty_left_side?: number | null
+          qty_right_back?: number | null
+          qty_right_side?: number | null
           range_id?: string | null
+          right_side_depth_mm?: number | null
+          right_side_width_mm?: number | null
           short_description?: string | null
           sides_qty?: number | null
           stock_quantity?: number | null
@@ -368,6 +386,7 @@ export type Database = {
           backs_qty?: number | null
           base_price?: number | null
           bottoms_qty?: number | null
+          cabinet_style?: string | null
           category?: string
           created_at?: string
           default_depth_mm?: number
@@ -379,6 +398,8 @@ export type Database = {
           drawer_count?: number
           id?: string
           is_featured?: boolean | null
+          left_side_depth_mm?: number | null
+          left_side_width_mm?: number | null
           long_description?: string | null
           max_depth_mm?: number | null
           max_height_mm?: number | null
@@ -390,7 +411,13 @@ export type Database = {
           min_width_mm?: number | null
           name?: string
           product_image_url?: string | null
+          qty_left_back?: number | null
+          qty_left_side?: number | null
+          qty_right_back?: number | null
+          qty_right_side?: number | null
           range_id?: string | null
+          right_side_depth_mm?: number | null
+          right_side_width_mm?: number | null
           short_description?: string | null
           sides_qty?: number | null
           stock_quantity?: number | null

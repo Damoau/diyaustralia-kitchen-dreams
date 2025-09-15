@@ -17,6 +17,7 @@ import { useCabinetPreferences } from '@/hooks/useCabinetPreferences';
 import { pricingService } from '@/services/pricingService';
 import { PriceBreakdown } from './PriceBreakdown';
 import { HardwareBrandSelector } from './HardwareBrandSelector';
+import { CornerCabinetConfig } from './CornerCabinetConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
@@ -28,9 +29,17 @@ interface ConfiguratorDialogProps {
 }
 
 export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWidth }: ConfiguratorDialogProps) {
+  // Standard cabinet dimensions
   const [width, setWidth] = useState(initialWidth || cabinetType.default_width_mm);
   const [height, setHeight] = useState(cabinetType.default_height_mm);
   const [depth, setDepth] = useState(cabinetType.default_depth_mm);
+  
+  // Corner cabinet dimensions
+  const [rightSideWidth, setRightSideWidth] = useState(cabinetType.right_side_width_mm || cabinetType.default_width_mm);
+  const [leftSideWidth, setLeftSideWidth] = useState(cabinetType.left_side_width_mm || cabinetType.default_width_mm);
+  const [rightSideDepth, setRightSideDepth] = useState(cabinetType.right_side_depth_mm || cabinetType.default_depth_mm);
+  const [leftSideDepth, setLeftSideDepth] = useState(cabinetType.left_side_depth_mm || cabinetType.default_depth_mm);
+  
   const [quantity, setQuantity] = useState(1);
   const [showPriceBreakdown, setShowPriceBreakdown] = useState(false);
   
@@ -181,9 +190,14 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
 
     const configuration = {
       cabinetType,
-      width,
+      width: cabinetType.cabinet_style === 'corner' ? rightSideWidth : width,
       height,
-      depth,
+      depth: cabinetType.cabinet_style === 'corner' ? rightSideDepth : depth,
+      // Corner cabinet specific dimensions
+      rightSideWidth: cabinetType.cabinet_style === 'corner' ? rightSideWidth : undefined,
+      leftSideWidth: cabinetType.cabinet_style === 'corner' ? leftSideWidth : undefined,
+      rightSideDepth: cabinetType.cabinet_style === 'corner' ? rightSideDepth : undefined,
+      leftSideDepth: cabinetType.cabinet_style === 'corner' ? leftSideDepth : undefined,
       quantity,
       doorStyle: selectedDoorStyleObj,
       color: selectedColorObj,
@@ -291,69 +305,85 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
 
                 {/* Compact Dimensions Grid */}
                 <TooltipProvider>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <Label className="text-xs">Width</Label>
-                      <Input
-                        type="number"
-                        value={width === 0 ? '' : width}
-                        onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
-                        className="mt-1 h-7 text-xs"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Height</Label>
-                      <div className="relative">
+                  {cabinetType.cabinet_style === 'corner' ? (
+                    <CornerCabinetConfig
+                      cabinetType={cabinetType}
+                      rightSideWidth={rightSideWidth}
+                      leftSideWidth={leftSideWidth}
+                      height={height}
+                      rightSideDepth={rightSideDepth}
+                      leftSideDepth={leftSideDepth}
+                      onRightSideWidthChange={setRightSideWidth}
+                      onLeftSideWidthChange={setLeftSideWidth}
+                      onHeightChange={handleHeightChange}
+                      onRightSideDepthChange={setRightSideDepth}
+                      onLeftSideDepthChange={setLeftSideDepth}
+                    />
+                  ) : (
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <Label className="text-xs">Width</Label>
                         <Input
                           type="number"
-                          value={height === 0 ? '' : height}
-                          onChange={(e) => handleHeightChange(e.target.value === '' ? 0 : Number(e.target.value))}
-                          className={`mt-1 h-7 text-xs pr-8 ${locks.height ? 'border-primary border-2' : ''}`}
+                          value={width === 0 ? '' : width}
+                          onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
+                          className="mt-1 h-7 text-xs"
                         />
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleLock('height')}
-                              className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 p-0 hover:bg-primary/10"
-                            >
-                              {locks.height ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Lock this height setting for all future cabinet configurations</p>
-                          </TooltipContent>
-                        </Tooltip>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Height</Label>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            value={height === 0 ? '' : height}
+                            onChange={(e) => handleHeightChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                            className={`mt-1 h-7 text-xs pr-8 ${locks.height ? 'border-primary border-2' : ''}`}
+                          />
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleLock('height')}
+                                className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 p-0 hover:bg-primary/10"
+                              >
+                                {locks.height ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Lock this height setting for all future cabinet configurations</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Depth</Label>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            value={depth === 0 ? '' : depth}
+                            onChange={(e) => handleDepthChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                            className={`mt-1 h-7 text-xs pr-8 ${locks.depth ? 'border-primary border-2' : ''}`}
+                          />
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleLock('depth')}
+                                className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 p-0 hover:bg-primary/10"
+                              >
+                                {locks.depth ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Lock this depth setting for all future cabinet configurations</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <Label className="text-xs">Depth</Label>
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          value={depth === 0 ? '' : depth}
-                          onChange={(e) => handleDepthChange(e.target.value === '' ? 0 : Number(e.target.value))}
-                          className={`mt-1 h-7 text-xs pr-8 ${locks.depth ? 'border-primary border-2' : ''}`}
-                        />
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleLock('depth')}
-                              className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 p-0 hover:bg-primary/10"
-                            >
-                              {locks.depth ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Lock this depth setting for all future cabinet configurations</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </TooltipProvider>
 
                 {/* Compact Selection Grid */}
@@ -510,69 +540,85 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
                     <TooltipProvider>
                       <div className="space-y-2">
                         <h3 className="font-medium text-base">Dimensions</h3>
-                        <div className="grid grid-cols-3 gap-2">
-                          <div>
-                            <Label className="text-xs">Width (mm)</Label>
-                            <Input
-                              type="number"
-                              value={width === 0 ? '' : width}
-                              onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
-                              className="mt-1 h-8 text-sm"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs">Height (mm)</Label>
-                            <div className="relative">
+                        {cabinetType.cabinet_style === 'corner' ? (
+                          <CornerCabinetConfig
+                            cabinetType={cabinetType}
+                            rightSideWidth={rightSideWidth}
+                            leftSideWidth={leftSideWidth}
+                            height={height}
+                            rightSideDepth={rightSideDepth}
+                            leftSideDepth={leftSideDepth}
+                            onRightSideWidthChange={setRightSideWidth}
+                            onLeftSideWidthChange={setLeftSideWidth}
+                            onHeightChange={handleHeightChange}
+                            onRightSideDepthChange={setRightSideDepth}
+                            onLeftSideDepthChange={setLeftSideDepth}
+                          />
+                        ) : (
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <Label className="text-xs">Width (mm)</Label>
                               <Input
                                 type="number"
-                                value={height === 0 ? '' : height}
-                                onChange={(e) => handleHeightChange(e.target.value === '' ? 0 : Number(e.target.value))}
-                                className={`mt-1 h-8 text-sm pr-8 ${locks.height ? 'border-primary border-2' : ''}`}
+                                value={width === 0 ? '' : width}
+                                onChange={(e) => setWidth(e.target.value === '' ? 0 : Number(e.target.value))}
+                                className="mt-1 h-8 text-sm"
                               />
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => toggleLock('height')}
-                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-primary/10"
-                                  >
-                                    {locks.height ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Lock this height setting for all future cabinet configurations</p>
-                                </TooltipContent>
-                              </Tooltip>
+                            </div>
+                            <div>
+                              <Label className="text-xs">Height (mm)</Label>
+                              <div className="relative">
+                                <Input
+                                  type="number"
+                                  value={height === 0 ? '' : height}
+                                  onChange={(e) => handleHeightChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                                  className={`mt-1 h-8 text-sm pr-8 ${locks.height ? 'border-primary border-2' : ''}`}
+                                />
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => toggleLock('height')}
+                                      className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-primary/10"
+                                    >
+                                      {locks.height ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Lock this height setting for all future cabinet configurations</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </div>
+                            </div>
+                            <div>
+                              <Label className="text-xs">Depth (mm)</Label>
+                              <div className="relative">
+                                <Input
+                                  type="number"
+                                  value={depth === 0 ? '' : depth}
+                                  onChange={(e) => handleDepthChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                                  className={`mt-1 h-8 text-sm pr-8 ${locks.depth ? 'border-primary border-2' : ''}`}
+                                />
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => toggleLock('depth')}
+                                      className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-primary/10"
+                                    >
+                                      {locks.depth ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Lock this depth setting for all future cabinet configurations</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </div>
                             </div>
                           </div>
-                          <div>
-                            <Label className="text-xs">Depth (mm)</Label>
-                            <div className="relative">
-                              <Input
-                                type="number"
-                                value={depth === 0 ? '' : depth}
-                                onChange={(e) => handleDepthChange(e.target.value === '' ? 0 : Number(e.target.value))}
-                                className={`mt-1 h-8 text-sm pr-8 ${locks.depth ? 'border-primary border-2' : ''}`}
-                              />
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => toggleLock('depth')}
-                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-primary/10"
-                                  >
-                                    {locks.depth ? <Lock className="h-3 w-3 text-primary" /> : <Unlock className="h-3 w-3 text-muted-foreground" />}
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Lock this depth setting for all future cabinet configurations</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
-                          </div>
-                        </div>
+                        )}
                       </div>
                     </TooltipProvider>
 

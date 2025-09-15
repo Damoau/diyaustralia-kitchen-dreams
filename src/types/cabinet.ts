@@ -65,6 +65,16 @@ export interface CabinetType {
   bottoms_qty?: number;
   sides_qty?: number;
   door_qty?: number;
+  // Corner cabinet support
+  cabinet_style?: 'standard' | 'corner';
+  right_side_width_mm?: number;
+  left_side_width_mm?: number;
+  right_side_depth_mm?: number;
+  left_side_depth_mm?: number;
+  qty_left_back?: number;
+  qty_right_back?: number;
+  qty_left_side?: number;
+  qty_right_side?: number;
   // E-commerce fields
   stock_quantity: number;
   min_stock_level: number;
@@ -224,6 +234,11 @@ export interface CabinetConfiguration {
   width: number;
   height: number;
   depth: number;
+  // Corner cabinet dimensions (for corner cabinets only)
+  rightSideWidth?: number;
+  leftSideWidth?: number;
+  rightSideDepth?: number;
+  leftSideDepth?: number;
   quantity: number;
   finish?: Finish;
   color?: Color;
