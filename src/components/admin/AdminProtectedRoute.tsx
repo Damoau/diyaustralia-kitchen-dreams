@@ -30,8 +30,6 @@ export const AdminProtectedRoute = ({
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  const { user, userRoles } = useAuth();
-
   // Check if user has any of the required roles
   const hasRequiredRole = requiredRoles.some(role => 
     userRoles?.includes(role)
