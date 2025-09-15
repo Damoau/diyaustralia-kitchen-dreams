@@ -779,6 +779,60 @@ export type Database = {
           },
         ]
       }
+      customer_approvals: {
+        Row: {
+          all_approvals_completed_at: string | null
+          created_at: string
+          final_measurements_confirmed: boolean
+          final_measurements_confirmed_at: string | null
+          final_measurements_confirmed_by: string | null
+          id: string
+          notes: string | null
+          order_id: string
+          signature_completed_at: string | null
+          signature_data: Json | null
+          signature_required: boolean
+          style_colour_finish_confirmed: boolean
+          style_colour_finish_confirmed_at: string | null
+          style_colour_finish_confirmed_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          all_approvals_completed_at?: string | null
+          created_at?: string
+          final_measurements_confirmed?: boolean
+          final_measurements_confirmed_at?: string | null
+          final_measurements_confirmed_by?: string | null
+          id?: string
+          notes?: string | null
+          order_id: string
+          signature_completed_at?: string | null
+          signature_data?: Json | null
+          signature_required?: boolean
+          style_colour_finish_confirmed?: boolean
+          style_colour_finish_confirmed_at?: string | null
+          style_colour_finish_confirmed_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          all_approvals_completed_at?: string | null
+          created_at?: string
+          final_measurements_confirmed?: boolean
+          final_measurements_confirmed_at?: string | null
+          final_measurements_confirmed_by?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string
+          signature_completed_at?: string | null
+          signature_data?: Json | null
+          signature_required?: boolean
+          style_colour_finish_confirmed?: boolean
+          style_colour_finish_confirmed_at?: string | null
+          style_colour_finish_confirmed_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       door_style_finish_types: {
         Row: {
           active: boolean
@@ -1279,6 +1333,7 @@ export type Database = {
           order_number: string
           payment_method: string | null
           payment_status: string | null
+          production_status: string | null
           session_id: string | null
           shipping_address: Json | null
           shipping_amount: number
@@ -1298,6 +1353,7 @@ export type Database = {
           order_number: string
           payment_method?: string | null
           payment_status?: string | null
+          production_status?: string | null
           session_id?: string | null
           shipping_address?: Json | null
           shipping_amount?: number
@@ -1317,6 +1373,7 @@ export type Database = {
           order_number?: string
           payment_method?: string | null
           payment_status?: string | null
+          production_status?: string | null
           session_id?: string | null
           shipping_address?: Json | null
           shipping_amount?: number
