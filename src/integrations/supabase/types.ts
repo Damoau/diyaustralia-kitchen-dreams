@@ -1193,6 +1193,96 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          created_at: string
+          due_date: string | null
+          gst_amount: number
+          id: string
+          invoice_date: string
+          invoice_number: string
+          order_id: string
+          payment_schedule_id: string | null
+          pdf_url: string | null
+          status: string
+          subtotal: number
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          due_date?: string | null
+          gst_amount?: number
+          id?: string
+          invoice_date?: string
+          invoice_number: string
+          order_id: string
+          payment_schedule_id?: string | null
+          pdf_url?: string | null
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          due_date?: string | null
+          gst_amount?: number
+          id?: string
+          invoice_date?: string
+          invoice_number?: string
+          order_id?: string
+          payment_schedule_id?: string | null
+          pdf_url?: string | null
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          digest_frequency: string
+          email_enabled: boolean
+          id: string
+          marketing_emails: boolean
+          order_updates: boolean
+          payment_reminders: boolean
+          quote_updates: boolean
+          sms_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          digest_frequency?: string
+          email_enabled?: boolean
+          id?: string
+          marketing_emails?: boolean
+          order_updates?: boolean
+          payment_reminders?: boolean
+          quote_updates?: boolean
+          sms_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          digest_frequency?: string
+          email_enabled?: boolean
+          id?: string
+          marketing_emails?: boolean
+          order_updates?: boolean
+          payment_reminders?: boolean
+          quote_updates?: boolean
+          sms_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       option_values: {
         Row: {
           code: string | null
@@ -1384,6 +1474,51 @@ export type Database = {
           total_amount?: number
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      payment_schedules: {
+        Row: {
+          amount: number
+          created_at: string
+          due_date: string | null
+          id: string
+          order_id: string
+          paid_at: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          percentage: number
+          schedule_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          order_id: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          percentage?: number
+          schedule_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          order_id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          percentage?: number
+          schedule_type?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1584,6 +1719,45 @@ export type Database = {
         }
         Relationships: []
       }
+      shipment_events: {
+        Row: {
+          carrier: string | null
+          created_at: string
+          description: string | null
+          event_date: string
+          event_type: string
+          id: string
+          location: string | null
+          metadata: Json | null
+          order_id: string
+          tracking_number: string | null
+        }
+        Insert: {
+          carrier?: string | null
+          created_at?: string
+          description?: string | null
+          event_date?: string
+          event_type: string
+          id?: string
+          location?: string | null
+          metadata?: Json | null
+          order_id: string
+          tracking_number?: string | null
+        }
+        Update: {
+          carrier?: string | null
+          created_at?: string
+          description?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          location?: string | null
+          metadata?: Json | null
+          order_id?: string
+          tracking_number?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -1731,6 +1905,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_invoice_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_order_number: {
         Args: Record<PropertyKey, never>
         Returns: string
