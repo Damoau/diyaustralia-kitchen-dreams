@@ -26,6 +26,15 @@ import BaseCabinetsPricing from "./pages/price-list/BaseCabinetsPricing";
 import TopCabinetsPricing from "./pages/price-list/TopCabinetsPricing";
 import PantryCabinetsPricing from "./pages/price-list/PantryCabinetsPricing";
 import DressPanelsPricing from "./pages/price-list/DressPanelsPricing";
+import Portal from "./pages/Portal";
+import PortalQuotes from "./pages/portal/Quotes";
+import PortalQuoteDetail from "./pages/portal/QuoteDetail";
+import PortalOrders from "./pages/portal/Orders";
+import PortalOrderDetail from "./pages/portal/OrderDetail";
+import PortalFiles from "./pages/portal/Files";
+import PortalMessages from "./pages/portal/Messages";
+import PortalProfile from "./pages/portal/Profile";
+import PortalAddresses from "./pages/portal/Addresses";
 
 const queryClient = new QueryClient();
 
@@ -59,11 +68,20 @@ const App = () => (
           <Route 
             path="/admin" 
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requireAdmin>
                 <Admin />
               </ProtectedRoute>
             } 
           />
+          <Route path="/portal" element={<Portal />} />
+          <Route path="/portal/quotes" element={<PortalQuotes />} />
+          <Route path="/portal/quotes/:id" element={<PortalQuoteDetail />} />
+          <Route path="/portal/orders" element={<PortalOrders />} />
+          <Route path="/portal/orders/:id" element={<PortalOrderDetail />} />
+          <Route path="/portal/files" element={<PortalFiles />} />
+          <Route path="/portal/messages" element={<PortalMessages />} />
+          <Route path="/portal/profile" element={<PortalProfile />} />
+          <Route path="/portal/addresses" element={<PortalAddresses />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
