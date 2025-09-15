@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, ShoppingCart } from 'lucide-react';
 import { CustomerIdentify } from '@/components/checkout/CustomerIdentify';
+import { ShippingDelivery } from '@/components/checkout/ShippingDelivery';
+import { PaymentStep } from '@/components/checkout/PaymentStep';
+import { OrderReview } from '@/components/checkout/OrderReview';
 import { useCheckout } from '@/hooks/useCheckout';
 import { useCart } from '@/hooks/useCart';
 import { useToast } from '@/hooks/use-toast';
@@ -21,6 +24,10 @@ const STEP_LABELS = {
 export default function CheckoutFlow() {
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('identify');
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
+  const [checkoutData, setCheckoutData] = useState<any>(null);
+  const [customerData, setCustomerData] = useState<any>(null);
+  const [shippingData, setShippingData] = useState<any>(null);
+  const [paymentData, setPaymentData] = useState<any>(null);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -61,13 +68,40 @@ export default function CheckoutFlow() {
     console.log('Step completed:', result);
     
     if (currentStep === 'identify') {
+      setCustomerData(result);
       setCurrentStep('shipping');
       toast({
         title: 'Customer Information Saved',
         description: 'Proceeding to shipping options.',
       });
+    } else if (currentStep === 'shipping') {
+      setShippingData(result);
+      setCurrentStep('payment');
+      toast({
+        title: 'Delivery Information Saved',
+        description: 'Proceeding to payment options.',
+      });
+    } else if (currentStep === 'payment') {
+      setPaymentData(result);
+      setCurrentStep('review');
+      toast({
+        title: 'Payment Method Selected',
+        description: 'Please review your order details.',
+      });
     }
-    // Handle other steps as they're implemented
+  };
+
+  const handleOrderComplete = () => {
+    navigate('/orders/confirmation');
+  };
+
+  const calculateOrderSummary = () => {
+    const subtotal = cart?.total_amount || 0;
+    const deliveryTotal = shippingData?.delivery?.totalCost || 0;
+    const taxAmount = (subtotal + deliveryTotal) * 0.1; // 10% GST
+    const finalTotal = subtotal + deliveryTotal + taxAmount;
+    
+    return { subtotal, deliveryTotal, taxAmount, finalTotal };
   };
 
   const handleBackToCart = () => {
@@ -155,42 +189,29 @@ export default function CheckoutFlow() {
             )}
             
             {currentStep === 'shipping' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Shipping & Delivery</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Shipping options will be implemented in the next step.
-                  </p>
-                </CardContent>
-              </Card>
+              <ShippingDelivery
+                checkoutId={checkoutId}
+                onComplete={handleStepComplete}
+                customerData={customerData}
+              />
             )}
 
             {currentStep === 'payment' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Payment</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Payment processing will be implemented in the next step.
-                  </p>
-                </CardContent>
-              </Card>
+              <PaymentStep
+                checkoutId={checkoutId}
+                onComplete={handleStepComplete}
+                orderSummary={calculateOrderSummary()}
+              />
             )}
 
             {currentStep === 'review' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Review & Place Order</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Order review will be implemented in the next step.
-                  </p>
-                </CardContent>
-              </Card>
+              <OrderReview
+                checkoutId={checkoutId}
+                customerData={customerData}
+                shippingData={shippingData}
+                paymentData={paymentData}
+                onComplete={handleOrderComplete}
+              />
             )}
           </div>
 
