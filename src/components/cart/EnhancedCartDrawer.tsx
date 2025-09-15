@@ -3,10 +3,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ShoppingCart, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
+import { ShoppingCart, ShoppingBag } from 'lucide-react';
 import { formatPrice } from '@/lib/pricing';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import { ProductCartItem } from './ProductCartItem';
 
 interface EnhancedCartDrawerProps {
   children?: React.ReactNode;
@@ -64,62 +65,12 @@ export const EnhancedCartDrawer = ({ children }: EnhancedCartDrawerProps) => {
             {/* Cart Items */}
             <div className="flex-1 overflow-y-auto py-4 space-y-4">
               {cartItems.map((item) => (
-                <div key={item.id} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium truncate">{item.cabinet_type?.name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {item.width_mm}×{item.height_mm}×{item.depth_mm}mm
-                      </p>
-                      {item.finish && (
-                        <p className="text-sm text-muted-foreground">
-                          Finish: {item.finish.name}
-                        </p>
-                      )}
-                      {item.color && (
-                        <p className="text-sm text-muted-foreground">
-                          Color: {item.color.name}
-                        </p>
-                      )}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeFromCart(item.id)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                        disabled={item.quantity <= 1}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="w-8 text-center">{item.quantity}</span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    </div>
-                    
-                    <div className="text-right">
-                      <p className="font-medium">{formatPrice(item.total_price)}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatPrice(item.unit_price)} each
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                <ProductCartItem
+                  key={item.id}
+                  item={item}
+                  onQuantityChange={handleQuantityChange}
+                  onRemove={removeFromCart}
+                />
               ))}
             </div>
 
@@ -134,7 +85,18 @@ export const EnhancedCartDrawer = ({ children }: EnhancedCartDrawerProps) => {
               
               <Separator />
               
-              <div className="space-y-2">
+              <div className="space-y-3 pt-4">
+                <Button 
+                  asChild 
+                  size="lg" 
+                  className="w-full"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Link to="/cart">
+                    View Full Cart
+                  </Link>
+                </Button>
+                
                 <Button 
                   asChild 
                   size="lg" 

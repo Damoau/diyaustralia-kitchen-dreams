@@ -124,21 +124,63 @@ export function useCart() {
         // New product-based system
         const productConfig = configuration as any;
         
-        // Import the product integration hook functions
-        const { useProductIntegration } = await import('@/hooks/useProductIntegration');
-        
-        // Calculate price from variant
-        unitPrice = 100; // Placeholder - this should be calculated properly
-        totalPrice = unitPrice * configuration.quantity;
-        
-        // Create a minimal cutlist for compatibility
-        cutlist = {
-          parts: [],
-          carcassCost: unitPrice * 0.8,
-          doorCost: unitPrice * 0.15,
-          hardwareCost: unitPrice * 0.05,
-          totalCost: unitPrice
-        };
+        // Calculate price from variant using actual pricing logic
+        try {
+          // Import dynamic pricing function
+          const { calculateCabinetPrice } = await import('@/lib/dynamicPricing');
+          
+          // Get cabinet parts for pricing
+          const { data: cabinetParts } = await supabase
+            .from('cabinet_parts')
+            .select('*')
+            .eq('cabinet_type_id', configuration.cabinetType.id);
+          
+          // Get global settings
+          const { data: globalSettings } = await supabase
+            .from('global_settings')
+            .select('*');
+          
+          if (cabinetParts && globalSettings) {
+            // For product-based system, use a simpler price calculation
+            const basePrice = configuration.cabinetType.base_price || 299;
+            const area = (configuration.width / 1000) * (configuration.height / 1000);
+            unitPrice = basePrice + (area * 100); // Simple area-based pricing
+            totalPrice = unitPrice * configuration.quantity;
+            
+            cutlist = {
+              parts: [],
+              carcassCost: unitPrice * 0.8,
+              doorCost: unitPrice * 0.15,
+              hardwareCost: unitPrice * 0.05,
+              totalCost: unitPrice
+            };
+          } else {
+            // Fallback pricing
+            unitPrice = configuration.cabinetType.base_price || 299;
+            totalPrice = unitPrice * configuration.quantity;
+            
+            cutlist = {
+              parts: [],
+              carcassCost: unitPrice * 0.8,
+              doorCost: unitPrice * 0.15,
+              hardwareCost: unitPrice * 0.05,
+              totalCost: unitPrice
+            };
+          }
+        } catch (error) {
+          console.error('Error calculating product price:', error);
+          // Fallback pricing
+          unitPrice = configuration.cabinetType.base_price || 299;
+          totalPrice = unitPrice * configuration.quantity;
+          
+          cutlist = {
+            parts: [],
+            carcassCost: unitPrice * 0.8,
+            doorCost: unitPrice * 0.15,
+            hardwareCost: unitPrice * 0.05,
+            totalCost: unitPrice
+          };
+        }
       } else {
         // Legacy system
         cutlist = generateCutlist(configuration, cabinetParts, settings);
@@ -146,6 +188,9 @@ export function useCart() {
         totalPrice = cutlist.totalCost;
       }
 
+      const isProductBased = !!(configuration as any).productVariant;
+      const productConfig = configuration as any;
+      
       const cartItemData = {
         id: user ? undefined : `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         cart_id: currentCart.id,
@@ -163,14 +208,20 @@ export function useCart() {
         door_style_id: (configuration as any).doorStyle?.id || null,
         unit_price: unitPrice,
         total_price: totalPrice,
+        // Product integration fields
+        is_product_based: isProductBased,
+        product_variant: productConfig.productVariant || null,
+        product_options: productConfig.productOptions || null,
+        product_title: isProductBased ? configuration.cabinetType.name : null,
         configuration: JSON.stringify({
           parts: cutlist.parts,
           carcassCost: cutlist.carcassCost,
           doorCost: cutlist.doorCost,
           hardwareCost: cutlist.hardwareCost,
           hardwareBrandId: (configuration as any).hardwareBrand?.id,
-          productVariant: (configuration as any).productVariant,
-          productOptions: (configuration as any).productOptions,
+          productVariant: productConfig.productVariant,
+          productOptions: productConfig.productOptions,
+          isProductBased: isProductBased,
         }),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

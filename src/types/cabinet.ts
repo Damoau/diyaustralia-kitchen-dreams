@@ -175,6 +175,56 @@ export interface CartItem {
   finish?: Finish;
   color?: Color;
   door_style?: DoorStyle;
+  // Product integration fields
+  product_variant?: ProductVariant;
+  product_options?: Record<string, string>;
+  product_title?: string;
+  is_product_based?: boolean;
+}
+
+// Product-related interfaces for cart integration
+export interface Product {
+  id: string;
+  title: string;
+  handle: string;
+  product_type: string;
+  status: string;
+  vendor: string;
+  description?: string;
+  thumbnail_url?: string;
+}
+
+export interface ProductOption {
+  id: string;
+  product_id: string;
+  name: string;
+  display_type: string;
+  position: number;
+  option_values?: OptionValue[];
+}
+
+export interface OptionValue {
+  id: string;
+  product_option_id: string;
+  value: string;
+  code: string;
+  swatch_hex?: string;
+  sort_order: number;
+  is_active: boolean;
+}
+
+export interface ProductVariant {
+  id: string;
+  product_id: string;
+  sku: string;
+  option_value_ids: string[];
+  is_active: boolean;
+  width_mm?: number;
+  height_mm?: number;
+  length_mm?: number;
+  weight_kg?: number;
+  lead_time_days?: number;
+  media_url?: string;
 }
 
 // Add hardware brand interface

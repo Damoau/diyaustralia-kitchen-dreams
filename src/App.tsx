@@ -12,6 +12,7 @@ import DressPanels from "./pages/shop/DressPanels";
 import KitchenStyles from "./pages/KitchenStyles";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
+import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import GetQuote from "./pages/GetQuote";
 import Manufacturing from "./pages/Manufacturing";
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/shop/dress-panels" element={<DressPanels />} />
           <Route path="/products" element={<Products />} />
           <Route path="/products/:id" element={<ProductDetail />} />
+          <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/get-quote" element={<GetQuote />} />
           <Route path="/manufacturing" element={<Manufacturing />} />
