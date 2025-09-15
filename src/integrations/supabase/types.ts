@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      addresses: {
+        Row: {
+          country: string
+          created_at: string
+          id: string
+          is_default: boolean
+          line1: string
+          line2: string | null
+          name: string
+          phone: string | null
+          postcode: string
+          state: string
+          suburb: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          country?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          line1: string
+          line2?: string | null
+          name: string
+          phone?: string | null
+          postcode: string
+          state: string
+          suburb: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          line1?: string
+          line2?: string | null
+          name?: string
+          phone?: string | null
+          postcode?: string
+          state?: string
+          suburb?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       brands: {
         Row: {
           active: boolean
@@ -729,6 +780,48 @@ export type Database = {
         }
         Relationships: []
       }
+      files: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          file_size: number
+          filename: string
+          id: string
+          kind: string
+          mime_type: string
+          owner_user_id: string | null
+          sha256_hash: string | null
+          storage_url: string
+          visibility: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          file_size: number
+          filename: string
+          id?: string
+          kind: string
+          mime_type: string
+          owner_user_id?: string | null
+          sha256_hash?: string | null
+          storage_url: string
+          visibility?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          file_size?: number
+          filename?: string
+          id?: string
+          kind?: string
+          mime_type?: string
+          owner_user_id?: string | null
+          sha256_hash?: string | null
+          storage_url?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
       finishes: {
         Row: {
           active: boolean
@@ -946,6 +1039,50 @@ export type Database = {
           },
         ]
       }
+      option_values: {
+        Row: {
+          code: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          product_option_id: string
+          sort_order: number
+          swatch_hex: string | null
+          value: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          product_option_id: string
+          sort_order?: number
+          swatch_hex?: string | null
+          value: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          product_option_id?: string
+          sort_order?: number
+          swatch_hex?: string | null
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "option_values_product_option_id_fkey"
+            columns: ["product_option_id"]
+            isOneToOne: false
+            referencedRelation: "product_options"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           cabinet_type_id: string
@@ -1093,6 +1230,41 @@ export type Database = {
         }
         Relationships: []
       }
+      product_options: {
+        Row: {
+          created_at: string
+          display_type: string
+          id: string
+          name: string
+          position: number
+          product_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_type?: string
+          id?: string
+          name: string
+          position?: number
+          product_id: string
+        }
+        Update: {
+          created_at?: string
+          display_type?: string
+          id?: string
+          name?: string
+          position?: number
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_options_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_ranges: {
         Row: {
           active: boolean
@@ -1117,6 +1289,48 @@ export type Database = {
           id?: string
           name?: string
           sort_order?: number | null
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          created_at: string
+          description: string | null
+          handle: string
+          id: string
+          product_type: string
+          status: string
+          tax_exempt: boolean
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          vendor: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          handle: string
+          id?: string
+          product_type: string
+          status?: string
+          tax_exempt?: boolean
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          vendor?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          handle?: string
+          id?: string
+          product_type?: string
+          status?: string
+          tax_exempt?: boolean
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          vendor?: string | null
         }
         Relationships: []
       }
@@ -1221,6 +1435,97 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      variant_metafields: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          value_json: Json
+          variant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          value_json: Json
+          variant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          value_json?: Json
+          variant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "variant_metafields_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      variants: {
+        Row: {
+          barcode: string | null
+          created_at: string
+          height_mm: number | null
+          id: string
+          is_active: boolean
+          lead_time_days: number | null
+          length_mm: number | null
+          media_url: string | null
+          option_value_ids: string[]
+          product_id: string
+          sku: string
+          updated_at: string
+          weight_kg: number | null
+          width_mm: number | null
+        }
+        Insert: {
+          barcode?: string | null
+          created_at?: string
+          height_mm?: number | null
+          id?: string
+          is_active?: boolean
+          lead_time_days?: number | null
+          length_mm?: number | null
+          media_url?: string | null
+          option_value_ids: string[]
+          product_id: string
+          sku: string
+          updated_at?: string
+          weight_kg?: number | null
+          width_mm?: number | null
+        }
+        Update: {
+          barcode?: string | null
+          created_at?: string
+          height_mm?: number | null
+          id?: string
+          is_active?: boolean
+          lead_time_days?: number | null
+          length_mm?: number | null
+          media_url?: string | null
+          option_value_ids?: string[]
+          product_id?: string
+          sku?: string
+          updated_at?: string
+          weight_kg?: number | null
+          width_mm?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
