@@ -933,6 +933,183 @@ export type Database = {
           },
         ]
       }
+      contacts: {
+        Row: {
+          abn: string | null
+          billing_address: Json | null
+          company_name: string | null
+          created_at: string
+          credit_limit: number | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          payment_terms: number | null
+          phone: string | null
+          shipping_address: Json | null
+          updated_at: string
+          user_id: string | null
+          xero_contact_id: string | null
+        }
+        Insert: {
+          abn?: string | null
+          billing_address?: Json | null
+          company_name?: string | null
+          created_at?: string
+          credit_limit?: number | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          payment_terms?: number | null
+          phone?: string | null
+          shipping_address?: Json | null
+          updated_at?: string
+          user_id?: string | null
+          xero_contact_id?: string | null
+        }
+        Update: {
+          abn?: string | null
+          billing_address?: Json | null
+          company_name?: string | null
+          created_at?: string
+          credit_limit?: number | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          payment_terms?: number | null
+          phone?: string | null
+          shipping_address?: Json | null
+          updated_at?: string
+          user_id?: string | null
+          xero_contact_id?: string | null
+        }
+        Relationships: []
+      }
+      credit_allocations: {
+        Row: {
+          allocated_amount: number
+          allocated_at: string
+          allocated_by: string | null
+          credit_id: string
+          id: string
+          invoice_id: string
+        }
+        Insert: {
+          allocated_amount: number
+          allocated_at?: string
+          allocated_by?: string | null
+          credit_id: string
+          id?: string
+          invoice_id: string
+        }
+        Update: {
+          allocated_amount?: number
+          allocated_at?: string
+          allocated_by?: string | null
+          credit_id?: string
+          id?: string
+          invoice_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_allocations_credit_id_fkey"
+            columns: ["credit_id"]
+            isOneToOne: false
+            referencedRelation: "credits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_allocations_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credits: {
+        Row: {
+          allocated_amount: number | null
+          contact_id: string
+          created_at: string
+          created_by: string | null
+          credit_date: string
+          credit_note_number: string
+          currency: string | null
+          gst_amount: number
+          id: string
+          invoice_id: string | null
+          notes: string | null
+          pdf_url: string | null
+          reason: string
+          remaining_amount: number | null
+          status: string | null
+          subtotal: number
+          total_amount: number
+          updated_at: string
+          xero_credit_note_id: string | null
+        }
+        Insert: {
+          allocated_amount?: number | null
+          contact_id: string
+          created_at?: string
+          created_by?: string | null
+          credit_date?: string
+          credit_note_number: string
+          currency?: string | null
+          gst_amount?: number
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          pdf_url?: string | null
+          reason: string
+          remaining_amount?: number | null
+          status?: string | null
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          xero_credit_note_id?: string | null
+        }
+        Update: {
+          allocated_amount?: number | null
+          contact_id?: string
+          created_at?: string
+          created_by?: string | null
+          credit_date?: string
+          credit_note_number?: string
+          currency?: string | null
+          gst_amount?: number
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          pdf_url?: string | null
+          reason?: string
+          remaining_amount?: number | null
+          status?: string | null
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          xero_credit_note_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credits_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credits_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_approvals: {
         Row: {
           all_approvals_completed_at: string | null
@@ -1448,53 +1625,209 @@ export type Database = {
           },
         ]
       }
-      invoices: {
+      invoice_lines: {
         Row: {
+          account_code: string | null
+          cabinet_type_id: string | null
           created_at: string
-          due_date: string | null
-          gst_amount: number
+          description: string
+          discount_rate: number | null
           id: string
-          invoice_date: string
-          invoice_number: string
-          order_id: string
-          payment_schedule_id: string | null
-          pdf_url: string | null
-          status: string
-          subtotal: number
-          total_amount: number
+          invoice_id: string
+          item_code: string | null
+          line_amount_ex_gst: number
+          line_amount_inc_gst: number
+          line_number: number
+          order_item_id: string | null
+          quantity: number
+          tax_amount: number | null
+          tax_code: string | null
+          tax_rate: number | null
+          tracking_category_1: string | null
+          tracking_category_2: string | null
+          unit_price_ex_gst: number
+          unit_price_inc_gst: number
           updated_at: string
         }
         Insert: {
+          account_code?: string | null
+          cabinet_type_id?: string | null
           created_at?: string
-          due_date?: string | null
-          gst_amount?: number
+          description: string
+          discount_rate?: number | null
           id?: string
-          invoice_date?: string
-          invoice_number: string
-          order_id: string
-          payment_schedule_id?: string | null
-          pdf_url?: string | null
-          status?: string
-          subtotal?: number
-          total_amount?: number
+          invoice_id: string
+          item_code?: string | null
+          line_amount_ex_gst?: number
+          line_amount_inc_gst?: number
+          line_number?: number
+          order_item_id?: string | null
+          quantity?: number
+          tax_amount?: number | null
+          tax_code?: string | null
+          tax_rate?: number | null
+          tracking_category_1?: string | null
+          tracking_category_2?: string | null
+          unit_price_ex_gst?: number
+          unit_price_inc_gst?: number
           updated_at?: string
         }
         Update: {
+          account_code?: string | null
+          cabinet_type_id?: string | null
           created_at?: string
+          description?: string
+          discount_rate?: number | null
+          id?: string
+          invoice_id?: string
+          item_code?: string | null
+          line_amount_ex_gst?: number
+          line_amount_inc_gst?: number
+          line_number?: number
+          order_item_id?: string | null
+          quantity?: number
+          tax_amount?: number | null
+          tax_code?: string | null
+          tax_rate?: number | null
+          tracking_category_1?: string | null
+          tracking_category_2?: string | null
+          unit_price_ex_gst?: number
+          unit_price_inc_gst?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_lines_cabinet_type_id_fkey"
+            columns: ["cabinet_type_id"]
+            isOneToOne: false
+            referencedRelation: "cabinet_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_lines_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_lines_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          contact_id: string | null
+          created_at: string
+          currency: string | null
+          discount_amount: number | null
+          discount_percentage: number | null
+          due_date: string | null
+          exchange_rate: number | null
+          gst_amount: number
+          id: string
+          internal_notes: string | null
+          invoice_date: string
+          invoice_number: string
+          milestone_percentage: number | null
+          milestone_type: string | null
+          notes: string | null
+          order_id: string
+          payment_schedule_id: string | null
+          pdf_url: string | null
+          purchase_order: string | null
+          reference: string | null
+          sent_at: string | null
+          shipping_amount: number | null
+          status: string
+          subtotal: number
+          terms: string | null
+          total_amount: number
+          updated_at: string
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+          xero_invoice_id: string | null
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string
+          currency?: string | null
+          discount_amount?: number | null
+          discount_percentage?: number | null
           due_date?: string | null
+          exchange_rate?: number | null
           gst_amount?: number
           id?: string
+          internal_notes?: string | null
+          invoice_date?: string
+          invoice_number: string
+          milestone_percentage?: number | null
+          milestone_type?: string | null
+          notes?: string | null
+          order_id: string
+          payment_schedule_id?: string | null
+          pdf_url?: string | null
+          purchase_order?: string | null
+          reference?: string | null
+          sent_at?: string | null
+          shipping_amount?: number | null
+          status?: string
+          subtotal?: number
+          terms?: string | null
+          total_amount?: number
+          updated_at?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+          xero_invoice_id?: string | null
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string
+          currency?: string | null
+          discount_amount?: number | null
+          discount_percentage?: number | null
+          due_date?: string | null
+          exchange_rate?: number | null
+          gst_amount?: number
+          id?: string
+          internal_notes?: string | null
           invoice_date?: string
           invoice_number?: string
+          milestone_percentage?: number | null
+          milestone_type?: string | null
+          notes?: string | null
           order_id?: string
           payment_schedule_id?: string | null
           pdf_url?: string | null
+          purchase_order?: string | null
+          reference?: string | null
+          sent_at?: string | null
+          shipping_amount?: number | null
           status?: string
           subtotal?: number
+          terms?: string | null
           total_amount?: number
           updated_at?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+          xero_invoice_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "invoices_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -1765,6 +2098,62 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_intents: {
+        Row: {
+          amount: number
+          client_secret: string | null
+          created_at: string
+          currency: string | null
+          failure_reason: string | null
+          id: string
+          invoice_id: string
+          metadata: Json | null
+          payment_method_types: string[] | null
+          provider: string
+          provider_intent_id: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          client_secret?: string | null
+          created_at?: string
+          currency?: string | null
+          failure_reason?: string | null
+          id?: string
+          invoice_id: string
+          metadata?: Json | null
+          payment_method_types?: string[] | null
+          provider: string
+          provider_intent_id?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_secret?: string | null
+          created_at?: string
+          currency?: string | null
+          failure_reason?: string | null
+          id?: string
+          invoice_id?: string
+          metadata?: Json | null
+          payment_method_types?: string[] | null
+          provider?: string
+          provider_intent_id?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_intents_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_schedules: {
         Row: {
           amount: number
@@ -1876,6 +2265,99 @@ export type Database = {
             columns: ["payment_schedule_id"]
             isOneToOne: false
             referencedRelation: "payment_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments_new: {
+        Row: {
+          amount: number
+          bank_reference: string | null
+          created_at: string
+          currency: string | null
+          fee_amount: number | null
+          id: string
+          invoice_id: string
+          net_amount: number | null
+          notes: string | null
+          paid_at: string | null
+          payment_intent_id: string | null
+          payment_method: string | null
+          payment_method_details: Json | null
+          provider: string
+          provider_transaction_id: string | null
+          receipt_number: string | null
+          receipt_url: string | null
+          reconciled_at: string | null
+          reconciled_by: string | null
+          reference: string | null
+          status: string | null
+          updated_at: string
+          xero_payment_id: string | null
+        }
+        Insert: {
+          amount: number
+          bank_reference?: string | null
+          created_at?: string
+          currency?: string | null
+          fee_amount?: number | null
+          id?: string
+          invoice_id: string
+          net_amount?: number | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_intent_id?: string | null
+          payment_method?: string | null
+          payment_method_details?: Json | null
+          provider: string
+          provider_transaction_id?: string | null
+          receipt_number?: string | null
+          receipt_url?: string | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
+          reference?: string | null
+          status?: string | null
+          updated_at?: string
+          xero_payment_id?: string | null
+        }
+        Update: {
+          amount?: number
+          bank_reference?: string | null
+          created_at?: string
+          currency?: string | null
+          fee_amount?: number | null
+          id?: string
+          invoice_id?: string
+          net_amount?: number | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_intent_id?: string | null
+          payment_method?: string | null
+          payment_method_details?: Json | null
+          provider?: string
+          provider_transaction_id?: string | null
+          receipt_number?: string | null
+          receipt_url?: string | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
+          reference?: string | null
+          status?: string | null
+          updated_at?: string
+          xero_payment_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_new_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_new_payment_intent_id_fkey"
+            columns: ["payment_intent_id"]
+            isOneToOne: false
+            referencedRelation: "payment_intents"
             referencedColumns: ["id"]
           },
         ]
@@ -2618,6 +3100,78 @@ export type Database = {
         }
         Relationships: []
       }
+      xero_mappings: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          setting_key: string
+          setting_value: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          setting_key: string
+          setting_value: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          setting_key?: string
+          setting_value?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      xero_sync_status: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          last_sync_at: string | null
+          retry_count: number | null
+          sync_error: string | null
+          sync_status: string | null
+          updated_at: string
+          xero_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          last_sync_at?: string | null
+          retry_count?: number | null
+          sync_error?: string | null
+          sync_status?: string | null
+          updated_at?: string
+          xero_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          last_sync_at?: string | null
+          retry_count?: number | null
+          sync_error?: string | null
+          sync_status?: string | null
+          updated_at?: string
+          xero_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -2627,9 +3181,22 @@ export type Database = {
         Args: { p_file_id: string; p_scope: string; p_scope_id: string }
         Returns: undefined
       }
+      calculate_gst_amount: {
+        Args: { amount_ex_gst: number; tax_rate?: number }
+        Returns: number
+      }
       generate_invoice_number: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      generate_milestone_invoices: {
+        Args: { p_order_id: string }
+        Returns: {
+          amount: number
+          invoice_id: string
+          milestone_type: string
+          percentage: number
+        }[]
       }
       generate_order_number: {
         Args: Record<PropertyKey, never>
