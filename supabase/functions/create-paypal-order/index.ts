@@ -59,7 +59,7 @@ const handler = async (req: Request): Promise<Response> => {
           value: amount.toFixed(2),
         },
         description: description,
-        custom_id: checkout_id || undefined,
+        custom_id: schedule_id ? `schedule:${schedule_id}` : (checkout_id ? `checkout:${checkout_id}` : undefined),
       }],
       application_context: {
         brand_name: "Kitchen Cabinet Store",

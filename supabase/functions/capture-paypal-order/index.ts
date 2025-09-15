@@ -77,29 +77,76 @@ const handler = async (req: Request): Promise<Response> => {
     const currency = payment.amount.currency_code;
     const paypalTransactionId = payment.id;
 
-    // Record the payment in database
-    if (checkout_id) {
-      // Create payment record
-      const { data: paymentRecord, error: paymentError } = await supabase
-        .from('payments')
-        .insert({
-          checkout_id: checkout_id,
-          amount: amount,
-          currency: currency,
-          payment_method: 'paypal',
-          payment_status: 'completed',
-          external_payment_id: paypalTransactionId,
-          payment_data: captureResult,
-        })
-        .select()
-        .single();
-
-      if (paymentError) {
-        console.error('Error recording payment:', paymentError);
-        throw new Error('Failed to record payment');
+    // Extract schedule_id from custom_id in PayPal order
+    const customId = captureResult.purchase_units[0].custom_id;
+    let scheduleId = null;
+    let orderId = null;
+    
+    if (customId) {
+      // Parse custom_id format: "schedule:{schedule_id}" or "order:{order_id}"
+      if (customId.startsWith('schedule:')) {
+        scheduleId = customId.replace('schedule:', '');
+      } else if (customId.startsWith('order:')) {
+        orderId = customId.replace('order:', '');
       }
+    }
 
-      // Update checkout status to converted
+    // Record the payment in database
+    const paymentRecord = {
+      checkout_id: checkout_id,
+      payment_schedule_id: scheduleId,
+      order_id: orderId,
+      amount: amount,
+      currency: currency,
+      payment_method: 'paypal',
+      payment_status: 'completed',
+      external_payment_id: paypalTransactionId,
+      payment_data: captureResult,
+      processed_at: new Date().toISOString()
+    };
+
+    const { data: insertedPayment, error: paymentError } = await supabase
+      .from('payments')
+      .insert(paymentRecord)
+      .select()
+      .single();
+
+    if (paymentError) {
+      console.error('Error recording payment:', paymentError);
+      throw new Error('Failed to record payment');
+    }
+
+    // If this is a schedule payment, update the payment schedule
+    if (scheduleId) {
+      const { error: scheduleError } = await supabase
+        .from('payment_schedules')
+        .update({
+          status: 'paid',
+          paid_at: new Date().toISOString(),
+          payment_method: 'paypal',
+          payment_reference: paypalTransactionId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', scheduleId);
+
+      if (scheduleError) {
+        console.error('Error updating payment schedule:', scheduleError);
+      } else {
+        console.log('Payment schedule updated:', scheduleId);
+        
+        // Trigger invoice generation
+        try {
+          await supabase.functions.invoke('generate-invoice-pdf', {
+            body: { payment_schedule_id: scheduleId }
+          });
+        } catch (invoiceError) {
+          console.error('Error generating invoice:', invoiceError);
+        }
+      }
+    }
+
+    // Update checkout status if provided
+    if (checkout_id) {
       const { error: checkoutError } = await supabase
         .from('checkouts')
         .update({ 
@@ -111,9 +158,9 @@ const handler = async (req: Request): Promise<Response> => {
       if (checkoutError) {
         console.error('Error updating checkout:', checkoutError);
       }
-
-      console.log('Payment recorded successfully:', paymentRecord.id);
     }
+
+    console.log('Payment recorded successfully:', insertedPayment.id);
 
     return new Response(JSON.stringify({
       success: true,
