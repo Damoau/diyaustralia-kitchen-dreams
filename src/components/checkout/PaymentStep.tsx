@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CreditCard, Building, FileText, Lock, Info } from 'lucide-react';
+import { Building, FileText, Lock, Info } from 'lucide-react';
+import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -60,10 +61,14 @@ export const PaymentStep = ({ checkoutId, onComplete, orderSummary }: PaymentSte
       requiresDetails: false,
     },
     {
-      id: 'credit_card',
-      name: 'Credit Card',
-      description: 'Pay securely with your credit or debit card',
-      icon: <CreditCard className="h-5 w-5" />,
+      id: 'paypal',
+      name: 'PayPal',
+      description: 'Pay securely with your PayPal account or credit card',
+      icon: (
+        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 2.79A.859.859 0 0 1 5.8 2h8.771c3.066 0 5.216 1.31 5.216 4.385 0 3.06-2.15 4.396-5.216 4.396h-3.06l-.843 4.478h2.41c.75 0 1.321-.602 1.482-1.34l.181-.97h2.79l-.302 1.628c-.362 1.94-1.928 3.32-3.95 3.32H7.076z"/>
+        </svg>
+      ),
       requiresDetails: true,
     },
   ];
@@ -126,7 +131,9 @@ export const PaymentStep = ({ checkoutId, onComplete, orderSummary }: PaymentSte
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
-          <CreditCard className="h-5 w-5" />
+          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 2.79A.859.859 0 0 1 5.8 2h8.771c3.066 0 5.216 1.31 5.216 4.385 0 3.06-2.15 4.396-5.216 4.396h-3.06l-.843 4.478h2.41c.75 0 1.321-.602 1.482-1.34l.181-.97h2.79l-.302 1.628c-.362 1.94-1.928 3.32-3.95 3.32H7.076z"/>
+          </svg>
           <span>Payment Method</span>
         </CardTitle>
       </CardHeader>
@@ -197,19 +204,19 @@ export const PaymentStep = ({ checkoutId, onComplete, orderSummary }: PaymentSte
                         </div>
                       )}
 
-                      {method.id === 'credit_card' && (
+                      {method.id === 'paypal' && (
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
                             <Lock className="h-4 w-4 text-green-500" />
-                            <span className="text-sm font-medium">Secure Card Payment</span>
+                            <span className="text-sm font-medium">Secure PayPal Payment</span>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Pay instantly with your credit or debit card. Your payment information is encrypted and secure.
+                            Pay instantly with your PayPal account or credit card. Your payment information is encrypted and secure.
                           </p>
                           <Alert>
                             <Info className="h-4 w-4" />
                             <AlertDescription>
-                              Credit card payments are available for orders under $5,000. 
+                              PayPal payments are available for orders under $5,000. 
                               For larger orders, please choose bank transfer or request a quote.
                             </AlertDescription>
                           </Alert>
