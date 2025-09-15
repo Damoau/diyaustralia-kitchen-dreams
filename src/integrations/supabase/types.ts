@@ -2269,6 +2269,99 @@ export type Database = {
           },
         ]
       }
+      payments_enhanced: {
+        Row: {
+          amount: number
+          bank_reference: string | null
+          created_at: string
+          currency: string | null
+          fee_amount: number | null
+          id: string
+          invoice_id: string
+          net_amount: number | null
+          notes: string | null
+          paid_at: string | null
+          payment_intent_id: string | null
+          payment_method: string | null
+          payment_method_details: Json | null
+          provider: string
+          provider_transaction_id: string | null
+          receipt_number: string | null
+          receipt_url: string | null
+          reconciled_at: string | null
+          reconciled_by: string | null
+          reference: string | null
+          status: string | null
+          updated_at: string
+          xero_payment_id: string | null
+        }
+        Insert: {
+          amount: number
+          bank_reference?: string | null
+          created_at?: string
+          currency?: string | null
+          fee_amount?: number | null
+          id?: string
+          invoice_id: string
+          net_amount?: number | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_intent_id?: string | null
+          payment_method?: string | null
+          payment_method_details?: Json | null
+          provider: string
+          provider_transaction_id?: string | null
+          receipt_number?: string | null
+          receipt_url?: string | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
+          reference?: string | null
+          status?: string | null
+          updated_at?: string
+          xero_payment_id?: string | null
+        }
+        Update: {
+          amount?: number
+          bank_reference?: string | null
+          created_at?: string
+          currency?: string | null
+          fee_amount?: number | null
+          id?: string
+          invoice_id?: string
+          net_amount?: number | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_intent_id?: string | null
+          payment_method?: string | null
+          payment_method_details?: Json | null
+          provider?: string
+          provider_transaction_id?: string | null
+          receipt_number?: string | null
+          receipt_url?: string | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
+          reference?: string | null
+          status?: string | null
+          updated_at?: string
+          xero_payment_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_enhanced_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_enhanced_payment_intent_id_fkey"
+            columns: ["payment_intent_id"]
+            isOneToOne: false
+            referencedRelation: "payment_intents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments_new: {
         Row: {
           amount: number
