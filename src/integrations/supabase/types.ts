@@ -1816,6 +1816,93 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_items: {
+        Row: {
+          cabinet_type_id: string
+          color_id: string | null
+          configuration: Json | null
+          created_at: string
+          depth_mm: number
+          door_style_id: string | null
+          finish_id: string | null
+          height_mm: number
+          id: string
+          quantity: number
+          quote_id: string
+          total_price: number
+          unit_price: number
+          width_mm: number
+        }
+        Insert: {
+          cabinet_type_id: string
+          color_id?: string | null
+          configuration?: Json | null
+          created_at?: string
+          depth_mm: number
+          door_style_id?: string | null
+          finish_id?: string | null
+          height_mm: number
+          id?: string
+          quantity?: number
+          quote_id: string
+          total_price: number
+          unit_price: number
+          width_mm: number
+        }
+        Update: {
+          cabinet_type_id?: string
+          color_id?: string | null
+          configuration?: Json | null
+          created_at?: string
+          depth_mm?: number
+          door_style_id?: string | null
+          finish_id?: string | null
+          height_mm?: number
+          id?: string
+          quantity?: number
+          quote_id?: string
+          total_price?: number
+          unit_price?: number
+          width_mm?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_items_cabinet_type_id_fkey"
+            columns: ["cabinet_type_id"]
+            isOneToOne: false
+            referencedRelation: "cabinet_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_items_color_id_fkey"
+            columns: ["color_id"]
+            isOneToOne: false
+            referencedRelation: "colors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_items_door_style_id_fkey"
+            columns: ["door_style_id"]
+            isOneToOne: false
+            referencedRelation: "door_styles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_items_finish_id_fkey"
+            columns: ["finish_id"]
+            isOneToOne: false
+            referencedRelation: "finishes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_requests: {
         Row: {
           additional_notes: string | null
@@ -1870,6 +1957,60 @@ export type Database = {
           suburb?: string
           timeframe?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      quotes: {
+        Row: {
+          accepted_at: string | null
+          converted_order_id: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          quote_number: string
+          session_id: string | null
+          status: string
+          subtotal: number
+          tax_amount: number
+          total_amount: number
+          updated_at: string
+          user_id: string | null
+          valid_until: string | null
+          version_number: number
+        }
+        Insert: {
+          accepted_at?: string | null
+          converted_order_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          quote_number?: string
+          session_id?: string | null
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+          valid_until?: string | null
+          version_number?: number
+        }
+        Update: {
+          accepted_at?: string | null
+          converted_order_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          quote_number?: string
+          session_id?: string | null
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+          valid_until?: string | null
+          version_number?: number
         }
         Relationships: []
       }
