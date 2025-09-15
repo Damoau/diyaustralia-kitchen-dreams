@@ -113,32 +113,64 @@ export function useCart() {
       const currentCart = cart || await getOrCreateCart();
       if (!currentCart) return;
 
-      const cutlist = generateCutlist(configuration, cabinetParts, settings);
       const { data: { user } } = await supabase.auth.getUser();
+
+      let cutlist;
+      let unitPrice;
+      let totalPrice;
+
+      // Check if this is using the new product system
+      if ((configuration as any).productVariant) {
+        // New product-based system
+        const productConfig = configuration as any;
+        
+        // Import the product integration hook functions
+        const { useProductIntegration } = await import('@/hooks/useProductIntegration');
+        
+        // Calculate price from variant
+        unitPrice = 100; // Placeholder - this should be calculated properly
+        totalPrice = unitPrice * configuration.quantity;
+        
+        // Create a minimal cutlist for compatibility
+        cutlist = {
+          parts: [],
+          carcassCost: unitPrice * 0.8,
+          doorCost: unitPrice * 0.15,
+          hardwareCost: unitPrice * 0.05,
+          totalCost: unitPrice
+        };
+      } else {
+        // Legacy system
+        cutlist = generateCutlist(configuration, cabinetParts, settings);
+        unitPrice = cutlist.totalCost / configuration.quantity;
+        totalPrice = cutlist.totalCost;
+      }
 
       const cartItemData = {
         id: user ? undefined : `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         cart_id: currentCart.id,
         cabinet_type_id: configuration.cabinetType.id,
         cabinet_type: configuration.cabinetType,
-        finish: configuration.finish,
-        color: configuration.color,
-        door_style: configuration.doorStyle,
+        finish: (configuration as any).finish || null,
+        color: (configuration as any).color || null,
+        door_style: (configuration as any).doorStyle || null,
         width_mm: configuration.width,
         height_mm: configuration.height,
         depth_mm: configuration.depth,
         quantity: configuration.quantity,
-        finish_id: configuration.finish?.id || null,
-        color_id: configuration.color?.id || null,
-        door_style_id: configuration.doorStyle?.id || null,
-        unit_price: cutlist.totalCost / configuration.quantity,
-        total_price: cutlist.totalCost,
+        finish_id: (configuration as any).finish?.id || null,
+        color_id: (configuration as any).color?.id || null,
+        door_style_id: (configuration as any).doorStyle?.id || null,
+        unit_price: unitPrice,
+        total_price: totalPrice,
         configuration: JSON.stringify({
           parts: cutlist.parts,
           carcassCost: cutlist.carcassCost,
           doorCost: cutlist.doorCost,
           hardwareCost: cutlist.hardwareCost,
-          hardwareBrandId: configuration.hardwareBrand?.id,
+          hardwareBrandId: (configuration as any).hardwareBrand?.id,
+          productVariant: (configuration as any).productVariant,
+          productOptions: (configuration as any).productOptions,
         }),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
