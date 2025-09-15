@@ -1088,6 +1088,71 @@ export type Database = {
         }
         Relationships: []
       }
+      email_verifications: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          token: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          token: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
+      file_attachments: {
+        Row: {
+          attached_by: string
+          created_at: string
+          file_id: string
+          id: string
+          scope: string
+          scope_id: string
+        }
+        Insert: {
+          attached_by: string
+          created_at?: string
+          file_id: string
+          id?: string
+          scope: string
+          scope_id: string
+        }
+        Update: {
+          attached_by?: string
+          created_at?: string
+          file_id?: string
+          id?: string
+          scope?: string
+          scope_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_attachments_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       files: {
         Row: {
           created_at: string
@@ -1395,6 +1460,39 @@ export type Database = {
         }
         Relationships: []
       }
+      messages: {
+        Row: {
+          created_at: string
+          file_ids: string[] | null
+          id: string
+          message_text: string
+          message_type: string
+          scope: string
+          scope_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_ids?: string[] | null
+          id?: string
+          message_text: string
+          message_type?: string
+          scope: string
+          scope_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_ids?: string[] | null
+          id?: string
+          message_text?: string
+          message_type?: string
+          scope?: string
+          scope_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           created_at: string
@@ -1676,6 +1774,39 @@ export type Database = {
         }
         Relationships: []
       }
+      phone_verifications: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          otp: string
+          phone_number: string
+          user_id: string
+          verified: boolean
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          otp: string
+          phone_number: string
+          user_id: string
+          verified?: boolean
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          otp?: string
+          phone_number?: string
+          user_id?: string
+          verified?: boolean
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       product_options: {
         Row: {
           created_at: string
@@ -1737,6 +1868,44 @@ export type Database = {
           sort_order?: number | null
         }
         Relationships: []
+      }
+      production_updates: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          notes: string | null
+          order_id: string
+          stage: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          notes?: string | null
+          order_id: string
+          stage: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          notes?: string | null
+          order_id?: string
+          stage?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_updates_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
@@ -1960,6 +2129,44 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_versions: {
+        Row: {
+          changes_requested: string | null
+          created_at: string
+          created_by: string
+          id: string
+          quote_id: string
+          status: string
+          version_number: number
+        }
+        Insert: {
+          changes_requested?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          quote_id: string
+          status?: string
+          version_number: number
+        }
+        Update: {
+          changes_requested?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          quote_id?: string
+          status?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_versions_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotes: {
         Row: {
           accepted_at: string | null
@@ -2052,6 +2259,77 @@ export type Database = {
           tracking_number?: string | null
         }
         Relationships: []
+      }
+      shipments: {
+        Row: {
+          carrier: string
+          created_at: string
+          created_by: string
+          delivered_at: string | null
+          dimensions: Json | null
+          estimated_delivery: string | null
+          id: string
+          label_url: string | null
+          order_id: string
+          pallet_count: number
+          service_type: string
+          shipped_at: string | null
+          shipping_address: Json
+          shipping_cost: number | null
+          status: string
+          tracking_number: string
+          tracking_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          carrier: string
+          created_at?: string
+          created_by: string
+          delivered_at?: string | null
+          dimensions?: Json | null
+          estimated_delivery?: string | null
+          id?: string
+          label_url?: string | null
+          order_id: string
+          pallet_count?: number
+          service_type: string
+          shipped_at?: string | null
+          shipping_address: Json
+          shipping_cost?: number | null
+          status?: string
+          tracking_number: string
+          tracking_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carrier?: string
+          created_at?: string
+          created_by?: string
+          delivered_at?: string | null
+          dimensions?: Json | null
+          estimated_delivery?: string | null
+          id?: string
+          label_url?: string | null
+          order_id?: string
+          pallet_count?: number
+          service_type?: string
+          shipped_at?: string | null
+          shipping_address?: Json
+          shipping_cost?: number | null
+          status?: string
+          tracking_number?: string
+          tracking_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -2200,6 +2478,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      attach_file_to_scope: {
+        Args: { p_file_id: string; p_scope: string; p_scope_id: string }
+        Returns: undefined
+      }
       generate_invoice_number: {
         Args: Record<PropertyKey, never>
         Returns: string
