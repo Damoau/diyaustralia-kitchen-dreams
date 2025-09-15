@@ -65,6 +65,84 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          last_active_at: string | null
+          session_token: string
+          two_fa_verified: boolean | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          ip_address?: unknown | null
+          last_active_at?: string | null
+          session_token: string
+          two_fa_verified?: boolean | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          last_active_at?: string | null
+          session_token?: string
+          two_fa_verified?: boolean | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          new_values: Json | null
+          old_values: Json | null
+          record_id: string | null
+          table_name: string
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name: string
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       brands: {
         Row: {
           active: boolean
@@ -487,16 +565,22 @@ export type Database = {
       }
       cart_items: {
         Row: {
+          attachment_file_ids: string[] | null
           cabinet_type_id: string
           cart_id: string
           color_id: string | null
           configuration: Json | null
           created_at: string
+          custom_props_hash: string | null
           depth_mm: number
           door_style_id: string | null
           finish_id: string | null
           height_mm: number
           id: string
+          locked: boolean | null
+          notes: string | null
+          price_override_amount: number | null
+          price_override_reason: string | null
           quantity: number
           total_price: number
           unit_price: number
@@ -504,16 +588,22 @@ export type Database = {
           width_mm: number
         }
         Insert: {
+          attachment_file_ids?: string[] | null
           cabinet_type_id: string
           cart_id: string
           color_id?: string | null
           configuration?: Json | null
           created_at?: string
+          custom_props_hash?: string | null
           depth_mm: number
           door_style_id?: string | null
           finish_id?: string | null
           height_mm: number
           id?: string
+          locked?: boolean | null
+          notes?: string | null
+          price_override_amount?: number | null
+          price_override_reason?: string | null
           quantity?: number
           total_price: number
           unit_price: number
@@ -521,16 +611,22 @@ export type Database = {
           width_mm: number
         }
         Update: {
+          attachment_file_ids?: string[] | null
           cabinet_type_id?: string
           cart_id?: string
           color_id?: string | null
           configuration?: Json | null
           created_at?: string
+          custom_props_hash?: string | null
           depth_mm?: number
           door_style_id?: string | null
           finish_id?: string | null
           height_mm?: number
           id?: string
+          locked?: boolean | null
+          notes?: string | null
+          price_override_amount?: number | null
+          price_override_reason?: string | null
           quantity?: number
           total_price?: number
           unit_price?: number
@@ -577,33 +673,91 @@ export type Database = {
       }
       carts: {
         Row: {
+          abandon_reason: string | null
+          abandoned_at: string | null
+          converted_order_id: string | null
+          converted_quote_id: string | null
           created_at: string
           id: string
+          label: string | null
+          merged_from_cart_id: string | null
+          merged_into_cart_id: string | null
           name: string | null
+          notes: string | null
+          owner_user_id: string | null
           session_id: string | null
+          source: string | null
+          status: string
+          tags: string[] | null
           total_amount: number | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          abandon_reason?: string | null
+          abandoned_at?: string | null
+          converted_order_id?: string | null
+          converted_quote_id?: string | null
           created_at?: string
           id?: string
+          label?: string | null
+          merged_from_cart_id?: string | null
+          merged_into_cart_id?: string | null
           name?: string | null
+          notes?: string | null
+          owner_user_id?: string | null
           session_id?: string | null
+          source?: string | null
+          status?: string
+          tags?: string[] | null
           total_amount?: number | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          abandon_reason?: string | null
+          abandoned_at?: string | null
+          converted_order_id?: string | null
+          converted_quote_id?: string | null
           created_at?: string
           id?: string
+          label?: string | null
+          merged_from_cart_id?: string | null
+          merged_into_cart_id?: string | null
           name?: string | null
+          notes?: string | null
+          owner_user_id?: string | null
           session_id?: string | null
+          source?: string | null
+          status?: string
+          tags?: string[] | null
           total_amount?: number | null
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "carts_converted_order_id_fkey"
+            columns: ["converted_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carts_merged_from_cart_id_fkey"
+            columns: ["merged_from_cart_id"]
+            isOneToOne: false
+            referencedRelation: "carts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carts_merged_into_cart_id_fkey"
+            columns: ["merged_into_cart_id"]
+            isOneToOne: false
+            referencedRelation: "carts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       checkout_quotes: {
         Row: {
@@ -1919,6 +2073,17 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      log_admin_audit: {
+        Args: {
+          p_action: string
+          p_metadata?: Json
+          p_new_values?: Json
+          p_old_values?: Json
+          p_record_id: string
+          p_table_name: string
+        }
+        Returns: undefined
       }
       log_audit_event: {
         Args: {
