@@ -14,6 +14,7 @@ import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import CheckoutFlow from "./pages/CheckoutFlow";
 import GetQuote from "./pages/GetQuote";
 import Manufacturing from "./pages/Manufacturing";
 import Admin from "./pages/Admin";
@@ -45,6 +46,7 @@ const App = () => (
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/checkout-flow" element={<CheckoutFlow />} />
           <Route path="/get-quote" element={<GetQuote />} />
           <Route path="/manufacturing" element={<Manufacturing />} />
           <Route path="/kitchen-styles" element={<KitchenStyles />} />

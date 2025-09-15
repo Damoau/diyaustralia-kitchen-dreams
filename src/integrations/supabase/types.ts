@@ -605,6 +605,106 @@ export type Database = {
         }
         Relationships: []
       }
+      checkout_quotes: {
+        Row: {
+          applied_at: string
+          checkout_id: string
+          id: string
+          quote_id: string
+        }
+        Insert: {
+          applied_at?: string
+          checkout_id: string
+          id?: string
+          quote_id: string
+        }
+        Update: {
+          applied_at?: string
+          checkout_id?: string
+          id?: string
+          quote_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkout_quotes_checkout_id_fkey"
+            columns: ["checkout_id"]
+            isOneToOne: false
+            referencedRelation: "checkouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checkouts: {
+        Row: {
+          accept_privacy: boolean | null
+          accept_terms: boolean | null
+          cart_id: string | null
+          customer_abn: string | null
+          customer_company: string | null
+          customer_email: string | null
+          customer_first_name: string | null
+          customer_last_name: string | null
+          customer_phone: string | null
+          expires_at: string
+          how_heard: string | null
+          id: string
+          marketing_opt_in: boolean | null
+          session_id: string | null
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          accept_privacy?: boolean | null
+          accept_terms?: boolean | null
+          cart_id?: string | null
+          customer_abn?: string | null
+          customer_company?: string | null
+          customer_email?: string | null
+          customer_first_name?: string | null
+          customer_last_name?: string | null
+          customer_phone?: string | null
+          expires_at?: string
+          how_heard?: string | null
+          id?: string
+          marketing_opt_in?: boolean | null
+          session_id?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          accept_privacy?: boolean | null
+          accept_terms?: boolean | null
+          cart_id?: string | null
+          customer_abn?: string | null
+          customer_company?: string | null
+          customer_email?: string | null
+          customer_first_name?: string | null
+          customer_last_name?: string | null
+          customer_phone?: string | null
+          expires_at?: string
+          how_heard?: string | null
+          id?: string
+          marketing_opt_in?: boolean | null
+          session_id?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkouts_cart_id_fkey"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "carts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       color_finishes: {
         Row: {
           active: boolean
@@ -1339,7 +1439,10 @@ export type Database = {
           created_at: string
           display_name: string | null
           email: string | null
+          email_verified_at: string | null
           id: string
+          phone: string | null
+          phone_verified_at: string | null
           updated_at: string
           user_id: string
         }
@@ -1347,7 +1450,10 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          email_verified_at?: string | null
           id?: string
+          phone?: string | null
+          phone_verified_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1355,7 +1461,10 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          email_verified_at?: string | null
           id?: string
+          phone?: string | null
+          phone_verified_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1526,6 +1635,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      verification_tokens: {
+        Row: {
+          channel: string
+          consumed_at: string | null
+          created_at: string
+          email: string | null
+          expires_at: string
+          id: string
+          token_hash: string
+          user_id: string | null
+        }
+        Insert: {
+          channel: string
+          consumed_at?: string | null
+          created_at?: string
+          email?: string | null
+          expires_at: string
+          id?: string
+          token_hash: string
+          user_id?: string | null
+        }
+        Update: {
+          channel?: string
+          consumed_at?: string | null
+          created_at?: string
+          email?: string | null
+          expires_at?: string
+          id?: string
+          token_hash?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
