@@ -1685,6 +1685,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_audit_event: {
+        Args: {
+          p_action?: string
+          p_actor_id?: string
+          p_after_data?: string
+          p_before_data?: string
+          p_ip_address?: unknown
+          p_scope?: string
+          p_scope_id?: string
+          p_user_agent?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "customer" | "sales_rep" | "fulfilment"

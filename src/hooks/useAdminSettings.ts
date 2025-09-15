@@ -39,23 +39,29 @@ export const useAdminSettings = () => {
         marketing_opt_in_default: false,
       };
 
-      const settingsObj = data.reduce((acc, item) => {
-        let value = item.setting_value;
+      const settingsObj: AdminSettings = { ...defaultSettings };
+      
+      data.forEach(item => {
+        const key = item.setting_key as keyof AdminSettings;
+        const rawValue = item.setting_value;
         
-        // Parse JSON values
-        try {
-          if (value === 'true') value = true;
-          else if (value === 'false') value = false;
-          else if (value.startsWith('[') || value.startsWith('{')) {
-            value = JSON.parse(value);
+        // Parse values based on expected type
+        if (key === 'allow_guest_checkout' || key === 'allow_guest_with_existing_email' || 
+            key === 'require_phone_number' || key === 'marketing_opt_in_default') {
+          settingsObj[key] = rawValue === 'true' || rawValue === true as any;
+        } else if (key === 'auth_methods') {
+          try {
+            const parsedValue = typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue;
+            if (Array.isArray(parsedValue)) {
+              settingsObj[key] = parsedValue;
+            } else {
+              settingsObj[key] = ['password', 'magic_link'];
+            }
+          } catch {
+            settingsObj[key] = ['password', 'magic_link'];
           }
-        } catch {
-          // Keep as string if not valid JSON
         }
-        
-        acc[item.setting_key as keyof AdminSettings] = value;
-        return acc;
-      }, defaultSettings);
+      });
 
       setSettings(settingsObj);
     } catch (error: any) {
