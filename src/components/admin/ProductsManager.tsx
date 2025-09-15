@@ -4,10 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Plus, Edit, Package } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Trash2, Plus, Edit, Package, Wand2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { ProductGenerator } from './ProductGenerator';
 
 interface Product {
   id: string;
@@ -135,6 +137,23 @@ export function ProductsManager() {
 
   const deleteProduct = async (id: string) => {
     try {
+      // First delete related data (variants, options, etc.)
+      const { error: variantError } = await supabase
+        .from('variants')
+        .delete()
+        .eq('product_id', id);
+
+      if (variantError) console.error('Error deleting variants:', variantError);
+
+      // Delete product options and their values
+      const { error: optionError } = await supabase
+        .from('product_options')
+        .delete()
+        .eq('product_id', id);
+
+      if (optionError) console.error('Error deleting options:', optionError);
+
+      // Finally delete the product
       const { error } = await supabase
         .from('products')
         .delete()
@@ -162,43 +181,34 @@ export function ProductsManager() {
     }
   };
 
-  const syncWithCabinetTypes = async () => {
-    try {
-      // Simply refresh products - sync happens automatically via DB triggers/policies
-      await fetchProducts();
-      
-      toast({
-        title: "Success",
-        description: "Products refreshed successfully",
-      });
-    } catch (error) {
-      console.error('Error refreshing products:', error);
-      toast({
-        title: "Error", 
-        description: "Failed to refresh products",
-        variant: "destructive",
-      });
-    }
-  };
-
   if (loading) {
     return <div>Loading products...</div>;
   }
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Products List */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Products ({products.length})
-            </CardTitle>
-            <Button onClick={syncWithCabinetTypes} size="sm" variant="outline">
-              Sync Cabinet Products
-            </Button>
-          </CardHeader>
+      <Tabs defaultValue="products" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="products" className="flex items-center gap-2">
+            <Package className="h-4 w-4" />
+            Manage Products
+          </TabsTrigger>
+          <TabsTrigger value="generator" className="flex items-center gap-2">
+            <Wand2 className="h-4 w-4" />
+            Generate Products
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="products" className="mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Products List */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Products ({products.length})
+                </CardTitle>
+              </CardHeader>
           <CardContent>
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {products.map((product) => (
@@ -338,7 +348,13 @@ export function ProductsManager() {
             )}
           </CardContent>
         </Card>
-      </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="generator" className="mt-6">
+          <ProductGenerator />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
