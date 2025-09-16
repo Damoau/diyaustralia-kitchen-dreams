@@ -18,6 +18,7 @@ import CheckoutFlow from "./pages/CheckoutFlow";
 import GetQuote from "./pages/GetQuote";
 import Manufacturing from "./pages/Manufacturing";
 import Admin from "./pages/Admin";
+import AdminDashboard from "./pages/AdminDashboard";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -70,6 +71,14 @@ const App = () => (
             element={
               <ProtectedRoute requireAdmin>
                 <Admin />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/production" 
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminDashboard />
               </ProtectedRoute>
             } 
           />

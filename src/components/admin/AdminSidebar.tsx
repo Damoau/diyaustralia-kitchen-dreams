@@ -25,6 +25,7 @@ import {
   DollarSign,
   Wrench,
   MapPin,
+  Factory,
 } from 'lucide-react';
 
 const navigationItems = [
@@ -45,6 +46,7 @@ const navigationItems = [
     group: 'Operations',
     items: [
       { title: 'Orders', url: '/admin/orders', icon: Package },
+      { title: 'Production', url: '/admin/production', icon: Factory },
       { title: 'Shipping', url: '/admin/shipping', icon: Truck },
       { title: 'Assembly', url: '/admin/assembly', icon: Wrench },
     ]
