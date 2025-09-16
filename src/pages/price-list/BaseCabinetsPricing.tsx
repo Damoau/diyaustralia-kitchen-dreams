@@ -3,7 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Package, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Package, Loader2, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +13,7 @@ import { pricingService } from "@/services/pricingService";
 import { CabinetType } from "@/types/cabinet";
 import { PriceCalculationBreakdown } from "@/components/price-list/PriceCalculationBreakdown";
 import { CabinetPricingTable } from "@/components/price-list/CabinetPricingTable";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DoorStyle {
   id: string;
@@ -45,6 +47,8 @@ const BaseCabinetsPricing = () => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [debugData, setDebugData] = useState<any>(null);
   const [enlargedImage, setEnlargedImage] = useState<{url: string, name: string} | null>(null);
+  const [selectedDoorStyle, setSelectedDoorStyle] = useState<string>('all');
+  const isMobile = useIsMobile();
 
   // Clear all cached data when component mounts
   useEffect(() => {
@@ -343,12 +347,38 @@ const BaseCabinetsPricing = () => {
           </Card>
         )}
 
+        {/* Mobile Door Style Filter */}
+        {isMobile && (
+          <Card className="mb-6">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Filter className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Filter by Kitchen Style</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a kitchen style" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Styles</SelectItem>
+                  <SelectItem value="shaker">Shaker</SelectItem>
+                  <SelectItem value="poly">Poly</SelectItem>
+                  <SelectItem value="ultimate">Ultimate</SelectItem>
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Cabinet Cards Display */}
         {(selectedCabinetType === 'all' ? baseCabinets : baseCabinets?.filter(c => c.id === selectedCabinetType))?.map((cabinet) => (
           <CabinetPricingTable 
             key={cabinet.id} 
             cabinet={cabinet}
             onImageEnlarge={setEnlargedImage}
+            selectedDoorStyleFilter={isMobile ? selectedDoorStyle : undefined}
           />
         ))}
 

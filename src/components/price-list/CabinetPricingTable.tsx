@@ -10,9 +10,10 @@ interface CabinetPricingTableProps {
     name: string;
   };
   onImageEnlarge?: (image: { url: string; name: string }) => void;
+  selectedDoorStyleFilter?: string;
 }
 
-export const CabinetPricingTable = ({ cabinet, onImageEnlarge }: CabinetPricingTableProps) => {
+export const CabinetPricingTable = ({ cabinet, onImageEnlarge, selectedDoorStyleFilter }: CabinetPricingTableProps) => {
   const [enlargedImage, setEnlargedImage] = useState<{ url: string; name: string } | null>(null);
   
   // Use the same dynamic pricing hook as the configurator - need to pass a valid hardware brand ID
@@ -40,6 +41,17 @@ export const CabinetPricingTable = ({ cabinet, onImageEnlarge }: CabinetPricingT
     }
     return acc;
   }, [] as any[]) || [];
+
+  // Filter door styles and finishes based on mobile selection
+  const filteredDoorStyles = selectedDoorStyleFilter && selectedDoorStyleFilter !== 'all' 
+    ? doorStyles.filter(style => style.name.toLowerCase().includes(selectedDoorStyleFilter.toLowerCase()))
+    : doorStyles;
+
+  const filteredFinishes = selectedDoorStyleFilter && selectedDoorStyleFilter !== 'all'
+    ? cabinetTypeFinishes?.filter(finish => 
+        finish.door_style && filteredDoorStyles.some(ds => ds.id === finish.door_style.id)
+      )
+    : cabinetTypeFinishes;
 
   if (isLoading) {
     return (
@@ -90,12 +102,12 @@ export const CabinetPricingTable = ({ cabinet, onImageEnlarge }: CabinetPricingT
       </CardHeader>
       
       {/* Door Style Finishes Carousel */}
-      {cabinetTypeFinishes && cabinetTypeFinishes.length > 0 && (
+      {filteredFinishes && filteredFinishes.length > 0 && (
         <div className="border-b">
           <CardContent className="pb-6">
             <Carousel className="w-full">
               <CarouselContent className="-ml-2 md:-ml-4">
-                {cabinetTypeFinishes.map((finish: any) => (
+                {filteredFinishes.map((finish: any) => (
                   <CarouselItem key={finish.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
                     <Card 
                       className="cursor-pointer transition-all duration-200 hover:shadow-md hover:ring-1 hover:ring-primary/50 overflow-hidden hover-scale"
@@ -136,13 +148,13 @@ export const CabinetPricingTable = ({ cabinet, onImageEnlarge }: CabinetPricingT
           <CardTitle>Pricing Table</CardTitle>
         </CardHeader>
         <CardContent>
-          {doorStyles.length > 0 && priceRanges && priceRanges.length > 0 ? (
+          {filteredDoorStyles.length > 0 && priceRanges && priceRanges.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr>
                     <th className="text-left p-3 bg-muted font-semibold border">Size Range</th>
-                    {doorStyles.map((doorStyle) => (
+                    {filteredDoorStyles.map((doorStyle) => (
                       <th key={doorStyle.id} className="text-center p-3 bg-muted font-semibold border min-w-32">
                         {doorStyle.name}
                       </th>
@@ -158,7 +170,7 @@ export const CabinetPricingTable = ({ cabinet, onImageEnlarge }: CabinetPricingT
                           {range.min_width_mm}mm - {range.max_width_mm}mm
                         </div>
                       </td>
-                      {doorStyles.map((doorStyle) => {
+                      {filteredDoorStyles.map((doorStyle) => {
                         // Find the finish that matches this door style
                         const finish = cabinetTypeFinishes?.find(f => f.door_style?.id === doorStyle.id);
                         
