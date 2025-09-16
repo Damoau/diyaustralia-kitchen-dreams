@@ -72,7 +72,6 @@ const navigationItems = [
     group: 'System',
     items: [
       { title: 'Security', url: 'security', icon: Shield },
-      { title: 'Roles', url: 'roles', icon: Users },
       { title: 'Notifications', url: 'notifications', icon: Bell },
       { title: 'Settings', url: 'settings', icon: Settings },
     ]
