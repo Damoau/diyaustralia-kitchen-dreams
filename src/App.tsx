@@ -109,6 +109,16 @@ const App = () => (
                   </Suspense>
                 } 
               />
+              <Route 
+                path="/old-admin" 
+                element={
+                  <Suspense fallback={<PageLoader />}>
+                    <ProtectedRoute requireAdmin>
+                      <Admin />
+                    </ProtectedRoute>
+                  </Suspense>
+                } 
+              />
               <Route path="/portal" element={<Portal />} />
               <Route path="/portal/quotes" element={<PortalQuotes />} />
               <Route path="/portal/quotes/:id" element={<PortalQuoteDetail />} />
