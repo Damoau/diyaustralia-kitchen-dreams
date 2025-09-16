@@ -1,18 +1,18 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { Button } from '@/components/ui/button';
 import { expect, test, describe, vi } from 'vitest';
 
 describe('Button Component', () => {
   test('renders button with text', () => {
-    render(<Button>Click me</Button>);
+    const { getByRole } = render(<Button>Click me</Button>);
     
-    expect(screen.getByRole('button', { name: /click me/i })).toBeInTheDocument();
+    expect(getByRole('button', { name: /click me/i })).toBeInTheDocument();
   });
 
   test('applies variant classes correctly', () => {
-    render(<Button variant="destructive">Delete</Button>);
+    const { getByRole } = render(<Button variant="destructive">Delete</Button>);
     
-    const button = screen.getByRole('button');
+    const button = getByRole('button');
     expect(button).toHaveClass('bg-destructive');
   });
 
@@ -20,28 +20,28 @@ describe('Button Component', () => {
     const user = await import('@testing-library/user-event').then(m => m.default.setup());
     const handleClick = vi.fn();
     
-    render(<Button onClick={handleClick}>Click me</Button>);
+    const { getByRole } = render(<Button onClick={handleClick}>Click me</Button>);
     
-    await user.click(screen.getByRole('button'));
+    await user.click(getByRole('button'));
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 
   test('is disabled when disabled prop is true', () => {
-    render(<Button disabled>Disabled</Button>);
+    const { getByRole } = render(<Button disabled>Disabled</Button>);
     
-    const button = screen.getByRole('button');
+    const button = getByRole('button');
     expect(button).toBeDisabled();
   });
 
   test('renders with different sizes', () => {
-    const { rerender } = render(<Button size="sm">Small</Button>);
+    const { getByRole, rerender } = render(<Button size="sm">Small</Button>);
     
-    let button = screen.getByRole('button');
+    let button = getByRole('button');
     expect(button).toHaveClass('h-8');
     
     rerender(<Button size="lg">Large</Button>);
     
-    button = screen.getByRole('button');
+    button = getByRole('button');
     expect(button).toHaveClass('h-10');
   });
 });
