@@ -33,48 +33,48 @@ const navigationItems = [
   {
     group: 'Overview',
     items: [
-      { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
+      { title: 'Dashboard', url: 'overview', icon: LayoutDashboard },
     ]
   },
   {
     group: 'Sales',
     items: [
-      { title: 'Carts', url: '/admin/sales/carts', icon: ShoppingCart },
-      { title: 'Quotes', url: '/admin/sales/quotes', icon: FileText },
+      { title: 'Carts', url: 'sales/carts', icon: ShoppingCart },
+      { title: 'Quotes', url: 'sales/quotes', icon: FileText },
     ]
   },
   {
     group: 'Operations',
     items: [
-      { title: 'Orders', url: '/admin/orders', icon: Package },
-      { title: 'Production', url: '/admin/production', icon: Factory },
-      { title: 'Shipping', url: '/admin/shipping', icon: Truck },
-      { title: 'Assembly', url: '/admin/assembly', icon: Wrench },
+      { title: 'Orders', url: 'orders', icon: Package },
+      { title: 'Production', url: 'production', icon: Factory },
+      { title: 'Shipping', url: 'shipping', icon: Truck },
+      { title: 'Assembly', url: 'assembly', icon: Wrench },
     ]
   },
   {
     group: 'Configuration',
     items: [
-      { title: 'Pricing', url: '/admin/pricing', icon: DollarSign },
-      { title: 'Discounts', url: '/admin/discounts', icon: DollarSign },
-      { title: 'Users', url: '/admin/users', icon: Users },
-      { title: 'Roles', url: '/admin/roles', icon: Users },
+      { title: 'Pricing', url: 'pricing', icon: DollarSign },
+      { title: 'Discounts', url: 'discounts', icon: DollarSign },
+      { title: 'Users', url: 'users', icon: Users },
+      { title: 'Roles', url: 'roles', icon: Users },
     ]
   },
   {
     group: 'Analytics',
     items: [
-      { title: 'Reports', url: '/admin/reports', icon: BarChart3 },
-      { title: 'Exports', url: '/admin/exports', icon: BarChart3 },
+      { title: 'Reports', url: 'reports', icon: BarChart3 },
+      { title: 'Exports', url: 'exports', icon: BarChart3 },
     ]
   },
   {
     group: 'System',
     items: [
-      { title: 'Security', url: '/admin/security', icon: Shield },
-      { title: 'Roles', url: '/admin/roles', icon: Users },
-      { title: 'Notifications', url: '/admin/notifications', icon: Bell },
-      { title: 'Settings', url: '/admin/settings', icon: Settings },
+      { title: 'Security', url: 'security', icon: Shield },
+      { title: 'Roles', url: 'roles', icon: Users },
+      { title: 'Notifications', url: 'notifications', icon: Bell },
+      { title: 'Settings', url: 'settings', icon: Settings },
     ]
   },
 ];
@@ -86,10 +86,10 @@ export const AdminSidebar = () => {
   const isCollapsed = state === 'collapsed';
 
   const isActive = (path: string) => {
-    if (path === '/admin') {
-      return currentPath === '/admin';
+    if (path === 'overview') {
+      return currentPath === '/admin' || currentPath === '/admin/overview';
     }
-    return currentPath.startsWith(path);
+    return currentPath.includes(path);
   };
 
   const getNavClass = (path: string) => 
@@ -108,11 +108,11 @@ export const AdminSidebar = () => {
                 {group.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <NavLink 
-                        to={item.url} 
-                        className={getNavClass(item.url)}
-                        end={item.url === '/admin'}
-                      >
+                       <NavLink 
+                         to={item.url} 
+                         className={getNavClass(item.url)}
+                         relative="path"
+                       >
                         <item.icon className="mr-2 h-4 w-4" />
                         {!isCollapsed && <span>{item.title}</span>}
                       </NavLink>
