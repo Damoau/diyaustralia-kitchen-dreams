@@ -101,6 +101,77 @@ export type Database = {
         }
         Relationships: []
       }
+      assembly_jobs: {
+        Row: {
+          assigned_team: string | null
+          completed_at: string | null
+          components_included: string
+          created_at: string
+          created_by: string | null
+          customer_notes: string | null
+          hours_actual: number | null
+          hours_estimated: number
+          id: string
+          order_id: string
+          price_ex_gst: number
+          scheduled_for: string | null
+          shipment_id: string | null
+          site_photos: Json | null
+          started_at: string | null
+          status: string
+          technician_notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_team?: string | null
+          completed_at?: string | null
+          components_included?: string
+          created_at?: string
+          created_by?: string | null
+          customer_notes?: string | null
+          hours_actual?: number | null
+          hours_estimated?: number
+          id?: string
+          order_id: string
+          price_ex_gst?: number
+          scheduled_for?: string | null
+          shipment_id?: string | null
+          site_photos?: Json | null
+          started_at?: string | null
+          status?: string
+          technician_notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_team?: string | null
+          completed_at?: string | null
+          components_included?: string
+          created_at?: string
+          created_by?: string | null
+          customer_notes?: string | null
+          hours_actual?: number | null
+          hours_estimated?: number
+          id?: string
+          order_id?: string
+          price_ex_gst?: number
+          scheduled_for?: string | null
+          shipment_id?: string | null
+          site_photos?: Json | null
+          started_at?: string | null
+          status?: string
+          technician_notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assembly_jobs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -1164,6 +1235,53 @@ export type Database = {
         }
         Relationships: []
       }
+      depot_list: {
+        Row: {
+          active: boolean
+          address_id: string
+          carrier: string
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          facilities: Json | null
+          id: string
+          name: string
+          opening_hours: Json | null
+        }
+        Insert: {
+          active?: boolean
+          address_id: string
+          carrier: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          facilities?: Json | null
+          id?: string
+          name: string
+          opening_hours?: Json | null
+        }
+        Update: {
+          active?: boolean
+          address_id?: string
+          carrier?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          facilities?: Json | null
+          id?: string
+          name?: string
+          opening_hours?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "depot_list_address_id_fkey"
+            columns: ["address_id"]
+            isOneToOne: false
+            referencedRelation: "addresses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       door_style_finish_types: {
         Row: {
           active: boolean
@@ -1292,6 +1410,60 @@ export type Database = {
           token?: string
           user_id?: string
           verified_at?: string | null
+        }
+        Relationships: []
+      }
+      exceptions: {
+        Row: {
+          assigned_to: string | null
+          cost_impact: number | null
+          created_at: string
+          description: string
+          id: string
+          photos: Json | null
+          reported_by: string | null
+          resolution_notes: string | null
+          resolution_status: string
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          shipment_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          cost_impact?: number | null
+          created_at?: string
+          description: string
+          id?: string
+          photos?: Json | null
+          reported_by?: string | null
+          resolution_notes?: string | null
+          resolution_status?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          shipment_id: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          cost_impact?: number | null
+          created_at?: string
+          description?: string
+          id?: string
+          photos?: Json | null
+          reported_by?: string | null
+          resolution_notes?: string | null
+          resolution_status?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          shipment_id?: string
+          type?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2488,6 +2660,90 @@ export type Database = {
         }
         Relationships: []
       }
+      postcode_zones: {
+        Row: {
+          assembly_eligible: boolean
+          created_at: string
+          delivery_eligible: boolean
+          id: string
+          lead_time_days: number
+          metro: boolean
+          postcode: string
+          remote: boolean
+          state: string
+          updated_at: string
+          zone: string
+        }
+        Insert: {
+          assembly_eligible?: boolean
+          created_at?: string
+          delivery_eligible?: boolean
+          id?: string
+          lead_time_days?: number
+          metro?: boolean
+          postcode: string
+          remote?: boolean
+          state: string
+          updated_at?: string
+          zone: string
+        }
+        Update: {
+          assembly_eligible?: boolean
+          created_at?: string
+          delivery_eligible?: boolean
+          id?: string
+          lead_time_days?: number
+          metro?: boolean
+          postcode?: string
+          remote?: boolean
+          state?: string
+          updated_at?: string
+          zone?: string
+        }
+        Relationships: []
+      }
+      printing_queue: {
+        Row: {
+          created_at: string
+          doc_type: string
+          error_message: string | null
+          id: string
+          payload: Json
+          pdf_url: string | null
+          printed_at: string | null
+          printed_by: string | null
+          printer_name: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          doc_type: string
+          error_message?: string | null
+          id?: string
+          payload: Json
+          pdf_url?: string | null
+          printed_at?: string | null
+          printed_by?: string | null
+          printer_name?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          error_message?: string | null
+          id?: string
+          payload?: Json
+          pdf_url?: string | null
+          printed_at?: string | null
+          printed_by?: string | null
+          printer_name?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_options: {
         Row: {
           created_at: string
@@ -2902,6 +3158,75 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_cards: {
+        Row: {
+          active: boolean
+          base_price: number
+          carrier: string
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          fuel_levy_pct: number
+          id: string
+          max_weight_kg: number | null
+          minimum_charge: number
+          per_cubic_m: number
+          per_kg: number
+          reattempt_fee: number
+          residential_surcharge: number
+          service_name: string
+          tail_lift_fee: number
+          two_man_fee: number
+          updated_at: string
+          zone_from: string
+          zone_to: string
+        }
+        Insert: {
+          active?: boolean
+          base_price?: number
+          carrier: string
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          fuel_levy_pct?: number
+          id?: string
+          max_weight_kg?: number | null
+          minimum_charge?: number
+          per_cubic_m?: number
+          per_kg?: number
+          reattempt_fee?: number
+          residential_surcharge?: number
+          service_name: string
+          tail_lift_fee?: number
+          two_man_fee?: number
+          updated_at?: string
+          zone_from: string
+          zone_to: string
+        }
+        Update: {
+          active?: boolean
+          base_price?: number
+          carrier?: string
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          fuel_levy_pct?: number
+          id?: string
+          max_weight_kg?: number | null
+          minimum_charge?: number
+          per_cubic_m?: number
+          per_kg?: number
+          reattempt_fee?: number
+          residential_surcharge?: number
+          service_name?: string
+          tail_lift_fee?: number
+          two_man_fee?: number
+          updated_at?: string
+          zone_from?: string
+          zone_to?: string
+        }
+        Relationships: []
+      }
       shipment_events: {
         Row: {
           carrier: string | null
@@ -2938,6 +3263,57 @@ export type Database = {
           metadata?: Json | null
           order_id?: string
           tracking_number?: string | null
+        }
+        Relationships: []
+      }
+      shipment_packages: {
+        Row: {
+          contents: Json | null
+          created_at: string
+          cubic_m: number | null
+          fragile: boolean | null
+          height_mm: number
+          id: string
+          kind: string
+          length_mm: number
+          reference: string | null
+          shipment_id: string
+          stackable: boolean | null
+          volumetric_weight_kg: number | null
+          weight_kg: number
+          width_mm: number
+        }
+        Insert: {
+          contents?: Json | null
+          created_at?: string
+          cubic_m?: number | null
+          fragile?: boolean | null
+          height_mm: number
+          id?: string
+          kind?: string
+          length_mm: number
+          reference?: string | null
+          shipment_id: string
+          stackable?: boolean | null
+          volumetric_weight_kg?: number | null
+          weight_kg: number
+          width_mm: number
+        }
+        Update: {
+          contents?: Json | null
+          created_at?: string
+          cubic_m?: number | null
+          fragile?: boolean | null
+          height_mm?: number
+          id?: string
+          kind?: string
+          length_mm?: number
+          reference?: string | null
+          shipment_id?: string
+          stackable?: boolean | null
+          volumetric_weight_kg?: number | null
+          weight_kg?: number
+          width_mm?: number
         }
         Relationships: []
       }
@@ -3278,6 +3654,16 @@ export type Database = {
         Args: { amount_ex_gst: number; tax_rate?: number }
         Returns: number
       }
+      calculate_shipping_quote: {
+        Args: {
+          p_from_zone: string
+          p_packages: Json
+          p_residential?: boolean
+          p_tail_lift?: boolean
+          p_to_zone: string
+        }
+        Returns: Json
+      }
       generate_invoice_number: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -3328,7 +3714,13 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "customer" | "sales_rep" | "fulfilment"
+      app_role:
+        | "admin"
+        | "customer"
+        | "sales_rep"
+        | "fulfilment"
+        | "logistics"
+        | "assembly"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3456,7 +3848,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "customer", "sales_rep", "fulfilment"],
+      app_role: [
+        "admin",
+        "customer",
+        "sales_rep",
+        "fulfilment",
+        "logistics",
+        "assembly",
+      ],
     },
   },
 } as const
