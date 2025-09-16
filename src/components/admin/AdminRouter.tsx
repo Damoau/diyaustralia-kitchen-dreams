@@ -7,6 +7,8 @@ const Production = lazy(() => import('@/pages/admin/Production'));
 const AdminOverview = lazy(() => import('@/components/admin/AdminOverview'));
 const AdminOrders = lazy(() => import('@/components/admin/AdminOrders'));
 const AdminShipping = lazy(() => import('@/components/admin/AdminShipping'));
+const SecurityDashboard = lazy(() => import('@/components/admin/SecurityDashboard'));
+const RoleManagement = lazy(() => import('@/components/admin/RoleManagement'));
 
 export const AdminRouter = () => {
   return (
@@ -17,6 +19,8 @@ export const AdminRouter = () => {
         <Route path="orders" element={<AdminOrders />} />
         <Route path="production" element={<Production />} />
         <Route path="shipping" element={<AdminShipping />} />
+        <Route path="security" element={<SecurityDashboard />} />
+        <Route path="roles" element={<RoleManagement />} />
       </Routes>
     </Suspense>
   );

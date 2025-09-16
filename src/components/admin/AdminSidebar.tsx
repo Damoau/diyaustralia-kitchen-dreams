@@ -26,6 +26,7 @@ import {
   Wrench,
   MapPin,
   Factory,
+  Shield,
 } from 'lucide-react';
 
 const navigationItems = [
@@ -70,6 +71,8 @@ const navigationItems = [
   {
     group: 'System',
     items: [
+      { title: 'Security', url: '/admin/security', icon: Shield },
+      { title: 'Roles', url: '/admin/roles', icon: Users },
       { title: 'Notifications', url: '/admin/notifications', icon: Bell },
       { title: 'Settings', url: '/admin/settings', icon: Settings },
     ]
