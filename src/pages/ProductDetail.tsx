@@ -109,7 +109,7 @@ const ProductDetail = () => {
     <div className="min-h-screen">
       <Header />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 pt-28">
         {/* Breadcrumb */}
         <div className="mb-6">
           <Link to="/products" className="flex items-center text-muted-foreground hover:text-primary transition-colors">

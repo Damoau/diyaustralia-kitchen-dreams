@@ -78,6 +78,7 @@ const GetQuote = () => {
   return <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
       <Header />
       
+      <div className="pt-20">
       {/* Sticky Mobile CTA */}
       {isSticky && <div className="fixed bottom-4 left-4 right-4 z-50 lg:hidden">
           <Button onClick={scrollToForm} className="w-full bg-primary text-white shadow-lg animate-fade-in" size="lg">
@@ -213,6 +214,7 @@ const GetQuote = () => {
       </main>
       
       <Footer />
+      </div>
     </div>;
 };
 export default GetQuote;

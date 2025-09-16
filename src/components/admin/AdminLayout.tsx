@@ -7,7 +7,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-background pt-20">
         <AdminSidebar />
         
         <div className="flex-1 flex flex-col">

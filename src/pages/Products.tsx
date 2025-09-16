@@ -107,7 +107,7 @@ const Products = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-primary to-primary-glow text-white py-16">
+      <section className="bg-gradient-to-r from-primary to-primary-glow text-white py-16 pt-36">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-bold mb-4">Premium Kitchen Cabinets</h1>
           <p className="text-xl text-white/90 max-w-2xl mx-auto">
