@@ -14,6 +14,7 @@ import { CabinetType } from "@/types/cabinet";
 import { PriceCalculationBreakdown } from "@/components/price-list/PriceCalculationBreakdown";
 import { CabinetPricingTable } from "@/components/price-list/CabinetPricingTable";
 import { useIsMobile } from "@/hooks/use-mobile";
+import Header from "@/components/Header";
 
 interface DoorStyle {
   id: string;
@@ -270,8 +271,10 @@ const BaseCabinetsPricing = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 pt-24 pb-12">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+      <Header />
+      <div className="pt-24 pb-12">
+        <div className="container mx-auto px-4">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <Button 
@@ -407,6 +410,7 @@ const BaseCabinetsPricing = () => {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

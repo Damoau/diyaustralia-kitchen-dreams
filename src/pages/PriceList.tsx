@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Calculator, Package, Home, Archive, Grid3X3 } from "lucide-react";
+import Header from "@/components/Header";
 
 const PriceList = () => {
   const navigate = useNavigate();
@@ -42,8 +43,10 @@ const PriceList = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 pt-24 pb-12">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+      <Header />
+      <div className="pt-24 pb-12">
+        <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-4">
@@ -124,6 +127,7 @@ const PriceList = () => {
             </div>
           </CardContent>
         </Card>
+      </div>
       </div>
     </div>
   );
