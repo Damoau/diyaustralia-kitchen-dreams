@@ -184,7 +184,7 @@ const RoleManagement = () => {
         .from('user_roles')
         .delete()
         .eq('user_id', userId)
-        .eq('role', roleToRemove);
+        .eq('role', roleToRemove as any);
 
       if (error) throw error;
 
