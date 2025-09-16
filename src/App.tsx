@@ -23,9 +23,12 @@ const CheckoutFlow = lazy(() => import("./pages/CheckoutFlow"));
 const GetQuote = lazy(() => import("./pages/GetQuote"));
 const Manufacturing = lazy(() => import("./pages/Manufacturing"));
 const Admin = lazy(() => import("./pages/Admin"));
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Admin components
+const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
+const AdminRouter = lazy(() => import("./components/admin/AdminRouter"));
 const PriceList = lazy(() => import("./pages/PriceList"));
 const BaseCabinetsPricing = lazy(() => import("./pages/price-list/BaseCabinetsPricing"));
 const TopCabinetsPricing = lazy(() => import("./pages/price-list/TopCabinetsPricing"));
@@ -95,21 +98,13 @@ const App = () => (
               <Route path="/price-list/dress-panels" element={<DressPanelsPricing />} />
               <Route path="/auth" element={<Auth />} />
               <Route 
-                path="/admin" 
+                path="/admin/*" 
                 element={
                   <Suspense fallback={<PageLoader />}>
                     <ProtectedRoute requireAdmin>
-                      <Admin />
-                    </ProtectedRoute>
-                  </Suspense>
-                } 
-              />
-              <Route 
-                path="/admin/production" 
-                element={
-                  <Suspense fallback={<PageLoader />}>
-                    <ProtectedRoute requireAdmin>
-                      <AdminDashboard />
+                      <AdminLayout>
+                        <AdminRouter />
+                      </AdminLayout>
                     </ProtectedRoute>
                   </Suspense>
                 } 
