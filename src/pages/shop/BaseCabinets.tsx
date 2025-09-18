@@ -144,17 +144,17 @@ const BaseCabinets = () => {
           <div className="flex justify-center mb-8">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-64 h-12 justify-between">
-                  All Cabinets
-                  <ChevronDown className="h-4 w-4 text-primary" />
+                <Button variant="outline" className="w-full max-w-sm h-12 justify-center">
+                  {filterOptions.find(option => option.value === selectedFilter)?.label || 'All Cabinets'}
+                  <ChevronDown className="h-4 w-4 text-primary ml-2" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-64">
-                {filterOptions.map((option) => (
+              <DropdownMenuContent align="center" className="w-full max-w-sm">
+                {filterOptions.filter(option => option.value !== selectedFilter).map((option) => (
                   <DropdownMenuItem
                     key={option.value}
                     onClick={() => setSelectedFilter(option.value)}
-                    className={`justify-center ${selectedFilter === option.value ? "bg-primary/10" : ""}`}
+                    className="justify-center"
                   >
                     {option.label}
                   </DropdownMenuItem>
