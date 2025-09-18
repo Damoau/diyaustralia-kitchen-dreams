@@ -121,12 +121,6 @@ export default function Cart() {
                         Proceed to Checkout
                       </Link>
                     </Button>
-                    
-                    <Button asChild variant="outline" size="lg" className="w-full">
-                      <Link to="/get-quote">
-                        Request Custom Quote
-                      </Link>
-                    </Button>
                   </div>
                   
                   <div className="text-xs text-muted-foreground text-center">

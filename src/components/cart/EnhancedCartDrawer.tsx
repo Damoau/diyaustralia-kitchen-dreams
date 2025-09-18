@@ -56,8 +56,8 @@ export const EnhancedCartDrawer = ({ children }: EnhancedCartDrawerProps) => {
             <ShoppingBag className="h-16 w-16 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">Your cart is empty</h3>
             <p className="text-muted-foreground mb-6">Add some products to get started!</p>
-            <Button asChild onClick={() => setIsOpen(false)}>
-              <Link to="/products">Continue Shopping</Link>
+            <Button onClick={() => setIsOpen(false)}>
+              Continue Shopping
             </Button>
           </div>
         ) : (
@@ -112,12 +112,9 @@ export const EnhancedCartDrawer = ({ children }: EnhancedCartDrawerProps) => {
                   variant="outline" 
                   size="lg" 
                   className="w-full"
-                  asChild
                   onClick={() => setIsOpen(false)}
                 >
-                  <Link to="/products">
-                    Continue Shopping
-                  </Link>
+                  Continue Shopping
                 </Button>
               </div>
             </div>
