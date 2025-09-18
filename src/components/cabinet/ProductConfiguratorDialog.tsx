@@ -229,7 +229,7 @@ export function ProductConfiguratorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
@@ -251,55 +251,68 @@ export function ProductConfiguratorDialog({
             </div>
           ) : (
             <>
-              {/* Dimensions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Dimensions (mm)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label>Width</Label>
-                      <Input
-                        type="number"
-                        value={configuration.dimensions.width}
-                        onChange={(e) => handleDimensionChange('width', Number(e.target.value))}
-                        min={cabinetType.min_width_mm}
-                        max={cabinetType.max_width_mm}
+              {/* Mobile Layout: Image + Dimensions Side by Side */}
+              <div className="flex gap-4 h-48">
+                {/* Main Cabinet Image - Takes up half the screen */}
+                <div className="flex-1 flex flex-col">
+                  <h3 className="font-medium text-base mb-2">{cabinetType.name}</h3>
+                  <div className="flex-1 rounded-lg overflow-hidden bg-muted/30">
+                    {cabinetType.product_image_url ? (
+                      <img 
+                        src={cabinetType.product_image_url} 
+                        alt={cabinetType.name}
+                        className="w-full h-full object-cover"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {cabinetType.min_width_mm} - {cabinetType.max_width_mm}mm
-                      </p>
-                    </div>
-                    <div>
-                      <Label>Height</Label>
-                      <Input
-                        type="number"
-                        value={configuration.dimensions.height}
-                        onChange={(e) => handleDimensionChange('height', Number(e.target.value))}
-                        min={cabinetType.min_height_mm}
-                        max={cabinetType.max_height_mm}
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {cabinetType.min_height_mm} - {cabinetType.max_height_mm}mm
-                      </p>
-                    </div>
-                    <div>
-                      <Label>Depth</Label>
-                      <Input
-                        type="number"
-                        value={configuration.dimensions.depth}
-                        onChange={(e) => handleDimensionChange('depth', Number(e.target.value))}
-                        min={cabinetType.min_depth_mm}
-                        max={cabinetType.max_depth_mm}
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {cabinetType.min_depth_mm} - {cabinetType.max_depth_mm}mm
-                      </p>
-                    </div>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-xs text-muted-foreground">No image available</span>
+                      </div>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                
+                {/* Dimensions Section - Other half */}
+                <div className="flex-1 flex flex-col justify-center space-y-3">
+                  <div>
+                    <Label className="text-sm font-medium">Width</Label>
+                    <Input
+                      type="number"
+                      value={configuration.dimensions.width}
+                      onChange={(e) => handleDimensionChange('width', Number(e.target.value))}
+                      min={cabinetType.min_width_mm}
+                      max={cabinetType.max_width_mm}
+                      className="mt-1 h-10 text-base font-medium text-center"
+                      placeholder="600"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-medium">Height</Label>
+                    <Input
+                      type="number"
+                      value={configuration.dimensions.height}
+                      onChange={(e) => handleDimensionChange('height', Number(e.target.value))}
+                      min={cabinetType.min_height_mm}
+                      max={cabinetType.max_height_mm}
+                      className="mt-1 h-10 text-base font-medium text-center"
+                      placeholder="720"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-medium">Depth</Label>
+                    <Input
+                      type="number"
+                      value={configuration.dimensions.depth}
+                      onChange={(e) => handleDimensionChange('depth', Number(e.target.value))}
+                      min={cabinetType.min_depth_mm}
+                      max={cabinetType.max_depth_mm}
+                      className="mt-1 h-10 text-base font-medium text-center"
+                      placeholder="560"
+                    />
+                  </div>
+                </div>
+              </div>
 
               {/* Product Options */}
               {productOptions.length > 0 && (
