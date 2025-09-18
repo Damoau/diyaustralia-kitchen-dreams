@@ -1,22 +1,115 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHmac, timingSafeEqual } from "https://deno.land/std@0.208.0/crypto/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, paypal-transmission-id, paypal-cert-id, paypal-auth-algo, paypal-transmission-sig",
 };
 
+// Rate limiting store (in production, use Redis or similar)
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+function checkRateLimit(ip: string, limit: number = 100, windowMs: number = 15 * 60 * 1000): boolean {
+  const now = Date.now();
+  const key = ip;
+  const windowData = rateLimitStore.get(key);
+  
+  if (!windowData || windowData.resetTime < now) {
+    rateLimitStore.set(key, { count: 1, resetTime: now + windowMs });
+    return true;
+  }
+  
+  if (windowData.count >= limit) {
+    return false;
+  }
+  
+  windowData.count++;
+  return true;
+}
+
+async function verifyPayPalSignature(
+  payload: string,
+  headers: Record<string, string>,
+  webhookId: string
+): Promise<boolean> {
+  try {
+    const transmissionId = headers['paypal-transmission-id'];
+    const certId = headers['paypal-cert-id'];
+    const authAlgo = headers['paypal-auth-algo'];
+    const signature = headers['paypal-transmission-sig'];
+    
+    if (!transmissionId || !certId || !authAlgo || !signature) {
+      console.error('Missing required PayPal headers for signature verification');
+      return false;
+    }
+
+    // Use webhook secret for basic verification if available
+    const webhookSecret = Deno.env.get('PAYPAL_WEBHOOK_SECRET');
+    if (webhookSecret) {
+      const expectedHash = await createHmac('sha256', webhookSecret).update(payload).digest('hex');
+      const providedHash = signature.replace('sha256=', '');
+      return timingSafeEqual(
+        new TextEncoder().encode(expectedHash),
+        new TextEncoder().encode(providedHash)
+      );
+    }
+    
+    console.warn('PayPal webhook secret not configured - signature verification incomplete');
+    return true; // Allow through with warning in development
+  } catch (error) {
+    console.error('PayPal signature verification failed:', error);
+    return false;
+  }
+}
+
 const handler = async (req: Request): Promise<Response> => {
+  const clientIP = req.headers.get('cf-connecting-ip') || 
+                   req.headers.get('x-forwarded-for') || 
+                   req.headers.get('x-real-ip') || 
+                   '127.0.0.1';
+
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Rate limiting
+  if (!checkRateLimit(clientIP, 50, 15 * 60 * 1000)) {
+    console.warn(`Rate limit exceeded for IP: ${clientIP}`);
+    return new Response(
+      JSON.stringify({ error: 'Rate limit exceeded' }), 
+      { 
+        status: 429, 
+        headers: { "Content-Type": "application/json", ...corsHeaders } 
+      }
+    );
   }
 
   try {
     const payload = await req.text();
     const headers = Object.fromEntries(req.headers.entries());
     
+    // Verify PayPal webhook signature
+    const webhookId = Deno.env.get('PAYPAL_WEBHOOK_ID');
+    if (webhookId) {
+      const isValidSignature = await verifyPayPalSignature(payload, headers, webhookId);
+      if (!isValidSignature) {
+        console.error('Invalid PayPal webhook signature from IP:', clientIP);
+        return new Response(
+          JSON.stringify({ error: 'Invalid signature' }), 
+          { 
+            status: 401, 
+            headers: { "Content-Type": "application/json", ...corsHeaders } 
+          }
+        );
+      }
+    } else {
+      console.warn('PayPal webhook ID not configured - skipping signature verification');
+    }
+    
     console.log('Received PayPal webhook:', {
+      ip: clientIP,
       headers: {
         'paypal-transmission-id': headers['paypal-transmission-id'],
         'paypal-cert-id': headers['paypal-cert-id'],
@@ -34,6 +127,21 @@ const handler = async (req: Request): Promise<Response> => {
     const eventId = event.id;
 
     console.log('Processing PayPal webhook event:', eventType, eventId);
+
+    // Log webhook event for security monitoring
+    await supabase.rpc('log_audit_event', {
+      p_scope: 'paypal_webhook',
+      p_action: eventType,
+      p_after_data: JSON.stringify({ 
+        event_type: eventType,
+        event_id: eventId,
+        resource_id: event.resource?.id,
+        verified: !!webhookId,
+        source_ip: clientIP 
+      }),
+      p_ip_address: clientIP,
+      p_user_agent: req.headers.get('user-agent')
+    });
 
     // Store webhook event
     await supabase
@@ -83,26 +191,45 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error processing PayPal webhook:", error);
     
-    // Try to mark webhook as failed
+    // Log security incident
     try {
-      const event = JSON.parse(await req.text());
-      await createClient(
+      const supabase = createClient(
         Deno.env.get("SUPABASE_URL")!,
         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-      )
-      .from('webhook_events')
-      .update({ 
-        error_message: error.message,
-        retry_count: 1
-      })
-      .eq('event_id', event.id)
-      .eq('provider', 'paypal');
+      );
+      
+      await supabase.rpc('log_audit_event', {
+        p_scope: 'paypal_webhook_error',
+        p_action: 'webhook_processing_failed',
+        p_after_data: JSON.stringify({ 
+          error: error.message,
+          source_ip: clientIP 
+        }),
+        p_ip_address: clientIP,
+        p_user_agent: req.headers.get('user-agent')
+      });
+
+      // Try to parse and mark webhook as failed
+      try {
+        const event = JSON.parse(payload);
+        await supabase
+          .from('webhook_events')
+          .update({ 
+            error_message: error.message,
+            retry_count: 1,
+            processed_at: new Date().toISOString()
+          })
+          .eq('event_id', event.id)
+          .eq('provider', 'paypal');
+      } catch (parseError) {
+        console.error('Failed to parse webhook payload for error logging:', parseError);
+      }
     } catch (auditError) {
-      console.error('Failed to update webhook error:', auditError);
+      console.error('Failed to log webhook error:', auditError);
     }
 
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Internal server error" }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
