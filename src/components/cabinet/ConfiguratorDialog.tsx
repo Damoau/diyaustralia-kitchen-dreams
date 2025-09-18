@@ -14,6 +14,7 @@ import { CabinetType } from '@/types/cabinet';
 import { useCart } from '@/hooks/useCart';
 import { useDynamicPricing } from '@/hooks/useDynamicPricing';
 import { useCabinetPreferences } from '@/hooks/useCabinetPreferences';
+import { useToast } from '@/hooks/use-toast';
 import { pricingService } from '@/services/pricingService';
 import { PriceBreakdown } from './PriceBreakdown';
 import { HardwareBrandSelector } from './HardwareBrandSelector';
@@ -54,6 +55,7 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   const [showFullScreenImage, setShowFullScreenImage] = useState(false);
 
   const { addToCart, isLoading: isAddingToCart } = useCart();
+  const { toast } = useToast();
 
   // Cabinet preferences for lock-in functionality
   const { preferences, locks, updatePreference, toggleLock, getLockedPreferences } = useCabinetPreferences();
@@ -178,6 +180,14 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   };
 
   const handleAddToCart = async () => {
+    console.log('🚀 AddToCart clicked!', {
+      selectedDoorStyle,
+      selectedColor,
+      selectedHardwareBrand,
+      cabinetParts: cabinetParts?.length,
+      globalSettings: globalSettings?.length
+    });
+    
     const selectedDoorStyleObj = cabinetTypeFinishes?.find(f => f.door_style?.id === selectedDoorStyle)?.door_style;
     const selectedColorObj = availableColors?.find(c => c.id === selectedColor);
     
@@ -205,13 +215,32 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
       hardwareBrand: hardwareBrandObj
     };
 
+    console.log('🎯 Configuration built:', configuration);
+
     try {
       const { parseGlobalSettings } = await import('@/lib/pricing');
       const settings = parseGlobalSettings(globalSettings || []);
+      console.log('📊 Settings parsed, calling addToCart...');
       await addToCart(configuration, cabinetParts || [], settings);
+      
+      console.log('✅ addToCart completed successfully!');
+      
+      // Show success toast
+      toast({
+        title: "Added to Cart",
+        description: `${configuration.cabinetType.name} has been added to your cart!`,
+      });
+      
       onOpenChange(false);
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.error('❌ Error adding to cart:', error);
+      
+      // Show error toast
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
