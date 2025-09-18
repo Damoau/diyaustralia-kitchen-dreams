@@ -43,13 +43,17 @@ const BaseCabinets = () => {
   };
 
   const filterOptions = [
-    { value: 'all', label: 'All Cabinets' },
     { value: 'doors', label: 'Doors' },
     { value: 'drawers', label: 'Drawers' },
     { value: 'corners', label: 'Corners' },
     { value: 'appliance_cabinets', label: 'Appliance Cabinets' },
     { value: 'bin_cabinets', label: 'Bin Cabinets' }
   ];
+
+  const getSelectedFilterLabel = () => {
+    if (selectedFilter === 'all') return 'All Cabinets';
+    return filterOptions.find(option => option.value === selectedFilter)?.label || 'All Cabinets';
+  };
 
   // Fetch base cabinets
   const { data: cabinetTypes = [], isLoading } = useQuery({
@@ -144,12 +148,18 @@ const BaseCabinets = () => {
           <div className="flex justify-center mb-8">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-64 h-12 justify-between">
-                  All Cabinets
-                  <ChevronDown className="h-4 w-4 text-primary" />
+                <Button variant="outline" className="w-full max-w-sm h-12 justify-center">
+                  <span className="flex-1 text-center">{getSelectedFilterLabel()}</span>
+                  <ChevronDown className="h-4 w-4 text-primary ml-2" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-64">
+              <DropdownMenuContent align="center" className="w-full max-w-sm">
+                <DropdownMenuItem
+                  onClick={() => setSelectedFilter('all')}
+                  className={`justify-center ${selectedFilter === 'all' ? "bg-primary/10" : ""}`}
+                >
+                  All Cabinets
+                </DropdownMenuItem>
                 {filterOptions.map((option) => (
                   <DropdownMenuItem
                     key={option.value}
