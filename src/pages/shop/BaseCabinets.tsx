@@ -90,38 +90,37 @@ const BaseCabinets = () => {
           </div>
 
           {/* Category Navigation - Base, Top, Pantry, Dress Panels */}
-          <div className="flex gap-2 overflow-x-auto pb-2 mb-8 scrollbar-thin scrollbar-thumb-muted">
+          <div className="grid grid-cols-2 gap-3 mb-8">
             <Link to="/shop/base-cabinets">
-              <Button className="whitespace-nowrap">
+              <Button className="w-full h-12">
                 Base Cabinets
               </Button>
             </Link>
             <Link to="/shop/top-cabinets">
-              <Button variant="outline" className="whitespace-nowrap">
+              <Button variant="outline" className="w-full h-12">
                 Top Cabinets
               </Button>
             </Link>
             <Link to="/shop/pantry-cabinets">
-              <Button variant="outline" className="whitespace-nowrap">
+              <Button variant="outline" className="w-full h-12">
                 Pantry Cabinets
               </Button>
             </Link>
             <Link to="/shop/dress-panels">
-              <Button variant="outline" className="whitespace-nowrap">
+              <Button variant="outline" className="w-full h-12">
                 Dress Panels
               </Button>
             </Link>
           </div>
 
-          {/* Filter Buttons - Subcategory Navigation */}
-          <div className="flex gap-2 overflow-x-auto pb-2 mb-8 scrollbar-thin scrollbar-thumb-muted">
+          {/* Filter Buttons - Fixed 2-Row Grid */}
+          <div className="grid grid-cols-2 gap-3 mb-8">
             {filterOptions.map((option) => (
               <Button
                 key={option.value}
                 variant={selectedFilter === option.value ? "default" : "outline"}
-                size="sm"
                 onClick={() => setSelectedFilter(option.value)}
-                className="whitespace-nowrap text-xs md:text-sm"
+                className="w-full h-12 text-sm"
               >
                 {option.label}
               </Button>
