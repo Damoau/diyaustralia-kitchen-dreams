@@ -8,8 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { ConfiguratorDialog } from "@/components/cabinet/ConfiguratorDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { CabinetType } from "@/types/cabinet";
-import { ShoppingCart, Filter, ArrowLeft, Package } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ShoppingCart, ArrowLeft, Package, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +21,28 @@ const PantryCabinets = () => {
   const [selectedCabinetType, setSelectedCabinetType] = useState<CabinetType | null>(null);
   const [configuratorOpen, setConfiguratorOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const navigate = useNavigate();
+
+  const categories = [
+    { name: 'Base Cabinets', route: '/shop/base-cabinets' },
+    { name: 'Top Cabinets', route: '/shop/top-cabinets' },
+    { name: 'Pantry Cabinets', route: '/shop/pantry-cabinets' },
+    { name: 'Dress Panels', route: '/shop/dress-panels' }
+  ];
+
+  const currentCategoryIndex = 2; // Pantry Cabinets is index 2
+
+  const navigateToCategory = (direction: 'prev' | 'next') => {
+    // Find current index dynamically
+    const currentIndex = categories.findIndex(cat => cat.route === '/shop/pantry-cabinets');
+    let newIndex;
+    if (direction === 'prev') {
+      newIndex = currentIndex === 0 ? categories.length - 1 : currentIndex - 1;
+    } else {
+      newIndex = currentIndex === categories.length - 1 ? 0 : currentIndex + 1;
+    }
+    navigate(categories[newIndex].route);
+  };
 
   const filterOptions = [
     { value: 'all', label: 'All Cabinets' },
@@ -89,43 +111,52 @@ const PantryCabinets = () => {
             </Link>
           </div>
 
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-12">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-                Pantry <span className="text-transparent bg-clip-text bg-gradient-primary">Cabinets</span>
-              </h1>
-              <p className="text-xl text-muted-foreground">
-                Tall storage for maximum organization
-              </p>
-            </div>
+          {/* Category Navigation with Arrows */}
+          <div className="flex items-center justify-between mb-8">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => navigateToCategory('prev')}
+              className="h-12 w-12"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </Button>
+            
+            <h1 className="text-2xl md:text-3xl font-bold text-center">
+              {categories[categories.findIndex(cat => cat.route === '/shop/pantry-cabinets')].name}
+            </h1>
+            
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => navigateToCategory('next')}
+              className="h-12 w-12"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </Button>
+          </div>
 
-            {/* Filter Dropdown */}
-            <div className="flex items-center gap-4 mt-6 lg:mt-0">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="lg">
-                    <Filter className="h-4 w-4 mr-2" />
-                    {getFilterLabel(selectedFilter)}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  {filterOptions.map((option) => (
-                    <DropdownMenuItem
-                      key={option.value}
-                      onClick={() => setSelectedFilter(option.value)}
-                      className={selectedFilter === option.value ? "bg-primary/10" : ""}
-                    >
-                      {option.label}
-                      {selectedFilter === option.value && (
-                        <Badge variant="secondary" className="ml-auto">
-                          Active
-                        </Badge>
-                      )}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+          {/* Filter Dropdown - Single Line */}
+          <div className="flex justify-center mb-8">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-64 h-12 justify-between">
+                  All Cabinets
+                  <ChevronDown className="h-4 w-4 text-primary" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-64">
+                {filterOptions.map((option) => (
+                  <DropdownMenuItem
+                    key={option.value}
+                    onClick={() => setSelectedFilter(option.value)}
+                    className={`justify-center ${selectedFilter === option.value ? "bg-primary/10" : ""}`}
+                  >
+                    {option.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Cabinet Grid */}

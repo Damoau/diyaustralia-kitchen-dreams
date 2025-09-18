@@ -8,8 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { ConfiguratorDialog } from "@/components/cabinet/ConfiguratorDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { CabinetType } from "@/types/cabinet";
-import { ShoppingCart, ArrowLeft, Package, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShoppingCart, ArrowLeft, Package, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const BaseCabinets = () => {
   const [selectedCabinetType, setSelectedCabinetType] = useState<CabinetType | null>(null);
@@ -134,18 +140,27 @@ const BaseCabinets = () => {
             </Button>
           </div>
 
-          {/* Filter Buttons - Fixed 2-Row Grid */}
-          <div className="grid grid-cols-2 gap-3 mb-8">
-            {filterOptions.map((option) => (
-              <Button
-                key={option.value}
-                variant={selectedFilter === option.value ? "default" : "outline"}
-                onClick={() => setSelectedFilter(option.value)}
-                className="w-full h-12 text-sm"
-              >
-                {option.label}
-              </Button>
-            ))}
+          {/* Filter Dropdown - Single Line */}
+          <div className="flex justify-center mb-8">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-64 h-12 justify-between">
+                  All Cabinets
+                  <ChevronDown className="h-4 w-4 text-primary" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-64">
+                {filterOptions.map((option) => (
+                  <DropdownMenuItem
+                    key={option.value}
+                    onClick={() => setSelectedFilter(option.value)}
+                    className={`justify-center ${selectedFilter === option.value ? "bg-primary/10" : ""}`}
+                  >
+                    {option.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Cabinet Grid */}
