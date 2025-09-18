@@ -359,79 +359,110 @@ export function CellConfigPopup({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Cabinet Header with Image */}
-          <div className="flex items-start gap-4">
-            {/* Main Cabinet Image - High quality display */}
-            <div 
-              className="w-48 h-36 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors flex-shrink-0 overflow-hidden"
-              onClick={() => {
-                const currentDoorStyle = selectedDoorStyle ? doorStyles.find(ds => ds.id === selectedDoorStyle) : null;
-                const imageUrl = currentDoorStyle?.image_url || (finish as any)?.image_url || cabinetType.product_image_url;
-                if (imageUrl) {
-                  setZoomImageUrl(imageUrl);
-                  setShowImageZoom(true);
-                }
-              }}
-            >
-              {(() => {
-                const currentDoorStyle = selectedDoorStyle ? doorStyles.find(ds => ds.id === selectedDoorStyle) : null;
-                
-                // Prioritize cabinet_type_finishes image that matches the selected door style
-                const matchingCabinetTypeFinish = cabinetTypeFinishes.find(ctf => 
-                  ctf.door_style_id === selectedDoorStyle
-                );
-                
-                const imageUrl = matchingCabinetTypeFinish?.image_url || 
-                                currentDoorStyle?.image_url || 
-                                (finish as any)?.image_url || 
-                                cabinetType.product_image_url;
+          {/* Mobile Layout: Image + Dimensions Side by Side */}
+          <div className="flex gap-4 h-48">
+            {/* Main Cabinet Image - Takes up half the screen */}
+            <div className="flex-1 flex flex-col">
+              <h3 className="font-medium text-base mb-2">{cabinetType.name}</h3>
+              <div 
+                className="flex-1 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors overflow-hidden"
+                onClick={() => {
+                  const currentDoorStyle = selectedDoorStyle ? doorStyles.find(ds => ds.id === selectedDoorStyle) : null;
+                  const imageUrl = currentDoorStyle?.image_url || (finish as any)?.image_url || cabinetType.product_image_url;
+                  if (imageUrl) {
+                    setZoomImageUrl(imageUrl);
+                    setShowImageZoom(true);
+                  }
+                }}
+              >
+                {(() => {
+                  const currentDoorStyle = selectedDoorStyle ? doorStyles.find(ds => ds.id === selectedDoorStyle) : null;
+                  
+                  // Prioritize cabinet_type_finishes image that matches the selected door style
+                  const matchingCabinetTypeFinish = cabinetTypeFinishes.find(ctf => 
+                    ctf.door_style_id === selectedDoorStyle
+                  );
+                  
+                  const imageUrl = matchingCabinetTypeFinish?.image_url || 
+                                  currentDoorStyle?.image_url || 
+                                  (finish as any)?.image_url || 
+                                  cabinetType.product_image_url;
 
-                return imageUrl ? (
-                  <img 
-                    key={`cabinet-image-${selectedDoorStyle || 'default'}`} // Force re-render when door style changes
-                    src={imageUrl} 
-                    alt={`${cabinetType.name} - ${currentDoorStyle?.name || (finish as any)?.door_style?.name || 'Cabinet'}`}
-                    className="carousel-image transition-all duration-300"
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      minWidth: '0',
-                      minHeight: '0'
-                    }}
-                    onError={(e) => {
-                      console.error('Cabinet image failed to load:', imageUrl);
-                      e.currentTarget.style.display = "none";
-                      const parent = e.currentTarget.parentElement;
-                      if (parent) {
-                        parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-xs text-muted-foreground text-center">Image failed to load</span></div>';
-                      }
-                    }}
-                    onLoad={() => {
-                      console.log('Cabinet image updated:', imageUrl, 'Door style:', currentDoorStyle?.name);
-                    }}
-                    loading="eager"
-                    decoding="async"
-                  />
-                ) : (
-                  <div className="text-center p-2">
-                    <span className="text-xs text-muted-foreground">No image available</span>
-                  </div>
-                );
-              })()}
+                  return imageUrl ? (
+                    <img 
+                      key={`cabinet-image-${selectedDoorStyle || 'default'}`} // Force re-render when door style changes
+                      src={imageUrl} 
+                      alt={`${cabinetType.name} - ${currentDoorStyle?.name || (finish as any)?.door_style?.name || 'Cabinet'}`}
+                      className="w-full h-full object-contain transition-all duration-300"
+                      onError={(e) => {
+                        console.error('Cabinet image failed to load:', imageUrl);
+                        e.currentTarget.style.display = "none";
+                        const parent = e.currentTarget.parentElement;
+                        if (parent) {
+                          parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-xs text-muted-foreground text-center">Image failed to load</span></div>';
+                        }
+                      }}
+                      onLoad={() => {
+                        console.log('Cabinet image updated:', imageUrl, 'Door style:', currentDoorStyle?.name);
+                      }}
+                      loading="eager"
+                      decoding="async"
+                    />
+                  ) : (
+                    <div className="text-center p-2">
+                      <span className="text-xs text-muted-foreground">No image available</span>
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
             
-            {/* Cabinet Details */}
-            <div className="flex-1">
-              <h3 className="font-medium text-lg">{cabinetType.name}</h3>
-              <p className="text-sm text-muted-foreground mb-2">
-                {cabinetType.category.charAt(0).toUpperCase() + cabinetType.category.slice(1)} Cabinet
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {selectedDoorStyle 
-                  ? doorStyles.find(ds => ds.id === selectedDoorStyle)?.name || 'Loading...'
-                  : (finish as any)?.door_style?.name || 'Select door style'
-                }
-              </p>
+            {/* Dimensions Section - Other half */}
+            <div className="flex-1 flex flex-col justify-center space-y-3">
+              <div>
+                <Label htmlFor="width" className="text-sm font-medium">Width</Label>
+                <Input
+                  id="width"
+                  type="number"
+                  value={width}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setWidth(value === '' ? '' : value);
+                  }}
+                  className="mt-1 h-10 text-base font-medium text-center"
+                  placeholder="600"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="height" className="text-sm font-medium">Height</Label>
+                <Input
+                  id="height"
+                  type="number"
+                  value={height}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setHeight(value === '' ? '' : value);
+                  }}
+                  className="mt-1 h-10 text-base font-medium text-center"
+                  placeholder="720"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="depth" className="text-sm font-medium">Depth</Label>
+                <Input
+                  id="depth"
+                  type="number"
+                  value={depth}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setDepth(value === '' ? '' : value);
+                  }}
+                  className="mt-1 h-10 text-base font-medium text-center"
+                  placeholder="560"
+                />
+              </div>
             </div>
           </div>
 
@@ -491,49 +522,6 @@ export function CellConfigPopup({
               </div>
             </div>
           )}
-
-          {/* Dimensions */}
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <Label htmlFor="width" className="text-xs">Width (mm)</Label>
-              <Input
-                id="width"
-                type="number"
-                value={width}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setWidth(value === '' ? '' : value);
-                }}
-                className="h-8"
-              />
-            </div>
-            <div>
-              <Label htmlFor="height" className="text-xs">Height (mm)</Label>
-              <Input
-                id="height"
-                type="number"
-                value={height}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setHeight(value === '' ? '' : value);
-                }}
-                className="h-8"
-              />
-            </div>
-            <div>
-              <Label htmlFor="depth" className="text-xs">Depth (mm)</Label>
-              <Input
-                id="depth"
-                type="number"
-                value={depth}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setDepth(value === '' ? '' : value);
-                }}
-                className="h-8"
-              />
-            </div>
-          </div>
 
           {/* Door Style */}
           <div>
