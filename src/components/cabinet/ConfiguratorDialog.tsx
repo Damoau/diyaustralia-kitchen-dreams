@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ShoppingCart, Minus, Plus, ChevronDown, ChevronUp, Lock, Unlock } from 'lucide-react';
 import { CabinetType } from '@/types/cabinet';
-import { useCart } from '@/hooks/useCart';
+import { useCart } from '@/contexts/CartContext';
 import { useDynamicPricing } from '@/hooks/useDynamicPricing';
 import { useCabinetPreferences } from '@/hooks/useCabinetPreferences';
 import { useToast } from '@/hooks/use-toast';

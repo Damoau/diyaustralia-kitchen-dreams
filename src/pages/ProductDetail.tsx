@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, ShoppingCart, Ruler, Package, Info } from 'lucide-react';
-import { useCart } from '@/hooks/useCart';
+import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { formatPrice } from '@/lib/pricing';
 import { ConfiguratorDialog } from '@/components/cabinet/ConfiguratorDialog';

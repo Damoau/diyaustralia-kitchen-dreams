@@ -9,7 +9,7 @@ import { ShippingDelivery } from '@/components/checkout/ShippingDelivery';
 import { PaymentStep } from '@/components/checkout/PaymentStep';
 import { OrderReview } from '@/components/checkout/OrderReview';
 import { useCheckout } from '@/hooks/useCheckout';
-import { useCart } from '@/hooks/useCart';
+import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 
 type CheckoutStep = 'identify' | 'shipping' | 'payment' | 'review';

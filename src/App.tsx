@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/lib/errorBoundary";
 import { Suspense, lazy } from "react";
 import { PageLoader } from "@/components/ui/page-loader";
+import { CartProvider } from "@/contexts/CartContext";
 
 // Lazy load route components for code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -72,66 +73,68 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/shop" element={<Shop />} />
-              <Route path="/shop/base-cabinets" element={<BaseCabinets />} />
-              <Route path="/shop/top-cabinets" element={<TopCabinets />} />
-              <Route path="/shop/pantry-cabinets" element={<PantryCabinets />} />
-              <Route path="/shop/dress-panels" element={<DressPanels />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/products/:id" element={<ProductDetail />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/checkout-flow" element={<CheckoutFlow />} />
-              <Route path="/get-quote" element={<GetQuote />} />
-              <Route path="/manufacturing" element={<Manufacturing />} />
-              <Route path="/kitchen-styles" element={<KitchenStyles />} />
-              <Route path="/price-list" element={<PriceList />} />
-              <Route path="/price-list/base-cabinets" element={<BaseCabinetsPricing />} />
-              <Route path="/price-list/top-cabinets" element={<TopCabinetsPricing />} />
-              <Route path="/price-list/pantry-cabinets" element={<PantryCabinetsPricing />} />
-              <Route path="/price-list/dress-panels" element={<DressPanelsPricing />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route 
-                path="/admin/*" 
-                element={
-                  <Suspense fallback={<PageLoader />}>
-                    <ProtectedRoute requireAdmin>
-                      <AdminLayout>
-                        <AdminRouter />
-                      </AdminLayout>
-                    </ProtectedRoute>
-                  </Suspense>
-                } 
-              />
-              <Route 
-                path="/old-admin" 
-                element={
-                  <Suspense fallback={<PageLoader />}>
-                    <ProtectedRoute requireAdmin>
-                      <Admin />
-                    </ProtectedRoute>
-                  </Suspense>
-                } 
-              />
-              <Route path="/portal" element={<Portal />} />
-              <Route path="/portal/quotes" element={<PortalQuotes />} />
-              <Route path="/portal/quotes/:id" element={<PortalQuoteDetail />} />
-              <Route path="/portal/orders" element={<PortalOrders />} />
-              <Route path="/portal/orders/:id" element={<PortalOrderDetail />} />
-              <Route path="/portal/files" element={<PortalFiles />} />
-              <Route path="/portal/messages" element={<PortalMessages />} />
-              <Route path="/portal/profile" element={<PortalProfile />} />
-              <Route path="/portal/addresses" element={<PortalAddresses />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
+        <CartProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/shop" element={<Shop />} />
+                <Route path="/shop/base-cabinets" element={<BaseCabinets />} />
+                <Route path="/shop/top-cabinets" element={<TopCabinets />} />
+                <Route path="/shop/pantry-cabinets" element={<PantryCabinets />} />
+                <Route path="/shop/dress-panels" element={<DressPanels />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/products/:id" element={<ProductDetail />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/checkout-flow" element={<CheckoutFlow />} />
+                <Route path="/get-quote" element={<GetQuote />} />
+                <Route path="/manufacturing" element={<Manufacturing />} />
+                <Route path="/kitchen-styles" element={<KitchenStyles />} />
+                <Route path="/price-list" element={<PriceList />} />
+                <Route path="/price-list/base-cabinets" element={<BaseCabinetsPricing />} />
+                <Route path="/price-list/top-cabinets" element={<TopCabinetsPricing />} />
+                <Route path="/price-list/pantry-cabinets" element={<PantryCabinetsPricing />} />
+                <Route path="/price-list/dress-panels" element={<DressPanelsPricing />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route 
+                  path="/admin/*" 
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <ProtectedRoute requireAdmin>
+                        <AdminLayout>
+                          <AdminRouter />
+                        </AdminLayout>
+                      </ProtectedRoute>
+                    </Suspense>
+                  } 
+                />
+                <Route 
+                  path="/old-admin" 
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <ProtectedRoute requireAdmin>
+                        <Admin />
+                      </ProtectedRoute>
+                    </Suspense>
+                  } 
+                />
+                <Route path="/portal" element={<Portal />} />
+                <Route path="/portal/quotes" element={<PortalQuotes />} />
+                <Route path="/portal/quotes/:id" element={<PortalQuoteDetail />} />
+                <Route path="/portal/orders" element={<PortalOrders />} />
+                <Route path="/portal/orders/:id" element={<PortalOrderDetail />} />
+                <Route path="/portal/files" element={<PortalFiles />} />
+                <Route path="/portal/messages" element={<PortalMessages />} />
+                <Route path="/portal/profile" element={<PortalProfile />} />
+                <Route path="/portal/addresses" element={<PortalAddresses />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </CartProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </ErrorBoundary>

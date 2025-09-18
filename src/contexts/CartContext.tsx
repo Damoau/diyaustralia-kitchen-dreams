@@ -1,10 +1,25 @@
-import { useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { CartItem, Cart, CabinetConfiguration } from '@/types/cabinet';
 import { generateCutlist, PricingSettings } from '@/lib/pricing';
 import { useToast } from '@/hooks/use-toast';
 
-export function useCart() {
+interface CartContextType {
+  cart: Cart | null;
+  cartItems: CartItem[];
+  isLoading: boolean;
+  totalItems: number;
+  totalAmount: number;
+  addToCart: (configuration: CabinetConfiguration, cabinetParts: any[], settings: PricingSettings) => Promise<void>;
+  removeFromCart: (itemId: string) => Promise<void>;
+  updateCartItemQuantity: (itemId: string, quantity: number) => Promise<void>;
+  getOrCreateCart: () => Promise<Cart | null>;
+  refreshCart: () => Promise<void>;
+}
+
+const CartContext = createContext<CartContextType | undefined>(undefined);
+
+export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<Cart | null>(null);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +60,6 @@ export function useCart() {
         sessionStorage.setItem('guest_cart_id', sessionId);
         
         // For guest users, we'll use a local cart representation
-        // and only create server-side cart when actually needed (like checkout)
         const guestCart = {
           id: sessionId,
           session_id: sessionId,
@@ -97,7 +111,6 @@ export function useCart() {
       }
     } catch (error) {
       console.error('Error loading cart items:', error);
-      // For guest users, fallback to empty cart if there's an error
       setCartItems([]);
     }
   };
@@ -124,27 +137,22 @@ export function useCart() {
         // New product-based system
         const productConfig = configuration as any;
         
-        // Calculate price from variant using actual pricing logic
         try {
-          // Import dynamic pricing function
           const { calculateCabinetPrice } = await import('@/lib/dynamicPricing');
           
-          // Get cabinet parts for pricing
           const { data: cabinetParts } = await supabase
             .from('cabinet_parts')
             .select('*')
             .eq('cabinet_type_id', configuration.cabinetType.id);
           
-          // Get global settings
           const { data: globalSettings } = await supabase
             .from('global_settings')
             .select('*');
           
           if (cabinetParts && globalSettings) {
-            // For product-based system, use a simpler price calculation
             const basePrice = configuration.cabinetType.base_price || 299;
             const area = (configuration.width / 1000) * (configuration.height / 1000);
-            unitPrice = basePrice + (area * 100); // Simple area-based pricing
+            unitPrice = basePrice + (area * 100);
             totalPrice = unitPrice * configuration.quantity;
             
             cutlist = {
@@ -155,7 +163,6 @@ export function useCart() {
               totalCost: unitPrice
             };
           } else {
-            // Fallback pricing
             unitPrice = configuration.cabinetType.base_price || 299;
             totalPrice = unitPrice * configuration.quantity;
             
@@ -169,7 +176,6 @@ export function useCart() {
           }
         } catch (error) {
           console.error('Error calculating product price:', error);
-          // Fallback pricing
           unitPrice = configuration.cabinetType.base_price || 299;
           totalPrice = unitPrice * configuration.quantity;
           
@@ -208,7 +214,6 @@ export function useCart() {
         door_style_id: (configuration as any).doorStyle?.id || null,
         unit_price: unitPrice,
         total_price: totalPrice,
-        // Product integration fields
         is_product_based: isProductBased,
         product_variant: productConfig.productVariant || null,
         product_options: productConfig.productOptions || null,
@@ -228,30 +233,21 @@ export function useCart() {
       };
 
       if (user) {
-        // Authenticated user - use database
         const { error } = await supabase
           .from('cart_items')
           .insert([cartItemData]);
 
         if (error) throw error;
       } else {
-        // Guest user - use localStorage
         const existingItems = JSON.parse(localStorage.getItem(`guest_cart_items_${currentCart.id}`) || '[]');
         existingItems.push(cartItemData);
         localStorage.setItem(`guest_cart_items_${currentCart.id}`, JSON.stringify(existingItems));
       }
 
       // Force immediate cart state update
-      if (user) {
-        // For authenticated users, reload from database
-        await loadCartItems(currentCart.id);
-      } else {
-        // For guest users, immediately update state to reflect the new item
-        const updatedItems = JSON.parse(localStorage.getItem(`guest_cart_items_${currentCart.id}`) || '[]');
-        setCartItems(updatedItems);
-      }
+      await loadCartItems(currentCart.id);
       
-      console.log('🔄 Cart state updated after adding item');
+      console.log('🔄 Cart context updated after adding item');
       
       toast({
         title: "Added to Cart",
@@ -275,7 +271,6 @@ export function useCart() {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
-        // Authenticated user - use database
         const { error } = await supabase
           .from('cart_items')
           .delete()
@@ -283,7 +278,6 @@ export function useCart() {
 
         if (error) throw error;
       } else {
-        // Guest user - use localStorage
         if (cart) {
           const existingItems = JSON.parse(localStorage.getItem(`guest_cart_items_${cart.id}`) || '[]');
           const filteredItems = existingItems.filter((item: any) => item.id !== itemId);
@@ -291,7 +285,10 @@ export function useCart() {
         }
       }
 
+      // Update local state immediately
       setCartItems(prev => prev.filter(item => item.id !== itemId));
+      
+      console.log('🗑️ Item removed from cart context');
       
       toast({
         title: "Removed from Cart",
@@ -317,7 +314,6 @@ export function useCart() {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
-        // Authenticated user - use database
         const { error } = await supabase
           .from('cart_items')
           .update({ 
@@ -328,7 +324,6 @@ export function useCart() {
 
         if (error) throw error;
       } else {
-        // Guest user - use localStorage
         if (cart) {
           const existingItems = JSON.parse(localStorage.getItem(`guest_cart_items_${cart.id}`) || '[]');
           const updatedItems = existingItems.map((cartItem: any) => 
@@ -340,11 +335,14 @@ export function useCart() {
         }
       }
 
+      // Update local state immediately
       setCartItems(prev => prev.map(i => 
         i.id === itemId 
           ? { ...i, quantity, total_price: newTotalPrice }
           : i
       ));
+      
+      console.log('📊 Cart quantity updated in context');
     } catch (error) {
       console.error('Error updating quantity:', error);
       toast({
@@ -352,6 +350,13 @@ export function useCart() {
         description: "Failed to update quantity",
         variant: "destructive",
       });
+    }
+  };
+
+  // Force refresh cart items
+  const refreshCart = async () => {
+    if (cart) {
+      await loadCartItems(cart.id);
     }
   };
 
@@ -367,9 +372,9 @@ export function useCart() {
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalAmount = cartItems.reduce((sum, item) => sum + item.total_price, 0);
 
-  // Debug logging for cart state
+  // Debug logging for cart state changes
   useEffect(() => {
-    console.log('🛒 Cart state updated:', {
+    console.log('🛒 Cart context state updated:', {
       cartItemsLength: cartItems.length,
       totalItems,
       totalAmount,
@@ -381,14 +386,7 @@ export function useCart() {
     });
   }, [cartItems, totalItems, totalAmount]);
 
-  // Force refresh cart items (useful for ensuring UI sync)
-  const refreshCart = async () => {
-    if (cart) {
-      await loadCartItems(cart.id);
-    }
-  };
-
-  return {
+  const value: CartContextType = {
     cart,
     cartItems,
     isLoading,
@@ -400,4 +398,18 @@ export function useCart() {
     getOrCreateCart,
     refreshCart,
   };
+
+  return (
+    <CartContext.Provider value={value}>
+      {children}
+    </CartContext.Provider>
+  );
+}
+
+export function useCart() {
+  const context = useContext(CartContext);
+  if (context === undefined) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
 }
