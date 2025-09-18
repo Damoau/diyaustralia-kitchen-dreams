@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ConfiguratorDialog } from "@/components/cabinet/ConfiguratorDialog";
-import { ProductConfiguratorDialog } from "@/components/cabinet/ProductConfiguratorDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { CabinetType } from "@/types/cabinet";
 import { ShoppingCart, Filter, ArrowLeft, Package } from "lucide-react";
@@ -21,7 +20,6 @@ import {
 const BaseCabinets = () => {
   const [selectedCabinetType, setSelectedCabinetType] = useState<CabinetType | null>(null);
   const [configuratorOpen, setConfiguratorOpen] = useState(false);
-  const [newConfiguratorOpen, setNewConfiguratorOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
 
   const filterOptions = [
@@ -58,11 +56,6 @@ const BaseCabinets = () => {
   const handleCreateCabinet = (cabinet: CabinetType) => {
     setSelectedCabinetType(cabinet);
     setConfiguratorOpen(true);
-  };
-
-  const handleNewCreateCabinet = (cabinet: CabinetType) => {
-    setSelectedCabinetType(cabinet);
-    setNewConfiguratorOpen(true);
   };
 
   const getFilterLabel = (value: string) => {
@@ -168,24 +161,13 @@ const BaseCabinets = () => {
                     <CardTitle className="text-sm md:text-lg leading-tight">{cabinet.name}</CardTitle>
                   </CardHeader>
                   
-                  <CardFooter className="pt-0 gap-2">
+                  <CardFooter className="pt-0">
                     <Button 
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 text-xs md:text-sm h-8 md:h-10"
+                      className="w-full text-xs md:text-sm h-8 md:h-10"
                       onClick={() => handleCreateCabinet(cabinet)}
                     >
-                      <ShoppingCart className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                      <span className="hidden sm:inline">Legacy</span>
-                      <span className="sm:hidden">Old</span>
-                    </Button>
-                    <Button 
-                      className="flex-1 text-xs md:text-sm h-8 md:h-10"
-                      onClick={() => handleNewCreateCabinet(cabinet)}
-                    >
                       <Package className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                      <span className="hidden sm:inline">Product Config</span>
-                      <span className="sm:hidden">New</span>
+                      Create Your Cabinet
                     </Button>
                   </CardFooter>
                 </Card>
@@ -219,26 +201,16 @@ const BaseCabinets = () => {
 
       <Footer />
 
-      {/* Configurator Dialogs */}
+      {/* Configurator Dialog */}
       {selectedCabinetType && (
-        <>
-          <ConfiguratorDialog
-            cabinetType={selectedCabinetType}
-            open={configuratorOpen}
-            onOpenChange={(open) => {
-              setConfiguratorOpen(open);
-              if (!open) setSelectedCabinetType(null);
-            }}
-          />
-          <ProductConfiguratorDialog
-            cabinetType={selectedCabinetType}
-            open={newConfiguratorOpen}
-            onOpenChange={(open) => {
-              setNewConfiguratorOpen(open);
-              if (!open) setSelectedCabinetType(null);
-            }}
-          />
-        </>
+        <ConfiguratorDialog
+          cabinetType={selectedCabinetType}
+          open={configuratorOpen}
+          onOpenChange={(open) => {
+            setConfiguratorOpen(open);
+            if (!open) setSelectedCabinetType(null);
+          }}
+        />
       )}
     </div>
   );
