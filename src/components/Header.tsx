@@ -5,6 +5,7 @@ import { EnhancedCartDrawer } from "@/components/cart/EnhancedCartDrawer";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 const Header = () => {
@@ -12,6 +13,11 @@ const Header = () => {
   const { isAuthenticated, isAdmin, user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Debug logging for header cart state
+  useEffect(() => {
+    console.log('🎯 Header re-rendered with totalItems:', totalItems);
+  }, [totalItems]);
   
   // Check if user is in admin mode
   const isInAdminMode = location.pathname.startsWith('/admin');

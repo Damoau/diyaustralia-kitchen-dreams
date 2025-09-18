@@ -367,6 +367,20 @@ export function useCart() {
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalAmount = cartItems.reduce((sum, item) => sum + item.total_price, 0);
 
+  // Debug logging for cart state
+  useEffect(() => {
+    console.log('🛒 Cart state updated:', {
+      cartItemsLength: cartItems.length,
+      totalItems,
+      totalAmount,
+      cartItems: cartItems.map(item => ({
+        id: item.id,
+        name: item.cabinet_type?.name,
+        quantity: item.quantity
+      }))
+    });
+  }, [cartItems, totalItems, totalAmount]);
+
   // Force refresh cart items (useful for ensuring UI sync)
   const refreshCart = async () => {
     if (cart) {
