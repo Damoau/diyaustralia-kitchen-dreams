@@ -241,8 +241,17 @@ export function useCart() {
         localStorage.setItem(`guest_cart_items_${currentCart.id}`, JSON.stringify(existingItems));
       }
 
-      // Reload cart items
-      await loadCartItems(currentCart.id);
+      // Force immediate cart state update
+      if (user) {
+        // For authenticated users, reload from database
+        await loadCartItems(currentCart.id);
+      } else {
+        // For guest users, immediately update state to reflect the new item
+        const updatedItems = JSON.parse(localStorage.getItem(`guest_cart_items_${currentCart.id}`) || '[]');
+        setCartItems(updatedItems);
+      }
+      
+      console.log('🔄 Cart state updated after adding item');
       
       toast({
         title: "Added to Cart",
@@ -358,6 +367,13 @@ export function useCart() {
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalAmount = cartItems.reduce((sum, item) => sum + item.total_price, 0);
 
+  // Force refresh cart items (useful for ensuring UI sync)
+  const refreshCart = async () => {
+    if (cart) {
+      await loadCartItems(cart.id);
+    }
+  };
+
   return {
     cart,
     cartItems,
@@ -368,5 +384,6 @@ export function useCart() {
     removeFromCart,
     updateCartItemQuantity,
     getOrCreateCart,
+    refreshCart,
   };
 }
