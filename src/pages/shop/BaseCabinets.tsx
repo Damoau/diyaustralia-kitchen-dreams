@@ -153,13 +153,13 @@ const BaseCabinets = () => {
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
               {cabinetTypes.map((cabinet) => (
                 <Card key={cabinet.id} className="group hover:shadow-elegant transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm">
-                  <CardHeader className="pb-3">
-                    <div className="aspect-square bg-muted/30 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                  <CardHeader className="p-3">
+                    <div className="aspect-square bg-muted/30 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
                       {cabinet.product_image_url ? (
                         <img 
                           src={cabinet.product_image_url} 
                           alt={cabinet.name}
-                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 p-2"
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                         />
                       ) : (
                         <Package className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground/50" />
