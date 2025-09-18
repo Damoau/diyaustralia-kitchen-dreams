@@ -365,7 +365,7 @@ export function CellConfigPopup({
             <div className="flex-1 flex flex-col">
               <h3 className="font-medium text-base mb-2">{cabinetType.name}</h3>
               <div 
-                className="flex-1 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors overflow-hidden"
+                className="flex-1 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={() => {
                   const currentDoorStyle = selectedDoorStyle ? doorStyles.find(ds => ds.id === selectedDoorStyle) : null;
                   const imageUrl = currentDoorStyle?.image_url || (finish as any)?.image_url || cabinetType.product_image_url;
@@ -393,7 +393,7 @@ export function CellConfigPopup({
                       key={`cabinet-image-${selectedDoorStyle || 'default'}`} // Force re-render when door style changes
                       src={imageUrl} 
                       alt={`${cabinetType.name} - ${currentDoorStyle?.name || (finish as any)?.door_style?.name || 'Cabinet'}`}
-                      className="w-full h-full object-contain transition-all duration-300"
+                      className="w-full h-full object-cover transition-all duration-300"
                       onError={(e) => {
                         console.error('Cabinet image failed to load:', imageUrl);
                         e.currentTarget.style.display = "none";
