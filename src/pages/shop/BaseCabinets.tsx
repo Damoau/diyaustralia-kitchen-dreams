@@ -159,7 +159,7 @@ const BaseCabinets = () => {
                         <img 
                           src={cabinet.product_image_url} 
                           alt={cabinet.name}
-                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-full object-contain group-hover:scale-[1.75] transition-transform duration-300 scale-[1.4]"
                         />
                       ) : (
                         <Package className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground/50" />
