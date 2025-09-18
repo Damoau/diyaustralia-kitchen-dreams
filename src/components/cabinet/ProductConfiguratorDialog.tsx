@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Plus, Minus } from 'lucide-react';
 import { CabinetType } from '@/types/cabinet';
-import { useCart } from '@/hooks/useCart';
+import { useCart } from '@/contexts/CartContext';
 import { useProductIntegration } from '@/hooks/useProductIntegration';
 import { useToast } from '@/hooks/use-toast';
 

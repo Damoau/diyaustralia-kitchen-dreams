@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ShoppingCart, Minus, Plus, Trash2, Download, FileText } from 'lucide-react';
-import { useCart } from '@/hooks/useCart';
+import { useCart } from '@/contexts/CartContext';
 import { formatPrice, exportToCsv } from '@/lib/pricing';
 import { generateCutlist, parseGlobalSettings } from '@/lib/pricing';
 

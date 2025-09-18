@@ -12,7 +12,7 @@ import { calculateHardwareCost } from '@/lib/hardwarePricing';
 import { formatPrice, parseGlobalSettings } from '@/lib/pricing';
 import { compressImage } from '@/lib/imageUtils';
 import { useToast } from '@/hooks/use-toast';
-import { useCart } from '@/hooks/useCart';
+import { useCart } from '@/contexts/CartContext';
 import { supabase } from '@/integrations/supabase/client';
 
 interface CellConfigPopupProps {
