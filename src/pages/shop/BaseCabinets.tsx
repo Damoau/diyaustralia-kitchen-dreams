@@ -166,7 +166,6 @@ const BaseCabinets = () => {
                       className="w-full text-xs md:text-sm h-8 md:h-10 justify-center"
                       onClick={() => handleCreateCabinet(cabinet)}
                     >
-                      <Package className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                       Create Your Cabinet
                     </Button>
                   </CardFooter>
