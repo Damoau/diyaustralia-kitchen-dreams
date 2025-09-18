@@ -8,13 +8,33 @@ import { Badge } from "@/components/ui/badge";
 import { ConfiguratorDialog } from "@/components/cabinet/ConfiguratorDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { CabinetType } from "@/types/cabinet";
-import { ShoppingCart, ArrowLeft, Package } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ShoppingCart, ArrowLeft, Package, ChevronLeft, ChevronRight } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 const BaseCabinets = () => {
   const [selectedCabinetType, setSelectedCabinetType] = useState<CabinetType | null>(null);
   const [configuratorOpen, setConfiguratorOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const navigate = useNavigate();
+
+  const categories = [
+    { name: 'Base Cabinets', route: '/shop/base-cabinets' },
+    { name: 'Top Cabinets', route: '/shop/top-cabinets' },
+    { name: 'Pantry Cabinets', route: '/shop/pantry-cabinets' },
+    { name: 'Dress Panels', route: '/shop/dress-panels' }
+  ];
+
+  const currentCategoryIndex = 0; // Base Cabinets is index 0
+
+  const navigateToCategory = (direction: 'prev' | 'next') => {
+    let newIndex;
+    if (direction === 'prev') {
+      newIndex = currentCategoryIndex === 0 ? categories.length - 1 : currentCategoryIndex - 1;
+    } else {
+      newIndex = currentCategoryIndex === categories.length - 1 ? 0 : currentCategoryIndex + 1;
+    }
+    navigate(categories[newIndex].route);
+  };
 
   const filterOptions = [
     { value: 'all', label: 'All Cabinets' },
@@ -89,28 +109,29 @@ const BaseCabinets = () => {
             </Link>
           </div>
 
-          {/* Category Navigation - Base, Top, Pantry, Dress Panels */}
-          <div className="grid grid-cols-2 gap-3 mb-8">
-            <Link to="/shop/base-cabinets">
-              <Button className="w-full h-12">
-                Base Cabinets
-              </Button>
-            </Link>
-            <Link to="/shop/top-cabinets">
-              <Button variant="outline" className="w-full h-12">
-                Top Cabinets
-              </Button>
-            </Link>
-            <Link to="/shop/pantry-cabinets">
-              <Button variant="outline" className="w-full h-12">
-                Pantry Cabinets
-              </Button>
-            </Link>
-            <Link to="/shop/dress-panels">
-              <Button variant="outline" className="w-full h-12">
-                Dress Panels
-              </Button>
-            </Link>
+          {/* Category Navigation with Arrows */}
+          <div className="flex items-center justify-between mb-8">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => navigateToCategory('prev')}
+              className="h-12 w-12"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </Button>
+            
+            <h1 className="text-2xl md:text-3xl font-bold text-center">
+              {categories[currentCategoryIndex].name}
+            </h1>
+            
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => navigateToCategory('next')}
+              className="h-12 w-12"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </Button>
           </div>
 
           {/* Filter Buttons - Fixed 2-Row Grid */}
