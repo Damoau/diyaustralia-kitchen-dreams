@@ -80,6 +80,18 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
     hardwareBrandId: selectedHardwareBrand
   });
 
+  console.log('🔧 CONFIGURATOR DIALOG PRICING DEBUG:', {
+    selectedDoorStyle,
+    selectedColor, 
+    selectedHardwareBrand,
+    width,
+    height,
+    depth,
+    quantity,
+    priceFromHook: price,
+    cabinetTypeFinishes: cabinetTypeFinishes?.length
+  });
+
   // Fetch hardware brands to set default
   const { data: hardwareBrands } = useQuery({
     queryKey: ['hardware-brands'],
@@ -180,16 +192,40 @@ export function ConfiguratorDialog({ cabinetType, open, onOpenChange, initialWid
   };
 
   const handleAddToCart = async () => {
-    console.log('🚀 AddToCart clicked!', {
-      selectedDoorStyle,
-      selectedColor,
-      selectedHardwareBrand,
-      cabinetParts: cabinetParts?.length,
-      globalSettings: globalSettings?.length
-    });
-    
-    const selectedDoorStyleObj = cabinetTypeFinishes?.find(f => f.door_style?.id === selectedDoorStyle)?.door_style;
-    const selectedColorObj = availableColors?.find(c => c.id === selectedColor);
+      console.log('🚀 AddToCart clicked!', {
+        selectedDoorStyle,
+        selectedColor,
+        selectedHardwareBrand,
+        cabinetParts: cabinetParts?.length,
+        globalSettings: globalSettings?.length,
+        priceFromHook: price
+      });
+
+      console.log('🔍 DOOR STYLE DETAILS:', {
+        selectedDoorStyleId: selectedDoorStyle,
+        availableFinishes: cabinetTypeFinishes?.map(f => ({
+          id: f.id,
+          doorStyleId: f.door_style?.id,
+          doorStyleName: f.door_style?.name,
+          doorStyleRate: f.door_style?.base_rate_per_sqm
+        }))
+      });
+
+      const selectedDoorStyleObj = cabinetTypeFinishes?.find(f => f.door_style?.id === selectedDoorStyle)?.door_style;
+      const selectedColorObj = availableColors?.find(c => c.id === selectedColor);
+
+      console.log('🎯 SELECTED OBJECTS:', {
+        doorStyleObj: {
+          id: selectedDoorStyleObj?.id,
+          name: selectedDoorStyleObj?.name,
+          rate: selectedDoorStyleObj?.base_rate_per_sqm
+        },
+        colorObj: {
+          id: selectedColorObj?.id,
+          name: selectedColorObj?.name,
+          surcharge: selectedColorObj?.surcharge_rate_per_sqm
+        }
+      });
     
     // Get selected hardware brand
     const { data: hardwareBrandObj } = await supabase

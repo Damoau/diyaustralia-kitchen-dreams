@@ -215,6 +215,19 @@ export const useDynamicPricing = ({
     }
 
     try {
+      console.log('🎯 DYNAMIC PRICING INPUT PARAMS:', {
+        cabinetType: cabinetType.name,
+        dimensions: { width, height, depth },
+        doorStyleId: doorStyleId,
+        colorId: colorId,
+        doorStyleName: doorStyle?.name,
+        doorStyleRate: doorStyle?.base_rate_per_sqm,
+        colorName: color?.name,
+        colorSurcharge: color?.surcharge_rate_per_sqm,
+        quantity,
+        hardwareBrandId
+      });
+
       const price = pricingService.calculatePrice({
         cabinetType,
         width,
@@ -230,17 +243,7 @@ export const useDynamicPricing = ({
         hardwareOptions: hardwareOptions || []
       });
 
-      console.log('Dynamic pricing result:', {
-        cabinetType: cabinetType.name,
-        dimensions: { width, height, depth },
-        doorStyle: doorStyle?.name,
-        color: color?.name,
-        quantity,
-        hardwareBrandId,
-        hardwareRequirementsCount: hardwareRequirements?.length || 0,
-        hardwareOptionsCount: hardwareOptions?.length || 0,
-        calculatedPrice: price
-      });
+      console.log('💰 DYNAMIC PRICING FINAL RESULT:', price);
 
       return price;
     } catch (error) {
