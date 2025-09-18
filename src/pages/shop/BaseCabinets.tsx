@@ -8,14 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { ConfiguratorDialog } from "@/components/cabinet/ConfiguratorDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { CabinetType } from "@/types/cabinet";
-import { ShoppingCart, Filter, ArrowLeft, Package } from "lucide-react";
+import { ShoppingCart, ArrowLeft, Package } from "lucide-react";
 import { Link } from "react-router-dom";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 const BaseCabinets = () => {
   const [selectedCabinetType, setSelectedCabinetType] = useState<CabinetType | null>(null);
@@ -58,11 +52,6 @@ const BaseCabinets = () => {
     setConfiguratorOpen(true);
   };
 
-  const getFilterLabel = (value: string) => {
-    const option = filterOptions.find(opt => opt.value === value);
-    return option ? option.label : 'All Cabinets';
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
@@ -100,45 +89,43 @@ const BaseCabinets = () => {
             </Link>
           </div>
 
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-12">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-                Base <span className="text-transparent bg-clip-text bg-gradient-primary">Cabinets</span>
-              </h1>
-              <p className="text-xl text-muted-foreground">
-                Foundation cabinets for your kitchen workspace
-              </p>
-            </div>
+          {/* Category Navigation - Base, Top, Pantry, Dress Panels */}
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-8 scrollbar-thin scrollbar-thumb-muted">
+            <Link to="/shop/base-cabinets">
+              <Button className="whitespace-nowrap">
+                Base Cabinets
+              </Button>
+            </Link>
+            <Link to="/shop/top-cabinets">
+              <Button variant="outline" className="whitespace-nowrap">
+                Top Cabinets
+              </Button>
+            </Link>
+            <Link to="/shop/pantry-cabinets">
+              <Button variant="outline" className="whitespace-nowrap">
+                Pantry Cabinets
+              </Button>
+            </Link>
+            <Link to="/shop/dress-panels">
+              <Button variant="outline" className="whitespace-nowrap">
+                Dress Panels
+              </Button>
+            </Link>
+          </div>
 
-            {/* Filter Dropdown */}
-            <div className="w-full lg:w-auto mt-6 lg:mt-0">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-full lg:w-auto justify-between">
-                    <div className="flex items-center">
-                      <Filter className="h-4 w-4 mr-2" />
-                      {getFilterLabel(selectedFilter)}
-                    </div>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  {filterOptions.map((option) => (
-                    <DropdownMenuItem
-                      key={option.value}
-                      onClick={() => setSelectedFilter(option.value)}
-                      className={selectedFilter === option.value ? "bg-primary/10" : ""}
-                    >
-                      {option.label}
-                      {selectedFilter === option.value && (
-                        <Badge variant="secondary" className="ml-auto">
-                          Active
-                        </Badge>
-                      )}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+          {/* Filter Buttons - Subcategory Navigation */}
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-8 scrollbar-thin scrollbar-thumb-muted">
+            {filterOptions.map((option) => (
+              <Button
+                key={option.value}
+                variant={selectedFilter === option.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedFilter(option.value)}
+                className="whitespace-nowrap text-xs md:text-sm"
+              >
+                {option.label}
+              </Button>
+            ))}
           </div>
 
           {/* Cabinet Grid */}
@@ -181,7 +168,7 @@ const BaseCabinets = () => {
               <p className="text-muted-foreground">
                 {selectedFilter === 'all' 
                   ? 'No base cabinets are currently available.' 
-                  : `No base cabinets found in the "${getFilterLabel(selectedFilter)}" category.`
+                  : `No base cabinets found in the selected category.`
                 }
               </p>
               {selectedFilter !== 'all' && (
