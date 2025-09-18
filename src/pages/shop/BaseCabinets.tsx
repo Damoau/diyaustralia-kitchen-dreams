@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ConfiguratorDialog } from "@/components/cabinet/ConfiguratorDialog";
+import { StepBasedConfiguratorDialog } from "@/components/cabinet/StepBasedConfiguratorDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { CabinetType } from "@/types/cabinet";
 import { ShoppingCart, ArrowLeft, Package, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
@@ -222,9 +222,9 @@ const BaseCabinets = () => {
 
       <Footer />
 
-      {/* Configurator Dialog */}
+      {/* Step-Based Configurator Dialog */}
       {selectedCabinetType && (
-        <ConfiguratorDialog
+        <StepBasedConfiguratorDialog
           cabinetType={selectedCabinetType}
           open={configuratorOpen}
           onOpenChange={(open) => {
