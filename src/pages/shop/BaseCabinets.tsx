@@ -161,9 +161,9 @@ const BaseCabinets = () => {
                     <CardTitle className="text-sm md:text-lg leading-tight">{cabinet.name}</CardTitle>
                   </CardHeader>
                   
-                  <CardFooter className="pt-0">
+                  <CardFooter className="px-3 pb-3 pt-0">
                     <Button 
-                      className="w-full text-xs md:text-sm h-8 md:h-10"
+                      className="w-full text-xs md:text-sm h-8 md:h-10 justify-center"
                       onClick={() => handleCreateCabinet(cabinet)}
                     >
                       <Package className="h-3 w-3 md:h-4 md:w-4 mr-1" />
