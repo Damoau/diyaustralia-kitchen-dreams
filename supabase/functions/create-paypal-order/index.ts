@@ -1,8 +1,12 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// Secure CORS headers - replace with your actual domain
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": "https://nqxsfmnvdfdfvndrodvs.supabase.co",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Max-Age": "86400",
 };
 
 interface CreateOrderRequest {
@@ -19,8 +23,81 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Only allow POST requests
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
-    const { amount, currency, description, checkout_id, schedule_id }: CreateOrderRequest = await req.json();
+    // Initialize Supabase client for authentication
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Validate authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Authorization required" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Verify JWT token
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Invalid authentication" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Check rate limiting
+    const userIP = req.headers.get('cf-connecting-ip') || req.headers.get('x-forwarded-for') || 'unknown';
+    const { data: rateLimitCheck } = await supabase.rpc('check_rate_limit', {
+      p_identifier: user.id,
+      p_action: 'create_paypal_order',
+      p_max_attempts: 10,
+      p_window_minutes: 5
+    });
+
+    if (!rateLimitCheck) {
+      return new Response(JSON.stringify({ error: "Rate limit exceeded" }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const requestBody = await req.json();
+    const { amount, currency, description, checkout_id, schedule_id }: CreateOrderRequest = requestBody;
+
+    // Input validation
+    if (!amount || amount <= 0) {
+      return new Response(JSON.stringify({ error: "Invalid amount" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!currency || !/^[A-Z]{3}$/.test(currency)) {
+      return new Response(JSON.stringify({ error: "Invalid currency" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (amount > 100000) { // Max $100k AUD
+      return new Response(JSON.stringify({ error: "Amount too large" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     console.log('Creating PayPal order:', { amount, currency, description, checkout_id, schedule_id });
 
@@ -101,8 +178,28 @@ const handler = async (req: Request): Promise<Response> => {
 
   } catch (error: any) {
     console.error("Error in create-paypal-order function:", error);
+    
+    // Log security event for suspicious activity
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    try {
+      await supabase.rpc('log_audit_event', {
+        p_scope: 'paypal_error',
+        p_action: 'create_order_failed',
+        p_after_data: JSON.stringify({
+          error: error.message,
+          timestamp: new Date().toISOString()
+        })
+      });
+    } catch (logError) {
+      console.error("Failed to log audit event:", logError);
+    }
+
+    // Return generic error message to prevent information disclosure
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Payment processing error" }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

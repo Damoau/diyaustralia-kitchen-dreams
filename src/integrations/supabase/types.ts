@@ -279,6 +279,54 @@ export type Database = {
         }
         Relationships: []
       }
+      cabinet_door_styles: {
+        Row: {
+          active: boolean
+          cabinet_type_id: string
+          created_at: string
+          door_style_id: string
+          id: string
+          image_url: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          cabinet_type_id: string
+          created_at?: string
+          door_style_id: string
+          id?: string
+          image_url?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          cabinet_type_id?: string
+          created_at?: string
+          door_style_id?: string
+          id?: string
+          image_url?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_cabinet_door_styles_cabinet_type"
+            columns: ["cabinet_type_id"]
+            isOneToOne: false
+            referencedRelation: "cabinet_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_cabinet_door_styles_door_style"
+            columns: ["door_style_id"]
+            isOneToOne: false
+            referencedRelation: "door_styles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cabinet_hardware_options: {
         Row: {
           active: boolean
@@ -3208,6 +3256,39 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          action: string
+          attempts: number
+          blocked_until: string | null
+          created_at: string
+          id: string
+          identifier: string
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          action: string
+          attempts?: number
+          blocked_until?: string | null
+          created_at?: string
+          id?: string
+          identifier: string
+          updated_at?: string
+          window_start?: string
+        }
+        Update: {
+          action?: string
+          attempts?: number
+          blocked_until?: string | null
+          created_at?: string
+          id?: string
+          identifier?: string
+          updated_at?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       shipment_events: {
         Row: {
           carrier: string | null
@@ -3692,6 +3773,15 @@ export type Database = {
         }
         Returns: Json
       }
+      check_rate_limit: {
+        Args: {
+          p_action: string
+          p_identifier: string
+          p_max_attempts?: number
+          p_window_minutes?: number
+        }
+        Returns: boolean
+      }
       generate_invoice_number: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -3742,6 +3832,10 @@ export type Database = {
           p_scope_id?: string
           p_user_agent?: string
         }
+        Returns: undefined
+      }
+      log_failed_auth_attempt: {
+        Args: { p_email: string; p_ip_address?: unknown }
         Returns: undefined
       }
     }

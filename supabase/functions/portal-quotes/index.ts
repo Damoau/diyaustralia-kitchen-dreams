@@ -2,8 +2,10 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://nqxsfmnvdfdfvndrodvs.supabase.co',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
 const supabase = createClient(
@@ -23,12 +25,23 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Only allow GET requests for this endpoint
+  if (req.method !== 'GET') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     const url = new URL(req.url);
     const authHeader = req.headers.get('Authorization');
     
     if (!authHeader) {
-      throw new Error('Authorization header required');
+      return new Response(JSON.stringify({ error: 'Authorization header required' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Get user from token
@@ -37,16 +50,41 @@ serve(async (req) => {
     );
 
     if (authError || !user) {
-      throw new Error('Invalid authorization');
+      return new Response(JSON.stringify({ error: 'Invalid authorization' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Check rate limiting
+    const { data: rateLimitCheck } = await supabase.rpc('check_rate_limit', {
+      p_identifier: user.id,
+      p_action: 'portal_quotes_view',
+      p_max_attempts: 100,
+      p_window_minutes: 15
+    });
+
+    if (!rateLimitCheck) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     if (req.method === 'GET') {
-      // GET /api/portal/quotes
-      const status = url.searchParams.get('status');
-      const search = url.searchParams.get('search');
-      const page = parseInt(url.searchParams.get('page') || '1');
-      const limit = parseInt(url.searchParams.get('limit') || '10');
+      // Input validation and sanitization
+      const page = Math.max(1, Math.min(100, parseInt(url.searchParams.get('page') || '1')));
+      const limit = Math.max(1, Math.min(50, parseInt(url.searchParams.get('limit') || '10')));
       const offset = (page - 1) * limit;
+      
+      // Sanitize search parameter
+      const searchParam = url.searchParams.get('search');
+      const search = searchParam ? searchParam.replace(/[^\w\s-]/g, '').substring(0, 100) : null;
+      
+      // Validate status parameter
+      const statusParam = url.searchParams.get('status');
+      const validStatuses = ['draft', 'sent', 'accepted', 'expired', 'cancelled'];
+      const status = statusParam && validStatuses.includes(statusParam) ? statusParam : null;
 
       let query = supabase
         .from('quotes')
@@ -105,7 +143,23 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in portal-quotes:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    
+    // Log security event for suspicious activity
+    try {
+      await supabase.rpc('log_audit_event', {
+        p_scope: 'portal_error',
+        p_action: 'quotes_access_failed',
+        p_after_data: JSON.stringify({
+          error: error.message,
+          timestamp: new Date().toISOString()
+        })
+      });
+    } catch (logError) {
+      console.error("Failed to log audit event:", logError);
+    }
+
+    // Return generic error message to prevent information disclosure
+    return new Response(JSON.stringify({ error: 'Service temporarily unavailable' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
