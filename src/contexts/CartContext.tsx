@@ -198,7 +198,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const productConfig = configuration as any;
       
       const cartItemData = {
-        id: user ? undefined : `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        ...(user ? {} : { id: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` }),
         cart_id: currentCart.id,
         cabinet_type_id: configuration.cabinetType.id,
         width_mm: configuration.width,

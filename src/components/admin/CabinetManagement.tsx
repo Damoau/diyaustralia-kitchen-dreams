@@ -319,10 +319,18 @@ export const CabinetManagement: React.FC = () => {
             Manage the display order of cabinets across shop and price list pages
           </p>
         </div>
-        <Button variant="outline" size="sm">
-          <Eye className="h-4 w-4 mr-2" />
-          Preview Changes
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setEditingCabinetId('new')}
+            size="sm"
+          >
+            Add New Cabinet
+          </Button>
+          <Button variant="outline" size="sm">
+            <Eye className="h-4 w-4 mr-2" />
+            Preview Changes
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeCategory} onValueChange={setActiveCategory}>

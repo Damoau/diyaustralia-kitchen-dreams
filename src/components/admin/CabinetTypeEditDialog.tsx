@@ -65,6 +65,37 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
   const { data: cabinet, isLoading } = useQuery({
     queryKey: ['cabinet-type-details', cabinetId],
     queryFn: async () => {
+      if (cabinetId === 'new') {
+        // Return default values for new cabinet
+        return {
+          id: 'new',
+          name: '',
+          category: 'base',
+          subcategory: '',
+          short_description: '',
+          long_description: '',
+          door_count: 0,
+          drawer_count: 0,
+          default_width_mm: 600,
+          default_height_mm: 720,
+          default_depth_mm: 560,
+          min_width_mm: 300,
+          max_width_mm: 1200,
+          min_height_mm: 600,
+          max_height_mm: 900,
+          min_depth_mm: 350,
+          max_depth_mm: 600,
+          base_price: 0,
+          stock_quantity: 0,
+          active: true,
+          backs_qty: 1,
+          bottoms_qty: 1,
+          sides_qty: 2,
+          door_qty: 0,
+          product_image_url: '',
+        } as CabinetTypeDetails;
+      }
+      
       const { data, error } = await supabase
         .from('cabinet_types')
         .select('*')
@@ -79,21 +110,30 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
 
   const updateMutation = useMutation({
     mutationFn: async (updates: Partial<CabinetTypeDetails>) => {
-      const { error } = await supabase
-        .from('cabinet_types')
-        .update(updates)
-        .eq('id', cabinetId);
-
-      if (error) throw error;
+      if (cabinetId === 'new') {
+        // Create new cabinet - ensure required fields are present
+        const { error } = await supabase
+          .from('cabinet_types')
+          .insert(updates as any); // Cast to any to handle partial type
+        if (error) throw error;
+      } else {
+        // Update existing cabinet
+        const { error } = await supabase
+          .from('cabinet_types')
+          .update(updates)
+          .eq('id', cabinetId);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cabinet-type-details'] });
       queryClient.invalidateQueries({ queryKey: ['admin-cabinets'] });
-      toast.success('Cabinet updated successfully');
+      toast.success(cabinetId === 'new' ? 'Cabinet created successfully' : 'Cabinet updated successfully');
+      onOpenChange(false);
     },
     onError: (error) => {
-      console.error('Error updating cabinet:', error);
-      toast.error('Failed to update cabinet');
+      console.error('Error saving cabinet:', error);
+      toast.error(cabinetId === 'new' ? 'Failed to create cabinet' : 'Failed to update cabinet');
     },
   });
 
@@ -123,10 +163,13 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Edit Cabinet: {cabinet.name}
+            {cabinetId === 'new' ? 'Create New Cabinet' : `Edit Cabinet: ${cabinet.name}`}
           </DialogTitle>
           <DialogDescription>
-            Modify cabinet specifications, dimensions, and pricing
+            {cabinetId === 'new' 
+              ? 'Create a new cabinet with custom specifications and pricing'
+              : 'Modify cabinet specifications, dimensions, and pricing'
+            }
           </DialogDescription>
         </DialogHeader>
 
