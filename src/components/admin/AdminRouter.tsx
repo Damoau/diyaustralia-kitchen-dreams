@@ -23,6 +23,7 @@ const Reports = lazy(() => import('@/pages/admin/Reports'));
 const Exports = lazy(() => import('@/pages/admin/Exports'));
 const Notifications = lazy(() => import('@/pages/admin/Notifications'));
 const Settings = lazy(() => import('@/pages/admin/Settings'));
+const Testing = lazy(() => import('@/pages/admin/Testing'));
 
 export const AdminRouter = () => {
   return (
@@ -55,6 +56,7 @@ export const AdminRouter = () => {
         
         {/* System */}
         <Route path="security" element={<SecurityDashboard />} />
+        <Route path="testing" element={<Testing />} />
         <Route path="notifications" element={<Notifications />} />
         <Route path="settings" element={<Settings />} />
       </Routes>

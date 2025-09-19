@@ -27,6 +27,7 @@ import {
   MapPin,
   Factory,
   Shield,
+  TestTube,
 } from 'lucide-react';
 
 const navigationItems = [
@@ -74,6 +75,7 @@ const navigationItems = [
     group: 'System',
     items: [
       { title: 'Security', url: 'security', icon: Shield },
+      { title: 'Testing', url: 'testing', icon: TestTube },
       { title: 'Notifications', url: 'notifications', icon: Bell },
       { title: 'Settings', url: 'settings', icon: Settings },
     ]
