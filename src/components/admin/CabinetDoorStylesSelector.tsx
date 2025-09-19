@@ -57,21 +57,37 @@ export const CabinetDoorStylesSelector: React.FC<CabinetDoorStylesSelectorProps>
     queryFn: async () => {
       if (cabinetId === 'new') return [];
       
-      const { data, error } = await supabase
+      const { data: cabinetStylesData, error } = await supabase
         .from('cabinet_door_styles')
-        .select(`
-          id,
-          door_style_id,
-          image_url,
-          sort_order,
-          door_style:door_styles(id, name, image_url)
-        `)
+        .select('id, door_style_id, image_url, sort_order')
         .eq('cabinet_type_id', cabinetId)
         .eq('active', true)
         .order('sort_order');
       
       if (error) throw error;
-      return data as CabinetDoorStyle[];
+      
+      if (!cabinetStylesData || cabinetStylesData.length === 0) return [];
+      
+      // Fetch door style details for the selected styles
+      const doorStyleIds = cabinetStylesData.map(cs => cs.door_style_id);
+      const { data: doorStylesData, error: doorStylesError } = await supabase
+        .from('door_styles')
+        .select('id, name, image_url')
+        .in('id', doorStyleIds);
+        
+      if (doorStylesError) throw doorStylesError;
+      
+      // Combine the data
+      const result = cabinetStylesData.map(cabinetStyle => ({
+        ...cabinetStyle,
+        door_style: doorStylesData?.find(ds => ds.id === cabinetStyle.door_style_id) || {
+          id: cabinetStyle.door_style_id,
+          name: 'Unknown',
+          image_url: undefined,
+        }
+      }));
+      
+      return result as CabinetDoorStyle[];
     },
     enabled: cabinetId !== 'new',
   });
