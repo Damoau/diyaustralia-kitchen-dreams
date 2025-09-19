@@ -627,21 +627,24 @@ interface CategorySelectorProps {
 
 const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange }) => {
   const { data: categories } = useQuery({
-    queryKey: ['distinct-categories'],
+    queryKey: ['categories'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('cabinet_types')
-        .select('category')
-        .eq('active', true);
+        .from('categories')
+        .select('name, display_name')
+        .eq('active', true)
+        .order('sort_order');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching categories:', error);
+        return [];
+      }
       
-      const uniqueCategories = [...new Set(data.map(item => item.category))];
-      return uniqueCategories.sort();
+      return data.map(cat => cat.name);
     },
   });
 
-  // Combine database categories with default options, removing duplicates
+  // Combine database categories with default options as fallback
   const allCategories = [...new Set([
     ...(categories || []),
     'base',
@@ -675,19 +678,37 @@ interface SubcategorySelectorProps {
 
 const SubcategorySelector: React.FC<SubcategorySelectorProps> = ({ category, value, onChange }) => {
   const { data: subcategories } = useQuery({
-    queryKey: ['distinct-subcategories', category],
+    queryKey: ['subcategories', category],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('cabinet_types')
-        .select('subcategory')
-        .eq('category', category)
+      if (!category) return [];
+      
+      // First get the category_id for the selected category
+      const { data: categoryData, error: categoryError } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('name', category)
         .eq('active', true)
-        .not('subcategory', 'is', null);
+        .single();
+        
+      if (categoryError || !categoryData) {
+        console.error('Category not found:', categoryError);
+        return [];
+      }
       
-      if (error) throw error;
+      // Then get subcategories for this category
+      const { data, error } = await supabase
+        .from('subcategories')
+        .select('name, display_name')
+        .eq('category_id', categoryData.id)
+        .eq('active', true)
+        .order('sort_order');
       
-      const uniqueSubcategories = [...new Set(data.map(item => item.subcategory).filter(Boolean))];
-      return uniqueSubcategories.sort();
+      if (error) {
+        console.error('Error fetching subcategories:', error);
+        return [];
+      }
+      
+      return data.map(sub => sub.name);
     },
     enabled: !!category,
   });
