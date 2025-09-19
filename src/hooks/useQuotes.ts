@@ -159,16 +159,21 @@ export const useQuotes = () => {
   const convertQuoteToOrder = async (quoteId: string) => {
     setLoading(true);
     try {
-      // This would invoke an edge function to handle the complex conversion logic
-      const { error } = await supabase.functions.invoke('convert-quote-to-order', {
-        body: { quoteId }
-      });
+      // For now, just update the status to indicate conversion
+      // TODO: Implement proper conversion logic with edge function
+      const { error } = await supabase
+        .from('quotes')
+        .update({ 
+          status: 'accepted',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', quoteId);
 
       if (error) throw error;
 
       toast({
         title: "Success", 
-        description: "Quote converted to order successfully"
+        description: "Quote marked as converted (full conversion coming soon)"
       });
 
       return true;
