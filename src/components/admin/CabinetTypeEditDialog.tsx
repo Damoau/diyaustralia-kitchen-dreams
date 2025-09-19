@@ -648,7 +648,7 @@ const SubcategorySelector: React.FC<SubcategorySelectorProps> = ({ category, val
         <SelectValue placeholder="Select subcategory (optional)" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="">None</SelectItem>
+        <SelectItem value="none">None</SelectItem>
         {subcategories?.map(subcategory => (
           <SelectItem key={subcategory} value={subcategory}>
             {subcategory}
