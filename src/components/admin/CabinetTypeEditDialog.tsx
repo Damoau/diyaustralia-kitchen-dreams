@@ -19,6 +19,9 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Loader2, Save, Package, Palette, DollarSign, Plus, Trash2, Zap } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ImageDropzone } from './ImageDropzone';
+import { CabinetComponentsTab } from './CabinetComponentsTab';
+import { CabinetDoorStyleTab } from './CabinetDoorStyleTab';
 
 interface CabinetTypeDetails {
   id: string;
@@ -191,11 +194,11 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
           </TabsContent>
 
           <TabsContent value="components">
-            <ComponentsTab cabinet={cabinet} onSave={handleSave} />
+            <CabinetComponentsTab cabinetId={cabinet.id} />
           </TabsContent>
 
           <TabsContent value="pricing">
-            <PricingTab cabinet={cabinet} onSave={handleSave} />
+            <CabinetDoorStyleTab cabinetId={cabinet.id} />
           </TabsContent>
 
           <TabsContent value="price-ranges">
@@ -284,12 +287,10 @@ const BasicInfoTab: React.FC<{
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="product_image_url">Product Image URL</Label>
-            <Input
-              id="product_image_url"
+            <Label htmlFor="product_image_url">Product Image</Label>
+            <ImageDropzone
               value={formData.product_image_url}
-              onChange={(e) => setFormData({ ...formData, product_image_url: e.target.value })}
-              placeholder="https://example.com/image.jpg"
+              onChange={(url) => setFormData({ ...formData, product_image_url: url })}
             />
           </div>
 
@@ -690,8 +691,23 @@ const SubcategorySelector: React.FC<SubcategorySelectorProps> = ({ category, val
     enabled: !!category,
   });
 
-  // Combine database subcategories with default options, removing duplicates
-  const defaultSubcategories = ['doors', 'drawers', 'bin_cabinets', 'tall_cabinets'];
+  // Category-specific subcategories
+  const getDefaultSubcategoriesForCategory = (category: string) => {
+    switch (category) {
+      case 'base':
+        return ['doors', 'drawers', 'bin_cabinets', 'corner_base'];
+      case 'wall':
+        return ['single_door', 'double_door', 'glass_door', 'open_shelf', 'corner_wall'];
+      case 'pantry':
+        return ['tall_single', 'tall_double', 'tall_drawers', 'larder'];
+      case 'panels':
+        return ['end_panels', 'filler_strips', 'plinths', 'cornices'];
+      default:
+        return ['doors', 'drawers'];
+    }
+  };
+
+  const defaultSubcategories = getDefaultSubcategoriesForCategory(category);
   const allSubcategories = [...new Set([
     ...(subcategories || []),
     ...defaultSubcategories
