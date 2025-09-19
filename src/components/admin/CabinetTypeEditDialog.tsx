@@ -17,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Loader2, Save, Package, Palette, DollarSign } from 'lucide-react';
+import { Loader2, Save, Package, Palette, DollarSign, Plus, Trash2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface CabinetTypeDetails {
@@ -131,11 +131,12 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
             <TabsTrigger value="dimensions">Dimensions</TabsTrigger>
             <TabsTrigger value="components">Components</TabsTrigger>
             <TabsTrigger value="pricing">Pricing</TabsTrigger>
+            <TabsTrigger value="price-ranges">Price Ranges</TabsTrigger>
           </TabsList>
 
           <TabsContent value="basic">
@@ -152,6 +153,10 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
 
           <TabsContent value="pricing">
             <PricingTab cabinet={cabinet} onSave={handleSave} />
+          </TabsContent>
+
+          <TabsContent value="price-ranges">
+            <PriceRangesTab cabinetId={cabinet.id} />
           </TabsContent>
         </Tabs>
       </DialogContent>
@@ -655,5 +660,214 @@ const SubcategorySelector: React.FC<SubcategorySelectorProps> = ({ category, val
         <SelectItem value="tall_cabinets">Tall Cabinets</SelectItem>
       </SelectContent>
     </Select>
+  );
+};
+
+// Price Ranges Tab Component
+interface PriceRange {
+  id?: string;
+  label: string;
+  min_width_mm: number;
+  max_width_mm: number;
+  sort_order: number;
+}
+
+interface PriceRangesTabProps {
+  cabinetId: string;
+}
+
+const PriceRangesTab: React.FC<PriceRangesTabProps> = ({ cabinetId }) => {
+  const [ranges, setRanges] = useState<PriceRange[]>([]);
+  const queryClient = useQueryClient();
+
+  // Fetch existing price ranges
+  const { data: priceRanges, isLoading } = useQuery({
+    queryKey: ['cabinet-price-ranges', cabinetId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cabinet_type_price_ranges')
+        .select('*')
+        .eq('cabinet_type_id', cabinetId)
+        .eq('active', true)
+        .order('sort_order');
+
+      if (error) throw error;
+      return data as PriceRange[];
+    },
+  });
+
+  // Initialize ranges when data loads
+  React.useEffect(() => {
+    if (priceRanges) {
+      setRanges(priceRanges);
+    }
+  }, [priceRanges]);
+
+  // Save ranges mutation
+  const saveRangesMutation = useMutation({
+    mutationFn: async (rangesToSave: PriceRange[]) => {
+      // Delete existing ranges
+      await supabase
+        .from('cabinet_type_price_ranges')
+        .delete()
+        .eq('cabinet_type_id', cabinetId);
+
+      // Insert new ranges
+      if (rangesToSave.length > 0) {
+        const { error } = await supabase
+          .from('cabinet_type_price_ranges')
+          .insert(
+            rangesToSave.map(range => ({
+              cabinet_type_id: cabinetId,
+              label: range.label,
+              min_width_mm: range.min_width_mm,
+              max_width_mm: range.max_width_mm,
+              sort_order: range.sort_order,
+              active: true,
+            }))
+          );
+
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cabinet-price-ranges'] });
+      toast.success('Price ranges saved successfully');
+    },
+    onError: (error) => {
+      console.error('Error saving price ranges:', error);
+      toast.error('Failed to save price ranges');
+    },
+  });
+
+  const addRange = () => {
+    const newRange: PriceRange = {
+      label: `Range ${ranges.length + 1}`,
+      min_width_mm: ranges.length > 0 ? ranges[ranges.length - 1].max_width_mm + 1 : 300,
+      max_width_mm: ranges.length > 0 ? ranges[ranges.length - 1].max_width_mm + 50 : 350,
+      sort_order: ranges.length,
+    };
+    setRanges([...ranges, newRange]);
+  };
+
+  const updateRange = (index: number, field: keyof PriceRange, value: any) => {
+    const updatedRanges = ranges.map((range, i) => 
+      i === index ? { ...range, [field]: value } : range
+    );
+    setRanges(updatedRanges);
+  };
+
+  const removeRange = (index: number) => {
+    const updatedRanges = ranges.filter((_, i) => i !== index)
+      .map((range, i) => ({ ...range, sort_order: i }));
+    setRanges(updatedRanges);
+  };
+
+  const generateStandardRanges = () => {
+    const startWidth = 300;
+    const endWidth = 1200;
+    const increment = 50;
+    const standardRanges: PriceRange[] = [];
+
+    for (let min = startWidth; min < endWidth; min += increment) {
+      const max = Math.min(min + increment - 1, endWidth);
+      standardRanges.push({
+        label: `${min} - ${max}mm`,
+        min_width_mm: min,
+        max_width_mm: max,
+        sort_order: standardRanges.length,
+      });
+    }
+
+    setRanges(standardRanges);
+  };
+
+  const handleSave = () => {
+    saveRangesMutation.mutate(ranges);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Price List Ranges</CardTitle>
+        <CardDescription>
+          Define size ranges for price list display. These ranges will be used to generate price lists with specific increments.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex gap-2">
+          <Button onClick={addRange} variant="outline" size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Range
+          </Button>
+          <Button onClick={generateStandardRanges} variant="outline" size="sm">
+            Generate Standard (300-1200mm, 50mm increments)
+          </Button>
+        </div>
+
+        {ranges.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            No price ranges defined. Add ranges to generate price lists.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {ranges.map((range, index) => (
+              <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+                <div className="flex-1 grid grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Label</Label>
+                    <Input
+                      value={range.label}
+                      onChange={(e) => updateRange(index, 'label', e.target.value)}
+                      placeholder="Range label"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Min Width (mm)</Label>
+                    <Input
+                      type="number"
+                      value={range.min_width_mm}
+                      onChange={(e) => updateRange(index, 'min_width_mm', parseInt(e.target.value))}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Max Width (mm)</Label>
+                    <Input
+                      type="number"
+                      value={range.max_width_mm}
+                      onChange={(e) => updateRange(index, 'max_width_mm', parseInt(e.target.value))}
+                    />
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeRange(index)}
+                  className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex justify-end pt-4 border-t">
+          <Button onClick={handleSave} disabled={saveRangesMutation.isPending}>
+            {saveRangesMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            <Save className="h-4 w-4 mr-2" />
+            Save Price Ranges
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };

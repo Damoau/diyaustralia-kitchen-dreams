@@ -59,6 +59,8 @@ const navigationItems = [
       { title: 'Cabinet Management', url: 'cabinets', icon: Package },
       { title: 'Classic Cabinet Manager', url: 'classic-cabinets', icon: Package },
       { title: 'Cabinet Configurator', url: 'cabinet-configurator', icon: Settings },
+      { title: 'Hardware Manager', url: 'hardware-manager', icon: Wrench },
+      { title: 'Materials & Pricing', url: 'materials', icon: DollarSign },
       { title: 'Configuration Migration', url: 'configuration-migration', icon: MapPin },
       { title: 'Pricing', url: 'pricing', icon: DollarSign },
       { title: 'Discounts', url: 'discounts', icon: DollarSign },
