@@ -56,6 +56,7 @@ const navigationItems = [
     group: 'Configuration',
     items: [
       { title: 'Cabinet Management', url: 'cabinets', icon: Package },
+      { title: 'Configuration Migration', url: 'configuration-migration', icon: MapPin },
       { title: 'Pricing', url: 'pricing', icon: DollarSign },
       { title: 'Discounts', url: 'discounts', icon: DollarSign },
       { title: 'Users', url: 'users', icon: Users },

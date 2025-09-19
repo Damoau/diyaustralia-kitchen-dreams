@@ -20,20 +20,13 @@ import {
   User,
   Menu
 } from 'lucide-react';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { useAuth } from '@/hooks/useAuth';
+import { EnhancedBreadcrumbs } from './EnhancedBreadcrumbs';
+import { QuickActionsBar } from './QuickActionsBar';
+import { MobileNavigation } from './MobileNavigation';
 
 export const AdminTopBar = () => {
-  const location = useLocation();
   const { user, signOut } = useAuth();
-  
-  // Generate breadcrumbs from current path
-  const pathSegments = location.pathname.split('/').filter(Boolean);
-  const breadcrumbs = pathSegments.map((segment, index) => {
-    const path = '/' + pathSegments.slice(0, index + 1).join('/');
-    const label = segment.charAt(0).toUpperCase() + segment.slice(1);
-    return { path, label };
-  });
 
   const handleLogout = async () => {
     await signOut();
@@ -42,28 +35,10 @@ export const AdminTopBar = () => {
   return (
     <header className="h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-full items-center justify-between px-6">
-        {/* Left side - Breadcrumbs */}
+        {/* Left side - Enhanced Breadcrumbs */}
         <div className="flex items-center space-x-4">
-          <Menu className="lg:hidden h-4 w-4" />
-          
-          <Breadcrumb>
-            <BreadcrumbList>
-              {breadcrumbs.map((crumb, index) => (
-                <React.Fragment key={crumb.path}>
-                  <BreadcrumbItem>
-                    {index === breadcrumbs.length - 1 ? (
-                      <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-                    ) : (
-                      <BreadcrumbLink href={crumb.path}>
-                        {crumb.label}
-                      </BreadcrumbLink>
-                    )}
-                  </BreadcrumbItem>
-                  {index < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
-                </React.Fragment>
-              ))}
-            </BreadcrumbList>
-          </Breadcrumb>
+          <MobileNavigation />
+          <EnhancedBreadcrumbs />
         </div>
 
         {/* Center - Search */}
@@ -79,14 +54,8 @@ export const AdminTopBar = () => {
 
         {/* Right side - Actions and User */}
         <div className="flex items-center space-x-4">
-          {/* Quick Actions */}
-          <Button variant="outline" size="sm">
-            New Cart
-          </Button>
-          
-          <Button variant="outline" size="sm">
-            New Order
-          </Button>
+          {/* Contextual Quick Actions */}
+          <QuickActionsBar />
 
           {/* Notifications */}
           <Button variant="ghost" size="sm" className="relative">
