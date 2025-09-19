@@ -15,6 +15,7 @@ const RoleManagement = lazy(() => import('@/components/admin/RoleManagement'));
 const QuotesList = lazy(() => import('@/pages/admin/QuotesList'));
 const Assembly = lazy(() => import('@/pages/admin/Assembly'));
 const CabinetManagement = lazy(() => import('@/components/admin/CabinetManagement'));
+const ClassicCabinetManager = lazy(() => import('@/components/admin/ClassicCabinetManager'));
 const CabinetConfigurator = lazy(() => import('@/components/admin/CabinetConfigurator'));
 const ConfigurationMigration = lazy(() => import('@/pages/admin/ConfigurationMigration'));
 const Pricing = lazy(() => import('@/pages/admin/Pricing'));
@@ -45,6 +46,11 @@ export const AdminRouter = () => {
         
         {/* Configuration */}
         <Route path="cabinets" element={<CabinetManagement />} />
+        <Route path="classic-cabinets" element={
+          <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+            <ClassicCabinetManager />
+          </Suspense>
+        } />
         <Route path="cabinet-configurator" element={<CabinetConfigurator />} />
         <Route path="configuration-migration" element={<ConfigurationMigration />} />
         <Route path="pricing" element={<Pricing />} />

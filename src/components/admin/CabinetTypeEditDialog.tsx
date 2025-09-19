@@ -18,6 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Loader2, Save, Package, Palette, DollarSign } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface CabinetTypeDetails {
   id: string;
@@ -197,22 +198,19 @@ const BasicInfoTab: React.FC<{
             </div>
             <div className="space-y-2">
               <Label htmlFor="category">Category *</Label>
-              <Input
-                id="category"
+              <CategorySelector
                 value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                required
+                onChange={(value) => setFormData({ ...formData, category: value, subcategory: '' })}
               />
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="subcategory">Subcategory</Label>
-            <Input
-              id="subcategory"
-              value={formData.subcategory}
-              onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
-              placeholder="Optional subcategory"
+            <SubcategorySelector
+              category={formData.category}
+              value={formData.subcategory || ''}
+              onChange={(value) => setFormData({ ...formData, subcategory: value })}
             />
           </div>
 
@@ -568,5 +566,94 @@ const PricingTab: React.FC<{
         </form>
       </CardContent>
     </Card>
+  );
+};
+
+// Category Selector Component
+interface CategorySelectorProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange }) => {
+  const { data: categories } = useQuery({
+    queryKey: ['distinct-categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cabinet_types')
+        .select('category')
+        .eq('active', true);
+      
+      if (error) throw error;
+      
+      const uniqueCategories = [...new Set(data.map(item => item.category))];
+      return uniqueCategories.sort();
+    },
+  });
+
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger>
+        <SelectValue placeholder="Select category" />
+      </SelectTrigger>
+      <SelectContent>
+        {categories?.map(category => (
+          <SelectItem key={category} value={category}>
+            {category.charAt(0).toUpperCase() + category.slice(1)}
+          </SelectItem>
+        ))}
+        <SelectItem value="base">Base</SelectItem>
+        <SelectItem value="wall">Wall</SelectItem>
+        <SelectItem value="pantry">Pantry</SelectItem>
+        <SelectItem value="panels">Panels</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+};
+
+// Subcategory Selector Component
+interface SubcategorySelectorProps {
+  category: string;
+  value: string;
+  onChange: (value: string) => void;
+}
+
+const SubcategorySelector: React.FC<SubcategorySelectorProps> = ({ category, value, onChange }) => {
+  const { data: subcategories } = useQuery({
+    queryKey: ['distinct-subcategories', category],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cabinet_types')
+        .select('subcategory')
+        .eq('category', category)
+        .eq('active', true)
+        .not('subcategory', 'is', null);
+      
+      if (error) throw error;
+      
+      const uniqueSubcategories = [...new Set(data.map(item => item.subcategory).filter(Boolean))];
+      return uniqueSubcategories.sort();
+    },
+    enabled: !!category,
+  });
+
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger>
+        <SelectValue placeholder="Select subcategory (optional)" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="">None</SelectItem>
+        {subcategories?.map(subcategory => (
+          <SelectItem key={subcategory} value={subcategory}>
+            {subcategory}
+          </SelectItem>
+        ))}
+        <SelectItem value="doors">Doors</SelectItem>
+        <SelectItem value="drawers">Drawers</SelectItem>
+        <SelectItem value="bin_cabinets">Bin Cabinets</SelectItem>
+        <SelectItem value="tall_cabinets">Tall Cabinets</SelectItem>
+      </SelectContent>
+    </Select>
   );
 };
