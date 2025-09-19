@@ -33,14 +33,16 @@ interface ProductionUpdate {
 }
 
 const PRODUCTION_STAGES = [
-  { value: 'pending', label: 'Pending', icon: Clock, color: 'bg-gray-500' },
-  { value: 'cutlist_generated', label: 'Cut List Generated', icon: Calendar, color: 'bg-blue-500' },
-  { value: 'cutting', label: 'Cutting', icon: Package, color: 'bg-yellow-500' },
-  { value: 'painting', label: 'Painting', icon: Paintbrush, color: 'bg-purple-500' },
-  { value: 'drying', label: 'Drying', icon: Clock, color: 'bg-orange-500' },
-  { value: 'quality_check', label: 'Quality Check', icon: CheckCircle, color: 'bg-indigo-500' },
-  { value: 'packaging', label: 'Packaging', icon: Package, color: 'bg-green-500' },
-  { value: 'ready_for_shipping', label: 'Ready for Shipping', icon: CheckCircle, color: 'bg-emerald-500' },
+  { value: 'awaiting_approval', label: 'Awaiting Approval', icon: Clock, color: 'bg-gray-500' },
+  { value: 'approved', label: 'Approved', icon: CheckCircle, color: 'bg-blue-500' },
+  { value: 'in_queue', label: 'In Queue', icon: Calendar, color: 'bg-yellow-500' },
+  { value: 'cnc', label: 'CNC Cutting', icon: Package, color: 'bg-orange-500' },
+  { value: 'edge_banding', label: 'Edge Banding', icon: Package, color: 'bg-purple-500' },
+  { value: 'paint', label: 'Painting', icon: Paintbrush, color: 'bg-indigo-500' },
+  { value: 'qc', label: 'Quality Check', icon: CheckCircle, color: 'bg-green-500' },
+  { value: 'packed', label: 'Packed', icon: Package, color: 'bg-emerald-500' },
+  { value: 'ready_to_ship', label: 'Ready to Ship', icon: CheckCircle, color: 'bg-teal-500' },
+  { value: 'shipped', label: 'Shipped', icon: CheckCircle, color: 'bg-gray-700' },
 ];
 
 const PRIORITY_COLORS = {
@@ -82,7 +84,7 @@ export function ProductionBoard() {
 
       if (error) throw error;
 
-      const formattedOrders = data.map(order => {
+        const formattedOrders = data.map(order => {
         const totalAmount = order.total_amount || 0;
         const priority = totalAmount > 5000 ? 'high' : totalAmount > 2000 ? 'medium' : 'low';
         
@@ -90,13 +92,13 @@ export function ProductionBoard() {
           id: order.id,
           order_number: order.order_number,
           customer_name: 'Customer', // TODO: Get customer name from user_id when profiles table exists
-          production_status: order.production_status || 'pending',
-          stage: order.production_status || 'pending',
+          production_status: order.production_status || 'awaiting_approval',
+          stage: order.production_status || 'awaiting_approval',
           priority: priority,
           due_date: null, // TODO: Calculate based on lead times
           created_at: order.created_at,
-          cutlist_generated: order.production_status === 'cutlist_generated' || ['cutting', 'painting', 'drying', 'quality_check', 'packaging', 'ready_for_shipping'].includes(order.production_status || ''),
-          qc_passed: ['quality_check', 'packaging', 'ready_for_shipping'].includes(order.production_status || ''),
+          cutlist_generated: ['cnc', 'edge_banding', 'paint', 'qc', 'packed', 'ready_to_ship', 'shipped'].includes(order.production_status || ''),
+          qc_passed: ['qc', 'packed', 'ready_to_ship', 'shipped'].includes(order.production_status || ''),
           notes: order.notes || ''
         };
       });
