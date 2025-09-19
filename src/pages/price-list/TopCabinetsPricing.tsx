@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Home, Loader2, Filter } from "lucide-react";
+import { ChevronLeft, ChevronRight, Home, Loader2, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,6 +43,18 @@ const TopCabinetsPricing = () => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [selectedDoorStyle, setSelectedDoorStyle] = useState<string>('all');
   const isMobile = useIsMobile();
+
+  // Navigation logic for cycling through categories
+  const categories = [
+    { title: 'Base Cabinets', path: '/price-list/base-cabinets' },
+    { title: 'Top Cabinets', path: '/price-list/top-cabinets' },
+    { title: 'Pantry Cabinets', path: '/price-list/pantry-cabinets' },
+    { title: 'Dress Panels', path: '/price-list/dress-panels' }
+  ];
+  
+  const currentIndex = categories.findIndex(cat => cat.path === '/price-list/top-cabinets');
+  const prevCategory = categories[currentIndex - 1];
+  const nextCategory = categories[currentIndex + 1];
 
   // Fetch top cabinets
   const { data: topCabinets, isLoading: loadingCabinets } = useQuery({
@@ -220,64 +232,67 @@ const TopCabinetsPricing = () => {
       <Header />
       <div className="pt-24 pb-12">
         <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => navigate('/price-list')}
-            className="flex items-center gap-2"
+        {/* Navigation Header */}
+        <div className="flex items-center justify-center gap-8 mb-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => prevCategory && navigate(prevCategory.path)}
+            disabled={!prevCategory}
+            className="flex-shrink-0"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Price List
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-500/10 rounded-lg">
-              <Home className="h-6 w-6 text-green-600" />
-            </div>
-            <h1 className="text-3xl font-bold text-foreground">Top Cabinets Pricing</h1>
+          
+          <div className="w-80 text-center min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground truncate">
+              Top Cabinets Pricing
+            </h1>
           </div>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => nextCategory && navigate(nextCategory.path)}
+            disabled={!nextCategory}
+            className="flex-shrink-0"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
 
-        {/* Cabinet Type Carousel */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Select Cabinet Type</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loadingCabinets ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin" />
-              </div>
-            ) : topCabinets && topCabinets.length > 0 ? (
-              <Carousel className="w-full max-w-5xl mx-auto">
-                <CarouselContent>
-                  {topCabinets.map((cabinet) => (
-                    <CarouselItem key={cabinet.id} className="md:basis-1/2 lg:basis-1/3">
-                      <Card 
-                        className={`cursor-pointer transition-all h-full ${
-                          selectedCabinetType === cabinet.id 
-                            ? 'ring-2 ring-primary bg-primary/5' 
-                            : 'hover:shadow-md'
-                        }`}
-                        onClick={() => setSelectedCabinetType(cabinet.id)}
-                      >
-                        <CardContent className="p-4">
-                          <h3 className="font-semibold text-foreground">{cabinet.name}</h3>
-                          {selectedCabinetType === cabinet.id && (
-                            <Badge className="mt-2" variant="default">Selected</Badge>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
-            ) : null}
-          </CardContent>
-        </Card>
+        {/* Cabinet Selection Filter */}
+        {loadingCabinets ? (
+          <div className="flex justify-center mb-8">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        ) : topCabinets && topCabinets.length > 0 ? (
+          <div className="flex justify-center mb-8">
+            <Select value={selectedCabinetType} onValueChange={setSelectedCabinetType}>
+              <SelectTrigger className="w-full max-w-sm h-12 justify-center">
+                <SelectValue>
+                  <span className="flex-1 text-center">
+                    {selectedCabinetType 
+                      ? topCabinets.find(c => c.id === selectedCabinetType)?.name || 'Select Cabinet Type'
+                      : `Select Cabinet Type (${topCabinets.length} available)`
+                    }
+                  </span>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent align="center" className="w-full max-w-sm">
+                {topCabinets.map((cabinet) => (
+                  <SelectItem key={cabinet.id} value={cabinet.id}>
+                    {cabinet.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ) : (
+          <div className="flex justify-center mb-8">
+            <p className="text-muted-foreground">No top cabinets found</p>
+          </div>
+        )}
 
         {/* Mobile Door Style Filter */}
         {isMobile && (
