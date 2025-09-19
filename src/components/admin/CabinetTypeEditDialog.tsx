@@ -17,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Loader2, Save, Package, Palette, DollarSign, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Save, Package, Palette, DollarSign, Plus, Trash2, Zap } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface CabinetTypeDetails {
@@ -686,6 +686,9 @@ interface PriceRangesTabProps {
 
 const PriceRangesTab: React.FC<PriceRangesTabProps> = ({ cabinetId }) => {
   const [ranges, setRanges] = useState<PriceRange[]>([]);
+  const [minWidth, setMinWidth] = useState(300);
+  const [maxWidth, setMaxWidth] = useState(1200);
+  const [increment, setIncrement] = useState(50);
   const queryClient = useQueryClient();
 
   // Fetch existing price ranges
@@ -771,14 +774,30 @@ const PriceRangesTab: React.FC<PriceRangesTabProps> = ({ cabinetId }) => {
     setRanges(updatedRanges);
   };
 
-  const generateStandardRanges = () => {
-    const startWidth = 300;
-    const endWidth = 1200;
-    const increment = 50;
-    const standardRanges: PriceRange[] = [];
+  const generateCustomRanges = () => {
+    const customRanges: PriceRange[] = [];
 
-    for (let min = startWidth; min < endWidth; min += increment) {
-      const max = Math.min(min + increment - 1, endWidth);
+    for (let min = minWidth; min < maxWidth; min += increment) {
+      const max = Math.min(min + increment - 1, maxWidth);
+      customRanges.push({
+        label: `${min} - ${max}mm`,
+        min_width_mm: min,
+        max_width_mm: max,
+        sort_order: customRanges.length,
+      });
+    }
+
+    setRanges(customRanges);
+  };
+
+  const generateStandardRanges = () => {
+    setMinWidth(300);
+    setMaxWidth(1200);
+    setIncrement(50);
+    
+    const standardRanges: PriceRange[] = [];
+    for (let min = 300; min < 1200; min += 50) {
+      const max = Math.min(min + 50 - 1, 1200);
       standardRanges.push({
         label: `${min} - ${max}mm`,
         min_width_mm: min,
@@ -811,13 +830,62 @@ const PriceRangesTab: React.FC<PriceRangesTabProps> = ({ cabinetId }) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Custom Range Generator */}
+        <Card className="bg-muted/30">
+          <CardContent className="p-4">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-primary" />
+                <span className="font-medium text-sm">Auto-Generate Ranges</span>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Min Width (mm)</Label>
+                  <Input
+                    type="number"
+                    value={minWidth}
+                    onChange={(e) => setMinWidth(parseInt(e.target.value) || 0)}
+                    placeholder="300"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Max Width (mm)</Label>
+                  <Input
+                    type="number"
+                    value={maxWidth}
+                    onChange={(e) => setMaxWidth(parseInt(e.target.value) || 0)}
+                    placeholder="1200"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Increment (mm)</Label>
+                  <Input
+                    type="number"
+                    value={increment}
+                    onChange={(e) => setIncrement(parseInt(e.target.value) || 1)}
+                    placeholder="50"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-2 pt-2">
+                <Button onClick={generateCustomRanges} variant="default" size="sm">
+                  <Zap className="h-4 w-4 mr-2" />
+                  Generate Ranges
+                </Button>
+                <Button onClick={generateStandardRanges} variant="outline" size="sm">
+                  Use Standard (300-1200mm, 50mm)
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="flex gap-2">
           <Button onClick={addRange} variant="outline" size="sm">
             <Plus className="h-4 w-4 mr-2" />
-            Add Range
-          </Button>
-          <Button onClick={generateStandardRanges} variant="outline" size="sm">
-            Generate Standard (300-1200mm, 50mm increments)
+            Add Single Range
           </Button>
         </div>
 
