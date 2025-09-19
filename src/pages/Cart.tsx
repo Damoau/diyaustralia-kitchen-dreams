@@ -58,7 +58,7 @@ export default function Cart() {
                   Browse our cabinet collection to get started on your kitchen renovation.
                 </p>
                 <Button asChild size="lg">
-                  <Link to="/products">
+                  <Link to="/shop">
                     Browse Cabinets
                   </Link>
                 </Button>
