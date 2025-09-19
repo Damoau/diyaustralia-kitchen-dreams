@@ -117,20 +117,22 @@ const PantryCabinets = () => {
               variant="ghost" 
               size="icon"
               onClick={() => navigateToCategory('prev')}
-              className="h-12 w-12"
+              className="h-12 w-12 flex-shrink-0"
             >
               <ChevronLeft className="h-6 w-6" />
             </Button>
             
-            <h1 className="text-2xl md:text-3xl font-bold text-center min-w-0">
-              {categories[categories.findIndex(cat => cat.route === '/shop/pantry-cabinets')].name}
-            </h1>
+            <div className="w-80 text-center">
+              <h1 className="text-2xl md:text-3xl font-bold">
+                {categories[categories.findIndex(cat => cat.route === '/shop/pantry-cabinets')].name}
+              </h1>
+            </div>
             
             <Button 
               variant="ghost" 
               size="icon"
               onClick={() => navigateToCategory('next')}
-              className="h-12 w-12"
+              className="h-12 w-12 flex-shrink-0"
             >
               <ChevronRight className="h-6 w-6" />
             </Button>
