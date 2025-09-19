@@ -95,7 +95,7 @@ export const CabinetPricingTable = ({ cabinet, onImageEnlarge, selectedDoorStyle
   return (
     <Card className="space-y-0 mb-8">
       {/* Cabinet Name Header */}
-      <CardHeader className="text-center border-b">
+      <CardHeader className="text-center">
         <CardTitle className="text-4xl font-bold">
           {cabinet.name}
         </CardTitle>
@@ -103,7 +103,7 @@ export const CabinetPricingTable = ({ cabinet, onImageEnlarge, selectedDoorStyle
       
       {/* Door Style Finishes Carousel */}
       {filteredFinishes && filteredFinishes.length > 0 && (
-        <div className="border-b">
+        <div>
           <CardContent className="pb-6">
             <Carousel className="w-full">
               <CarouselContent className="-ml-2 md:-ml-4">
@@ -144,9 +144,6 @@ export const CabinetPricingTable = ({ cabinet, onImageEnlarge, selectedDoorStyle
 
       {/* Pricing Table with Correct Layout - Door Styles as Columns, Sizes as Rows */}
       <div>
-        <CardHeader>
-          <CardTitle>Pricing Table</CardTitle>
-        </CardHeader>
         <CardContent>
           {filteredDoorStyles.length > 0 && priceRanges && priceRanges.length > 0 ? (
             <div className="overflow-x-auto">

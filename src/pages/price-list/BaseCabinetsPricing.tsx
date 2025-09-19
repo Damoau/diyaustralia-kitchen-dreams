@@ -309,8 +309,10 @@ const BaseCabinetsPricing = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => prevCategory && navigate(prevCategory.path)}
-            disabled={!prevCategory}
+            onClick={() => {
+              const newIndex = currentIndex === 0 ? categories.length - 1 : currentIndex - 1;
+              navigate(categories[newIndex].path);
+            }}
             className="flex-shrink-0"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -325,8 +327,10 @@ const BaseCabinetsPricing = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => nextCategory && navigate(nextCategory.path)}
-            disabled={!nextCategory}
+            onClick={() => {
+              const newIndex = currentIndex === categories.length - 1 ? 0 : currentIndex + 1;
+              navigate(categories[newIndex].path);
+            }}
             className="flex-shrink-0"
           >
             <ChevronRight className="h-4 w-4" />
