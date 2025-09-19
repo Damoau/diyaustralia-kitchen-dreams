@@ -113,6 +113,20 @@ const CabinetManager: React.FC = () => {
         </Badge>
       ),
     },
+    {
+      key: 'id' as keyof CabinetType,
+      label: 'Actions',
+      render: (value: string, item: CabinetType) => (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleEditType(item)}
+        >
+          <Edit className="h-4 w-4 mr-2" />
+          Edit
+        </Button>
+      ),
+    },
   ];
 
 
@@ -177,11 +191,6 @@ const CabinetManager: React.FC = () => {
             data={cabinetTypes || []}
             loading={loadingTypes}
             actions={[
-              {
-                label: 'Edit',
-                icon: <Edit className="h-4 w-4 mr-2" />,
-                onClick: (item) => handleEditType(item),
-              },
               {
                 label: 'Delete',
                 icon: <Trash2 className="h-4 w-4 mr-2" />,
