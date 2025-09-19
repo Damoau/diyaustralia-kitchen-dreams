@@ -23,10 +23,21 @@ const Hero = () => {
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed text-muted-foreground font-medium">
+          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto leading-relaxed text-muted-foreground font-medium">
             Transform your space with cutting-edge custom cabinets and premium benchtops. 
-            Where innovation meets Australian craftsmanship.
+            100% Australian made with transparent pricing - no hidden costs, ever.
           </p>
+          
+          <div className="flex flex-wrap justify-center gap-6 mb-12">
+            <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full">
+              <div className="w-2 h-2 bg-primary rounded-full"></div>
+              <span className="text-sm font-semibold text-primary">100% Australian Made</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full">
+              <div className="w-2 h-2 bg-primary rounded-full"></div>
+              <span className="text-sm font-semibold text-primary">Transparent Pricing</span>
+            </div>
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
             <Button variant="hero" size="lg" className="px-12 py-4 text-lg" asChild>
