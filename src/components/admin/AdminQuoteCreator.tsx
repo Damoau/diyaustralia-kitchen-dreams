@@ -199,8 +199,8 @@ export const AdminQuoteCreator = ({ onQuoteCreated }: AdminQuoteCreatorProps) =>
         });
       }
 
-      // Reset form if not going to frontend mode
-      if (mode !== 'frontend') {
+      // Reset form if not going to frontend mode  
+      if (mode === 'draft' || mode === 'send') {
         setCustomer({
           name: "",
           email: "",
