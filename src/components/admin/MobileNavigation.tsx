@@ -98,49 +98,49 @@ export const MobileNavigation = () => {
         </Button>
       </SheetTrigger>
       
-      <SheetContent side="left" className="w-80 p-0">
-        <SheetHeader className="p-6 pb-4">
+      <SheetContent side="bottom" className="h-[80vh] p-0 rounded-t-xl">
+        <SheetHeader className="p-4 pb-2 border-b">
           <div className="flex items-center justify-between">
-            <SheetTitle className="text-xl font-bold">Admin Panel</SheetTitle>
+            <SheetTitle className="text-lg font-semibold">Admin Navigation</SheetTitle>
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={() => setIsOpen(false)}
-              className="h-6 w-6 p-0"
+              className="h-8 w-8 p-0"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
         </SheetHeader>
         
-        <div className="flex-1 overflow-y-auto px-6 pb-6">
-          <div className="space-y-6">
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="space-y-4 max-h-full">
             {navigationItems.map((group, groupIndex) => (
-              <div key={groupIndex} className="space-y-3">
-                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              <div key={groupIndex} className="space-y-2">
+                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-2">
                   {group.group}
                 </h4>
                 
-                <div className="space-y-1">
+                <div className="grid grid-cols-2 gap-2">
                   {group.items.map((item) => (
                     <NavLink
                       key={item.title}
                       to={item.url}
                       onClick={handleNavClick}
                       className={({ isActive: routeActive }) => 
-                        `flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        `flex flex-col items-center space-y-1 p-3 rounded-lg text-xs font-medium transition-colors border ${
                           isActive(item.url) || routeActive
-                            ? 'bg-primary/10 text-primary'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                            ? 'bg-primary/10 text-primary border-primary/20'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 border-transparent'
                         }`
                       }
                     >
-                      <item.icon className="h-4 w-4 flex-shrink-0" />
-                      <span>{item.title}</span>
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      <span className="text-center leading-tight">{item.title}</span>
                       
                       {/* Show badge for notifications */}
                       {item.title === 'Notifications' && (
-                        <Badge variant="destructive" className="ml-auto h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                        <Badge variant="destructive" className="absolute top-1 right-1 h-4 w-4 rounded-full p-0 flex items-center justify-center text-xs">
                           3
                         </Badge>
                       )}
@@ -149,7 +149,7 @@ export const MobileNavigation = () => {
                 </div>
                 
                 {groupIndex < navigationItems.length - 1 && (
-                  <Separator className="my-4" />
+                  <Separator className="my-3" />
                 )}
               </div>
             ))}

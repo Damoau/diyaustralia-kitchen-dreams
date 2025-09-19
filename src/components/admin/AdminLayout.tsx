@@ -13,8 +13,10 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     <NavigationProvider>
       <NavigationPerformanceOptimizer>
         <SidebarProvider>
-          <div className="min-h-screen flex w-full bg-background pt-20">
-            <AdminSidebar />
+          <div className="min-h-screen flex w-full bg-background">
+            <div className="hidden lg:flex">
+              <AdminSidebar />
+            </div>
             
             <div className="flex-1 flex flex-col">
               <AdminTopBar />
