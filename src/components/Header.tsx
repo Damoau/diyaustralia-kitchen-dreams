@@ -1,71 +1,106 @@
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, ShoppingCart, Settings, LogOut, LogIn } from "lucide-react";
-import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 const Header = () => {
-  const { totalItems } = useCart();
   const { isAuthenticated, isAdmin, user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const totalItems = 0; // Placeholder since cart is removed
   
   // Debug logging for header cart state
   useEffect(() => {
-    console.log('🎯 Header re-rendered with totalItems:', totalItems);
+    console.log('Header component mounted, total items:', totalItems);
   }, [totalItems]);
-  
-  // Check if user is in admin mode
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
+
   const isInAdminMode = location.pathname.startsWith('/admin');
-  
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-border/50">
-      <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary to-blue-dark rounded-xl shadow-lg"></div>
-          <span className="text-2xl font-bold text-foreground">DIY Australia</span>
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <div 
+            className="flex items-center space-x-2 cursor-pointer"
+            onClick={() => navigate('/')}
+          >
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-blue-dark rounded-lg"></div>
+            <span className="text-xl font-bold text-foreground">DIY Australia</span>
+          </div>
         </div>
-        
-        <nav className="hidden md:flex items-center space-x-8">
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center space-x-6">
           {isInAdminMode ? (
             <>
-              <Button
-                variant="ghost"
-                onClick={() => navigate('/')}
-                className="text-foreground hover:text-primary transition-colors font-medium"
+              <Button 
+                variant={location.pathname === '/admin' ? "default" : "ghost"} 
+                onClick={() => navigate('/admin')}
+                className="text-sm"
               >
-                ← Back to Site
+                Admin Dashboard
               </Button>
-              <span className="text-sm text-muted-foreground">Admin Panel</span>
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate('/')}
+                className="text-sm"
+              >
+                Back to Site
+              </Button>
             </>
           ) : (
             <>
-              <a href="/shop" className="text-foreground hover:text-primary transition-colors font-medium">
+              <a 
+                href="/"
+                className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
+                  location.pathname === '/' ? 'text-foreground' : 'text-foreground/60'
+                }`}
+              >
+                Home
+              </a>
+              <a 
+                href="/shop"
+                className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
+                  location.pathname === '/shop' ? 'text-foreground' : 'text-foreground/60'
+                }`}
+              >
                 Shop
               </a>
-              <a href="#services" className="text-foreground hover:text-primary transition-colors font-medium">
-                Services
-              </a>
-              <a href="/manufacturing" className="text-foreground hover:text-primary transition-colors font-medium">
-                Manufacturing
-              </a>
-              <a href="/kitchen-styles" className="text-foreground hover:text-primary transition-colors font-medium">
+              <a 
+                href="/kitchen-styles"
+                className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
+                  location.pathname === '/kitchen-styles' ? 'text-foreground' : 'text-foreground/60'
+                }`}
+              >
                 Kitchen Styles
               </a>
-              <a href="/price-list" className="text-foreground hover:text-primary transition-colors font-medium">
-                Price List
+              <a 
+                href="/get-quote"
+                className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
+                  location.pathname === '/get-quote' ? 'text-foreground' : 'text-foreground/60'
+                }`}
+              >
+                Get Quote
               </a>
-              <a href="#gallery" className="text-foreground hover:text-primary transition-colors font-medium">
-                Gallery
-              </a>
-              <a href="#about" className="text-foreground hover:text-primary transition-colors font-medium">
-                About
-              </a>
-              <a href="#contact" className="text-foreground hover:text-primary transition-colors font-medium">
-                Contact
+              <a 
+                href="/manufacturing"
+                className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
+                  location.pathname === '/manufacturing' ? 'text-foreground' : 'text-foreground/60'
+                }`}
+              >
+                Manufacturing
               </a>
             </>
           )}
@@ -75,7 +110,7 @@ const Header = () => {
           <Button 
             variant="outline" 
             size="sm" 
-            className="relative"
+            className="relative hidden md:flex"
             onClick={() => navigate('/cart')}
           >
             <ShoppingCart className="h-4 w-4" />
@@ -93,49 +128,54 @@ const Header = () => {
                   {user?.email?.split('@')[0] || 'Account'}
                 </Button>
               </DropdownMenuTrigger>
-               <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-56">
                 {isAdmin && !isInAdminMode && (
                   <>
-                    <DropdownMenuItem onClick={() => {
-                      console.log('Navigating to admin, isAdmin:', isAdmin, 'user:', user);
-                      navigate('/admin');
-                    }}>
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
                       <Settings className="mr-2 h-4 w-4" />
-                      Admin Panel
+                      Admin Dashboard
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                   </>
                 )}
-                {isInAdminMode && (
-                  <>
-                    <DropdownMenuItem onClick={() => navigate('/')}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Exit Admin
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-                <DropdownMenuItem onClick={signOut}>
+                <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="outline" size="sm" onClick={() => navigate('/auth')} className="hidden sm:flex">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/auth')}
+              className="hidden sm:flex"
+            >
               <LogIn className="mr-2 h-4 w-4" />
               Sign In
             </Button>
           )}
-          
-          <Button variant="hero" size="sm" className="px-6 hidden sm:flex" onClick={() => navigate('/get-quote')}>
-            Get Quote
+        </div>
+
+        {/* Mobile Menu */}
+        <div className="flex md:hidden">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="relative mr-2"
+            onClick={() => navigate('/cart')}
+          >
+            <ShoppingCart className="h-4 w-4" />
+            {totalItems > 0 && (
+              <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {totalItems}
+              </span>
+            )}
           </Button>
           
-          {/* Mobile Menu */}
           <Sheet>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="outline" size="sm" className="p-2">
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
@@ -152,64 +192,50 @@ const Header = () => {
                     <>
                       <Button
                         variant="ghost"
-                        onClick={() => navigate('/')}
-                        className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100 justify-start"
+                        onClick={() => navigate('/admin')}
+                        className="justify-start"
                       >
-                        ← Back to Site
+                        Admin Dashboard
                       </Button>
-                      <div className="text-lg font-medium text-muted-foreground py-2 border-b border-gray-100">
-                        Admin Panel
-                      </div>
+                      <Button
+                        variant="ghost"
+                        onClick={() => navigate('/')}
+                        className="justify-start"
+                      >
+                        Back to Site
+                      </Button>
                     </>
                   ) : (
                     <>
-                  <a 
-                    href="/shop" 
-                    className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
-                  >
-                    Shop
-                  </a>
-                  <a 
-                    href="#services" 
-                    className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
-                  >
-                    Services
-                  </a>
-                      <a 
-                        href="/manufacturing" 
-                        className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
+                      <a
+                        href="/"
+                        className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
                       >
-                        Manufacturing
+                        Home
                       </a>
-                      <a 
-                        href="/kitchen-styles" 
-                        className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
+                      <a
+                        href="/shop"
+                        className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
+                      >
+                        Shop
+                      </a>
+                      <a
+                        href="/kitchen-styles"
+                        className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
                       >
                         Kitchen Styles
                       </a>
-                      <a 
-                        href="/price-list" 
-                        className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
+                      <a
+                        href="/get-quote"
+                        className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
                       >
-                        Price List
+                        Get Quote
                       </a>
-                      <a 
-                        href="#gallery" 
-                        className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
+                      <a
+                        href="/manufacturing"
+                        className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
                       >
-                        Gallery
-                      </a>
-                      <a 
-                        href="#about" 
-                        className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
-                      >
-                        About
-                      </a>
-                      <a 
-                        href="#contact" 
-                        className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-gray-100"
-                      >
-                        Contact
+                        Manufacturing
                       </a>
                     </>
                   )}
@@ -220,31 +246,34 @@ const Header = () => {
                   {isAuthenticated ? (
                     <>
                       {isAdmin && !isInAdminMode && (
-                        <Button variant="outline" size="lg" className="w-full" onClick={() => navigate('/admin')}>
+                        <Button
+                          variant="outline"
+                          onClick={() => navigate('/admin')}
+                          className="w-full justify-start"
+                        >
                           <Settings className="mr-2 h-4 w-4" />
-                          Admin Panel
+                          Admin Dashboard
                         </Button>
                       )}
-                      {isInAdminMode && (
-                        <Button variant="outline" size="lg" className="w-full" onClick={() => navigate('/')}>
-                          <LogOut className="mr-2 h-4 w-4" />
-                          Exit Admin
-                        </Button>
-                      )}
-                      <Button variant="outline" size="lg" className="w-full" onClick={signOut}>
+                      <Button
+                        variant="outline"
+                        onClick={handleSignOut}
+                        className="w-full justify-start"
+                      >
                         <LogOut className="mr-2 h-4 w-4" />
                         Sign Out
                       </Button>
                     </>
                   ) : (
-                    <Button variant="outline" size="lg" className="w-full" onClick={() => navigate('/auth')}>
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate('/auth')}
+                      className="w-full justify-start"
+                    >
                       <LogIn className="mr-2 h-4 w-4" />
                       Sign In
                     </Button>
                   )}
-                  <Button variant="hero" size="lg" className="w-full" onClick={() => navigate('/get-quote')}>
-                    Get Free Quote
-                  </Button>
                 </div>
                 
                 <div className="flex-shrink-0 mt-6 pt-6 border-t border-gray-100">

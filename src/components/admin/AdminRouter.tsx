@@ -14,18 +14,15 @@ const RoleManagement = lazy(() => import('@/components/admin/RoleManagement'));
 // Create placeholder components for missing pages
 const QuotesList = lazy(() => import('@/pages/admin/QuotesList'));
 const Assembly = lazy(() => import('@/pages/admin/Assembly'));
-const CabinetManagement = lazy(() => import('@/components/admin/CabinetManagement'));
 const CategoriesManager = lazy(() => import('@/components/admin/CategoriesManager'));
 const ClassicCabinetManager = lazy(() => import('@/components/admin/ClassicCabinetManager'));
 const HardwareManager = lazy(() => import('@/components/admin/HardwareManager'));
-const ConfigurationMigration = lazy(() => import('@/pages/admin/ConfigurationMigration'));
 const Discounts = lazy(() => import('@/pages/admin/Discounts'));
 const Users = lazy(() => import('@/pages/admin/Users'));
 const Reports = lazy(() => import('@/pages/admin/Reports'));
 const Exports = lazy(() => import('@/pages/admin/Exports'));
 const Notifications = lazy(() => import('@/pages/admin/Notifications'));
 const Settings = lazy(() => import('@/pages/admin/Settings'));
-const Testing = lazy(() => import('@/pages/admin/Testing'));
 
 export const AdminRouter = () => {
   return (
@@ -46,7 +43,6 @@ export const AdminRouter = () => {
         
         {/* Configuration */}
         <Route path="categories" element={<CategoriesManager />} />
-        <Route path="cabinets" element={<CabinetManagement />} />
         <Route path="classic-cabinets" element={
           <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
             <ClassicCabinetManager />
@@ -57,7 +53,6 @@ export const AdminRouter = () => {
             <HardwareManager />
           </Suspense>
         } />
-        <Route path="configuration-migration" element={<ConfigurationMigration />} />
         <Route path="discounts" element={<Discounts />} />
         <Route path="users" element={<Users />} />
         <Route path="roles" element={<RoleManagement />} />
@@ -68,7 +63,6 @@ export const AdminRouter = () => {
         
         {/* System */}
         <Route path="security" element={<SecurityDashboard />} />
-        <Route path="testing" element={<Testing />} />
         <Route path="notifications" element={<Notifications />} />
         <Route path="settings" element={<Settings />} />
       </Routes>

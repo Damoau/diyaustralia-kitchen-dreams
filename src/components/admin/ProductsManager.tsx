@@ -9,7 +9,6 @@ import { Trash2, Plus, Edit, Package, Wand2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { ProductGenerator } from './ProductGenerator';
 
 interface Product {
   id: string;
@@ -351,9 +350,9 @@ export function ProductsManager() {
           </div>
         </TabsContent>
         
-        <TabsContent value="generator" className="mt-6">
-          <ProductGenerator />
-        </TabsContent>
+          <div className="text-center text-muted-foreground py-8">
+            <p>Product generation tools will be available here.</p>
+          </div>
       </Tabs>
     </div>
   );

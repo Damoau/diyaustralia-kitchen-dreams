@@ -11,13 +11,7 @@ import { AdminImpersonationProvider } from "@/contexts/AdminImpersonationContext
 // Lazy load route components for code splitting
 const Index = lazy(() => import("./pages/Index"));
 const Shop = lazy(() => import("./pages/Shop"));
-const BaseCabinets = lazy(() => import("./pages/shop/BaseCabinets"));
-const TopCabinets = lazy(() => import("./pages/shop/TopCabinets"));
-const PantryCabinets = lazy(() => import("./pages/shop/PantryCabinets"));
-const DressPanels = lazy(() => import("./pages/shop/DressPanels"));
 const KitchenStyles = lazy(() => import("./pages/KitchenStyles"));
-const Products = lazy(() => import("./pages/Products"));
-const CheckoutFlow = lazy(() => import("./pages/CheckoutFlow"));
 const GetQuote = lazy(() => import("./pages/GetQuote"));
 const Manufacturing = lazy(() => import("./pages/Manufacturing"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -25,15 +19,6 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin components
 const AdminRouter = lazy(() => import("./components/admin/AdminRouter"));
-const Portal = lazy(() => import("./pages/Portal"));
-const PortalQuotes = lazy(() => import("./pages/portal/Quotes"));
-const PortalQuoteDetail = lazy(() => import("./pages/portal/QuoteDetail"));
-const PortalOrders = lazy(() => import("./pages/portal/Orders"));
-const PortalOrderDetail = lazy(() => import("./pages/portal/OrderDetail"));
-const PortalFiles = lazy(() => import("./pages/portal/Files"));
-const PortalMessages = lazy(() => import("./pages/portal/Messages"));
-const PortalProfile = lazy(() => import("./pages/portal/Profile"));
-const PortalAddresses = lazy(() => import("./pages/portal/Addresses"));
 
 // Lazy load ProtectedRoute
 const ProtectedRoute = lazy(() => import("./components/ProtectedRoute"));
@@ -71,12 +56,6 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/shop" element={<Shop />} />
-                <Route path="/shop/base-cabinets" element={<BaseCabinets />} />
-                <Route path="/shop/top-cabinets" element={<TopCabinets />} />
-                <Route path="/shop/pantry-cabinets" element={<PantryCabinets />} />
-                <Route path="/shop/dress-panels" element={<DressPanels />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/checkout-flow" element={<CheckoutFlow />} />
                 <Route path="/get-quote" element={<GetQuote />} />
                 <Route path="/manufacturing" element={<Manufacturing />} />
                 <Route path="/kitchen-styles" element={<KitchenStyles />} />
@@ -91,15 +70,6 @@ const App = () => (
                     </Suspense>
                   } 
                 />
-                <Route path="/portal" element={<Portal />} />
-                <Route path="/portal/quotes" element={<PortalQuotes />} />
-                <Route path="/portal/quotes/:id" element={<PortalQuoteDetail />} />
-                <Route path="/portal/orders" element={<PortalOrders />} />
-                <Route path="/portal/orders/:id" element={<PortalOrderDetail />} />
-                <Route path="/portal/files" element={<PortalFiles />} />
-                <Route path="/portal/messages" element={<PortalMessages />} />
-                <Route path="/portal/profile" element={<PortalProfile />} />
-                <Route path="/portal/addresses" element={<PortalAddresses />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
