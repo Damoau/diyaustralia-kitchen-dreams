@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { PageLoader } from '@/components/ui/page-loader';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 
 // Lazy load admin components for better performance
 const Production = lazy(() => import('@/pages/admin/Production'));
@@ -26,47 +27,49 @@ const Settings = lazy(() => import('@/pages/admin/Settings'));
 
 export const AdminRouter = () => {
   return (
-    <Suspense fallback={<PageLoader />}>
-      <Routes>
-        <Route index element={<Navigate to="overview" replace />} />
-        <Route path="overview" element={<AdminOverview />} />
-        
-        {/* Sales */}
-        <Route path="sales/carts" element={<CartsList />} />
-        <Route path="sales/quotes" element={<QuotesList />} />
-        
-        {/* Operations */}
-        <Route path="orders" element={<AdminOrders />} />
-        <Route path="production" element={<Production />} />
-        <Route path="shipping" element={<AdminShipping />} />
-        <Route path="assembly" element={<Assembly />} />
-        
-        {/* Configuration */}
-        <Route path="categories" element={<CategoriesManager />} />
-        <Route path="classic-cabinets" element={
-          <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
-            <ClassicCabinetManager />
-          </Suspense>
-        } />
-        <Route path="hardware-manager" element={
-          <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
-            <HardwareManager />
-          </Suspense>
-        } />
-        <Route path="discounts" element={<Discounts />} />
-        <Route path="users" element={<Users />} />
-        <Route path="roles" element={<RoleManagement />} />
-        
-        {/* Analytics */}
-        <Route path="reports" element={<Reports />} />
-        <Route path="exports" element={<Exports />} />
-        
-        {/* System */}
-        <Route path="security" element={<SecurityDashboard />} />
-        <Route path="notifications" element={<Notifications />} />
-        <Route path="settings" element={<Settings />} />
-      </Routes>
-    </Suspense>
+    <AdminLayout>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route index element={<Navigate to="overview" replace />} />
+          <Route path="overview" element={<AdminOverview />} />
+          
+          {/* Sales */}
+          <Route path="sales/carts" element={<CartsList />} />
+          <Route path="sales/quotes" element={<QuotesList />} />
+          
+          {/* Operations */}
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="production" element={<Production />} />
+          <Route path="shipping" element={<AdminShipping />} />
+          <Route path="assembly" element={<Assembly />} />
+          
+          {/* Configuration */}
+          <Route path="categories" element={<CategoriesManager />} />
+          <Route path="classic-cabinets" element={
+            <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+              <ClassicCabinetManager />
+            </Suspense>
+          } />
+          <Route path="hardware-manager" element={
+            <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+              <HardwareManager />
+            </Suspense>
+          } />
+          <Route path="discounts" element={<Discounts />} />
+          <Route path="users" element={<Users />} />
+          <Route path="roles" element={<RoleManagement />} />
+          
+          {/* Analytics */}
+          <Route path="reports" element={<Reports />} />
+          <Route path="exports" element={<Exports />} />
+          
+          {/* System */}
+          <Route path="security" element={<SecurityDashboard />} />
+          <Route path="notifications" element={<Notifications />} />
+          <Route path="settings" element={<Settings />} />
+        </Routes>
+      </Suspense>
+    </AdminLayout>
   );
 };
 
