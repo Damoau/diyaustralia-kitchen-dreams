@@ -618,15 +618,21 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
               
               <DataTable
                 columns={partsColumns}
-                data={(cabinetParts || []).map(part => ({ ...part, id: part.id! }))}
+                data={(cabinetParts || []).filter(part => part.id).map(part => ({ 
+                  ...part, 
+                  id: part.id as string 
+                }))}
                 loading={loadingParts}
                 actions={[
                   {
                     label: 'Edit',
                     icon: <Edit className="h-4 w-4 mr-2" />,
                     onClick: (item) => {
-                      setEditingPart(cabinetParts?.find(p => p.id === item.id) || null);
-                      setShowPartForm(true);
+                      const part = cabinetParts?.find(p => p.id === item.id);
+                      if (part) {
+                        setEditingPart(part);
+                        setShowPartForm(true);
+                      }
                     },
                   },
                   {
