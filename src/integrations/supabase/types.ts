@@ -279,6 +279,39 @@ export type Database = {
         }
         Relationships: []
       }
+      cabinet_door_styles: {
+        Row: {
+          active: boolean
+          cabinet_type_id: string
+          created_at: string
+          door_style_id: string
+          id: string
+          image_url: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          cabinet_type_id: string
+          created_at?: string
+          door_style_id: string
+          id?: string
+          image_url?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          cabinet_type_id?: string
+          created_at?: string
+          door_style_id?: string
+          id?: string
+          image_url?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cabinet_hardware_options: {
         Row: {
           active: boolean

@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { Loader2, Package, Save, DollarSign, Palette } from 'lucide-react';
 import { ImageDropzone } from './ImageDropzone';
 import { CabinetComponentsTab } from './CabinetComponentsTab';
+import { CabinetDoorStylesSelector } from './CabinetDoorStylesSelector';
 
 interface CabinetTypeDetails {
   id: string;
@@ -221,10 +222,11 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
             <TabsTrigger value="dimensions">Dimensions</TabsTrigger>
             <TabsTrigger value="components">Components</TabsTrigger>
+            <TabsTrigger value="door-styles">Door Styles</TabsTrigger>
             <TabsTrigger value="pricing">Pricing</TabsTrigger>
             <TabsTrigger value="price-ranges">Price Ranges</TabsTrigger>
           </TabsList>
@@ -239,6 +241,13 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
 
           <TabsContent value="components">
             <ComponentsTab cabinet={cabinetData} onUpdate={updateCabinetData} />
+          </TabsContent>
+
+          <TabsContent value="door-styles">
+            <CabinetDoorStylesSelector 
+              cabinetId={cabinetData.id} 
+              onUpdate={() => setHasUnsavedChanges(false)} 
+            />
           </TabsContent>
 
           <TabsContent value="pricing">
