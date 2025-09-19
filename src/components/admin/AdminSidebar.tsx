@@ -28,6 +28,7 @@ import {
   Factory,
   Shield,
   TestTube,
+  Palette,
 } from 'lucide-react';
 
 const navigationItems = [
@@ -59,6 +60,7 @@ const navigationItems = [
       { title: 'Cabinet Management', url: 'cabinets', icon: Package },
       { title: 'Classic Cabinet Manager', url: 'classic-cabinets', icon: Package },
       { title: 'Cabinet Configurator', url: 'cabinet-configurator', icon: Settings },
+      { title: 'Door Styles & Colors', url: 'door-styles', icon: Palette },
       { title: 'Hardware Manager', url: 'hardware-manager', icon: Wrench },
       { title: 'Materials & Pricing', url: 'materials', icon: DollarSign },
       { title: 'Configuration Migration', url: 'configuration-migration', icon: MapPin },

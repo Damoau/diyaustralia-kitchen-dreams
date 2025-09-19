@@ -1,340 +1,455 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trash2, Plus, Settings, Upload, Image } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { Loader2, Save, Plus, Edit, Trash2, Palette, DollarSign } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { supabase } from '@/integrations/supabase/client';
-import { DoorStyle, Brand } from '@/types/cabinet';
-import { useToast } from '@/hooks/use-toast';
-export function DoorStylesManager() {
-  const { toast } = useToast();
-  const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [uploadingImages, setUploadingImages] = useState<{ [key: string]: boolean }>({});
-  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+interface DoorStyle {
+  id?: string;
+  name: string;
+  description?: string;
+  base_rate_per_sqm: number;
+  image_url?: string;
+  active: boolean;
+}
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const doorStylesRes = await supabase
+interface Color {
+  id?: string;
+  name: string;
+  hex_code?: string;
+  image_url?: string;
+  door_style_id?: string;
+  surcharge_rate_per_sqm: number;
+  sort_order: number;
+  active: boolean;
+}
+
+interface DoorStyleFinish {
+  id?: string;
+  door_style_id: string;
+  name: string;
+  rate_per_sqm: number;
+  sort_order: number;
+  active: boolean;
+}
+
+export const DoorStylesManager: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('door-styles');
+  const [editingDoorStyle, setEditingDoorStyle] = useState<DoorStyle | null>(null);
+  const [editingColor, setEditingColor] = useState<Color | null>(null);
+  const [editingFinish, setEditingFinish] = useState<DoorStyleFinish | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Fetch door styles
+  const { data: doorStyles, isLoading: loadingDoorStyles } = useQuery({
+    queryKey: ['door-styles-admin'],
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from('door_styles')
         .select('*')
         .order('name');
 
-      if (doorStylesRes.error) throw doorStylesRes.error;
-      
-      if (doorStylesRes.data) setDoorStyles(doorStylesRes.data as DoorStyle[]);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load data",
-        variant: "destructive",
-      });
-    }
-    setLoading(false);
+      if (error) throw error;
+      return data as DoorStyle[];
+    },
+  });
+
+  // Fetch colors
+  const { data: colors, isLoading: loadingColors } = useQuery({
+    queryKey: ['colors-admin'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('colors')
+        .select(`
+          *,
+          door_styles (name)
+        `)
+        .order('door_style_id', { nullsFirst: false })
+        .order('sort_order')
+        .order('name');
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch door style finishes
+  const { data: finishes, isLoading: loadingFinishes } = useQuery({
+    queryKey: ['door-style-finishes-admin'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('door_style_finishes')
+        .select(`
+          *,
+          door_styles (name)
+        `)
+        .order('door_style_id')
+        .order('sort_order')
+        .order('name');
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setEditingDoorStyle(null);
+    setEditingColor(null);
+    setEditingFinish(null);
   };
 
-  const addDoorStyle = async () => {
-    const newStyle = {
-      name: "New Door Style",
-      description: "",
+  const handleNewDoorStyle = () => {
+    setEditingDoorStyle({
+      name: '',
+      description: '',
       base_rate_per_sqm: 0,
-      active: true
-    };
-
-    const { data, error } = await supabase
-      .from('door_styles')
-      .insert(newStyle)
-      .select('*')
-      .single();
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add door style",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (data) {
-      setDoorStyles([...doorStyles, data as DoorStyle]);
-    }
+      image_url: '',
+      active: true,
+    });
+    setDialogOpen(true);
   };
 
-  const updateDoorStyle = async (id: string, updates: Partial<DoorStyle>) => {
-    const { error } = await supabase
-      .from('door_styles')
-      .update(updates)
-      .eq('id', id);
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update door style",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Update local state without refetch to avoid input flicker
-    setDoorStyles((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
+  const handleNewColor = () => {
+    setEditingColor({
+      name: '',
+      hex_code: '#FFFFFF',
+      image_url: '',
+      door_style_id: '',
+      surcharge_rate_per_sqm: 0,
+      sort_order: 0,
+      active: true,
+    });
+    setDialogOpen(true);
   };
 
-  const deleteDoorStyle = async (id: string) => {
-    const { error } = await supabase
-      .from('door_styles')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete door style",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setDoorStyles(doorStyles.filter(style => style.id !== id));
+  const handleNewFinish = () => {
+    setEditingFinish({
+      door_style_id: doorStyles?.[0]?.id || '',
+      name: '',
+      rate_per_sqm: 0,
+      sort_order: 0,
+      active: true,
+    });
+    setDialogOpen(true);
   };
-
-  const handleImageUpload = async (styleId: string, file: File) => {
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Error",
-        description: "Please select an image file",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setUploadingImages(prev => ({ ...prev, [styleId]: true }));
-
-    try {
-      // Compress image before upload
-      const { compressImage, getOptimalCompressionSettings } = await import('@/lib/imageUtils');
-      const compressionSettings = getOptimalCompressionSettings(file.size);
-      const compressedFile = await compressImage(file, compressionSettings);
-
-      // Create unique filename
-      const fileExt = compressedFile.name.split('.').pop();
-      const fileName = `${styleId}-${Date.now()}.${fileExt}`;
-
-      // Upload to Supabase storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('door-style-images')
-        .upload(fileName, compressedFile);
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('door-style-images')
-        .getPublicUrl(fileName);
-
-      const publicUrl = urlData.publicUrl;
-
-      // Update door style with image URL
-      await updateDoorStyle(styleId, { image_url: publicUrl });
-
-      toast({
-        title: "Success",
-        description: "Image compressed and uploaded successfully",
-      });
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast({
-        title: "Error",
-        description: "Failed to upload image",
-        variant: "destructive",
-      });
-    } finally {
-      setUploadingImages(prev => ({ ...prev, [styleId]: false }));
-    }
-  };
-
-  const triggerFileInput = (styleId: string) => {
-    fileInputRefs.current[styleId]?.click();
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDragEnter = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e: React.DragEvent, styleId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find(file => file.type.startsWith('image/'));
-    
-    if (imageFile) {
-      handleImageUpload(styleId, imageFile);
-    } else {
-      toast({
-        title: "Error",
-        description: "Please drop an image file",
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (loading) {
-    return <div>Loading door styles...</div>;
-  }
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Door Styles</CardTitle>
-          <Button onClick={addDoorStyle} size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Door Style
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Base Rate ($/sqm)</TableHead>
-                <TableHead>Image</TableHead>
-                <TableHead>Active</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {doorStyles.map((style) => (
-                <TableRow key={style.id}>
-                  <TableCell>
-                    <Input
-                      value={style.name}
-                      onChange={(e) => {
-                        setDoorStyles((prev) => prev.map((s) => s.id === style.id ? { ...s, name: e.target.value } : s));
-                      }}
-                      onBlur={(e) => {
-                        updateDoorStyle(style.id, { name: e.target.value });
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      value={style.description || ""}
-                      onChange={(e) => {
-                        setDoorStyles((prev) => prev.map((s) => s.id === style.id ? { ...s, description: e.target.value } : s));
-                      }}
-                      onBlur={(e) => {
-                        updateDoorStyle(style.id, { description: e.target.value });
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={style.base_rate_per_sqm}
-                      onChange={(e) => {
-                        const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                        setDoorStyles((prev) => prev.map((s) => s.id === style.id ? { ...s, base_rate_per_sqm: Number.isNaN(val) ? 0 : val } : s));
-                      }}
-                      onBlur={(e) => {
-                        const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                        updateDoorStyle(style.id, { base_rate_per_sqm: Number.isNaN(val) ? 0 : val });
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <div 
-                      className="flex items-center gap-2 p-2 border-2 border-dashed border-gray-200 rounded hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer"
-                      onDrop={(e) => handleDrop(e, style.id)}
-                      onDragOver={handleDragOver}
-                      onDragEnter={handleDragEnter}
-                      onDragLeave={handleDragLeave}
-                      onClick={() => triggerFileInput(style.id)}
-                    >
-                      {style.image_url && (
-                        <img 
-                          src={style.image_url} 
-                          alt={style.name}
-                          className="w-12 h-12 object-cover rounded border"
-                        />
-                      )}
-                      <input
-                        ref={(el) => { fileInputRefs.current[style.id] = el; }}
-                        type="file"
-                        accept="image/*"
-                        style={{ display: 'none' }}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleImageUpload(style.id, file);
-                        }}
-                      />
-                      <div className="flex flex-col items-center gap-1">
-                        {uploadingImages[style.id] ? (
-                          <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
-                        ) : (
-                          <Upload className="h-4 w-4 text-gray-400" />
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Door Styles & Colors Management</h2>
+          <p className="text-muted-foreground">
+            Manage door styles, colors, and finishes used in cabinet pricing formulas
+          </p>
+        </div>
+      </div>
+
+      <div className="bg-card border rounded-lg p-6">
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Quick Summary</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <Palette className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Door Styles</p>
+                    <p className="text-2xl font-bold">{doorStyles?.length || 0}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <Palette className="h-5 w-5 text-secondary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Colors</p>
+                    <p className="text-2xl font-bold">{colors?.length || 0}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-accent" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Finishes</p>
+                    <p className="text-2xl font-bold">{finishes?.length || 0}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="door-styles">Door Styles</TabsTrigger>
+          <TabsTrigger value="colors">Colors</TabsTrigger>
+          <TabsTrigger value="finishes">Finishes</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="door-styles">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Palette className="h-5 w-5" />
+                    Door Styles
+                  </CardTitle>
+                  <CardDescription>
+                    Base door styles with pricing per square meter. Used in cabinet pricing formulas.
+                  </CardDescription>
+                </div>
+                <Button onClick={handleNewDoorStyle}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Door Style
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loadingDoorStyles ? (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {doorStyles?.map((style) => (
+                    <Card key={style.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-lg">{style.name}</CardTitle>
+                          <div className="flex gap-1">
+                            <Badge variant={style.active ? "default" : "secondary"}>
+                              {style.active ? "Active" : "Inactive"}
+                            </Badge>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingDoorStyle(style);
+                                setDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Base Rate:</span>
+                            <span className="font-medium">${style.base_rate_per_sqm}/sqm</span>
+                          </div>
+                          {style.description && (
+                            <p className="text-muted-foreground">{style.description}</p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="colors">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Palette className="h-5 w-5" />
+                    Colors
+                  </CardTitle>
+                  <CardDescription>
+                    Color options with surcharge rates. Can be linked to specific door styles or available for all.
+                  </CardDescription>
+                </div>
+                <Button onClick={handleNewColor}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Color
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loadingColors ? (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {colors?.map((color: any) => (
+                    <Card key={color.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            {color.hex_code && (
+                              <div
+                                className="w-6 h-6 rounded border-2 border-border"
+                                style={{ backgroundColor: color.hex_code }}
+                              />
+                            )}
+                            <CardTitle className="text-lg">{color.name}</CardTitle>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingColor(color);
+                              setDialogOpen(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {color.door_styles?.name && (
+                          <Badge variant="outline">{color.door_styles.name}</Badge>
                         )}
-                        <span className="text-xs text-gray-500">
-                          {uploadingImages[style.id] ? 'Uploading...' : 'Drop or click'}
-                        </span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={style.active ? "true" : "false"}
-                      onValueChange={(value) => updateDoorStyle(style.id, { active: value === "true" })}
-                    >
-                      <SelectTrigger className="w-20">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">Yes</SelectItem>
-                        <SelectItem value="false">No</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      onClick={() => deleteDoorStyle(style.id)}
-                      variant="destructive"
-                      size="sm"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Surcharge:</span>
+                            <span className="font-medium">${color.surcharge_rate_per_sqm}/sqm</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Sort Order:</span>
+                            <span>{color.sort_order}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="finishes">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5" />
+                    Door Style Finishes
+                  </CardTitle>
+                  <CardDescription>
+                    Additional finish options for specific door styles with pricing.
+                  </CardDescription>
+                </div>
+                <Button onClick={handleNewFinish}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Finish
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loadingFinishes ? (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {finishes?.map((finish: any) => (
+                    <Card key={finish.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-lg">{finish.name}</CardTitle>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingFinish(finish);
+                              setDialogOpen(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <Badge variant="outline">{finish.door_styles?.name}</Badge>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Rate:</span>
+                            <span className="font-medium">${finish.rate_per_sqm}/sqm</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Sort Order:</span>
+                            <span>{finish.sort_order}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Simple placeholder dialogs for now */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              {editingDoorStyle && (editingDoorStyle.id ? 'Edit Door Style' : 'New Door Style')}
+              {editingColor && (editingColor.id ? 'Edit Color' : 'New Color')}
+              {editingFinish && (editingFinish.id ? 'Edit Finish' : 'New Finish')}
+            </DialogTitle>
+            <DialogDescription>
+              Manage door styles, colors, and finishes used in pricing calculations.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-4">
+            <p className="text-muted-foreground">
+              Door styles and colors management functionality coming soon. 
+              This will allow you to:
+            </p>
+            <ul className="list-disc list-inside mt-2 space-y-1 text-sm text-muted-foreground">
+              <li>Set base rates per square meter for door styles</li>
+              <li>Configure color surcharges</li>
+              <li>Manage finish options and pricing</li>
+              <li>Link colors to specific door styles</li>
+            </ul>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button onClick={handleCloseDialog}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
-}
+};
+
+export default DoorStylesManager;

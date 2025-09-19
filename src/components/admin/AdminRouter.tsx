@@ -16,6 +16,7 @@ const QuotesList = lazy(() => import('@/pages/admin/QuotesList'));
 const Assembly = lazy(() => import('@/pages/admin/Assembly'));
 const CabinetManagement = lazy(() => import('@/components/admin/CabinetManagement'));
 const ClassicCabinetManager = lazy(() => import('@/components/admin/ClassicCabinetManager'));
+const DoorStylesManager = lazy(() => import('@/components/admin/DoorStylesManager'));
 const HardwareManager = lazy(() => import('@/components/admin/HardwareManager'));
 const MaterialsManager = lazy(() => import('@/components/admin/MaterialsManager'));
 const CabinetConfigurator = lazy(() => import('@/components/admin/CabinetConfigurator'));
@@ -51,6 +52,11 @@ export const AdminRouter = () => {
         <Route path="classic-cabinets" element={
           <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
             <ClassicCabinetManager />
+          </Suspense>
+        } />
+        <Route path="door-styles" element={
+          <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+            <DoorStylesManager />
           </Suspense>
         } />
         <Route path="hardware-manager" element={

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { Loader2, Save, Settings, DollarSign, Package } from 'lucide-react';
+import { Loader2, Save, Settings, DollarSign, Package, Plus, Trash2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface GlobalSetting {
@@ -55,6 +55,45 @@ export const MaterialsManager: React.FC = () => {
     },
   });
 
+  // Add new setting mutation
+  const addSettingMutation = useMutation({
+    mutationFn: async (setting: GlobalSetting) => {
+      const { error } = await supabase
+        .from('global_settings')
+        .insert(setting);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['global-settings'] });
+      toast.success('Setting added successfully');
+    },
+    onError: (error) => {
+      console.error('Error adding setting:', error);
+      toast.error('Failed to add setting');
+    },
+  });
+
+  // Delete setting mutation
+  const deleteSettingMutation = useMutation({
+    mutationFn: async (settingKey: string) => {
+      const { error } = await supabase
+        .from('global_settings')
+        .delete()
+        .eq('setting_key', settingKey);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['global-settings'] });
+      toast.success('Setting deleted successfully');
+    },
+    onError: (error) => {
+      console.error('Error deleting setting:', error);
+      toast.error('Failed to delete setting');
+    },
+  });
+
   // Group settings by category
   const materialSettings = settings?.filter(s => 
     s.setting_key.includes('material') || 
@@ -84,6 +123,16 @@ export const MaterialsManager: React.FC = () => {
 
   const handleUpdateSetting = (key: string, value: string) => {
     updateSettingMutation.mutate({ key, value });
+  };
+
+  const handleAddSetting = (setting: GlobalSetting) => {
+    addSettingMutation.mutate(setting);
+  };
+
+  const handleDeleteSetting = (settingKey: string) => {
+    if (confirm('Are you sure you want to delete this setting?')) {
+      deleteSettingMutation.mutate(settingKey);
+    }
   };
 
   if (isLoading) {
@@ -128,7 +177,10 @@ export const MaterialsManager: React.FC = () => {
               <SettingsGrid 
                 settings={materialSettings} 
                 onUpdate={handleUpdateSetting}
-                isLoading={updateSettingMutation.isPending}
+                onAdd={handleAddSetting}
+                onDelete={handleDeleteSetting}
+                isLoading={updateSettingMutation.isPending || addSettingMutation.isPending}
+                category="materials"
               />
             </CardContent>
           </Card>
@@ -149,7 +201,10 @@ export const MaterialsManager: React.FC = () => {
               <SettingsGrid 
                 settings={hardwareSettings} 
                 onUpdate={handleUpdateSetting}
-                isLoading={updateSettingMutation.isPending}
+                onAdd={handleAddSetting}
+                onDelete={handleDeleteSetting}
+                isLoading={updateSettingMutation.isPending || addSettingMutation.isPending}
+                category="hardware"
               />
             </CardContent>
           </Card>
@@ -170,7 +225,10 @@ export const MaterialsManager: React.FC = () => {
               <SettingsGrid 
                 settings={pricingSettings} 
                 onUpdate={handleUpdateSetting}
-                isLoading={updateSettingMutation.isPending}
+                onAdd={handleAddSetting}
+                onDelete={handleDeleteSetting}
+                isLoading={updateSettingMutation.isPending || addSettingMutation.isPending}
+                category="pricing"
               />
             </CardContent>
           </Card>
@@ -191,7 +249,10 @@ export const MaterialsManager: React.FC = () => {
               <SettingsGrid 
                 settings={generalSettings} 
                 onUpdate={handleUpdateSetting}
-                isLoading={updateSettingMutation.isPending}
+                onAdd={handleAddSetting}
+                onDelete={handleDeleteSetting}
+                isLoading={updateSettingMutation.isPending || addSettingMutation.isPending}
+                category="general"
               />
             </CardContent>
           </Card>
@@ -204,11 +265,20 @@ export const MaterialsManager: React.FC = () => {
 interface SettingsGridProps {
   settings: GlobalSetting[];
   onUpdate: (key: string, value: string) => void;
+  onAdd: (setting: GlobalSetting) => void;
+  onDelete: (settingKey: string) => void;
   isLoading: boolean;
+  category: string;
 }
 
-const SettingsGrid: React.FC<SettingsGridProps> = ({ settings, onUpdate, isLoading }) => {
+const SettingsGrid: React.FC<SettingsGridProps> = ({ settings, onUpdate, onAdd, onDelete, isLoading, category }) => {
   const [localValues, setLocalValues] = useState<Record<string, string>>({});
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newSetting, setNewSetting] = useState<GlobalSetting>({
+    setting_key: '',
+    setting_value: '',
+    description: '',
+  });
 
   // Initialize local values when settings load
   React.useEffect(() => {
@@ -230,6 +300,18 @@ const SettingsGrid: React.FC<SettingsGridProps> = ({ settings, onUpdate, isLoadi
     }
   };
 
+  const handleAddNew = () => {
+    if (newSetting.setting_key && newSetting.setting_value) {
+      onAdd(newSetting);
+      setNewSetting({ setting_key: '', setting_value: '', description: '' });
+      setShowAddForm(false);
+    }
+  };
+
+  const handleDelete = (settingKey: string) => {
+    onDelete(settingKey);
+  };
+
   const formatLabel = (key: string) => {
     return key
       .split('_')
@@ -247,55 +329,116 @@ const SettingsGrid: React.FC<SettingsGridProps> = ({ settings, onUpdate, isLoadi
            key.includes('percentage');
   };
 
-  if (settings.length === 0) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        No settings found for this category
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
-      {settings.map((setting) => (
-        <Card key={setting.setting_key} className="p-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex-1">
-              <Label className="text-sm font-medium">
-                {formatLabel(setting.setting_key)}
-              </Label>
-              {setting.description && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  {setting.description}
-                </p>
-              )}
+      <div className="flex justify-between items-center">
+        <Button
+          onClick={() => setShowAddForm(!showAddForm)}
+          variant="outline"
+          size="sm"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add New {category.charAt(0).toUpperCase() + category.slice(1)} Setting
+        </Button>
+      </div>
+
+      {showAddForm && (
+        <Card className="p-4 border-dashed">
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-sm">Setting Key *</Label>
+                <Input
+                  value={newSetting.setting_key}
+                  onChange={(e) => setNewSetting({ ...newSetting, setting_key: e.target.value })}
+                  placeholder={`${category}_setting_name`}
+                />
+              </div>
+              <div>
+                <Label className="text-sm">Setting Value *</Label>
+                <Input
+                  value={newSetting.setting_value}
+                  onChange={(e) => setNewSetting({ ...newSetting, setting_value: e.target.value })}
+                  placeholder="Enter value"
+                />
+              </div>
             </div>
-            
-            <div className="flex items-center gap-2">
+            <div>
+              <Label className="text-sm">Description</Label>
               <Input
-                type={isNumericSetting(setting.setting_key) ? "number" : "text"}
-                value={localValues[setting.setting_key] || ''}
-                onChange={(e) => handleInputChange(setting.setting_key, e.target.value)}
-                className="w-48"
-                step={isNumericSetting(setting.setting_key) ? "0.01" : undefined}
-                min={isNumericSetting(setting.setting_key) ? "0" : undefined}
+                value={newSetting.description || ''}
+                onChange={(e) => setNewSetting({ ...newSetting, description: e.target.value })}
+                placeholder="Brief description of this setting"
               />
-              
-              <Button
-                size="sm"
-                onClick={() => handleSave(setting.setting_key)}
-                disabled={isLoading || localValues[setting.setting_key] === setting.setting_value}
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleAddNew} size="sm" disabled={isLoading}>
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                Add Setting
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowAddForm(false)}>
+                Cancel
               </Button>
             </div>
           </div>
         </Card>
-      ))}
+      )}
+
+      {settings.length === 0 ? (
+        <div className="text-center py-8 text-muted-foreground">
+          No settings found for this category. Add your first setting above.
+        </div>
+      ) : (
+        settings.map((setting) => (
+          <Card key={setting.setting_key} className="p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1">
+                <Label className="text-sm font-medium">
+                  {formatLabel(setting.setting_key)}
+                </Label>
+                {setting.description && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {setting.description}
+                  </p>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Input
+                  type={isNumericSetting(setting.setting_key) ? "number" : "text"}
+                  value={localValues[setting.setting_key] || ''}
+                  onChange={(e) => handleInputChange(setting.setting_key, e.target.value)}
+                  className="w-48"
+                  step={isNumericSetting(setting.setting_key) ? "0.01" : undefined}
+                  min={isNumericSetting(setting.setting_key) ? "0" : undefined}
+                />
+                
+                <Button
+                  size="sm"
+                  onClick={() => handleSave(setting.setting_key)}
+                  disabled={isLoading || localValues[setting.setting_key] === setting.setting_value}
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleDelete(setting.setting_key)}
+                  disabled={isLoading}
+                  className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))
+      )}
     </div>
   );
 };
