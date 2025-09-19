@@ -252,38 +252,38 @@ const DressPanelsPricing = () => {
       <div className="pt-24 pb-12">
         <div className="container mx-auto px-4">
         {/* Navigation Header */}
-        <div className="sticky top-20 z-40 bg-white/95 backdrop-blur-md border-b border-border/50 py-3 mb-6">
-          <div className="flex items-center justify-center gap-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              const newIndex = currentIndex === 0 ? categories.length - 1 : currentIndex - 1;
-              navigate(categories[newIndex].path);
-            }}
-            className="flex-shrink-0"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          
-          <div className="flex-1 text-center min-w-0">
-            <h1 className="text-xl md:text-2xl font-bold text-foreground">
-              Dress Panels Pricing
-            </h1>
+        <div className="sticky top-20 z-40 py-3 mb-6">
+          <div className="flex items-center justify-between gap-6">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const newIndex = currentIndex === 0 ? categories.length - 1 : currentIndex - 1;
+                navigate(categories[newIndex].path);
+              }}
+              className="flex-shrink-0"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            <div className="flex-1 text-center min-w-0">
+              <h1 className="text-xl md:text-2xl font-bold text-foreground">
+                Dress Panels Pricing
+              </h1>
+            </div>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const newIndex = currentIndex === categories.length - 1 ? 0 : currentIndex + 1;
+                navigate(categories[newIndex].path);
+              }}
+              className="flex-shrink-0"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
-        </div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              const newIndex = currentIndex === categories.length - 1 ? 0 : currentIndex + 1;
-              navigate(categories[newIndex].path);
-            }}
-            className="flex-shrink-0"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
         </div>
 
         {/* Panel Subcategory Filter */}
