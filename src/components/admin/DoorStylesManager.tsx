@@ -9,7 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Loader2, Save, Plus, Edit, Trash2, Palette, DollarSign } from 'lucide-react';
+import { Loader2, Save, Plus, Edit, Trash2, Palette, DollarSign, Upload, X } from 'lucide-react';
+import { ImageDropzone } from './ImageDropzone';
 import {
   Dialog,
   DialogContent,
@@ -372,58 +373,67 @@ const DraggableDoorStyleCard = ({ style }: { style: DoorStyle }) => {
     : undefined;
 
   return (
-    <Card
-      ref={setNodeRef}
-      style={{ transform: style_transform }}
-      className={`cursor-pointer hover:shadow-md transition-all ${
-        isDragging ? 'opacity-50 z-50' : ''
-      }`}
-      {...listeners}
-      {...attributes}
-    >
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{style.name}</CardTitle>
-          <div className="flex gap-1">
-            <Badge variant={style.active ? "default" : "secondary"}>
-              {style.active ? "Active" : "Inactive"}
-            </Badge>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                setEditingDoorStyle(style);
-                setDialogOpen(true);
-              }}
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                deleteDoorStyleMutation.mutate(style.id!);
-              }}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Base Rate:</span>
-            <span className="font-medium">${style.base_rate_per_sqm}/sqm</span>
-          </div>
-          {style.description && (
-            <p className="text-muted-foreground">{style.description}</p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+     <Card
+       ref={setNodeRef}
+       style={{ transform: style_transform }}
+       className={`cursor-pointer hover:shadow-md transition-all ${
+         isDragging ? 'opacity-50 z-50' : ''
+       }`}
+       {...listeners}
+       {...attributes}
+     >
+       <CardHeader className="pb-3">
+         <div className="flex items-center justify-between">
+           <CardTitle className="text-lg">{style.name}</CardTitle>
+           <div className="flex gap-1">
+             <Badge variant={style.active ? "default" : "secondary"}>
+               {style.active ? "Active" : "Inactive"}
+             </Badge>
+             <Button
+               variant="outline"
+               size="sm"
+               onClick={(e) => {
+                 e.stopPropagation();
+                 setEditingDoorStyle(style);
+                 setDialogOpen(true);
+               }}
+             >
+               <Edit className="h-4 w-4" />
+             </Button>
+             <Button
+               variant="outline"
+               size="sm"
+               onClick={(e) => {
+                 e.stopPropagation();
+                 deleteDoorStyleMutation.mutate(style.id!);
+               }}
+             >
+               <Trash2 className="h-4 w-4" />
+             </Button>
+           </div>
+         </div>
+       </CardHeader>
+       <CardContent>
+         {style.image_url && (
+           <div className="mb-3">
+             <img
+               src={style.image_url}
+               alt={style.name}
+               className="w-full h-32 object-cover rounded-lg border"
+             />
+           </div>
+         )}
+         <div className="space-y-2 text-sm">
+           <div className="flex justify-between">
+             <span className="text-muted-foreground">Base Rate:</span>
+             <span className="font-medium">${style.base_rate_per_sqm}/sqm</span>
+           </div>
+           {style.description && (
+             <p className="text-muted-foreground">{style.description}</p>
+           )}
+         </div>
+       </CardContent>
+     </Card>
   );
 };
 
@@ -437,67 +447,76 @@ const DraggableColorCard = ({ color }: { color: any }) => {
     : undefined;
 
   return (
-    <Card
-      ref={setNodeRef}
-      style={{ transform: style }}
-      className={`cursor-pointer hover:shadow-md transition-all ${
-        isDragging ? 'opacity-50 z-50' : ''
-      }`}
-      {...listeners}
-      {...attributes}
-    >
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {color.hex_code && (
-              <div
-                className="w-6 h-6 rounded border-2 border-border"
-                style={{ backgroundColor: color.hex_code }}
-              />
-            )}
-            <CardTitle className="text-lg">{color.name}</CardTitle>
-          </div>
-          <div className="flex gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                setEditingColor(color);
-                setDialogOpen(true);
-              }}
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                deleteColorMutation.mutate(color.id);
-              }}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        {color.door_styles?.name && (
-          <Badge variant="outline">{color.door_styles.name}</Badge>
-        )}
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Surcharge:</span>
-            <span className="font-medium">${color.surcharge_rate_per_sqm}/sqm</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Sort Order:</span>
-            <span>{color.sort_order}</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+     <Card
+       ref={setNodeRef}
+       style={{ transform: style }}
+       className={`cursor-pointer hover:shadow-md transition-all ${
+         isDragging ? 'opacity-50 z-50' : ''
+       }`}
+       {...listeners}
+       {...attributes}
+     >
+       <CardHeader className="pb-3">
+         <div className="flex items-center justify-between">
+           <div className="flex items-center gap-2">
+             {color.hex_code && (
+               <div
+                 className="w-6 h-6 rounded border-2 border-border"
+                 style={{ backgroundColor: color.hex_code }}
+               />
+             )}
+             <CardTitle className="text-lg">{color.name}</CardTitle>
+           </div>
+           <div className="flex gap-1">
+             <Button
+               variant="outline"
+               size="sm"
+               onClick={(e) => {
+                 e.stopPropagation();
+                 setEditingColor(color);
+                 setDialogOpen(true);
+               }}
+             >
+               <Edit className="h-4 w-4" />
+             </Button>
+             <Button
+               variant="outline"
+               size="sm"
+               onClick={(e) => {
+                 e.stopPropagation();
+                 deleteColorMutation.mutate(color.id);
+               }}
+             >
+               <Trash2 className="h-4 w-4" />
+             </Button>
+           </div>
+         </div>
+         {color.door_styles?.name && (
+           <Badge variant="outline">{color.door_styles.name}</Badge>
+         )}
+       </CardHeader>
+       <CardContent>
+         {color.image_url && (
+           <div className="mb-3">
+             <img
+               src={color.image_url}
+               alt={color.name}
+               className="w-full h-32 object-cover rounded-lg border"
+             />
+           </div>
+         )}
+         <div className="space-y-2 text-sm">
+           <div className="flex justify-between">
+             <span className="text-muted-foreground">Surcharge:</span>
+             <span className="font-medium">${color.surcharge_rate_per_sqm}/sqm</span>
+           </div>
+           <div className="flex justify-between">
+             <span className="text-muted-foreground">Sort Order:</span>
+             <span>{color.sort_order}</span>
+           </div>
+         </div>
+       </CardContent>
+     </Card>
   );
 };
 
@@ -580,15 +599,19 @@ const DroppableDialog = ({
                   placeholder="Enter description (optional)"
                 />
               </div>
-              <div>
-                <Label htmlFor="door-style-image">Image URL</Label>
-                <Input
-                  id="door-style-image"
-                  value={editingDoorStyle.image_url || ''}
-                  onChange={(e) => onDoorStyleChange({ ...editingDoorStyle, image_url: e.target.value })}
-                  placeholder="Enter image URL (optional)"
-                />
-              </div>
+               <div>
+                 <Label htmlFor="door-style-image">Door Style Image</Label>
+                 <ImageDropzone
+                   value={editingDoorStyle.image_url || ''}
+                   onChange={(url) => onDoorStyleChange({ ...editingDoorStyle, image_url: url })}
+                 />
+                 <Input
+                   className="mt-2"
+                   placeholder="Or enter image URL manually"
+                   value={editingDoorStyle.image_url || ''}
+                   onChange={(e) => onDoorStyleChange({ ...editingDoorStyle, image_url: e.target.value })}
+                 />
+               </div>
               <div className="flex items-center space-x-2">
                 <Switch
                   id="door-style-active"
@@ -660,15 +683,19 @@ const DroppableDialog = ({
                   ))}
                 </select>
               </div>
-              <div>
-                <Label htmlFor="color-image">Image URL</Label>
-                <Input
-                  id="color-image"
-                  value={editingColor.image_url || ''}
-                  onChange={(e) => onColorChange({ ...editingColor, image_url: e.target.value })}
-                  placeholder="Enter image URL (optional)"
-                />
-              </div>
+               <div>
+                 <Label htmlFor="color-image">Color Image</Label>
+                 <ImageDropzone
+                   value={editingColor.image_url || ''}
+                   onChange={(url) => onColorChange({ ...editingColor, image_url: url })}
+                 />
+                 <Input
+                   className="mt-2"
+                   placeholder="Or enter image URL manually"
+                   value={editingColor.image_url || ''}
+                   onChange={(e) => onColorChange({ ...editingColor, image_url: e.target.value })}
+                 />
+               </div>
               <div className="flex items-center space-x-2">
                 <Switch
                   id="color-active"
