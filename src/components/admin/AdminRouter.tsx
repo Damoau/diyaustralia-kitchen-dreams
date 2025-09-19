@@ -15,6 +15,7 @@ const RoleManagement = lazy(() => import('@/components/admin/RoleManagement'));
 const QuotesList = lazy(() => import('@/pages/admin/QuotesList'));
 const Assembly = lazy(() => import('@/pages/admin/Assembly'));
 const CabinetManagement = lazy(() => import('@/components/admin/CabinetManagement'));
+const CabinetConfigurator = lazy(() => import('@/components/admin/CabinetConfigurator'));
 const ConfigurationMigration = lazy(() => import('@/pages/admin/ConfigurationMigration'));
 const Pricing = lazy(() => import('@/pages/admin/Pricing'));
 const Discounts = lazy(() => import('@/pages/admin/Discounts'));
@@ -44,6 +45,7 @@ export const AdminRouter = () => {
         
         {/* Configuration */}
         <Route path="cabinets" element={<CabinetManagement />} />
+        <Route path="cabinet-configurator" element={<CabinetConfigurator />} />
         <Route path="configuration-migration" element={<ConfigurationMigration />} />
         <Route path="pricing" element={<Pricing />} />
         <Route path="discounts" element={<Discounts />} />
