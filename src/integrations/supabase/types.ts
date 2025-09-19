@@ -3200,7 +3200,7 @@ export type Database = {
           created_at: string
           customer_abn: string | null
           customer_company: string | null
-          customer_email: string | null
+          customer_email: string
           customer_name: string | null
           customer_phone: string | null
           id: string
@@ -3225,7 +3225,7 @@ export type Database = {
           created_at?: string
           customer_abn?: string | null
           customer_company?: string | null
-          customer_email?: string | null
+          customer_email: string
           customer_name?: string | null
           customer_phone?: string | null
           id?: string
@@ -3250,7 +3250,7 @@ export type Database = {
           created_at?: string
           customer_abn?: string | null
           customer_company?: string | null
-          customer_email?: string | null
+          customer_email?: string
           customer_name?: string | null
           customer_phone?: string | null
           id?: string
@@ -3790,6 +3790,10 @@ export type Database = {
         }[]
       }
       generate_order_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_quote_number: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
