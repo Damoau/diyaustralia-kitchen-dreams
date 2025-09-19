@@ -1004,6 +1004,50 @@ export type Database = {
           },
         ]
       }
+      configuration_templates: {
+        Row: {
+          cabinet_type_id: string
+          configuration: Json
+          created_at: string
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          cabinet_type_id: string
+          configuration: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          cabinet_type_id?: string
+          configuration?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "configuration_templates_cabinet_type_id_fkey"
+            columns: ["cabinet_type_id"]
+            isOneToOne: false
+            referencedRelation: "cabinet_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contacts: {
         Row: {
           abn: string | null

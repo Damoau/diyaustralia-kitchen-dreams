@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Settings, History, Template } from 'lucide-react';
+import { ShoppingCart, Settings, History, Layout } from 'lucide-react';
 import { CabinetType } from '@/types/cabinet';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { CabinetConfigurationService, CabinetConfiguration } from '@/services/CabinetConfigurationService';
@@ -28,12 +28,12 @@ export function UnifiedConfiguratorDialog({
   initialWidth,
   initialConfiguration
 }: UnifiedConfiguratorDialogProps) {
-  const { getFeatureFlag } = useFeatureFlags();
+  const { isEnabled } = useFeatureFlags();
   
   // Feature flags for system selection
-  const useProductSystem = getFeatureFlag('use_product_configurator');
-  const showUnifiedInterface = getFeatureFlag('show_unified_configurator');
-  const enableMigrationMode = getFeatureFlag('enable_configuration_migration');
+  const useProductSystem = isEnabled('use_product_configurator');
+  const showUnifiedInterface = isEnabled('show_unified_configurator');
+  const enableMigrationMode = isEnabled('enable_configuration_migration');
   
   // State for unified interface
   const [activeTab, setActiveTab] = useState('configure');
@@ -120,7 +120,7 @@ export function UnifiedConfiguratorDialog({
               Configure
             </TabsTrigger>
             <TabsTrigger value="templates" className="flex items-center gap-2">
-              <Template className="h-4 w-4" />
+              <Layout className="h-4 w-4" />
               Templates
             </TabsTrigger>
             <TabsTrigger value="history" className="flex items-center gap-2">

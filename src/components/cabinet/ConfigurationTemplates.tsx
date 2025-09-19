@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Save, Trash2, Download, Upload, Star } from 'lucide-react';
+import { Plus, Save, Trash2, Download, Upload, Star, Layout } from 'lucide-react';
 import { CabinetType } from '@/types/cabinet';
 import { CabinetConfigurationService, ConfigurationTemplate, CabinetConfiguration } from '@/services/CabinetConfigurationService';
 import { useToast } from '@/hooks/use-toast';
@@ -244,7 +244,7 @@ export function ConfigurationTemplates({
       {templates.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <Template className="h-12 w-12 text-muted-foreground mb-4" />
+            <Layout className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">No Templates Yet</h3>
             <p className="text-muted-foreground mb-4">
               Save your first configuration template to get started
