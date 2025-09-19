@@ -3838,6 +3838,15 @@ export type Database = {
         Args: { p_email: string; p_ip_address?: unknown }
         Returns: undefined
       }
+      log_payment_access: {
+        Args: {
+          p_action: string
+          p_payment_amount?: number
+          p_table_name: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role:
