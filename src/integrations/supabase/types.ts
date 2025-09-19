@@ -65,6 +65,47 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_impersonation_sessions: {
+        Row: {
+          admin_user_id: string
+          created_at: string
+          ended_at: string | null
+          expires_at: string
+          id: string
+          impersonated_customer_email: string
+          quote_id: string | null
+          session_token: string
+        }
+        Insert: {
+          admin_user_id: string
+          created_at?: string
+          ended_at?: string | null
+          expires_at?: string
+          id?: string
+          impersonated_customer_email: string
+          quote_id?: string | null
+          session_token: string
+        }
+        Update: {
+          admin_user_id?: string
+          created_at?: string
+          ended_at?: string | null
+          expires_at?: string
+          id?: string
+          impersonated_customer_email?: string
+          quote_id?: string | null
+          session_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_impersonation_sessions_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_sessions: {
         Row: {
           created_at: string
