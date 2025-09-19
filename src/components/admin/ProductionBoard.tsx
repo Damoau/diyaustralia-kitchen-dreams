@@ -73,26 +73,33 @@ export function ProductionBoard() {
           order_number,
           production_status,
           created_at,
-          notes
+          notes,
+          total_amount,
+          user_id
         `)
         .in('status', ['confirmed', 'in_production', 'ready_for_shipping'])
         .order('created_at', { ascending: true });
 
       if (error) throw error;
 
-      const formattedOrders = data.map(order => ({
-        id: order.id,
-        order_number: order.order_number,
-        customer_name: 'Customer', // Simplified for now
-        production_status: order.production_status || 'pending',
-        stage: order.production_status || 'pending',
-        priority: 'medium' as const,
-        due_date: null,
-        created_at: order.created_at,
-        cutlist_generated: false,
-        qc_passed: false,
-        notes: order.notes || ''
-      }));
+      const formattedOrders = data.map(order => {
+        const totalAmount = order.total_amount || 0;
+        const priority = totalAmount > 5000 ? 'high' : totalAmount > 2000 ? 'medium' : 'low';
+        
+        return {
+          id: order.id,
+          order_number: order.order_number,
+          customer_name: 'Customer', // TODO: Get customer name from user_id when profiles table exists
+          production_status: order.production_status || 'pending',
+          stage: order.production_status || 'pending',
+          priority: priority,
+          due_date: null, // TODO: Calculate based on lead times
+          created_at: order.created_at,
+          cutlist_generated: order.production_status === 'cutlist_generated' || ['cutting', 'painting', 'drying', 'quality_check', 'packaging', 'ready_for_shipping'].includes(order.production_status || ''),
+          qc_passed: ['quality_check', 'packaging', 'ready_for_shipping'].includes(order.production_status || ''),
+          notes: order.notes || ''
+        };
+      });
 
       setOrders(formattedOrders);
     } catch (error) {
