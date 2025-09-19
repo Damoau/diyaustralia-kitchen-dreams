@@ -442,7 +442,8 @@ export const AdminQuoteCreator = ({ onQuoteCreated }: AdminQuoteCreatorProps) =>
             <Button 
               variant="secondary"
               onClick={() => handleCreateQuote('frontend')}
-              disabled={isSubmitting || !customer.email}
+              disabled={isSubmitting || !customer.name || !customer.email}
+              title={!customer.name || !customer.email ? "Please fill in customer name and email first" : ""}
             >
               <ExternalLink className="w-4 h-4 mr-2" />
               Continue to Front-End
