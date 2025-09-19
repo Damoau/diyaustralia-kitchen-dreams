@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ImageDropzone } from './ImageDropzone';
 import { CabinetComponentsTab } from './CabinetComponentsTab';
 import { CabinetDoorStyleTab } from './CabinetDoorStyleTab';
+import { CategoriesManager } from './CategoriesManager';
 
 interface CabinetTypeDetails {
   id: string;

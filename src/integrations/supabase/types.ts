@@ -543,6 +543,7 @@ export type Database = {
           bottoms_qty: number | null
           cabinet_style: string | null
           category: string
+          category_id: string | null
           created_at: string
           default_depth_mm: number
           default_height_mm: number
@@ -578,6 +579,7 @@ export type Database = {
           stock_quantity: number | null
           subcategory: string | null
           subcategory_display_order: number | null
+          subcategory_id: string | null
         }
         Insert: {
           active?: boolean
@@ -586,6 +588,7 @@ export type Database = {
           bottoms_qty?: number | null
           cabinet_style?: string | null
           category: string
+          category_id?: string | null
           created_at?: string
           default_depth_mm: number
           default_height_mm: number
@@ -621,6 +624,7 @@ export type Database = {
           stock_quantity?: number | null
           subcategory?: string | null
           subcategory_display_order?: number | null
+          subcategory_id?: string | null
         }
         Update: {
           active?: boolean
@@ -629,6 +633,7 @@ export type Database = {
           bottoms_qty?: number | null
           cabinet_style?: string | null
           category?: string
+          category_id?: string | null
           created_at?: string
           default_depth_mm?: number
           default_height_mm?: number
@@ -664,13 +669,28 @@ export type Database = {
           stock_quantity?: number | null
           subcategory?: string | null
           subcategory_display_order?: number | null
+          subcategory_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "cabinet_types_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cabinet_types_range_id_fkey"
             columns: ["range_id"]
             isOneToOne: false
             referencedRelation: "product_ranges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cabinet_types_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "subcategories"
             referencedColumns: ["id"]
           },
         ]
@@ -870,6 +890,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          display_name: string
+          icon: string | null
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          display_name: string
+          icon?: string | null
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       checkout_quotes: {
         Row: {
@@ -3537,6 +3593,53 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subcategories: {
+        Row: {
+          active: boolean
+          category_id: string
+          created_at: string
+          description: string | null
+          display_name: string
+          icon: string | null
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category_id: string
+          created_at?: string
+          description?: string | null
+          display_name: string
+          icon?: string | null
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category_id?: string
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
             referencedColumns: ["id"]
           },
         ]
