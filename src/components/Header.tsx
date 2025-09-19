@@ -137,14 +137,15 @@ const Header = () => {
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80 bg-white">
+            <SheetContent side="right" className="w-80 bg-white flex flex-col">
               <div className="flex flex-col h-full">
-                <div className="flex items-center space-x-3 mb-8 pt-4">
+                <div className="flex items-center space-x-3 mb-6 pt-4 flex-shrink-0">
                   <div className="w-8 h-8 bg-gradient-to-br from-primary to-blue-dark rounded-lg"></div>
                   <span className="text-xl font-bold text-foreground">DIY Australia</span>
                 </div>
                 
-                <nav className="flex flex-col space-y-6">
+                <div className="flex-1 overflow-y-auto overscroll-contain pb-4">
+                  <nav className="flex flex-col space-y-4">
                   {isInAdminMode ? (
                     <>
                       <Button
@@ -210,9 +211,10 @@ const Header = () => {
                       </a>
                     </>
                   )}
-                </nav>
+                  </nav>
+                </div>
                 
-                <div className="mt-8 space-y-4">
+                <div className="flex-shrink-0 mt-6 space-y-4 border-t border-gray-100 pt-6">
                   {isAuthenticated ? (
                     <>
                       {isAdmin && !isInAdminMode && (
@@ -243,7 +245,7 @@ const Header = () => {
                   </Button>
                 </div>
                 
-                <div className="mt-auto pt-8 border-t border-gray-100">
+                <div className="flex-shrink-0 mt-6 pt-6 border-t border-gray-100">
                   <div className="text-center text-sm text-muted-foreground">
                     <p className="mb-2">1300 DIY AUS</p>
                     <p>info@diyaustralia.com</p>
