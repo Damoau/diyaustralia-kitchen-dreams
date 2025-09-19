@@ -351,7 +351,7 @@ const BaseCabinetsPricing = () => {
                   <ChevronDown className="h-4 w-4 text-primary ml-2" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-full max-w-sm">
+              <DropdownMenuContent align="center" className="w-[var(--radix-dropdown-menu-trigger-width)] max-w-none">
                 <DropdownMenuItem
                   onClick={() => setSelectedFilter('all')}
                   className={`justify-center ${selectedFilter === 'all' ? "bg-primary/10" : ""}`}
