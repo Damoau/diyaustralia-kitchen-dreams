@@ -79,7 +79,7 @@ const Shop = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {categories.map((category) => (
               <Link key={category.id} to={category.path} className="group">
-                <Card className="h-full hover:shadow-elegant transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden cursor-pointer">
+                <Card className="h-full hover:shadow-elegant transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden cursor-pointer flex flex-col">
                   {/* Full-width image */}
                   <div className="aspect-video md:aspect-square bg-muted flex items-center justify-center overflow-hidden">
                     <img 
@@ -89,7 +89,7 @@ const Shop = () => {
                     />
                   </div>
                   
-                  <CardHeader className="text-center">
+                  <CardHeader className="text-center flex-grow">
                     <div className="mb-4">
                       {category.icon}
                     </div>
@@ -99,7 +99,7 @@ const Shop = () => {
                     </CardDescription>
                   </CardHeader>
                   
-                  <CardContent className="pt-0">
+                  <CardContent className="pt-0 mt-auto">
                     {/* Full-width button */}
                     <Button className="w-full" size="lg">
                       <ShoppingCart className="h-4 w-4 mr-2" />
