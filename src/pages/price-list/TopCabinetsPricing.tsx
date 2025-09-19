@@ -79,7 +79,7 @@ const TopCabinetsPricing = () => {
         .select('*')
         .eq('category', 'top')
         .eq('active', true)
-        .order('name');
+        .order('display_order');
 
       if (selectedFilter !== 'all') {
         query = query.or(`subcategory.eq.${selectedFilter},subcategory.like.%${selectedFilter}%`);

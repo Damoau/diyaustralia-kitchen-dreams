@@ -14,6 +14,7 @@ const RoleManagement = lazy(() => import('@/components/admin/RoleManagement'));
 // Create placeholder components for missing pages
 const QuotesList = lazy(() => import('@/pages/admin/QuotesList'));
 const Assembly = lazy(() => import('@/pages/admin/Assembly'));
+const CabinetManagement = lazy(() => import('@/components/admin/CabinetManagement'));
 const Pricing = lazy(() => import('@/pages/admin/Pricing'));
 const Discounts = lazy(() => import('@/pages/admin/Discounts'));
 const Users = lazy(() => import('@/pages/admin/Users'));
@@ -40,6 +41,7 @@ export const AdminRouter = () => {
         <Route path="assembly" element={<Assembly />} />
         
         {/* Configuration */}
+        <Route path="cabinets" element={<CabinetManagement />} />
         <Route path="pricing" element={<Pricing />} />
         <Route path="discounts" element={<Discounts />} />
         <Route path="users" element={<Users />} />
