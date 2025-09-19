@@ -98,8 +98,8 @@ export const MobileNavigation = () => {
         </Button>
       </SheetTrigger>
       
-      <SheetContent side="bottom" className="h-[80vh] p-0 rounded-t-xl">
-        <SheetHeader className="p-4 pb-2 border-b">
+      <SheetContent side="bottom" className="h-[85vh] p-0 rounded-t-xl flex flex-col">
+        <SheetHeader className="p-4 pb-2 border-b flex-shrink-0">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-lg font-semibold">Admin Navigation</SheetTitle>
             <Button 
@@ -113,8 +113,8 @@ export const MobileNavigation = () => {
           </div>
         </SheetHeader>
         
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="space-y-4 max-h-full">
+        <div className="flex-1 overflow-y-auto overscroll-contain p-4">
+          <div className="space-y-4 pb-safe">
             {navigationItems.map((group, groupIndex) => (
               <div key={groupIndex} className="space-y-2">
                 <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-2">
