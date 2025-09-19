@@ -2,33 +2,17 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { DataTable } from '@/components/admin/shared/DataTable';
+import { CabinetTypeEditDialog } from '@/components/admin/CabinetTypeEditDialog';
 import { 
   Plus, 
   Edit, 
   Trash2, 
-  Package, 
-  Settings,
-  Wrench,
-  Ruler
+  Package
 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface CabinetType {
   id: string;
@@ -55,19 +39,8 @@ interface CabinetType {
   created_at: string;
 }
 
-interface CabinetPart {
-  id: string;
-  cabinet_type_id: string;
-  part_name: string;
-  quantity: number;
-  width_formula?: string;
-  height_formula?: string;
-  is_door: boolean;
-  is_hardware: boolean;
-}
 
 const CabinetManager: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('types');
   const [editingType, setEditingType] = useState<CabinetType | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -87,26 +60,6 @@ const CabinetManager: React.FC = () => {
     },
   });
 
-  // Fetch cabinet parts
-  const { data: cabinetParts, isLoading: loadingParts } = useQuery({
-    queryKey: ['admin-cabinet-parts'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('cabinet_parts')
-        .select(`
-          *,
-          cabinet_types (
-            name,
-            category
-          )
-        `)
-        .order('cabinet_type_id')
-        .order('part_name');
-      
-      if (error) throw error;
-      return data as CabinetPart[];
-    },
-  });
 
   // Cabinet type columns for DataTable
   const cabinetTypeColumns = [
@@ -162,63 +115,6 @@ const CabinetManager: React.FC = () => {
     },
   ];
 
-  // Cabinet parts columns
-  const cabinetPartsColumns = [
-    {
-      key: 'cabinet_type_id' as keyof CabinetPart,
-      label: 'Cabinet Type',
-      render: (value: string, item: CabinetPart) => (
-        <span>{(item as any).cabinet_types?.name || 'Unknown'}</span>
-      ),
-    },
-    {
-      key: 'cabinet_type_id' as keyof CabinetPart,
-      label: 'Category',
-      render: (value: string, item: CabinetPart) => (
-        <Badge variant="outline">{(item as any).cabinet_types?.category || 'Unknown'}</Badge>
-      ),
-    },
-    {
-      key: 'part_name' as keyof CabinetPart,
-      label: 'Part Name',
-    },
-    {
-      key: 'quantity' as keyof CabinetPart,
-      label: 'Quantity',
-    },
-    {
-      key: 'width_formula' as keyof CabinetPart,
-      label: 'Width Formula',
-      render: (value: string) => (
-        <code className="text-xs bg-muted px-1 py-0.5 rounded">
-          {value || 'N/A'}
-        </code>
-      ),
-    },
-    {
-      key: 'height_formula' as keyof CabinetPart,
-      label: 'Height Formula',
-      render: (value: string) => (
-        <code className="text-xs bg-muted px-1 py-0.5 rounded">
-          {value || 'N/A'}
-        </code>
-      ),
-    },
-    {
-      key: 'is_door' as keyof CabinetPart,
-      label: 'Door Part',
-      render: (value: boolean) => (
-        value ? <Badge>Yes</Badge> : <span className="text-muted-foreground">No</span>
-      ),
-    },
-    {
-      key: 'is_hardware' as keyof CabinetPart,
-      label: 'Hardware',
-      render: (value: boolean) => (
-        value ? <Badge>Yes</Badge> : <span className="text-muted-foreground">No</span>
-      ),
-    },
-  ];
 
   const handleEditType = (type: CabinetType) => {
     setEditingType(type);
@@ -252,88 +148,56 @@ const CabinetManager: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold">Cabinet Management</h2>
           <p className="text-muted-foreground">
-            Manage cabinet types, dimensions, and part formulas
+            Manage cabinet configurations, dimensions, parts, and hardware
           </p>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="types" className="flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            Cabinet Types
-          </TabsTrigger>
-          <TabsTrigger value="parts" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Parts & Formulas
-          </TabsTrigger>
-          <TabsTrigger value="hardware" className="flex items-center gap-2">
-            <Wrench className="h-4 w-4" />
-            Hardware Requirements
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="types">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Cabinet Types</CardTitle>
-                  <CardDescription>
-                    Manage cabinet configurations, dimensions, and specifications
-                  </CardDescription>
-                </div>
-                <Button onClick={handleAddNew}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Cabinet Type
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <DataTable
-                columns={cabinetTypeColumns}
-                data={cabinetTypes || []}
-                loading={loadingTypes}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="parts">
-          <Card>
-            <CardHeader>
-              <CardTitle>Cabinet Parts & Formulas</CardTitle>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Cabinet Types
+              </CardTitle>
               <CardDescription>
-                View and manage part dimensions and calculation formulas
+                Manage cabinet configurations, dimensions, and specifications
               </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DataTable
-                columns={cabinetPartsColumns}
-                data={cabinetParts || []}
-                loading={loadingParts}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
+            <Button onClick={handleAddNew}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Cabinet Type
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            columns={cabinetTypeColumns}
+            data={cabinetTypes || []}
+            loading={loadingTypes}
+            actions={[
+              {
+                label: 'Edit',
+                icon: <Edit className="h-4 w-4 mr-2" />,
+                onClick: (item) => handleEditType(item),
+              },
+              {
+                label: 'Delete',
+                icon: <Trash2 className="h-4 w-4 mr-2" />,
+                variant: 'destructive' as const,
+                onClick: (item) => handleDeleteType(item.id),
+              },
+            ]}
+          />
+        </CardContent>
+      </Card>
 
-        <TabsContent value="hardware">
-          <Card>
-            <CardHeader>
-              <CardTitle>Hardware Requirements</CardTitle>
-              <CardDescription>
-                Hardware specifications and requirements for each cabinet type
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Wrench className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Hardware requirements management coming soon</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      <CabinetTypeEditDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        cabinetType={editingType}
+      />
     </div>
   );
 };
