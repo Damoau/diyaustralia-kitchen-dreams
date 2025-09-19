@@ -317,6 +317,141 @@ export const useShipping = () => {
     }
   }, [toast]);
 
+  // Admin functions for carrier management
+  const getCarriers = async () => {
+    const { data, error } = await supabase
+      .from('rate_cards')
+      .select('carrier')
+      .eq('active', true);
+    
+    if (error) throw error;
+    
+    // Get unique carriers
+    const carriers = [...new Set(data?.map(card => card.carrier) || [])];
+    return carriers;
+  };
+
+  const getRateCards = async (filters?: { carrier?: string; active?: boolean }) => {
+    let query = supabase.from('rate_cards').select('*');
+    
+    if (filters?.carrier) {
+      query = query.eq('carrier', filters.carrier);
+    }
+    
+    if (filters?.active !== undefined) {
+      query = query.eq('active', filters.active);
+    }
+    
+    const { data, error } = await query.order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  };
+
+  const createRateCard = async (rateCard: any) => {
+    const { data, error } = await supabase
+      .from('rate_cards')
+      .insert([rateCard])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  };
+
+  const updateRateCard = async (id: string, updates: any) => {
+    const { data, error } = await supabase
+      .from('rate_cards')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  };
+
+  const getPostcodeZones = async (filters?: { state?: string; zone?: string }) => {
+    let query = supabase.from('postcode_zones').select('*');
+    
+    if (filters?.state) {
+      query = query.eq('state', filters.state);
+    }
+    
+    if (filters?.zone) {
+      query = query.eq('zone', filters.zone);
+    }
+    
+    const { data, error } = await query.order('state', { ascending: true });
+    
+    if (error) throw error;
+    return data;
+  };
+
+  const updatePostcodeZone = async (id: string, updates: any) => {
+    const { data, error } = await supabase
+      .from('postcode_zones')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  };
+
+  const getShippingStats = async () => {
+    try {
+      // Get shipment statistics with correct column names
+      const { data: shipments, error: shipmentsError } = await supabase
+        .from('shipments')
+        .select('status, created_at');
+      
+      if (shipmentsError) throw shipmentsError;
+
+      // Calculate statistics
+      const today = new Date().toDateString();
+      const thisMonth = new Date().getMonth();
+      const thisYear = new Date().getFullYear();
+      
+      const stats = {
+        totalShipments: shipments?.filter(s => {
+          const shipmentDate = new Date(s.created_at);
+          return shipmentDate.getMonth() === thisMonth && shipmentDate.getFullYear() === thisYear;
+        }).length || 0,
+        pendingShipments: shipments?.filter(s => s.status === 'pending').length || 0,
+        deliveredToday: shipments?.filter(s => {
+          const shipmentDate = new Date(s.created_at);
+          return shipmentDate.toDateString() === today && s.status === 'delivered';
+        }).length || 0,
+        totalRevenue: 0 // Will be calculated from orders or rate cards
+      };
+      
+      return stats;
+    } catch (error) {
+      console.error('Error getting shipping stats:', error);
+      throw error;
+    }
+  };
+
+  const getExceptions = async () => {
+    const { data, error } = await supabase
+      .from('exceptions')
+      .select(`
+        *,
+        shipments (
+          order_id,
+          tracking_number,
+          carrier
+        )
+      `)
+      .eq('resolution_status', 'open')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  };
+
   return {
     loading,
     postcodeZones,
@@ -326,6 +461,15 @@ export const useShipping = () => {
     createShipment,
     updateShipmentStatus,
     getOrderShipments,
-    autoPackOrder
+    autoPackOrder,
+    // Admin functions
+    getCarriers,
+    getRateCards,
+    createRateCard,
+    updateRateCard,
+    getPostcodeZones,
+    updatePostcodeZone,
+    getShippingStats,
+    getExceptions
   };
 };
