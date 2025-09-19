@@ -105,7 +105,7 @@ export const CabinetPricingTable = ({ cabinet, onImageEnlarge, selectedDoorStyle
       {filteredFinishes && filteredFinishes.length > 0 && (
         <div>
           <CardContent className="pb-6">
-            <Carousel className="w-full">
+            <Carousel className="w-full" opts={{ loop: true }}>
               <CarouselContent className="-ml-2 md:-ml-4">
                 {filteredFinishes.map((finish: any) => (
                   <CarouselItem key={finish.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">

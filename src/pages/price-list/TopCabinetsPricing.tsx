@@ -253,7 +253,8 @@ const TopCabinetsPricing = () => {
       <div className="pt-24 pb-12">
         <div className="container mx-auto px-4">
         {/* Navigation Header */}
-        <div className="flex items-center justify-center gap-8 mb-8">
+        <div className="sticky top-20 z-40 bg-white/95 backdrop-blur-md border-b border-border/50 py-3 mb-6">
+          <div className="flex items-center justify-center gap-6">
           <Button
             variant="ghost"
             size="sm"
@@ -267,10 +268,11 @@ const TopCabinetsPricing = () => {
           </Button>
           
           <div className="flex-1 text-center min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">
               Top Cabinets Pricing
             </h1>
           </div>
+        </div>
           
           <Button
             variant="ghost"
