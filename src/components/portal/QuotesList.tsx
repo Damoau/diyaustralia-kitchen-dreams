@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,13 +6,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, FileText, Calendar, DollarSign } from "lucide-react";
+import { useQuotes } from "@/hooks/useQuotes";
 
 export const QuotesList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [quotes, setQuotes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  const { getQuotes } = useQuotes();
 
-  // Mock data - in real app this would come from API
-  const quotes = [
+  useEffect(() => {
+    loadQuotes();
+  }, [statusFilter, searchTerm]);
+
+  const loadQuotes = async () => {
+    setLoading(true);
+    const data = await getQuotes({ status: statusFilter, search: searchTerm });
+    setQuotes(data);
+    setLoading(false);
+  };
+
+  // Mock data fallback for demo
+  const mockQuotes = [
     {
       id: "QT-2024-001",
       label: "Kitchen Renovation",
@@ -54,9 +70,12 @@ export const QuotesList = () => {
     return <Badge variant={config.variant}>{config.text}</Badge>;
   };
 
-  const filteredQuotes = quotes.filter(quote => {
-    const matchesSearch = quote.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         quote.id.toLowerCase().includes(searchTerm.toLowerCase());
+  // Use real quotes if available, otherwise fallback to mock data
+  const displayQuotes = quotes.length > 0 ? quotes : mockQuotes;
+  
+  const filteredQuotes = displayQuotes.filter(quote => {
+    const searchText = quote.quote_number || quote.id;
+    const matchesSearch = searchText.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || quote.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -102,14 +121,14 @@ export const QuotesList = () => {
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
-                  <CardTitle className="text-lg">{quote.id}</CardTitle>
-                  <p className="text-sm text-muted-foreground">{quote.label}</p>
+                  <CardTitle className="text-lg">{quote.quote_number || quote.id}</CardTitle>
+                  <p className="text-sm text-muted-foreground">{quote.notes || 'Custom Quote'}</p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   {getStatusBadge(quote.status)}
-                  {quote.version > 1 && (
+                  {(quote.version || quote.version_number) > 1 && (
                     <Badge variant="outline" className="text-xs">
-                      v{quote.version}
+                      v{quote.version || quote.version_number}
                     </Badge>
                   )}
                 </div>
@@ -119,17 +138,17 @@ export const QuotesList = () => {
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <DollarSign className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-semibold">${quote.amount.toLocaleString()}</span>
+                  <span className="font-semibold">${(quote.total_amount || quote.amount).toLocaleString()}</span>
                 </div>
                 
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="w-4 h-4" />
-                  <span>Valid until {quote.validUntil}</span>
+                  <span>Valid until {quote.valid_until || quote.validUntil}</span>
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <FileText className="w-4 h-4" />
-                  <span>Created {quote.createdAt}</span>
+                  <span>Created {new Date(quote.created_at || quote.createdAt).toLocaleDateString()}</span>
                 </div>
 
                 <div className="pt-2">

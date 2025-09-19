@@ -48,7 +48,10 @@ export const useQuotes = () => {
     try {
       let query = supabase
         .from('quotes')
-        .select('*')
+        .select(`
+          *,
+          quote_items(*)
+        `)
         .order('created_at', { ascending: false });
 
       if (filters?.status && filters.status !== 'all') {
@@ -76,11 +79,15 @@ export const useQuotes = () => {
         notes: quote.notes,
         version: quote.version_number || 1,
         customer_details: {
-          name: 'Customer', // TODO: Get from auth.users or profiles when needed
-          email: 'customer@example.com',
-          phone: undefined,
-          company: undefined
-        }
+          name: quote.customer_name || 'Customer',
+          email: quote.customer_email || 'customer@example.com',
+          phone: quote.customer_phone,
+          company: quote.customer_company
+        },
+        items: (quote.quote_items || []).map((item: any) => ({
+          ...item,
+          specifications: item.configuration || {}
+        }))
       }));
 
       return formattedQuotes;

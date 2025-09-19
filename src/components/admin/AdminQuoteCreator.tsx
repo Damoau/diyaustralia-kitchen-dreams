@@ -9,10 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Plus, Trash2, Send, Save, UserPlus, ShoppingCart } from "lucide-react";
-import { SimpleItemAdder } from "@/components/admin/SimpleItemAdder";
+import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
+import { CalendarIcon, Plus, Trash2, Send, Save, UserPlus, ShoppingCart, ExternalLink, AlertTriangle } from "lucide-react";
 
 interface QuoteItem {
   id: string;
@@ -56,9 +57,11 @@ export const AdminQuoteCreator = ({ onQuoteCreated }: AdminQuoteCreatorProps) =>
   const [validUntilDays, setValidUntilDays] = useState(30);
   const [sendImmediately, setSendImmediately] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showItemAdder, setShowItemAdder] = useState(false);
+  const [showFrontendMode, setShowFrontendMode] = useState(false);
+  const [createdQuoteId, setCreatedQuoteId] = useState<string | null>(null);
   
   const { toast } = useToast();
+  const { startImpersonation, redirectToFrontend } = useAdminImpersonation();
 
   const calculateTotals = () => {
     const subtotal = quoteItems.reduce((sum, item) => sum + item.total_price, 0);
@@ -85,18 +88,17 @@ export const AdminQuoteCreator = ({ onQuoteCreated }: AdminQuoteCreatorProps) =>
     };
     
     setQuoteItems(prev => [...prev, newItem]);
-    setShowItemAdder(false);
   };
 
   const handleRemoveItem = (itemId: string) => {
     setQuoteItems(prev => prev.filter(item => item.id !== itemId));
   };
 
-  const handleCreateQuote = async (sendToCustomer: boolean = false) => {
-    if (!customer.name || !customer.email || quoteItems.length === 0) {
+  const handleCreateQuote = async (mode: 'draft' | 'frontend' | 'send' = 'draft') => {
+    if (!customer.name || !customer.email) {
       toast({
         title: "Validation Error",
-        description: "Please fill in customer name, email, and add at least one item.",
+        description: "Please fill in customer name and email.",
         variant: "destructive"
       });
       return;
@@ -123,9 +125,9 @@ export const AdminQuoteCreator = ({ onQuoteCreated }: AdminQuoteCreatorProps) =>
           total_amount: total,
           notes,
           valid_until: validUntil.toISOString().split('T')[0],
-          status: sendToCustomer ? 'sent' : 'draft',
+          status: mode === 'send' ? 'sent' : 'draft',
           admin_created_by: (await supabase.auth.getUser()).data.user?.id,
-          sent_at: sendToCustomer ? new Date().toISOString() : null
+          sent_at: mode === 'send' ? new Date().toISOString() : null
         })
         .select()
         .single();
@@ -154,8 +156,19 @@ export const AdminQuoteCreator = ({ onQuoteCreated }: AdminQuoteCreatorProps) =>
 
       if (itemsError) throw itemsError;
 
-      // Send notification if requested
-      if (sendToCustomer) {
+      // Handle different modes
+      if (mode === 'frontend') {
+        // Set up for frontend mode
+        setCreatedQuoteId(quote.id);
+        setShowFrontendMode(true);
+        
+        toast({
+          title: "Quote Created",
+          description: `Quote ${quote.quote_number} created. Ready to switch to frontend mode.`
+        });
+        
+        return;
+      } else if (mode === 'send') {
         try {
           await supabase.functions.invoke('send-quote-notification', {
             body: {
@@ -186,18 +199,20 @@ export const AdminQuoteCreator = ({ onQuoteCreated }: AdminQuoteCreatorProps) =>
         });
       }
 
-      // Reset form
-      setCustomer({
-        name: "",
-        email: "",
-        phone: "",
-        company: "",
-        abn: ""
-      });
-      setQuoteItems([]);
-      setNotes("");
-      setValidUntilDays(30);
-      setOpen(false);
+      // Reset form if not going to frontend mode
+      if (mode !== 'frontend') {
+        setCustomer({
+          name: "",
+          email: "",
+          phone: "",
+          company: "",
+          abn: ""
+        });
+        setQuoteItems([]);
+        setNotes("");
+        setValidUntilDays(30);
+        setOpen(false);
+      }
       
       if (onQuoteCreated) {
         onQuoteCreated();
@@ -212,6 +227,17 @@ export const AdminQuoteCreator = ({ onQuoteCreated }: AdminQuoteCreatorProps) =>
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleContinueToFrontend = async () => {
+    if (!createdQuoteId || !customer.email) return;
+    
+    const success = await startImpersonation(customer.email, createdQuoteId);
+    if (success) {
+      setOpen(false);
+      setShowFrontendMode(false);
+      redirectToFrontend();
     }
   };
 
@@ -300,7 +326,7 @@ export const AdminQuoteCreator = ({ onQuoteCreated }: AdminQuoteCreatorProps) =>
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => setShowItemAdder(true)}
+                  onClick={() => {}}
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Item
@@ -407,14 +433,22 @@ export const AdminQuoteCreator = ({ onQuoteCreated }: AdminQuoteCreatorProps) =>
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => handleCreateQuote(false)}
+              onClick={() => handleCreateQuote('draft')}
               disabled={isSubmitting}
             >
               <Save className="w-4 h-4 mr-2" />
               Save as Draft
             </Button>
             <Button 
-              onClick={() => handleCreateQuote(true)}
+              variant="secondary"
+              onClick={() => handleCreateQuote('frontend')}
+              disabled={isSubmitting || !customer.email}
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Continue to Front-End
+            </Button>
+            <Button 
+              onClick={() => handleCreateQuote('send')}
               disabled={isSubmitting}
             >
               <Send className="w-4 h-4 mr-2" />
@@ -423,17 +457,33 @@ export const AdminQuoteCreator = ({ onQuoteCreated }: AdminQuoteCreatorProps) =>
           </div>
         </div>
 
-        {/* Simple Item Adder Dialog */}
-        {showItemAdder && (
-          <Dialog open={showItemAdder} onOpenChange={setShowItemAdder}>
-            <DialogContent className="max-w-2xl">
+        {/* Frontend Mode Confirmation Dialog */}
+        {showFrontendMode && (
+          <Dialog open={showFrontendMode} onOpenChange={setShowFrontendMode}>
+            <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>Add Cabinet to Quote</DialogTitle>
+                <DialogTitle>Switch to Front-End Mode</DialogTitle>
               </DialogHeader>
-              <SimpleItemAdder
-                onItemAdd={handleAddItem}
-                onCancel={() => setShowItemAdder(false)}
-              />
+              <div className="space-y-4">
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    You will now enter impersonation mode as <strong>{customer.email}</strong> to add products to quote <strong>{createdQuoteId?.slice(0, 8)}...</strong>
+                  </AlertDescription>
+                </Alert>
+                <p className="text-sm text-muted-foreground">
+                  In front-end mode, you can use the full product configurator to add cabinets with custom sizing, door styles, colors, and hardware options.
+                </p>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setShowFrontendMode(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleContinueToFrontend}>
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Continue to Front-End
+                  </Button>
+                </div>
+              </div>
             </DialogContent>
           </Dialog>
         )}

@@ -7,6 +7,7 @@ import { ErrorBoundary } from "@/lib/errorBoundary";
 import { Suspense, lazy } from "react";
 import { PageLoader } from "@/components/ui/page-loader";
 import { CartProvider } from "@/contexts/CartContext";
+import { AdminImpersonationProvider } from "@/contexts/AdminImpersonationContext";
 
 // Lazy load route components for code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -73,10 +74,11 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <CartProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+        <AdminImpersonationProvider>
+          <CartProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/" element={<Index />} />
@@ -134,7 +136,8 @@ const App = () => (
               </Routes>
             </Suspense>
           </BrowserRouter>
-        </CartProvider>
+          </CartProvider>
+        </AdminImpersonationProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </ErrorBoundary>
