@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Plus, Trash2, Send, Save, UserPlus, ShoppingCart } from "lucide-react";
-import { SimpleItemAdder } from "@/components/admin/SimpleItemAdder";
+import { QuoteConfiguratorDialog } from "@/components/admin/QuoteConfiguratorDialog";
+import { useQuery } from "@tanstack/react-query";
 
 interface QuoteItem {
   id: string;
@@ -56,7 +57,35 @@ export const AdminQuoteCreator = ({ onQuoteCreated }: AdminQuoteCreatorProps) =>
   const [validUntilDays, setValidUntilDays] = useState(30);
   const [sendImmediately, setSendImmediately] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showItemAdder, setShowItemAdder] = useState(false);
+  const [showConfigurator, setShowConfigurator] = useState(false);
+  const [selectedCabinetType, setSelectedCabinetType] = useState<any>(null);
+  
+  const { data: cabinetTypes } = useQuery({
+    queryKey: ['cabinet-types'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cabinet_types')
+        .select('*')
+        .eq('active', true)
+        .order('name');
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const handleAddItemClick = () => {
+    if (!cabinetTypes || cabinetTypes.length === 0) {
+      toast({
+        title: "No Cabinet Types",
+        description: "Please configure cabinet types first.",
+        variant: "destructive"
+      });
+      return;
+    }
+    // Default to first cabinet type for now
+    setSelectedCabinetType(cabinetTypes[0]);
+    setShowConfigurator(true);
+  };
   
   const { toast } = useToast();
 
@@ -70,22 +99,22 @@ export const AdminQuoteCreator = ({ onQuoteCreated }: AdminQuoteCreatorProps) =>
   const handleAddItem = (configuredItem: any) => {
     const newItem: QuoteItem = {
       id: crypto.randomUUID(),
-      cabinet_type_id: configuredItem.cabinet_type_id,
-      cabinet_name: configuredItem.name || "Cabinet",
+      cabinet_type_id: configuredItem.cabinetTypeId || configuredItem.cabinet_type_id,
+      cabinet_name: configuredItem.name || configuredItem.cabinet_name || "Cabinet",
       quantity: configuredItem.quantity || 1,
-      width_mm: configuredItem.width_mm,
-      height_mm: configuredItem.height_mm,
-      depth_mm: configuredItem.depth_mm,
-      unit_price: configuredItem.unit_price,
-      total_price: configuredItem.total_price,
-      configuration: configuredItem.configuration,
-      door_style_id: configuredItem.door_style_id,
-      color_id: configuredItem.color_id,
-      finish_id: configuredItem.finish_id
+      width_mm: configuredItem.width || configuredItem.width_mm,
+      height_mm: configuredItem.height || configuredItem.height_mm,
+      depth_mm: configuredItem.depth || configuredItem.depth_mm,
+      unit_price: configuredItem.unitPrice || configuredItem.unit_price || configuredItem.price,
+      total_price: configuredItem.totalPrice || configuredItem.total_price || (configuredItem.price * (configuredItem.quantity || 1)),
+      configuration: configuredItem.configuration || configuredItem,
+      door_style_id: configuredItem.doorStyleId || configuredItem.door_style_id,
+      color_id: configuredItem.colorId || configuredItem.color_id,
+      finish_id: configuredItem.finishId || configuredItem.finish_id
     };
     
     setQuoteItems(prev => [...prev, newItem]);
-    setShowItemAdder(false);
+    setShowConfigurator(false);
   };
 
   const handleRemoveItem = (itemId: string) => {
@@ -300,7 +329,7 @@ export const AdminQuoteCreator = ({ onQuoteCreated }: AdminQuoteCreatorProps) =>
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => setShowItemAdder(true)}
+                  onClick={handleAddItemClick}
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Item
@@ -423,19 +452,14 @@ export const AdminQuoteCreator = ({ onQuoteCreated }: AdminQuoteCreatorProps) =>
           </div>
         </div>
 
-        {/* Simple Item Adder Dialog */}
-        {showItemAdder && (
-          <Dialog open={showItemAdder} onOpenChange={setShowItemAdder}>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Add Cabinet to Quote</DialogTitle>
-              </DialogHeader>
-              <SimpleItemAdder
-                onItemAdd={handleAddItem}
-                onCancel={() => setShowItemAdder(false)}
-              />
-            </DialogContent>
-          </Dialog>
+        {/* Cabinet Configurator */}
+        {showConfigurator && (
+          <QuoteConfiguratorDialog
+            cabinetType={selectedCabinetType}
+            open={showConfigurator}
+            onOpenChange={setShowConfigurator}
+            onAddToQuote={handleAddItem}
+          />
         )}
       </DialogContent>
     </Dialog>
