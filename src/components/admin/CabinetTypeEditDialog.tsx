@@ -596,21 +596,26 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ value, onChange }) 
     },
   });
 
+  // Combine database categories with default options, removing duplicates
+  const allCategories = [...new Set([
+    ...(categories || []),
+    'base',
+    'wall', 
+    'pantry',
+    'panels'
+  ])].sort();
+
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger>
         <SelectValue placeholder="Select category" />
       </SelectTrigger>
       <SelectContent>
-        {categories?.map(category => (
+        {allCategories.map(category => (
           <SelectItem key={category} value={category}>
             {category.charAt(0).toUpperCase() + category.slice(1)}
           </SelectItem>
         ))}
-        <SelectItem value="base">Base</SelectItem>
-        <SelectItem value="wall">Wall</SelectItem>
-        <SelectItem value="pantry">Pantry</SelectItem>
-        <SelectItem value="panels">Panels</SelectItem>
       </SelectContent>
     </Select>
   );
@@ -642,6 +647,13 @@ const SubcategorySelector: React.FC<SubcategorySelectorProps> = ({ category, val
     enabled: !!category,
   });
 
+  // Combine database subcategories with default options, removing duplicates
+  const defaultSubcategories = ['doors', 'drawers', 'bin_cabinets', 'tall_cabinets'];
+  const allSubcategories = [...new Set([
+    ...(subcategories || []),
+    ...defaultSubcategories
+  ])].sort();
+
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger>
@@ -649,15 +661,11 @@ const SubcategorySelector: React.FC<SubcategorySelectorProps> = ({ category, val
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="none">None</SelectItem>
-        {subcategories?.map(subcategory => (
+        {allSubcategories.map(subcategory => (
           <SelectItem key={subcategory} value={subcategory}>
-            {subcategory}
+            {subcategory.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
           </SelectItem>
         ))}
-        <SelectItem value="doors">Doors</SelectItem>
-        <SelectItem value="drawers">Drawers</SelectItem>
-        <SelectItem value="bin_cabinets">Bin Cabinets</SelectItem>
-        <SelectItem value="tall_cabinets">Tall Cabinets</SelectItem>
       </SelectContent>
     </Select>
   );
