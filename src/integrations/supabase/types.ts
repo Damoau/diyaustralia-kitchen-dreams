@@ -3053,6 +3053,50 @@ export type Database = {
           },
         ]
       }
+      quote_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          notification_type: string
+          quote_id: string
+          sent_at: string
+          sent_to: string
+          status: string
+          template_used: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          notification_type: string
+          quote_id: string
+          sent_at?: string
+          sent_to: string
+          status?: string
+          template_used?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          notification_type?: string
+          quote_id?: string
+          sent_at?: string
+          sent_to?: string
+          status?: string
+          template_used?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_notifications_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_requests: {
         Row: {
           additional_notes: string | null
@@ -3151,11 +3195,18 @@ export type Database = {
       quotes: {
         Row: {
           accepted_at: string | null
+          admin_created_by: string | null
           converted_order_id: string | null
           created_at: string
+          customer_abn: string | null
+          customer_company: string | null
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
           id: string
           notes: string | null
           quote_number: string
+          sent_at: string | null
           session_id: string | null
           status: string
           subtotal: number
@@ -3165,14 +3216,22 @@ export type Database = {
           user_id: string | null
           valid_until: string | null
           version_number: number
+          viewed_at: string | null
         }
         Insert: {
           accepted_at?: string | null
+          admin_created_by?: string | null
           converted_order_id?: string | null
           created_at?: string
+          customer_abn?: string | null
+          customer_company?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
           id?: string
           notes?: string | null
           quote_number?: string
+          sent_at?: string | null
           session_id?: string | null
           status?: string
           subtotal?: number
@@ -3182,14 +3241,22 @@ export type Database = {
           user_id?: string | null
           valid_until?: string | null
           version_number?: number
+          viewed_at?: string | null
         }
         Update: {
           accepted_at?: string | null
+          admin_created_by?: string | null
           converted_order_id?: string | null
           created_at?: string
+          customer_abn?: string | null
+          customer_company?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
           id?: string
           notes?: string | null
           quote_number?: string
+          sent_at?: string | null
           session_id?: string | null
           status?: string
           subtotal?: number
@@ -3199,6 +3266,7 @@ export type Database = {
           user_id?: string | null
           valid_until?: string | null
           version_number?: number
+          viewed_at?: string | null
         }
         Relationships: []
       }

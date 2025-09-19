@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useQuotes, Quote, QuoteStats } from '@/hooks/useQuotes';
+import { AdminQuoteCreator } from '@/components/admin/AdminQuoteCreator';
 import { Search, FileText, Eye, CheckCircle, XCircle } from 'lucide-react';
 
 const QuotesList = () => {
@@ -126,9 +127,12 @@ const QuotesList = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Sales Quotes</h1>
-        <p className="text-muted-foreground">Manage customer quotes and approvals</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Sales Quotes</h1>
+          <p className="text-muted-foreground">Manage customer quotes and approvals</p>
+        </div>
+        <AdminQuoteCreator onQuoteCreated={loadData} />
       </div>
       
       <div className="grid gap-4 md:grid-cols-4">
