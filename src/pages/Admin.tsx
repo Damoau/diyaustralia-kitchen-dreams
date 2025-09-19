@@ -14,7 +14,7 @@ import { Trash2, Plus, Save } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import CabinetTypeEditDialog from "@/components/admin/CabinetTypeEditDialog";
+import { CabinetTypeEditDialog } from "@/components/admin/CabinetTypeEditDialog";
 import GlobalSettingsEditDialog from "@/components/admin/GlobalSettingsEditDialog";
 import { DoorStylesManager } from "@/components/admin/DoorStylesManager";
 import HardwareEditDialog from "@/components/admin/HardwareEditDialog";
@@ -645,12 +645,13 @@ const Admin = () => {
             onSave={saveHardware}
           />
 
-          <CabinetTypeEditDialog
-            cabinetType={editingCabinetType}
-            open={!!editingCabinetType}
-            onOpenChange={(open) => !open && setEditingCabinetType(null)}
-            onSave={saveCabinetType}
-          />
+          {editingCabinetType && editingCabinetType.id && (
+            <CabinetTypeEditDialog
+              cabinetId={editingCabinetType.id}
+              open={!!editingCabinetType}
+              onOpenChange={(open) => !open && setEditingCabinetType(null)}
+            />
+          )}
         </main>
         <Footer />
       </div>

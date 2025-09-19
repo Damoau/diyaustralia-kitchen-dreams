@@ -6,7 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Loader2, GripVertical, RotateCcw, Eye } from 'lucide-react';
+import { Loader2, GripVertical, RotateCcw, Eye, Edit } from 'lucide-react';
+import { CabinetTypeEditDialog } from './CabinetTypeEditDialog';
 import {
   DndContext,
   closestCenter,
@@ -39,9 +40,10 @@ interface CabinetType {
 
 interface SortableItemProps {
   cabinet: CabinetType;
+  onEdit: (id: string) => void;
 }
 
-const SortableItem: React.FC<SortableItemProps> = ({ cabinet }) => {
+const SortableItem: React.FC<SortableItemProps> = ({ cabinet, onEdit }) => {
   const {
     attributes,
     listeners,
@@ -88,6 +90,15 @@ const SortableItem: React.FC<SortableItemProps> = ({ cabinet }) => {
           }
         </div>
       </div>
+      
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => onEdit(cabinet.id)}
+      >
+        <Edit className="h-4 w-4 mr-2" />
+        Edit Details
+      </Button>
     </div>
   );
 };
@@ -98,6 +109,7 @@ interface CategorySectionProps {
   onReorder: (cabinetIds: string[]) => void;
   isUpdating: boolean;
   onResetOrder: () => void;
+  onEdit: (id: string) => void;
 }
 
 const CategorySection: React.FC<CategorySectionProps> = ({
@@ -106,6 +118,7 @@ const CategorySection: React.FC<CategorySectionProps> = ({
   onReorder,
   isUpdating,
   onResetOrder,
+  onEdit,
 }) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -168,7 +181,7 @@ const CategorySection: React.FC<CategorySectionProps> = ({
             >
               <div className="space-y-2">
                 {cabinets.map((cabinet) => (
-                  <SortableItem key={cabinet.id} cabinet={cabinet} />
+                  <SortableItem key={cabinet.id} cabinet={cabinet} onEdit={onEdit} />
                 ))}
               </div>
             </SortableContext>
@@ -181,6 +194,7 @@ const CategorySection: React.FC<CategorySectionProps> = ({
 
 export const CabinetManagement: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState('base');
+  const [editingCabinetId, setEditingCabinetId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   // Fetch cabinets by category
@@ -328,10 +342,19 @@ export const CabinetManagement: React.FC = () => {
               onReorder={handleReorder}
               isUpdating={updateOrderMutation.isPending || resetOrderMutation.isPending}
               onResetOrder={handleResetOrder}
+              onEdit={setEditingCabinetId}
             />
           </TabsContent>
         ))}
       </Tabs>
+
+      {editingCabinetId && (
+        <CabinetTypeEditDialog
+          cabinetId={editingCabinetId}
+          open={!!editingCabinetId}
+          onOpenChange={(open) => !open && setEditingCabinetId(null)}
+        />
+      )}
     </div>
   );
 };
