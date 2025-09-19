@@ -298,8 +298,8 @@ const BasicInfoTab: React.FC<{
         <div className="space-y-2">
           <Label htmlFor="door_style">Default Door Style</Label>
           <DoorStyleSelector
-            value={cabinet.door_style_id || ''}
-            onChange={(value) => onUpdate({ door_style_id: value })}
+            value={cabinet.door_style_id || 'none'}
+            onChange={(value) => onUpdate({ door_style_id: value === 'none' ? '' : value })}
           />
         </div>
 
@@ -625,7 +625,7 @@ const DoorStyleSelector: React.FC<DoorStyleSelectorProps> = ({ value, onChange }
         <SelectValue placeholder="Select door style (optional)" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="">None - Use customer selection</SelectItem>
+        <SelectItem value="none">None - Use customer selection</SelectItem>
         {doorStyles?.map((style) => (
           <SelectItem key={style.id} value={style.id}>
             <div className="flex items-center gap-2">
