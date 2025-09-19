@@ -3810,6 +3810,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_address_access: {
+        Args: {
+          p_access_reason?: string
+          p_accessed_by: string
+          p_action: string
+          p_address_id: string
+          p_customer_name?: string
+        }
+        Returns: undefined
+      }
       log_admin_audit: {
         Args: {
           p_action: string
