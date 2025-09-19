@@ -112,7 +112,7 @@ const DressPanels = () => {
           </div>
 
           {/* Category Navigation with Arrows */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-center gap-8 mb-8">
             <Button 
               variant="ghost" 
               size="icon"
@@ -122,7 +122,7 @@ const DressPanels = () => {
               <ChevronLeft className="h-6 w-6" />
             </Button>
             
-            <h1 className="text-2xl md:text-3xl font-bold text-center">
+            <h1 className="text-2xl md:text-3xl font-bold text-center min-w-0">
               {categories[categories.findIndex(cat => cat.route === '/shop/dress-panels')].name}
             </h1>
             
