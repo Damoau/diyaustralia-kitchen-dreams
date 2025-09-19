@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight, Grid3X3, Loader2, Filter } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ChevronLeft, ChevronRight, ChevronDown, Grid3X3, Loader2, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,7 @@ interface PriceData {
 const DressPanelsPricing = () => {
   const navigate = useNavigate();
   const [selectedCabinetType, setSelectedCabinetType] = useState<string>('');
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [priceData, setPriceData] = useState<PriceData>({});
   const [isCalculating, setIsCalculating] = useState(false);
   const [selectedDoorStyle, setSelectedDoorStyle] = useState<string>('all');
@@ -56,16 +58,33 @@ const DressPanelsPricing = () => {
   const prevCategory = categories[currentIndex - 1];
   const nextCategory = categories[currentIndex + 1];
 
+  const filterOptions = [
+    { value: 'base', label: 'Base' },
+    { value: 'top', label: 'Top' },
+    { value: 'pantry', label: 'Pantry' }
+  ];
+
+  const getSelectedFilterLabel = () => {
+    if (selectedFilter === 'all') return 'All Panels & Fillers';
+    return filterOptions.find(option => option.value === selectedFilter)?.label || 'All Panels & Fillers';
+  };
+
   // Fetch dress panels
   const { data: dressPanels, isLoading: loadingCabinets } = useQuery({
-    queryKey: ['dress-panels'],
+    queryKey: ['dress-panels', selectedFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('cabinet_types')
         .select('*')
         .eq('category', 'dress')
         .eq('active', true)
         .order('name');
+
+      if (selectedFilter !== 'all') {
+        query = query.or(`subcategory.eq.${selectedFilter},subcategory.like.%${selectedFilter}%`);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data as CabinetType[];
     }
@@ -244,8 +263,8 @@ const DressPanelsPricing = () => {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           
-          <div className="w-80 text-center min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground truncate">
+          <div className="flex-1 text-center min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
               Dress Panels Pricing
             </h1>
           </div>
@@ -261,40 +280,38 @@ const DressPanelsPricing = () => {
           </Button>
         </div>
 
-        {/* Panel Selection Filter */}
+        {/* Panel Subcategory Filter */}
         {loadingCabinets ? (
           <div className="flex justify-center mb-8">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
-        ) : dressPanels && dressPanels.length > 0 ? (
-          <div className="flex justify-center mb-8">
-            <Select value={selectedCabinetType} onValueChange={setSelectedCabinetType}>
-              <SelectTrigger className="w-full max-w-sm h-12 justify-center">
-                <SelectValue>
-                  <span className="flex-1 text-center">
-                    {selectedCabinetType 
-                      ? dressPanels.find(c => c.id === selectedCabinetType)?.name || 'Select Panel Type'
-                      : `Select Panel Type (${dressPanels.length} available)`
-                    }
-                  </span>
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent align="center" className="w-full max-w-sm">
-                {dressPanels.map((cabinet) => (
-                  <SelectItem key={cabinet.id} value={cabinet.id}>
-                    {cabinet.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        ) : dressPanels?.length === 0 ? (
-          <div className="flex justify-center mb-8">
-            <p className="text-muted-foreground">No dress panels configured yet</p>
-          </div>
         ) : (
           <div className="flex justify-center mb-8">
-            <p className="text-muted-foreground">No dress panels found</p>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full max-w-sm h-12 justify-center">
+                  <span className="flex-1 text-center">{getSelectedFilterLabel()}</span>
+                  <ChevronDown className="h-4 w-4 text-primary ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-full max-w-sm">
+                <DropdownMenuItem
+                  onClick={() => setSelectedFilter('all')}
+                  className={`justify-center ${selectedFilter === 'all' ? "bg-primary/10" : ""}`}
+                >
+                  All Panels & Fillers
+                </DropdownMenuItem>
+                {filterOptions.map((option) => (
+                  <DropdownMenuItem
+                    key={option.value}
+                    onClick={() => setSelectedFilter(option.value)}
+                    className={`justify-center ${selectedFilter === option.value ? "bg-primary/10" : ""}`}
+                  >
+                    {option.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
 

@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight, Package, Loader2, Filter } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ChevronLeft, ChevronRight, ChevronDown, Package, Loader2, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,6 +45,7 @@ const BaseCabinetsPricing = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedCabinetType, setSelectedCabinetType] = useState<string>('all');
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [priceData, setPriceData] = useState<PriceData>({});
   const [isCalculating, setIsCalculating] = useState(false);
   const [debugData, setDebugData] = useState<any>(null);
@@ -63,6 +65,19 @@ const BaseCabinetsPricing = () => {
   const prevCategory = categories[currentIndex - 1];
   const nextCategory = categories[currentIndex + 1];
 
+  const filterOptions = [
+    { value: 'doors', label: 'Doors' },
+    { value: 'drawers', label: 'Drawers' },
+    { value: 'corners', label: 'Corners' },
+    { value: 'appliance_cabinets', label: 'Appliance Cabinets' },
+    { value: 'bin_cabinets', label: 'Bin Cabinets' }
+  ];
+
+  const getSelectedFilterLabel = () => {
+    if (selectedFilter === 'all') return 'All Cabinets';
+    return filterOptions.find(option => option.value === selectedFilter)?.label || 'All Cabinets';
+  };
+
   // Clear all cached data when component mounts
   useEffect(() => {
     console.log('🔥🔥🔥 AGGRESSIVE CACHE CLEAR 🔥🔥🔥', new Date().toISOString());
@@ -80,15 +95,21 @@ const BaseCabinetsPricing = () => {
 
   // Fetch base cabinets
   const { data: baseCabinets, isLoading: loadingCabinets } = useQuery({
-    queryKey: ['base-cabinets'],
+    queryKey: ['base-cabinets', selectedFilter],
     queryFn: async () => {
       console.log('🔍 FETCHING BASE CABINETS...');
-      const { data, error } = await supabase
+      let query = supabase
         .from('cabinet_types')
         .select('*')
         .eq('category', 'base')
         .eq('active', true)
         .order('name');
+
+      if (selectedFilter !== 'all') {
+        query = query.or(`subcategory.eq.${selectedFilter},subcategory.like.%${selectedFilter}%`);
+      }
+
+      const { data, error } = await query;
       console.log('📦 CABINET DATA FETCHED:', { count: data?.length, error, data });
       if (error) throw error;
       return data as CabinetType[];
@@ -263,16 +284,12 @@ const BaseCabinetsPricing = () => {
   // Set first cabinet as default when cabinets load and calculate prices for all if "all" is selected
   useEffect(() => {
     if (baseCabinets && baseCabinets.length > 0) {
-      if (selectedCabinetType === 'all') {
-        // Calculate prices for all cabinets
-        baseCabinets.forEach(cabinet => {
-          calculatePricesFromScratch(cabinet.id);
-        });
-      } else if (selectedCabinetType && selectedCabinetType !== 'all') {
-        calculatePricesFromScratch();
-      }
+      // Calculate prices for all cabinets
+      baseCabinets.forEach(cabinet => {
+        calculatePricesFromScratch(cabinet.id);
+      });
     }
-  }, [baseCabinets, selectedCabinetType]);
+  }, [baseCabinets, selectedFilter]);
 
   const doorStyles = debugData?.finishes?.map(f => f.door_style).filter(Boolean) as DoorStyle[] || [];
   console.log('🚪 DOOR STYLES CALCULATED:', {
@@ -299,8 +316,8 @@ const BaseCabinetsPricing = () => {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           
-          <div className="w-80 text-center min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground truncate">
+          <div className="flex-1 text-center min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
               Base Cabinets Pricing
             </h1>
           </div>
@@ -316,37 +333,38 @@ const BaseCabinetsPricing = () => {
           </Button>
         </div>
 
-        {/* Cabinet Selection Filter */}
+        {/* Cabinet Subcategory Filter */}
         {loadingCabinets ? (
           <div className="flex justify-center mb-8">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
-        ) : baseCabinets && baseCabinets.length > 0 ? (
-          <div className="flex justify-center mb-8">
-            <Select value={selectedCabinetType} onValueChange={setSelectedCabinetType}>
-              <SelectTrigger className="w-full max-w-sm h-12 justify-center">
-                <SelectValue>
-                  <span className="flex-1 text-center">
-                    {selectedCabinetType === 'all' 
-                      ? `Select Cabinet Type (${baseCabinets.length} available)`
-                      : baseCabinets.find(c => c.id === selectedCabinetType)?.name || 'Select Cabinet Type'
-                    }
-                  </span>
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent align="center" className="w-full max-w-sm">
-                <SelectItem value="all">All Cabinets ({baseCabinets.length} available)</SelectItem>
-                {baseCabinets.map((cabinet) => (
-                  <SelectItem key={cabinet.id} value={cabinet.id}>
-                    {cabinet.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         ) : (
           <div className="flex justify-center mb-8">
-            <p className="text-muted-foreground">No base cabinets found</p>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full max-w-sm h-12 justify-center">
+                  <span className="flex-1 text-center">{getSelectedFilterLabel()}</span>
+                  <ChevronDown className="h-4 w-4 text-primary ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-full max-w-sm">
+                <DropdownMenuItem
+                  onClick={() => setSelectedFilter('all')}
+                  className={`justify-center ${selectedFilter === 'all' ? "bg-primary/10" : ""}`}
+                >
+                  All Cabinets
+                </DropdownMenuItem>
+                {filterOptions.map((option) => (
+                  <DropdownMenuItem
+                    key={option.value}
+                    onClick={() => setSelectedFilter(option.value)}
+                    className={`justify-center ${selectedFilter === option.value ? "bg-primary/10" : ""}`}
+                  >
+                    {option.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
 
@@ -376,14 +394,20 @@ const BaseCabinetsPricing = () => {
         )}
 
         {/* Cabinet Cards Display */}
-        {(selectedCabinetType === 'all' ? baseCabinets : baseCabinets?.filter(c => c.id === selectedCabinetType))?.map((cabinet) => (
-          <CabinetPricingTable 
-            key={cabinet.id} 
-            cabinet={cabinet}
-            onImageEnlarge={setEnlargedImage}
-            selectedDoorStyleFilter={isMobile ? selectedDoorStyle : undefined}
-          />
-        ))}
+        {baseCabinets && baseCabinets.length > 0 ? (
+          baseCabinets.map((cabinet) => (
+            <CabinetPricingTable 
+              key={cabinet.id} 
+              cabinet={cabinet}
+              onImageEnlarge={setEnlargedImage}
+              selectedDoorStyleFilter={isMobile ? selectedDoorStyle : undefined}
+            />
+          ))
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No cabinets found for selected filter</p>
+          </div>
+        )}
 
         {/* Enlarged Image Modal */}
         {enlargedImage && (

@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight, Home, Loader2, Filter } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ChevronLeft, ChevronRight, ChevronDown, Home, Loader2, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,7 @@ interface PriceData {
 const TopCabinetsPricing = () => {
   const navigate = useNavigate();
   const [selectedCabinetType, setSelectedCabinetType] = useState<string>('');
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [priceData, setPriceData] = useState<PriceData>({});
   const [isCalculating, setIsCalculating] = useState(false);
   const [selectedDoorStyle, setSelectedDoorStyle] = useState<string>('all');
@@ -56,16 +58,34 @@ const TopCabinetsPricing = () => {
   const prevCategory = categories[currentIndex - 1];
   const nextCategory = categories[currentIndex + 1];
 
+  const filterOptions = [
+    { value: 'doors', label: 'Doors' },
+    { value: 'appliance_cabinets', label: 'Appliance Cabinets' },
+    { value: 'lift_up_systems', label: 'Lift-Up Systems' },
+    { value: 'corners', label: 'Corners' }
+  ];
+
+  const getSelectedFilterLabel = () => {
+    if (selectedFilter === 'all') return 'All Cabinets';
+    return filterOptions.find(option => option.value === selectedFilter)?.label || 'All Cabinets';
+  };
+
   // Fetch top cabinets
   const { data: topCabinets, isLoading: loadingCabinets } = useQuery({
-    queryKey: ['top-cabinets'],
+    queryKey: ['top-cabinets', selectedFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('cabinet_types')
         .select('*')
         .eq('category', 'top')
         .eq('active', true)
         .order('name');
+
+      if (selectedFilter !== 'all') {
+        query = query.or(`subcategory.eq.${selectedFilter},subcategory.like.%${selectedFilter}%`);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data as CabinetType[];
     }
@@ -244,8 +264,8 @@ const TopCabinetsPricing = () => {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           
-          <div className="w-80 text-center min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground truncate">
+          <div className="flex-1 text-center min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
               Top Cabinets Pricing
             </h1>
           </div>
@@ -261,36 +281,38 @@ const TopCabinetsPricing = () => {
           </Button>
         </div>
 
-        {/* Cabinet Selection Filter */}
+        {/* Cabinet Subcategory Filter */}
         {loadingCabinets ? (
           <div className="flex justify-center mb-8">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
-        ) : topCabinets && topCabinets.length > 0 ? (
-          <div className="flex justify-center mb-8">
-            <Select value={selectedCabinetType} onValueChange={setSelectedCabinetType}>
-              <SelectTrigger className="w-full max-w-sm h-12 justify-center">
-                <SelectValue>
-                  <span className="flex-1 text-center">
-                    {selectedCabinetType 
-                      ? topCabinets.find(c => c.id === selectedCabinetType)?.name || 'Select Cabinet Type'
-                      : `Select Cabinet Type (${topCabinets.length} available)`
-                    }
-                  </span>
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent align="center" className="w-full max-w-sm">
-                {topCabinets.map((cabinet) => (
-                  <SelectItem key={cabinet.id} value={cabinet.id}>
-                    {cabinet.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         ) : (
           <div className="flex justify-center mb-8">
-            <p className="text-muted-foreground">No top cabinets found</p>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full max-w-sm h-12 justify-center">
+                  <span className="flex-1 text-center">{getSelectedFilterLabel()}</span>
+                  <ChevronDown className="h-4 w-4 text-primary ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-full max-w-sm">
+                <DropdownMenuItem
+                  onClick={() => setSelectedFilter('all')}
+                  className={`justify-center ${selectedFilter === 'all' ? "bg-primary/10" : ""}`}
+                >
+                  All Cabinets
+                </DropdownMenuItem>
+                {filterOptions.map((option) => (
+                  <DropdownMenuItem
+                    key={option.value}
+                    onClick={() => setSelectedFilter(option.value)}
+                    className={`justify-center ${selectedFilter === option.value ? "bg-primary/10" : ""}`}
+                  >
+                    {option.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
 
@@ -320,83 +342,89 @@ const TopCabinetsPricing = () => {
         )}
 
         {/* Pricing Table */}
-        {selectedCabinetType && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground mb-2">
-                    {topCabinets?.find(c => c.id === selectedCabinetType)?.name}
-                  </h2>
-                  <CardTitle>Pricing Table</CardTitle>
+        {topCabinets && topCabinets.length > 0 ? (
+          topCabinets.map((cabinet) => (
+            <Card key={cabinet.id}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-foreground mb-2">
+                      {cabinet.name}
+                    </h2>
+                    <CardTitle>Pricing Table</CardTitle>
+                  </div>
+                  {isCalculating && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Calculating prices...
+                    </div>
+                  )}
                 </div>
-                {isCalculating && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Calculating prices...
+              </CardHeader>
+              <CardContent>
+                {loadingFinishes || loadingRanges ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                  </div>
+                ) : filteredDoorStyles.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No door styles configured for this cabinet type
+                  </div>
+                ) : priceRanges?.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No price ranges configured for this cabinet type
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-4 font-semibold">Size Range</th>
+                          {filteredDoorStyles.map((doorStyle) => (
+                            <th key={doorStyle.id} className="text-center p-4 font-semibold">
+                              {doorStyle.name}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {priceRanges?.map((range) => (
+                          <tr key={range.id} className="border-b hover:bg-muted/50">
+                            <td className="p-4 font-medium">
+                              <div>
+                                <div className="font-semibold">{range.label}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {range.min_width_mm}mm - {range.max_width_mm}mm
+                                </div>
+                              </div>
+                            </td>
+                            {filteredDoorStyles.map((doorStyle) => {
+                              const price = priceData[selectedCabinetType]?.[doorStyle.id]?.[range.id];
+                              return (
+                                <td key={doorStyle.id} className="p-4 text-center">
+                                  {price ? (
+                                    <div className="font-semibold text-lg">
+                                      {formatPrice(price)}
+                                    </div>
+                                  ) : (
+                                    <div className="text-muted-foreground">-</div>
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loadingFinishes || loadingRanges ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                </div>
-              ) : filteredDoorStyles.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  No door styles configured for this cabinet type
-                </div>
-              ) : priceRanges?.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  No price ranges configured for this cabinet type
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-4 font-semibold">Size Range</th>
-                        {filteredDoorStyles.map((doorStyle) => (
-                          <th key={doorStyle.id} className="text-center p-4 font-semibold">
-                            {doorStyle.name}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {priceRanges?.map((range) => (
-                        <tr key={range.id} className="border-b hover:bg-muted/50">
-                          <td className="p-4 font-medium">
-                            <div>
-                              <div className="font-semibold">{range.label}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {range.min_width_mm}mm - {range.max_width_mm}mm
-                              </div>
-                            </div>
-                          </td>
-                          {filteredDoorStyles.map((doorStyle) => {
-                            const price = priceData[selectedCabinetType]?.[doorStyle.id]?.[range.id];
-                            return (
-                              <td key={doorStyle.id} className="p-4 text-center">
-                                {price ? (
-                                  <div className="font-semibold text-lg">
-                                    {formatPrice(price)}
-                                  </div>
-                                ) : (
-                                  <div className="text-muted-foreground">-</div>
-                                )}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No cabinets found for selected filter</p>
+          </div>
         )}
       </div>
       </div>
