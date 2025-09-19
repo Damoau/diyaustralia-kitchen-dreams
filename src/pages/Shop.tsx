@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingCart, Package, Layers, Home, Wrench } from "lucide-react";
+import { ShoppingCart, Package, Layers, RectangleHorizontal, Wrench } from "lucide-react";
 import baseCabinetsImage from "@/assets/base-cabinets-hero.jpg";
 import topCabinetsImage from "@/assets/top-cabinets-hero.jpg";
 
@@ -13,7 +13,7 @@ const Shop = () => {
       id: 'base-cabinets',
       title: 'Base Cabinets',
       description: 'Foundation cabinets for your kitchen workspace',
-      icon: <Home className="h-12 w-12 text-primary" />,
+      icon: <RectangleHorizontal className="h-12 w-12 text-primary" />,
       path: '/shop/base-cabinets',
       image: baseCabinetsImage
     },
