@@ -252,7 +252,7 @@ const PantryCabinetsPricing = () => {
       <div className="pt-24 pb-12">
         <div className="container mx-auto px-4">
         {/* Navigation Header */}
-        <div className="sticky top-20 z-40 py-3 mb-6">
+        <div className="sticky top-20 z-40 py-3 mb-6 bg-muted/80 backdrop-blur-sm border-b">
           <div className="flex items-center justify-between gap-6">
             <Button
               variant="ghost"
