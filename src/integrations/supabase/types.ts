@@ -3857,6 +3857,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      log_quote_request_access: {
+        Args: {
+          p_access_reason?: string
+          p_accessed_by: string
+          p_action: string
+          p_customer_email?: string
+          p_quote_request_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role:
