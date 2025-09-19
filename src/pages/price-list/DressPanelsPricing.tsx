@@ -295,25 +295,43 @@ const DressPanelsPricing = () => {
           <div className="flex justify-center mb-8">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full max-w-sm h-12 justify-center">
-                  <span className="flex-1 text-center">{getSelectedFilterLabel()}</span>
-                  <ChevronDown className="h-4 w-4 text-primary ml-2" />
+                <Button variant="outline" className="w-full max-w-sm h-12 justify-between bg-card/50 backdrop-blur-sm border-2 hover:border-primary/50 hover:bg-card/80 transition-all duration-200 shadow-sm">
+                  <span className="flex-1 text-center font-medium">{getSelectedFilterLabel()}</span>
+                  <ChevronDown className="h-4 w-4 text-primary ml-2 transition-transform duration-200" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-[var(--radix-dropdown-menu-trigger-width)] max-w-none">
+              <DropdownMenuContent 
+                align="center" 
+                className="w-[var(--radix-dropdown-menu-trigger-width)] max-w-none bg-card/95 backdrop-blur-md border-2 shadow-lg z-50 mt-1"
+                sideOffset={4}
+              >
                 <DropdownMenuItem
                   onClick={() => setSelectedFilter('all')}
-                  className={`justify-center ${selectedFilter === 'all' ? "bg-primary/10" : ""}`}
+                  className={`justify-center py-3 font-medium transition-colors duration-150 ${
+                    selectedFilter === 'all' 
+                      ? "bg-primary/15 text-primary" 
+                      : "hover:bg-muted/80"
+                  }`}
                 >
-                  All Panels & Fillers
+                  <span className="flex items-center gap-2">
+                    {selectedFilter === 'all' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                    All Panels & Fillers
+                  </span>
                 </DropdownMenuItem>
                 {filterOptions.map((option) => (
                   <DropdownMenuItem
                     key={option.value}
                     onClick={() => setSelectedFilter(option.value)}
-                    className={`justify-center ${selectedFilter === option.value ? "bg-primary/10" : ""}`}
+                    className={`justify-center py-3 font-medium transition-colors duration-150 ${
+                      selectedFilter === option.value 
+                        ? "bg-primary/15 text-primary" 
+                        : "hover:bg-muted/80"
+                    }`}
                   >
-                    {option.label}
+                    <span className="flex items-center gap-2">
+                      {selectedFilter === option.value && <div className="w-2 h-2 rounded-full bg-primary" />}
+                      {option.label}
+                    </span>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
