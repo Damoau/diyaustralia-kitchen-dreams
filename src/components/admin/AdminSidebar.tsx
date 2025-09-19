@@ -29,6 +29,10 @@ import {
   Shield,
   TestTube,
   Palette,
+  ExternalLink,
+  Home,
+  Store,
+  List,
 } from 'lucide-react';
 
 const navigationItems = [
@@ -36,6 +40,15 @@ const navigationItems = [
     group: 'Overview',
     items: [
       { title: 'Dashboard', url: 'overview', icon: LayoutDashboard },
+    ]
+  },
+  {
+    group: 'Frontend Links',
+    items: [
+      { title: 'View Website', url: '/', icon: Home, external: true },
+      { title: 'Shop', url: '/shop', icon: Store, external: true },
+      { title: 'Price List', url: '/price-list', icon: List, external: true },
+      { title: 'Products', url: '/products', icon: Package, external: true },
     ]
   },
   {
@@ -117,14 +130,27 @@ export const AdminSidebar = () => {
                 {group.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                       <NavLink 
-                         to={item.url} 
-                         className={getNavClass(item.url)}
-                         relative="path"
-                       >
-                        <item.icon className="mr-2 h-4 w-4" />
-                        {!isCollapsed && <span>{item.title}</span>}
-                      </NavLink>
+                      {item.external ? (
+                        <a 
+                          href={item.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 hover:bg-muted/50"
+                        >
+                          <item.icon className="h-4 w-4" />
+                          {!isCollapsed && <span>{item.title}</span>}
+                          {!isCollapsed && <ExternalLink className="ml-auto h-3 w-3 opacity-60" />}
+                        </a>
+                      ) : (
+                        <NavLink 
+                          to={item.url} 
+                          className={getNavClass(item.url)}
+                          relative="path"
+                        >
+                          <item.icon className="mr-2 h-4 w-4" />
+                          {!isCollapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
