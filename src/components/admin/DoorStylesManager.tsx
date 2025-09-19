@@ -108,6 +108,151 @@ export const DoorStylesManager: React.FC = () => {
     },
   });
 
+  // Mutations
+  const saveDoorStyleMutation = useMutation({
+    mutationFn: async (doorStyle: DoorStyle) => {
+      if (doorStyle.id) {
+        const { data, error } = await supabase
+          .from('door_styles')
+          .update(doorStyle)
+          .eq('id', doorStyle.id)
+          .select()
+          .single();
+        if (error) throw error;
+        return data;
+      } else {
+        const { data, error } = await supabase
+          .from('door_styles')
+          .insert(doorStyle)
+          .select()
+          .single();
+        if (error) throw error;
+        return data;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['door-styles-admin'] });
+      toast.success('Door style saved successfully');
+      handleCloseDialog();
+    },
+    onError: (error) => {
+      toast.error('Failed to save door style: ' + error.message);
+    },
+  });
+
+  const saveColorMutation = useMutation({
+    mutationFn: async (color: Color) => {
+      if (color.id) {
+        const { data, error } = await supabase
+          .from('colors')
+          .update(color)
+          .eq('id', color.id)
+          .select()
+          .single();
+        if (error) throw error;
+        return data;
+      } else {
+        const { data, error } = await supabase
+          .from('colors')
+          .insert(color)
+          .select()
+          .single();
+        if (error) throw error;
+        return data;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['colors-admin'] });
+      toast.success('Color saved successfully');
+      handleCloseDialog();
+    },
+    onError: (error) => {
+      toast.error('Failed to save color: ' + error.message);
+    },
+  });
+
+  const saveFinishMutation = useMutation({
+    mutationFn: async (finish: DoorStyleFinish) => {
+      if (finish.id) {
+        const { data, error } = await supabase
+          .from('door_style_finishes')
+          .update(finish)
+          .eq('id', finish.id)
+          .select()
+          .single();
+        if (error) throw error;
+        return data;
+      } else {
+        const { data, error } = await supabase
+          .from('door_style_finishes')
+          .insert(finish)
+          .select()
+          .single();
+        if (error) throw error;
+        return data;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['door-style-finishes-admin'] });
+      toast.success('Finish saved successfully');
+      handleCloseDialog();
+    },
+    onError: (error) => {
+      toast.error('Failed to save finish: ' + error.message);
+    },
+  });
+
+  const deleteDoorStyleMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('door_styles')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['door-styles-admin'] });
+      toast.success('Door style deleted successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete door style: ' + error.message);
+    },
+  });
+
+  const deleteColorMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('colors')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['colors-admin'] });
+      toast.success('Color deleted successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete color: ' + error.message);
+    },
+  });
+
+  const deleteFinishMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('door_style_finishes')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['door-style-finishes-admin'] });
+      toast.success('Finish deleted successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete finish: ' + error.message);
+    },
+  });
+
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setEditingDoorStyle(null);
@@ -148,6 +293,24 @@ export const DoorStylesManager: React.FC = () => {
       active: true,
     });
     setDialogOpen(true);
+  };
+
+  const handleSaveDoorStyle = () => {
+    if (editingDoorStyle) {
+      saveDoorStyleMutation.mutate(editingDoorStyle);
+    }
+  };
+
+  const handleSaveColor = () => {
+    if (editingColor) {
+      saveColorMutation.mutate(editingColor);
+    }
+  };
+
+  const handleSaveFinish = () => {
+    if (editingFinish) {
+      saveFinishMutation.mutate(editingFinish);
+    }
   };
 
   return (
@@ -254,6 +417,13 @@ export const DoorStylesManager: React.FC = () => {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => deleteDoorStyleMutation.mutate(style.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
                       </CardHeader>
@@ -315,16 +485,25 @@ export const DoorStylesManager: React.FC = () => {
                             )}
                             <CardTitle className="text-lg">{color.name}</CardTitle>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingColor(color);
-                              setDialogOpen(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingColor(color);
+                                setDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => deleteColorMutation.mutate(color.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                         {color.door_styles?.name && (
                           <Badge variant="outline">{color.door_styles.name}</Badge>
@@ -381,16 +560,25 @@ export const DoorStylesManager: React.FC = () => {
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-lg">{finish.name}</CardTitle>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingFinish(finish);
-                              setDialogOpen(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingFinish(finish);
+                                setDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => deleteFinishMutation.mutate(finish.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                         <Badge variant="outline">{finish.door_styles?.name}</Badge>
                       </CardHeader>
@@ -430,21 +618,222 @@ export const DoorStylesManager: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="p-4">
-            <p className="text-muted-foreground">
-              Door styles and colors management functionality coming soon. 
-              This will allow you to:
-            </p>
-            <ul className="list-disc list-inside mt-2 space-y-1 text-sm text-muted-foreground">
-              <li>Set base rates per square meter for door styles</li>
-              <li>Configure color surcharges</li>
-              <li>Manage finish options and pricing</li>
-              <li>Link colors to specific door styles</li>
-            </ul>
-          </div>
+          {/* Door Style Form */}
+          {editingDoorStyle && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="door-style-name">Name</Label>
+                  <Input
+                    id="door-style-name"
+                    value={editingDoorStyle.name}
+                    onChange={(e) => setEditingDoorStyle({ ...editingDoorStyle, name: e.target.value })}
+                    placeholder="Enter door style name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="door-style-rate">Base Rate ($/sqm)</Label>
+                  <Input
+                    id="door-style-rate"
+                    type="number"
+                    step="0.01"
+                    value={editingDoorStyle.base_rate_per_sqm}
+                    onChange={(e) => setEditingDoorStyle({ ...editingDoorStyle, base_rate_per_sqm: parseFloat(e.target.value) || 0 })}
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="door-style-description">Description</Label>
+                <Textarea
+                  id="door-style-description"
+                  value={editingDoorStyle.description || ''}
+                  onChange={(e) => setEditingDoorStyle({ ...editingDoorStyle, description: e.target.value })}
+                  placeholder="Enter description (optional)"
+                />
+              </div>
+              <div>
+                <Label htmlFor="door-style-image">Image URL</Label>
+                <Input
+                  id="door-style-image"
+                  value={editingDoorStyle.image_url || ''}
+                  onChange={(e) => setEditingDoorStyle({ ...editingDoorStyle, image_url: e.target.value })}
+                  placeholder="Enter image URL (optional)"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="door-style-active"
+                  checked={editingDoorStyle.active}
+                  onCheckedChange={(checked) => setEditingDoorStyle({ ...editingDoorStyle, active: checked })}
+                />
+                <Label htmlFor="door-style-active">Active</Label>
+              </div>
+            </div>
+          )}
+
+          {/* Color Form */}
+          {editingColor && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="color-name">Name</Label>
+                  <Input
+                    id="color-name"
+                    value={editingColor.name}
+                    onChange={(e) => setEditingColor({ ...editingColor, name: e.target.value })}
+                    placeholder="Enter color name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="color-hex">Hex Code</Label>
+                  <Input
+                    id="color-hex"
+                    value={editingColor.hex_code || ''}
+                    onChange={(e) => setEditingColor({ ...editingColor, hex_code: e.target.value })}
+                    placeholder="#FFFFFF"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="color-surcharge">Surcharge Rate ($/sqm)</Label>
+                  <Input
+                    id="color-surcharge"
+                    type="number"
+                    step="0.01"
+                    value={editingColor.surcharge_rate_per_sqm}
+                    onChange={(e) => setEditingColor({ ...editingColor, surcharge_rate_per_sqm: parseFloat(e.target.value) || 0 })}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="color-sort">Sort Order</Label>
+                  <Input
+                    id="color-sort"
+                    type="number"
+                    value={editingColor.sort_order}
+                    onChange={(e) => setEditingColor({ ...editingColor, sort_order: parseInt(e.target.value) || 0 })}
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="color-door-style">Door Style (Optional)</Label>
+                <select
+                  id="color-door-style"
+                  className="w-full px-3 py-2 border border-input bg-background rounded-md"
+                  value={editingColor.door_style_id || ''}
+                  onChange={(e) => setEditingColor({ ...editingColor, door_style_id: e.target.value || undefined })}
+                >
+                  <option value="">Available for all door styles</option>
+                  {doorStyles?.map((style) => (
+                    <option key={style.id} value={style.id}>{style.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="color-image">Image URL</Label>
+                <Input
+                  id="color-image"
+                  value={editingColor.image_url || ''}
+                  onChange={(e) => setEditingColor({ ...editingColor, image_url: e.target.value })}
+                  placeholder="Enter image URL (optional)"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="color-active"
+                  checked={editingColor.active}
+                  onCheckedChange={(checked) => setEditingColor({ ...editingColor, active: checked })}
+                />
+                <Label htmlFor="color-active">Active</Label>
+              </div>
+            </div>
+          )}
+
+          {/* Finish Form */}
+          {editingFinish && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="finish-name">Name</Label>
+                  <Input
+                    id="finish-name"
+                    value={editingFinish.name}
+                    onChange={(e) => setEditingFinish({ ...editingFinish, name: e.target.value })}
+                    placeholder="Enter finish name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="finish-rate">Rate ($/sqm)</Label>
+                  <Input
+                    id="finish-rate"
+                    type="number"
+                    step="0.01"
+                    value={editingFinish.rate_per_sqm}
+                    onChange={(e) => setEditingFinish({ ...editingFinish, rate_per_sqm: parseFloat(e.target.value) || 0 })}
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="finish-door-style">Door Style</Label>
+                <select
+                  id="finish-door-style"
+                  className="w-full px-3 py-2 border border-input bg-background rounded-md"
+                  value={editingFinish.door_style_id}
+                  onChange={(e) => setEditingFinish({ ...editingFinish, door_style_id: e.target.value })}
+                >
+                  {doorStyles?.map((style) => (
+                    <option key={style.id} value={style.id}>{style.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="finish-sort">Sort Order</Label>
+                <Input
+                  id="finish-sort"
+                  type="number"
+                  value={editingFinish.sort_order}
+                  onChange={(e) => setEditingFinish({ ...editingFinish, sort_order: parseInt(e.target.value) || 0 })}
+                  placeholder="0"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="finish-active"
+                  checked={editingFinish.active}
+                  onCheckedChange={(checked) => setEditingFinish({ ...editingFinish, active: checked })}
+                />
+                <Label htmlFor="finish-active">Active</Label>
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button onClick={handleCloseDialog}>Close</Button>
+            <Button variant="outline" onClick={handleCloseDialog}>Cancel</Button>
+            {editingDoorStyle && (
+              <Button onClick={handleSaveDoorStyle} disabled={saveDoorStyleMutation.isPending}>
+                {saveDoorStyleMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                <Save className="h-4 w-4 mr-2" />
+                Save Door Style
+              </Button>
+            )}
+            {editingColor && (
+              <Button onClick={handleSaveColor} disabled={saveColorMutation.isPending}>
+                {saveColorMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                <Save className="h-4 w-4 mr-2" />
+                Save Color
+              </Button>
+            )}
+            {editingFinish && (
+              <Button onClick={handleSaveFinish} disabled={saveFinishMutation.isPending}>
+                {saveFinishMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                <Save className="h-4 w-4 mr-2" />
+                Save Finish
+              </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>
