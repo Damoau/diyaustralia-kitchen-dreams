@@ -142,12 +142,12 @@ const DressPanels = () => {
           <div className="flex justify-center mb-8">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-64 h-12 justify-between">
-                  All Panels & Fillers
-                  <ChevronDown className="h-4 w-4 text-primary" />
+                <Button variant="outline" className="w-full max-w-sm h-12 justify-center">
+                  <span className="flex-1 text-center">All Panels & Fillers</span>
+                  <ChevronDown className="h-4 w-4 text-primary ml-2" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-64">
+              <DropdownMenuContent align="center" className="w-full max-w-sm">
                 {filterOptions.map((option) => (
                   <DropdownMenuItem
                     key={option.value}
