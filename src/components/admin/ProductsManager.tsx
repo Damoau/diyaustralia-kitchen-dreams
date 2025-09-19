@@ -39,7 +39,7 @@ interface OptionValue {
   is_active: boolean;
 }
 
-export function ProductsManager() {
+export default function ProductsManager() {
   const { toast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);

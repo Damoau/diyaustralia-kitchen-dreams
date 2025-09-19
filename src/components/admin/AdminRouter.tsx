@@ -16,10 +16,12 @@ const RoleManagement = lazy(() => import('@/components/admin/RoleManagement'));
 const QuotesList = lazy(() => import('@/pages/admin/QuotesList'));
 const Assembly = lazy(() => import('@/pages/admin/Assembly'));
 const CategoriesManager = lazy(() => import('@/components/admin/CategoriesManager'));
+const CabinetManager = lazy(() => import('@/components/admin/CabinetManager'));
 const ClassicCabinetManager = lazy(() => import('@/components/admin/ClassicCabinetManager'));
 const HardwareManager = lazy(() => import('@/components/admin/HardwareManager'));
 const Discounts = lazy(() => import('@/pages/admin/Discounts'));
 const Users = lazy(() => import('@/pages/admin/Users'));
+const ProductsManager = lazy(() => import('@/components/admin/ProductsManager'));
 const Reports = lazy(() => import('@/pages/admin/Reports'));
 const Exports = lazy(() => import('@/pages/admin/Exports'));
 const Notifications = lazy(() => import('@/pages/admin/Notifications'));
@@ -43,9 +45,14 @@ export const AdminRouter = () => {
           <Route path="shipping" element={<AdminShipping />} />
           <Route path="assembly" element={<Assembly />} />
           
-          {/* Configuration */}
-          <Route path="categories" element={<CategoriesManager />} />
-          <Route path="classic-cabinets" element={
+        {/* Configuration */}
+        <Route path="categories" element={<CategoriesManager />} />
+        <Route path="cabinets" element={
+          <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+            <CabinetManager />
+          </Suspense>
+        } />
+        <Route path="classic-cabinets" element={
             <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
               <ClassicCabinetManager />
             </Suspense>
