@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/lib/errorBoundary";
 import { Suspense, lazy } from "react";
 import { PageLoader } from "@/components/ui/page-loader";
-import { CartProvider } from "@/contexts/CartContext";
 import { AdminImpersonationProvider } from "@/contexts/AdminImpersonationContext";
 
 // Lazy load route components for code splitting
@@ -18,24 +17,14 @@ const PantryCabinets = lazy(() => import("./pages/shop/PantryCabinets"));
 const DressPanels = lazy(() => import("./pages/shop/DressPanels"));
 const KitchenStyles = lazy(() => import("./pages/KitchenStyles"));
 const Products = lazy(() => import("./pages/Products"));
-const ProductDetail = lazy(() => import("./pages/ProductDetail"));
-const Cart = lazy(() => import("./pages/Cart"));
-const Checkout = lazy(() => import("./pages/Checkout"));
 const CheckoutFlow = lazy(() => import("./pages/CheckoutFlow"));
 const GetQuote = lazy(() => import("./pages/GetQuote"));
 const Manufacturing = lazy(() => import("./pages/Manufacturing"));
-const Admin = lazy(() => import("./pages/Admin"));
 const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin components
-const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
 const AdminRouter = lazy(() => import("./components/admin/AdminRouter"));
-const PriceList = lazy(() => import("./pages/PriceList"));
-const BaseCabinetsPricing = lazy(() => import("./pages/price-list/BaseCabinetsPricing"));
-const TopCabinetsPricing = lazy(() => import("./pages/price-list/TopCabinetsPricing"));
-const PantryCabinetsPricing = lazy(() => import("./pages/price-list/PantryCabinetsPricing"));
-const DressPanelsPricing = lazy(() => import("./pages/price-list/DressPanelsPricing"));
 const Portal = lazy(() => import("./pages/Portal"));
 const PortalQuotes = lazy(() => import("./pages/portal/Quotes"));
 const PortalQuoteDetail = lazy(() => import("./pages/portal/QuoteDetail"));
@@ -75,9 +64,8 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AdminImpersonationProvider>
-          <CartProvider>
-            <Toaster />
-            <Sonner />
+          <Toaster />
+          <Sonner />
             <BrowserRouter>
             <Suspense fallback={<PageLoader />}>
               <Routes>
@@ -88,37 +76,17 @@ const App = () => (
                 <Route path="/shop/pantry-cabinets" element={<PantryCabinets />} />
                 <Route path="/shop/dress-panels" element={<DressPanels />} />
                 <Route path="/products" element={<Products />} />
-                <Route path="/products/:id" element={<ProductDetail />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout" element={<Checkout />} />
                 <Route path="/checkout-flow" element={<CheckoutFlow />} />
                 <Route path="/get-quote" element={<GetQuote />} />
                 <Route path="/manufacturing" element={<Manufacturing />} />
                 <Route path="/kitchen-styles" element={<KitchenStyles />} />
-                <Route path="/price-list" element={<PriceList />} />
-                <Route path="/price-list/base-cabinets" element={<BaseCabinetsPricing />} />
-                <Route path="/price-list/top-cabinets" element={<TopCabinetsPricing />} />
-                <Route path="/price-list/pantry-cabinets" element={<PantryCabinetsPricing />} />
-                <Route path="/price-list/dress-panels" element={<DressPanelsPricing />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route 
                   path="/admin/*" 
                   element={
                     <Suspense fallback={<PageLoader />}>
                       <ProtectedRoute requireAdmin>
-                        <AdminLayout>
-                          <AdminRouter />
-                        </AdminLayout>
-                      </ProtectedRoute>
-                    </Suspense>
-                  } 
-                />
-                <Route 
-                  path="/old-admin" 
-                  element={
-                    <Suspense fallback={<PageLoader />}>
-                      <ProtectedRoute requireAdmin>
-                        <Admin />
+                        <AdminRouter />
                       </ProtectedRoute>
                     </Suspense>
                   } 
@@ -136,7 +104,6 @@ const App = () => (
               </Routes>
             </Suspense>
           </BrowserRouter>
-          </CartProvider>
         </AdminImpersonationProvider>
       </TooltipProvider>
     </QueryClientProvider>

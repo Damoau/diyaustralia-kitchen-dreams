@@ -279,54 +279,6 @@ export type Database = {
         }
         Relationships: []
       }
-      cabinet_door_styles: {
-        Row: {
-          active: boolean
-          cabinet_type_id: string
-          created_at: string
-          door_style_id: string
-          id: string
-          image_url: string | null
-          sort_order: number
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean
-          cabinet_type_id: string
-          created_at?: string
-          door_style_id: string
-          id?: string
-          image_url?: string | null
-          sort_order?: number
-          updated_at?: string
-        }
-        Update: {
-          active?: boolean
-          cabinet_type_id?: string
-          created_at?: string
-          door_style_id?: string
-          id?: string
-          image_url?: string | null
-          sort_order?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_cabinet_door_styles_cabinet_type"
-            columns: ["cabinet_type_id"]
-            isOneToOne: false
-            referencedRelation: "cabinet_types"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_cabinet_door_styles_door_style"
-            columns: ["door_style_id"]
-            isOneToOne: false
-            referencedRelation: "door_styles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       cabinet_hardware_options: {
         Row: {
           active: boolean
@@ -468,126 +420,10 @@ export type Database = {
           },
         ]
       }
-      cabinet_type_finishes: {
-        Row: {
-          active: boolean
-          cabinet_type_id: string
-          color_id: string | null
-          created_at: string
-          depth_mm: number | null
-          door_style_finish_id: string | null
-          door_style_id: string | null
-          id: string
-          image_url: string | null
-          sort_order: number
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean
-          cabinet_type_id: string
-          color_id?: string | null
-          created_at?: string
-          depth_mm?: number | null
-          door_style_finish_id?: string | null
-          door_style_id?: string | null
-          id?: string
-          image_url?: string | null
-          sort_order?: number
-          updated_at?: string
-        }
-        Update: {
-          active?: boolean
-          cabinet_type_id?: string
-          color_id?: string | null
-          created_at?: string
-          depth_mm?: number | null
-          door_style_finish_id?: string | null
-          door_style_id?: string | null
-          id?: string
-          image_url?: string | null
-          sort_order?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cabinet_type_finishes_cabinet_type_id_fkey"
-            columns: ["cabinet_type_id"]
-            isOneToOne: false
-            referencedRelation: "cabinet_types"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cabinet_type_finishes_color_id_fkey"
-            columns: ["color_id"]
-            isOneToOne: false
-            referencedRelation: "colors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cabinet_type_finishes_door_style_finish_id_fkey"
-            columns: ["door_style_finish_id"]
-            isOneToOne: false
-            referencedRelation: "door_style_finishes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cabinet_type_finishes_door_style_id_fkey"
-            columns: ["door_style_id"]
-            isOneToOne: false
-            referencedRelation: "door_styles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      cabinet_type_price_ranges: {
-        Row: {
-          active: boolean
-          cabinet_type_id: string
-          created_at: string
-          id: string
-          label: string
-          max_width_mm: number
-          min_width_mm: number
-          sort_order: number
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean
-          cabinet_type_id: string
-          created_at?: string
-          id?: string
-          label: string
-          max_width_mm: number
-          min_width_mm: number
-          sort_order?: number
-          updated_at?: string
-        }
-        Update: {
-          active?: boolean
-          cabinet_type_id?: string
-          created_at?: string
-          id?: string
-          label?: string
-          max_width_mm?: number
-          min_width_mm?: number
-          sort_order?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cabinet_type_price_ranges_cabinet_type_id_fkey"
-            columns: ["cabinet_type_id"]
-            isOneToOne: false
-            referencedRelation: "cabinet_types"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       cabinet_types: {
         Row: {
           active: boolean
           backs_qty: number | null
-          base_price: number | null
           bottoms_qty: number | null
           cabinet_style: string | null
           category: string
@@ -607,11 +443,9 @@ export type Database = {
           long_description: string | null
           max_depth_mm: number | null
           max_height_mm: number | null
-          max_stock_level: number | null
           max_width_mm: number | null
           min_depth_mm: number | null
           min_height_mm: number | null
-          min_stock_level: number | null
           min_width_mm: number | null
           name: string
           product_image_url: string | null
@@ -624,7 +458,6 @@ export type Database = {
           right_side_width_mm: number | null
           short_description: string | null
           sides_qty: number | null
-          stock_quantity: number | null
           subcategory: string | null
           subcategory_display_order: number | null
           subcategory_id: string | null
@@ -632,7 +465,6 @@ export type Database = {
         Insert: {
           active?: boolean
           backs_qty?: number | null
-          base_price?: number | null
           bottoms_qty?: number | null
           cabinet_style?: string | null
           category: string
@@ -652,11 +484,9 @@ export type Database = {
           long_description?: string | null
           max_depth_mm?: number | null
           max_height_mm?: number | null
-          max_stock_level?: number | null
           max_width_mm?: number | null
           min_depth_mm?: number | null
           min_height_mm?: number | null
-          min_stock_level?: number | null
           min_width_mm?: number | null
           name: string
           product_image_url?: string | null
@@ -669,7 +499,6 @@ export type Database = {
           right_side_width_mm?: number | null
           short_description?: string | null
           sides_qty?: number | null
-          stock_quantity?: number | null
           subcategory?: string | null
           subcategory_display_order?: number | null
           subcategory_id?: string | null
@@ -677,7 +506,6 @@ export type Database = {
         Update: {
           active?: boolean
           backs_qty?: number | null
-          base_price?: number | null
           bottoms_qty?: number | null
           cabinet_style?: string | null
           category?: string
@@ -697,11 +525,9 @@ export type Database = {
           long_description?: string | null
           max_depth_mm?: number | null
           max_height_mm?: number | null
-          max_stock_level?: number | null
           max_width_mm?: number | null
           min_depth_mm?: number | null
           min_height_mm?: number | null
-          min_stock_level?: number | null
           min_width_mm?: number | null
           name?: string
           product_image_url?: string | null
@@ -714,7 +540,6 @@ export type Database = {
           right_side_width_mm?: number | null
           short_description?: string | null
           sides_qty?: number | null
-          stock_quantity?: number | null
           subcategory?: string | null
           subcategory_display_order?: number | null
           subcategory_id?: string | null
@@ -1074,36 +899,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      color_finishes: {
-        Row: {
-          active: boolean
-          color_id: string
-          created_at: string
-          door_style_finish_type_id: string
-          id: string
-          rate_per_sqm: number
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean
-          color_id: string
-          created_at?: string
-          door_style_finish_type_id: string
-          id?: string
-          rate_per_sqm?: number
-          updated_at?: string
-        }
-        Update: {
-          active?: boolean
-          color_id?: string
-          created_at?: string
-          door_style_finish_type_id?: string
-          id?: string
-          rate_per_sqm?: number
-          updated_at?: string
-        }
-        Relationships: []
       }
       colors: {
         Row: {
@@ -1467,77 +1262,6 @@ export type Database = {
             columns: ["address_id"]
             isOneToOne: false
             referencedRelation: "addresses"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      door_style_finish_types: {
-        Row: {
-          active: boolean
-          created_at: string
-          door_style_id: string
-          finish_name: string
-          id: string
-          sort_order: number
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean
-          created_at?: string
-          door_style_id: string
-          finish_name: string
-          id?: string
-          sort_order?: number
-          updated_at?: string
-        }
-        Update: {
-          active?: boolean
-          created_at?: string
-          door_style_id?: string
-          finish_name?: string
-          id?: string
-          sort_order?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      door_style_finishes: {
-        Row: {
-          active: boolean
-          created_at: string
-          door_style_id: string
-          id: string
-          name: string
-          rate_per_sqm: number
-          sort_order: number
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean
-          created_at?: string
-          door_style_id: string
-          id?: string
-          name: string
-          rate_per_sqm?: number
-          sort_order?: number
-          updated_at?: string
-        }
-        Update: {
-          active?: boolean
-          created_at?: string
-          door_style_id?: string
-          id?: string
-          name?: string
-          rate_per_sqm?: number
-          sort_order?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "door_style_finishes_door_style_id_fkey"
-            columns: ["door_style_id"]
-            isOneToOne: false
-            referencedRelation: "door_styles"
             referencedColumns: ["id"]
           },
         ]

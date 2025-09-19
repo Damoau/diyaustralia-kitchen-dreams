@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, ShoppingCart, Settings, LogOut, LogIn } from "lucide-react";
-import { EnhancedCartDrawer } from "@/components/cart/EnhancedCartDrawer";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -73,16 +72,19 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center space-x-4">
-          <EnhancedCartDrawer>
-            <Button variant="outline" size="sm" className="relative">
-              <ShoppingCart className="h-4 w-4" />
-              {totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {totalItems}
-                </span>
-              )}
-            </Button>
-          </EnhancedCartDrawer>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="relative"
+            onClick={() => navigate('/cart')}
+          >
+            <ShoppingCart className="h-4 w-4" />
+            {totalItems > 0 && (
+              <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {totalItems}
+              </span>
+            )}
+          </Button>
           
           {isAuthenticated ? (
             <DropdownMenu>

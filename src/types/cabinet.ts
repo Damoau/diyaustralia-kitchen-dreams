@@ -76,54 +76,13 @@ export interface CabinetType {
   qty_left_side?: number;
   qty_right_side?: number;
   // E-commerce fields
-  stock_quantity: number;
-  min_stock_level: number;
-  max_stock_level: number;
   is_featured: boolean;
   product_image_url?: string;
   short_description?: string;
   long_description?: string;
-  base_price: number;
   display_order: number;
 }
 
-export interface CabinetTypePriceRange {
-  id: string;
-  cabinet_type_id: string;
-  label: string;
-  min_width_mm: number;
-  max_width_mm: number;
-  sort_order: number;
-  active: boolean;
-  created_at: string;
-}
-
-export interface DoorStyleFinish {
-  id: string;
-  door_style_id: string;
-  name: string;
-  rate_per_sqm: number;
-  sort_order: number;
-  active: boolean;
-  created_at: string;
-  door_style?: DoorStyle;
-}
-
-export interface CabinetTypeFinish {
-  id: string;
-  cabinet_type_id: string;
-  door_style_finish_id?: string;
-  door_style_id?: string;
-  color_id?: string;
-  depth_mm?: number;
-  sort_order: number;
-  active: boolean;
-  created_at: string;
-  door_style_finish?: DoorStyleFinish;
-  door_style?: DoorStyle;
-  color?: Color;
-  image_url?: string;
-}
 
 export interface CabinetPart {
   id: string;
