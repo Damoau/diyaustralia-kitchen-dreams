@@ -305,8 +305,8 @@ const BaseCabinetsPricing = () => {
       <div className="pt-24 pb-12">
         <div className="container mx-auto px-4">
         {/* Navigation Header */}
-        <div className="sticky top-20 z-40 py-3 mb-6">
-          <div className="flex items-center justify-between gap-6">
+        <div className="sticky top-20 z-40 bg-muted/95 backdrop-blur-md border-b border-border/50 py-2 mb-6">
+          <div className="flex items-center justify-between gap-4">
             <Button
               variant="ghost"
               size="sm"
@@ -320,9 +320,56 @@ const BaseCabinetsPricing = () => {
             </Button>
             
             <div className="flex-1 text-center min-w-0">
-              <h1 className="text-xl md:text-2xl font-bold text-foreground">
+              <h1 className="text-lg font-bold text-foreground">
                 Base Cabinets Pricing
               </h1>
+            </div>
+
+            {/* Compact Filter Dropdown in Sticky Menu */}
+            <div className="flex-shrink-0">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="bg-card/80 backdrop-blur-sm border hover:border-primary/50 hover:bg-card/90 transition-all duration-200">
+                    <span className="text-sm">{getSelectedFilterLabel()}</span>
+                    <ChevronDown className="h-3 w-3 text-primary ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  align="end" 
+                  className="bg-card/95 backdrop-blur-md border-2 shadow-lg z-50 mt-1"
+                  sideOffset={4}
+                >
+                  <DropdownMenuItem
+                    onClick={() => setSelectedFilter('all')}
+                    className={`py-2 font-medium transition-colors duration-150 ${
+                      selectedFilter === 'all' 
+                        ? "bg-primary/15 text-primary" 
+                        : "hover:bg-muted/80"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      {selectedFilter === 'all' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                      All Cabinets
+                    </span>
+                  </DropdownMenuItem>
+                  {filterOptions.map((option) => (
+                    <DropdownMenuItem
+                      key={option.value}
+                      onClick={() => setSelectedFilter(option.value)}
+                      className={`py-2 font-medium transition-colors duration-150 ${
+                        selectedFilter === option.value 
+                          ? "bg-primary/15 text-primary" 
+                          : "hover:bg-muted/80"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        {selectedFilter === option.value && <div className="w-2 h-2 rounded-full bg-primary" />}
+                        {option.label}
+                      </span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             
             <Button
