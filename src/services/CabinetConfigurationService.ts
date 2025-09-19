@@ -209,8 +209,9 @@ export class CabinetConfigurationService {
   // Save configuration template to database  
   static async saveTemplate(template: Omit<ConfigurationTemplate, 'id' | 'createdAt'>): Promise<ConfigurationTemplate | null> {
     try {
-      // Use any type to bypass TypeScript issues with new table
-      const { data, error } = await (supabase as any)
+      // Use type assertion to bypass TypeScript issues with new table until types regenerate
+      const supabaseTyped = supabase as any;
+      const { data, error } = await supabaseTyped
         .from('configuration_templates')
         .insert({
           name: template.name,
@@ -244,8 +245,9 @@ export class CabinetConfigurationService {
   // Load configuration templates
   static async loadTemplates(cabinetTypeId?: string, userId?: string): Promise<ConfigurationTemplate[]> {
     try {
-      // Use any type to bypass TypeScript issues with new table
-      let query = (supabase as any)
+      // Use type assertion to bypass TypeScript issues with new table until types regenerate
+      const supabaseTyped = supabase as any;
+      let query = supabaseTyped
         .from('configuration_templates')
         .select('*')
         .order('created_at', { ascending: false });
@@ -282,8 +284,9 @@ export class CabinetConfigurationService {
   // Delete configuration template
   static async deleteTemplate(templateId: string): Promise<boolean> {
     try {
-      // Use any type to bypass TypeScript issues with new table
-      const { error } = await (supabase as any)
+      // Use type assertion to bypass TypeScript issues with new table until types regenerate
+      const supabaseTyped = supabase as any;
+      const { error } = await supabaseTyped
         .from('configuration_templates')
         .delete()
         .eq('id', templateId);
