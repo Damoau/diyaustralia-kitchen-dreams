@@ -380,41 +380,32 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Configure Product</DialogTitle>
+          <DialogTitle>{selectedCabinetType?.name || 'Configure Product'}</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column - Configuration */}
           <div className="space-y-6">
-            {/* Cabinet Type Selection */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Select Cabinet Type</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Select
-                  value={selectedCabinetType?.id || ''}
-                  onValueChange={(value) => {
-                    const cabinetType = cabinetTypes.find(ct => ct.id === value);
-                    setSelectedCabinetType(cabinetType || null);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a cabinet type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cabinetTypes.map((type) => (
-                      <SelectItem key={type.id} value={type.id}>
-                        {type.name} ({type.category})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </CardContent>
-            </Card>
-
             {selectedCabinetType && (
               <>
+                {/* Cabinet Image */}
+                <Card>
+                  <CardContent className="p-0">
+                    <div className="aspect-square relative overflow-hidden rounded-lg">
+                      {selectedCabinetType.product_image_url ? (
+                        <img
+                          src={selectedCabinetType.product_image_url}
+                          alt={selectedCabinetType.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-secondary/50 flex items-center justify-center">
+                          <span className="text-muted-foreground">No image available</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
                 {/* Dimensions */}
                 <Card>
                   <CardHeader>
