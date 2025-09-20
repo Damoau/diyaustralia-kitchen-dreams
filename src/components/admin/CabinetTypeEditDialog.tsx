@@ -741,9 +741,14 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
 
     setIsGeneratingContent(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
       const response = await fetch('https://nqxsfmnvdfdfvndrodvs.supabase.co/functions/v1/ai-content-generator', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({
           name: formData.name,
           category: formData.category,
@@ -1294,7 +1299,30 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                                   className="w-12 h-12 object-cover rounded border"
                                 />
                               )}
-                              <div className="relative">
+                              <div 
+                                className="relative border-2 border-dashed border-muted-foreground rounded-lg p-4 hover:border-primary transition-colors"
+                                onDragOver={(e) => {
+                                  e.preventDefault();
+                                  e.currentTarget.classList.add('border-primary', 'bg-primary/5');
+                                }}
+                                onDragLeave={(e) => {
+                                  e.preventDefault();
+                                  e.currentTarget.classList.remove('border-primary', 'bg-primary/5');
+                                }}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  e.currentTarget.classList.remove('border-primary', 'bg-primary/5');
+                                  const files = e.dataTransfer.files;
+                                  if (files.length > 0) {
+                                    const file = files[0];
+                                    if (file.type.startsWith('image/')) {
+                                      handleImageUpload(doorStyle.id, file);
+                                    } else {
+                                      toast.error('Please drop an image file');
+                                    }
+                                  }
+                                }}
+                              >
                                 <input
                                   type="file"
                                   accept="image/*"
@@ -1306,10 +1334,16 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                                   }}
                                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                 />
-                                <Button variant="outline" size="sm">
-                                  <Upload className="h-4 w-4 mr-2" />
-                                  {existingStyle?.image_url ? 'Change Image' : 'Add Image'}
-                                </Button>
+                                <div className="flex flex-col items-center gap-2 text-center">
+                                  <Upload className="h-6 w-6 text-muted-foreground" />
+                                  <div className="text-sm">
+                                    <span className="font-medium text-primary">Click to upload</span>
+                                    <span className="text-muted-foreground"> or drag and drop</span>
+                                  </div>
+                                  <span className="text-xs text-muted-foreground">
+                                    {existingStyle?.image_url ? 'Change Image' : 'Add Image'}
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           )}
