@@ -12,6 +12,8 @@ import { HelmetProvider } from "react-helmet-async";
 // Lazy load route components for code splitting
 const Index = lazy(() => import("./pages/Index"));
 const Shop = lazy(() => import("./pages/Shop"));
+const RoomCategories = lazy(() => import("./pages/RoomCategories"));
+const RoomCategory = lazy(() => import("./pages/RoomCategory"));
 const ShopCategory = lazy(() => import("./pages/ShopCategory"));
 const ProductPage = lazy(() => import("./pages/ProductPage"));
 const KitchenStyles = lazy(() => import("./pages/KitchenStyles"));
@@ -60,9 +62,11 @@ const App = () => (
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
-                  <Route path="/shop" element={<Shop />} />
-                  <Route path="/shop/:category" element={<ShopCategory />} />
-                  <Route path="/shop/:category/:productSlug" element={<ProductPage />} />
+            <Route path="/shop-legacy" element={<Shop />} />
+            <Route path="/shop" element={<RoomCategories />} />
+            <Route path="/shop/:room" element={<RoomCategory />} />
+            <Route path="/shop/:room/:category" element={<ShopCategory />} />
+                  <Route path="/shop/:room/:category/:productSlug" element={<ProductPage />} />
                   <Route path="/price-list" element={<PriceList />} />
                   <Route path="/get-quote" element={<GetQuote />} />
                   <Route path="/manufacturing" element={<Manufacturing />} />

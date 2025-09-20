@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, ShoppingCart, Settings, LogOut, LogIn } from "lucide-react";
+import { Menu, ShoppingCart, Settings, LogOut, LogIn, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -77,14 +77,50 @@ const Header = () => {
               >
                 Home
               </Link>
-              <Link 
-                to="/shop"
-                className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
-                  location.pathname === '/shop' ? 'text-foreground' : 'text-foreground/60'
-                }`}
-              >
-                Shop
-              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
+                      location.pathname.startsWith('/shop') ? 'text-foreground' : 'text-foreground/60'
+                    }`}
+                  >
+                    Shop <ChevronDown className="ml-1 h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuItem asChild>
+                    <Link to="/shop" className="w-full">
+                      All Categories
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/shop/kitchen" className="w-full">
+                      Kitchen Cabinets
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/shop/laundry" className="w-full">
+                      Laundry Cabinets
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/shop/vanity" className="w-full">
+                      Vanity Cabinets
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/shop/wardrobe" className="w-full">
+                      Wardrobe Systems
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/shop/outdoor-kitchen" className="w-full">
+                      Outdoor Kitchen
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Link 
                 to="/kitchen-styles"
                 className={`text-sm font-medium transition-colors hover:text-foreground/80 ${

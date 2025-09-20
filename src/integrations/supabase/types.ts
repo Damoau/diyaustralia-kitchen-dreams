@@ -512,6 +512,7 @@ export type Database = {
           range_id: string | null
           right_side_depth_mm: number | null
           right_side_width_mm: number | null
+          room_category_id: string | null
           short_description: string | null
           sides_qty: number | null
           subcategory: string | null
@@ -562,6 +563,7 @@ export type Database = {
           range_id?: string | null
           right_side_depth_mm?: number | null
           right_side_width_mm?: number | null
+          room_category_id?: string | null
           short_description?: string | null
           sides_qty?: number | null
           subcategory?: string | null
@@ -612,6 +614,7 @@ export type Database = {
           range_id?: string | null
           right_side_depth_mm?: number | null
           right_side_width_mm?: number | null
+          room_category_id?: string | null
           short_description?: string | null
           sides_qty?: number | null
           subcategory?: string | null
@@ -632,6 +635,13 @@ export type Database = {
             columns: ["range_id"]
             isOneToOne: false
             referencedRelation: "product_ranges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cabinet_types_room_category_id_fkey"
+            columns: ["room_category_id"]
+            isOneToOne: false
+            referencedRelation: "room_categories"
             referencedColumns: ["id"]
           },
           {
@@ -3408,6 +3418,42 @@ export type Database = {
           identifier?: string
           updated_at?: string
           window_start?: string
+        }
+        Relationships: []
+      }
+      room_categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          display_name: string
+          hero_image_url: string | null
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          display_name: string
+          hero_image_url?: string | null
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          hero_image_url?: string | null
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
         }
         Relationships: []
       }

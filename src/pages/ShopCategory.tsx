@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -37,58 +37,62 @@ interface CabinetType {
 }
 
 const CategoryPage = () => {
-  const { category } = useParams<{ category: string }>();
+  const { room, category } = useParams<{ room: string; category: string }>();
   const navigate = useNavigate();
   const [cabinetTypes, setCabinetTypes] = useState<CabinetType[]>([]);
   const [loading, setLoading] = useState(true);
   const [configuratorOpen, setConfiguratorOpen] = useState(false);
   const [selectedCabinet, setSelectedCabinet] = useState<CabinetType | null>(null);
+  const [roomCategory, setRoomCategory] = useState<any>(null);
 
-  // Category display mapping
-  const categoryDisplayNames: Record<string, string> = {
-    'base-cabinets': 'Base Cabinets',
-    'wall-cabinets': 'Wall Cabinets', 
-    'pantry-cabinets': 'Pantry Cabinets',
-    'tall-cabinets': 'Tall Cabinets'
+  // Category display names
+  const getCategoryDisplayName = (cat: string) => {
+    return cat?.split('-').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ') || 'Cabinets';
   };
 
-  // Map URL category to database category
-  const categoryMapping: Record<string, string> = {
-    'base-cabinets': 'base',
-    'wall-cabinets': 'wall',
-    'pantry-cabinets': 'pantry', 
-    'tall-cabinets': 'tall'
-  };
-
-  const displayCategory = categoryDisplayNames[category || ''] || 'Cabinets';
-  const dbCategory = categoryMapping[category || ''];
+  const displayCategory = getCategoryDisplayName(category);
 
   useEffect(() => {
-    const loadCabinetTypes = async () => {
-      if (!dbCategory) {
+    const loadData = async () => {
+      if (!room || !category) {
         navigate('/shop');
         return;
       }
 
       try {
+        // Load room category
+        const { data: roomData, error: roomError } = await supabase
+          .from('room_categories')
+          .select('*')
+          .eq('name', room)
+          .eq('active', true)
+          .single();
+
+        if (roomError) throw roomError;
+        setRoomCategory(roomData);
+
+        // Load cabinet types for this room and category
         const { data, error } = await supabase
           .from('cabinet_types')
           .select('*')
           .eq('active', true)
-          .eq('category', dbCategory)
+          .eq('category', category)
+          .eq('room_category_id', roomData.id)
           .order('display_order', { ascending: true });
 
         if (error) throw error;
         setCabinetTypes(data || []);
       } catch (error) {
-        console.error('Error loading cabinet types:', error);
+        console.error('Error loading data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadCabinetTypes();
-  }, [category, dbCategory, navigate]);
+    loadData();
+  }, [room, category, navigate]);
 
   const handleConfigureProduct = (cabinet: CabinetType) => {
     setSelectedCabinet(cabinet);
@@ -97,7 +101,7 @@ const CategoryPage = () => {
 
   const handleViewProduct = (cabinet: CabinetType) => {
     const slug = cabinet.url_slug || cabinet.name.toLowerCase().replace(/\s+/g, '-');
-    navigate(`/shop/${category}/${slug}`);
+    navigate(`/shop/${room}/${category}/${slug}`);
   };
 
   if (loading) {
@@ -114,16 +118,16 @@ const CategoryPage = () => {
   return (
     <>
       <Helmet>
-        <title>{displayCategory} - Premium Kitchen Cabinets | Your Company</title>
+        <title>{displayCategory} {roomCategory?.display_name || ''} | Premium Cabinet Solutions</title>
         <meta 
           name="description" 
-          content={`Browse our collection of ${displayCategory.toLowerCase()}. High-quality, customizable kitchen cabinets with professional installation.`} 
+          content={`Browse our collection of ${displayCategory.toLowerCase()} for ${roomCategory?.display_name?.toLowerCase() || 'your space'}. High-quality, customizable cabinets with professional installation.`} 
         />
         <meta 
           name="keywords" 
-          content={`${displayCategory.toLowerCase()}, kitchen cabinets, custom cabinets, cabinet installation`} 
+          content={`${displayCategory.toLowerCase()}, ${roomCategory?.name || ''} cabinets, custom cabinets`} 
         />
-        <link rel="canonical" href={`${window.location.origin}/shop/${category}`} />
+        <link rel="canonical" href={`${window.location.origin}/shop/${room}/${category}`} />
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
@@ -134,7 +138,21 @@ const CategoryPage = () => {
           <Breadcrumb className="mb-8">
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/shop">Shop</BreadcrumbLink>
+                <BreadcrumbLink asChild>
+                  <Link to="/">Home</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link to="/shop">Shop</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link to={`/shop/${room}`}>{roomCategory?.display_name}</Link>
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -145,9 +163,9 @@ const CategoryPage = () => {
 
           {/* Category Header */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4">{displayCategory}</h1>
+            <h1 className="text-4xl font-bold mb-4">{displayCategory} {roomCategory?.display_name}</h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Discover our premium {displayCategory.toLowerCase()} designed for modern kitchens. 
+              Discover our premium {displayCategory.toLowerCase()} designed for {roomCategory?.display_name?.toLowerCase() || 'your space'}. 
               Each cabinet is crafted with precision and can be customized to your exact specifications.
             </p>
           </div>
@@ -166,7 +184,7 @@ const CategoryPage = () => {
                     {cabinet.product_image_url ? (
                       <img
                         src={cabinet.product_image_url}
-                        alt={`${cabinet.name} - ${displayCategory}`}
+                        alt={`${cabinet.name} - ${displayCategory} ${roomCategory?.display_name || ''}`}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
                       />
