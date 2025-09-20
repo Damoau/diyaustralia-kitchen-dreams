@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, ShoppingCart, Settings, LogOut, LogIn } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 const Header = () => {
@@ -11,6 +11,7 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const totalItems = 0; // Placeholder since cart is removed
+  const [sheetOpen, setSheetOpen] = useState(false);
   
   // Debug logging for header cart state
   useEffect(() => {
@@ -21,9 +22,15 @@ const Header = () => {
     try {
       await signOut();
       navigate('/');
+      setSheetOpen(false);
     } catch (error) {
       console.error('Sign out error:', error);
     }
+  };
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    setSheetOpen(false);
   };
 
   const isInAdminMode = location.pathname.startsWith('/admin');
@@ -181,7 +188,7 @@ const Header = () => {
             )}
           </Button>
           
-          <Sheet>
+          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
               <Button variant="outline" size="sm">
                 <Menu className="h-5 w-5" />
@@ -200,14 +207,14 @@ const Header = () => {
                     <>
                       <Button
                         variant="ghost"
-                        onClick={() => navigate('/admin')}
+                        onClick={() => handleNavigation('/admin')}
                         className="justify-start"
                       >
                         Admin Dashboard
                       </Button>
                       <Button
                         variant="ghost"
-                        onClick={() => navigate('/')}
+                        onClick={() => handleNavigation('/')}
                         className="justify-start"
                       >
                         Back to Site
@@ -215,36 +222,41 @@ const Header = () => {
                     </>
                   ) : (
                     <>
-                      <Link
-                        to="/"
-                        className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleNavigation('/')}
+                        className="justify-start"
                       >
                         Home
-                      </Link>
-                      <Link
-                        to="/shop"
-                        className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleNavigation('/shop')}
+                        className="justify-start"
                       >
                         Shop
-                      </Link>
-                      <Link
-                        to="/kitchen-styles"
-                        className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleNavigation('/kitchen-styles')}
+                        className="justify-start"
                       >
                         Kitchen Styles
-                      </Link>
-                       <Link
-                         to="/manufacturing"
-                         className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
-                       >
-                         Manufacturing
-                       </Link>
-                       <Link
-                         to="/price-list"
-                         className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
-                       >
-                         Price List
-                       </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleNavigation('/manufacturing')}
+                        className="justify-start"
+                      >
+                        Manufacturing
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleNavigation('/price-list')}
+                        className="justify-start"
+                      >
+                        Price List
+                      </Button>
                     </>
                   )}
                   </nav>
@@ -256,7 +268,7 @@ const Header = () => {
                       {isAdmin && !isInAdminMode && (
                         <Button
                           variant="outline"
-                          onClick={() => navigate('/admin')}
+                          onClick={() => handleNavigation('/admin')}
                           className="w-full justify-start"
                         >
                           <Settings className="mr-2 h-4 w-4" />
@@ -275,7 +287,7 @@ const Header = () => {
                   ) : (
                     <Button
                       variant="outline"
-                      onClick={() => navigate('/auth')}
+                      onClick={() => handleNavigation('/auth')}
                       className="w-full justify-start"
                     >
                       <LogIn className="mr-2 h-4 w-4" />

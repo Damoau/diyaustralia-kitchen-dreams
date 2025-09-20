@@ -66,6 +66,33 @@ export const StyleColorFinishSelector: React.FC<StyleColorFinishSelectorProps> =
     }
   };
 
+  const handleDoorStyleSelect = (styleId: string) => {
+    setTempDoorStyle(styleId);
+    // Auto-advance to color step
+    setTimeout(() => {
+      setCurrentStep(2);
+    }, 300);
+  };
+
+  const handleColorSelect = (colorId: string) => {
+    setTempColor(colorId);
+    // Auto-advance to finish step
+    setTimeout(() => {
+      setCurrentStep(3);
+    }, 300);
+  };
+
+  const handleFinishSelect = (finishId: string) => {
+    setTempFinish(finishId);
+    // Auto-complete and close
+    setTimeout(() => {
+      if (tempDoorStyle && tempColor) {
+        onSelectionComplete(tempDoorStyle, tempColor, finishId);
+        onOpenChange(false);
+      }
+    }, 300);
+  };
+
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
@@ -138,7 +165,7 @@ export const StyleColorFinishSelector: React.FC<StyleColorFinishSelectorProps> =
                     className={`cursor-pointer transition-all hover:shadow-md ${
                       tempDoorStyle === style.id ? 'ring-2 ring-primary bg-primary/5' : ''
                     }`}
-                    onClick={() => setTempDoorStyle(style.id)}
+                    onClick={() => handleDoorStyleSelect(style.id)}
                   >
                     <CardContent className="p-4">
                       <div className="aspect-square mb-3 rounded-lg overflow-hidden bg-muted">
@@ -183,7 +210,7 @@ export const StyleColorFinishSelector: React.FC<StyleColorFinishSelectorProps> =
                     className={`cursor-pointer transition-all hover:shadow-md ${
                       tempColor === color.id ? 'ring-2 ring-primary bg-primary/5' : ''
                     }`}
-                    onClick={() => setTempColor(color.id)}
+                    onClick={() => handleColorSelect(color.id)}
                   >
                     <CardContent className="p-4">
                       <div className="flex flex-col items-center space-y-3">
@@ -223,7 +250,7 @@ export const StyleColorFinishSelector: React.FC<StyleColorFinishSelectorProps> =
                     className={`cursor-pointer transition-all hover:shadow-md ${
                       tempFinish === finish.id ? 'ring-2 ring-primary bg-primary/5' : ''
                     }`}
-                    onClick={() => setTempFinish(finish.id)}
+                    onClick={() => handleFinishSelect(finish.id)}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
