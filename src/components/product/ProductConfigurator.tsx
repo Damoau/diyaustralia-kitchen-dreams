@@ -379,224 +379,357 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{selectedCabinetType?.name || 'Configure Product'}</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden p-0">
+        <div className="relative">
+          {/* Mobile Sticky Price Bar - Top */}
+          {selectedCabinetType && (
+            <div className="lg:hidden sticky top-0 bg-primary text-primary-foreground px-4 py-3 z-50 flex items-center justify-between">
+              <div>
+                <div className="text-xl font-bold">
+                  ${calculateTotalPrice().toFixed(2)}
+                </div>
+                <div className="text-xs opacity-90">Total Price</div>
+              </div>
+              <Badge variant="secondary" className="text-xs">
+                {quantity} item{quantity !== 1 ? 's' : ''}
+              </Badge>
+            </div>
+          )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Image (Sticky) */}
-          <div className="lg:sticky lg:top-6 lg:self-start space-y-6">
-            {selectedCabinetType && (
-              <>
-                {/* Cabinet Image */}
-                <Card>
-                  <CardContent className="p-0">
-                    <div className="aspect-square relative overflow-hidden rounded-lg">
-                      {selectedCabinetType.product_image_url ? (
-                        <img
-                          src={selectedCabinetType.product_image_url}
-                          alt={selectedCabinetType.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-secondary/50 flex items-center justify-center">
-                          <span className="text-muted-foreground">No image available</span>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+          {/* Desktop Floating Price Box - Top Right */}
+          {selectedCabinetType && (
+            <div className="hidden lg:block fixed top-4 right-4 z-50">
+              <Card className="shadow-xl border-2 bg-primary text-primary-foreground">
+                <CardContent className="p-4 text-center min-w-[200px]">
+                  <div className="text-2xl font-bold mb-1">
+                    ${calculateTotalPrice().toFixed(2)}
+                  </div>
+                  <div className="text-xs opacity-90 mb-2">Total Price</div>
+                  <Badge variant="secondary" className="text-xs">
+                    {quantity} item{quantity !== 1 ? 's' : ''}
+                  </Badge>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
-                {/* Price Box */}
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <div className="text-3xl font-bold mb-2">
-                      ${calculateTotalPrice().toFixed(2)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Total Price</div>
-                  </CardContent>
-                </Card>
-              </>
-            )}
+          {/* Header */}
+          <div className="p-6 pb-0">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3">
+                {selectedCabinetType?.name || 'Configure Product'}
+                {selectedCabinetType && (
+                  <Badge variant="outline" className="text-xs">
+                    {selectedCabinetType.category}
+                  </Badge>
+                )}
+              </DialogTitle>
+            </DialogHeader>
           </div>
 
-          {/* Right Column - Configuration */}
-          <div className="space-y-6">
-            {selectedCabinetType && (
-              <>
-                {/* Dimensions */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Sizes (mm)</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <Label htmlFor="width">Width</Label>
-                        <Input
-                          id="width"
-                          type="number"
-                          value={dimensions.width}
-                          onChange={(e) => handleDimensionChange('width', parseInt(e.target.value) || 0)}
-                          onBlur={() => handleDimensionBlur('width')}
-                        />
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {selectedCabinetType.min_width_mm} - {selectedCabinetType.max_width_mm}mm
-                        </div>
-                      </div>
-                      <div>
-                        <Label htmlFor="height">Height</Label>
-                        <Input
-                          id="height"
-                          type="number"
-                          value={dimensions.height}
-                          onChange={(e) => handleDimensionChange('height', parseInt(e.target.value) || 0)}
-                          onBlur={() => handleDimensionBlur('height')}
-                        />
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {selectedCabinetType.min_height_mm} - {selectedCabinetType.max_height_mm}mm
-                        </div>
-                      </div>
-                      <div>
-                        <Label htmlFor="depth">Depth</Label>
-                        <Input
-                          id="depth"
-                          type="number"
-                          value={dimensions.depth}
-                          onChange={(e) => handleDimensionChange('depth', parseInt(e.target.value) || 0)}
-                          onBlur={() => handleDimensionBlur('depth')}
-                        />
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {selectedCabinetType.min_depth_mm} - {selectedCabinetType.max_depth_mm}mm
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Style & Finish */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Door Style, Colour & Finish</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label>Door Style</Label>
-                      <Select value={selectedDoorStyle} onValueChange={setSelectedDoorStyle}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select door style" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {doorStyles.map((style) => (
-                            <SelectItem key={style.id} value={style.id}>
-                              {style.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label>Colour</Label>
-                      <Select value={selectedColor} onValueChange={setSelectedColor}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select colour" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {colors.map((color) => (
-                            <SelectItem key={color.id} value={color.id}>
-                              <div className="flex items-center gap-2">
-                                {color.hex_code && (
-                                  <div 
-                                    className="w-4 h-4 rounded border"
-                                    style={{ backgroundColor: color.hex_code }}
-                                  />
-                                )}
-                                {color.name}
+          {/* Main Content */}
+          <div className="overflow-y-auto max-h-[calc(95vh-80px)] p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+              {/* Left Column - Image */}
+              <div className="lg:col-span-2">
+                {selectedCabinetType && (
+                  <div className="lg:sticky lg:top-6">
+                    <Card className="overflow-hidden">
+                      <CardContent className="p-0">
+                        <div className="aspect-square relative">
+                          {selectedCabinetType.product_image_url ? (
+                            <img
+                              src={selectedCabinetType.product_image_url}
+                              alt={selectedCabinetType.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-secondary/30 to-secondary/10 flex items-center justify-center">
+                              <div className="text-center">
+                                <div className="w-16 h-16 mx-auto mb-3 bg-secondary/30 rounded-full flex items-center justify-center">
+                                  <span className="text-2xl">📐</span>
+                                </div>
+                                <span className="text-muted-foreground text-sm">Product Preview</span>
                               </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                            </div>
+                          )}
+                          
+                          {/* Overlay with current dimensions */}
+                          <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-3">
+                            <div className="text-xs space-y-1">
+                              <div>W: {dimensions.width}mm × H: {dimensions.height}mm × D: {dimensions.depth}mm</div>
+                              {selectedDoorStyle && colors.find(c => c.id === selectedColor) && (
+                                <div className="flex items-center gap-2">
+                                  {colors.find(c => c.id === selectedColor)?.hex_code && (
+                                    <div 
+                                      className="w-3 h-3 rounded-full border border-white/50"
+                                      style={{ backgroundColor: colors.find(c => c.id === selectedColor)?.hex_code }}
+                                    />
+                                  )}
+                                  <span>{doorStyles.find(s => s.id === selectedDoorStyle)?.name}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </div>
 
-                    <div>
-                      <Label>Finish</Label>
-                      <Select value={selectedFinish} onValueChange={setSelectedFinish}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select finish" />
-                        </SelectTrigger>
-                        <SelectContent>
+              {/* Right Column - Configuration */}
+              <div className="lg:col-span-3 space-y-6">
+                {selectedCabinetType && (
+                  <>
+                    {/* Dimensions */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          📏 Cabinet Dimensions
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="width" className="text-sm font-medium">Width (mm)</Label>
+                            <Input
+                              id="width"
+                              type="number"
+                              value={dimensions.width}
+                              onChange={(e) => handleDimensionChange('width', parseInt(e.target.value) || 0)}
+                              onBlur={() => handleDimensionBlur('width')}
+                              className="text-center font-mono"
+                            />
+                            <div className="text-xs text-muted-foreground text-center">
+                              {selectedCabinetType.min_width_mm} - {selectedCabinetType.max_width_mm}
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="height" className="text-sm font-medium">Height (mm)</Label>
+                            <Input
+                              id="height"
+                              type="number"
+                              value={dimensions.height}
+                              onChange={(e) => handleDimensionChange('height', parseInt(e.target.value) || 0)}
+                              onBlur={() => handleDimensionBlur('height')}
+                              className="text-center font-mono"
+                            />
+                            <div className="text-xs text-muted-foreground text-center">
+                              {selectedCabinetType.min_height_mm} - {selectedCabinetType.max_height_mm}
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="depth" className="text-sm font-medium">Depth (mm)</Label>
+                            <Input
+                              id="depth"
+                              type="number"
+                              value={dimensions.depth}
+                              onChange={(e) => handleDimensionChange('depth', parseInt(e.target.value) || 0)}
+                              onBlur={() => handleDimensionBlur('depth')}
+                              className="text-center font-mono"
+                            />
+                            <div className="text-xs text-muted-foreground text-center">
+                              {selectedCabinetType.min_depth_mm} - {selectedCabinetType.max_depth_mm}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Door Style with Visual Preview */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          🎨 Door Style
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {doorStyles.map((style) => (
+                            <div
+                              key={style.id}
+                              onClick={() => setSelectedDoorStyle(style.id)}
+                              className={`relative p-3 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                                selectedDoorStyle === style.id 
+                                  ? 'border-primary bg-primary/5 shadow-md' 
+                                  : 'border-border hover:border-primary/50'
+                              }`}
+                            >
+                              <div className="aspect-video bg-gradient-to-br from-secondary/20 to-secondary/5 rounded mb-2 flex items-center justify-center">
+                                {style.image_url ? (
+                                  <img src={style.image_url} alt={style.name} className="w-full h-full object-cover rounded" />
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">Preview</span>
+                                )}
+                              </div>
+                              <div className="text-sm font-medium text-center">{style.name}</div>
+                              {selectedDoorStyle === style.id && (
+                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                                  <span className="text-xs text-primary-foreground">✓</span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Color with Swatches */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          🎨 Colour Selection
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                          {colors.map((color) => (
+                            <div
+                              key={color.id}
+                              onClick={() => setSelectedColor(color.id)}
+                              className={`relative p-3 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                                selectedColor === color.id 
+                                  ? 'border-primary bg-primary/5 shadow-md' 
+                                  : 'border-border hover:border-primary/50'
+                              }`}
+                            >
+                              <div className="flex flex-col items-center gap-2">
+                                <div 
+                                  className="w-8 h-8 rounded-full border-2 border-border/50 shadow-sm"
+                                  style={{ backgroundColor: color.hex_code || '#f3f4f6' }}
+                                />
+                                <div className="text-xs font-medium text-center leading-tight">{color.name}</div>
+                              </div>
+                              {selectedColor === color.id && (
+                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                                  <span className="text-xs text-primary-foreground">✓</span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Finish */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          ✨ Finish Type
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {finishes.map((finish) => (
-                            <SelectItem key={finish.id} value={finish.id}>
-                              {finish.name} - {finish.finish_type}
-                            </SelectItem>
+                            <div
+                              key={finish.id}
+                              onClick={() => setSelectedFinish(finish.id)}
+                              className={`relative p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                                selectedFinish === finish.id 
+                                  ? 'border-primary bg-primary/5 shadow-md' 
+                                  : 'border-border hover:border-primary/50'
+                              }`}
+                            >
+                              <div className="text-sm font-medium">{finish.name}</div>
+                              <div className="text-xs text-muted-foreground mt-1">{finish.finish_type}</div>
+                              {selectedFinish === finish.id && (
+                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                                  <span className="text-xs text-primary-foreground">✓</span>
+                                </div>
+                              )}
+                            </div>
                           ))}
-                        </SelectContent>
-                      </Select>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Hardware & Final Options */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Hardware Brand */}
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="flex items-center gap-2 text-base">
+                            🔧 Hardware
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select brand" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="blum">Blum</SelectItem>
+                              <SelectItem value="hettich">Hettich</SelectItem>
+                              <SelectItem value="hafele">Häfele</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </CardContent>
+                      </Card>
+
+                      {/* Quantity */}
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="flex items-center gap-2 text-base">
+                            📦 Quantity
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <Input
+                            type="number"
+                            value={quantity}
+                            onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                            min={1}
+                            className="text-center font-mono"
+                          />
+                        </CardContent>
+                      </Card>
                     </div>
-                  </CardContent>
-                </Card>
 
-                {/* Hardware Brand */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Hardware Brand</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select hardware brand" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="blum">Blum</SelectItem>
-                        <SelectItem value="hettich">Hettich</SelectItem>
-                        <SelectItem value="hafele">Häfele</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </CardContent>
-                </Card>
+                    {/* Notes */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-base">
+                          📝 Special Requirements
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <Textarea
+                          placeholder="Add any special requirements, installation notes, or custom modifications..."
+                          className="min-h-[80px] resize-none"
+                        />
+                      </CardContent>
+                    </Card>
 
-                {/* Notes */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Notes</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <textarea
-                      placeholder="Add any special requirements or notes..."
-                      className="w-full h-20 p-2 border rounded-md resize-none"
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Quantity & Add to Cart */}
-                <Card>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="quantity">Quantity</Label>
-                      <Input
-                        id="quantity"
-                        type="number"
-                        value={quantity}
-                        onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                        min={1}
-                      />
-                    </div>
-                    
-                    <Button 
-                      onClick={handleAddToCart} 
-                      disabled={loading || !selectedDoorStyle || !selectedColor || !selectedFinish}
-                      className="w-full"
-                      size="lg"
-                    >
-                      {loading ? 'Adding...' : 'ADD TO CART'}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </>
-            )}
+                    {/* Add to Cart - Prominent */}
+                    <Card className="border-primary/20 bg-primary/5">
+                      <CardContent className="p-6">
+                        <Button 
+                          onClick={handleAddToCart} 
+                          disabled={loading || !selectedDoorStyle || !selectedColor || !selectedFinish}
+                          className="w-full h-12 text-lg font-semibold"
+                          size="lg"
+                        >
+                          {loading ? (
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                              Adding to Cart...
+                            </div>
+                          ) : (
+                            `Add ${quantity} ${quantity === 1 ? 'Cabinet' : 'Cabinets'} to Cart - $${calculateTotalPrice().toFixed(2)}`
+                          )}
+                        </Button>
+                        {(!selectedDoorStyle || !selectedColor || !selectedFinish) && (
+                          <div className="text-xs text-muted-foreground text-center mt-2">
+                            Please select door style, color, and finish to continue
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </DialogContent>
