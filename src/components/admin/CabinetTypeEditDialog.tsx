@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataTable } from '@/components/admin/shared/DataTable';
+import { CabinetComponentsTab } from '@/components/admin/CabinetComponentsTab';
 import { Plus, Trash2, Edit, Package, Settings, Wrench, X, Upload, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
@@ -1010,18 +1011,6 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                         placeholder="e.g., Standard, Corner"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="cabinet_style">Cabinet Style</Label>
-                      <Select value={formData.cabinet_style || 'standard'} onValueChange={(value) => handleInputChange('cabinet_style', value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select cabinet style" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="standard">Standard Cabinet</SelectItem>
-                          <SelectItem value="corner">Corner Cabinet</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
                   </div>
 
                   <div className="flex items-center space-x-2">
@@ -1374,59 +1363,12 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
               </Card>
             </TabsContent>
 
-            <TabsContent value="parts" className="p-6 space-y-8 m-0">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Settings className="h-5 w-5" />
-                      Parts & Formulas
-                    </CardTitle>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setEditingPart(null);
-                        setShowPartForm(true);
-                      }}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Part
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {showPartForm && (
-                    <Card className="border-dashed">
-                      <CardHeader>
-                        <CardTitle className="text-sm">
-                          {editingPart ? 'Edit Part' : 'Add New Part'}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <PartForm
-                          part={editingPart}
-                          onSave={(partData) => saveCabinetPart.mutate(partData)}
-                          onCancel={() => {
-                            setEditingPart(null);
-                            setShowPartForm(false);
-                          }}
-                          loading={saveCabinetPart.isPending}
-                        />
-                      </CardContent>
-                    </Card>
-                  )}
-                  
-                  <DataTable
-                    columns={partsColumns}
-                    data={(cabinetParts || []).filter(part => part.id).map(part => ({ 
-                      ...part, 
-                      id: part.id as string 
-                    }))}
-                    loading={loadingParts}
-                  />
-                </CardContent>
-              </Card>
+            <TabsContent value="parts" className="p-6 m-0">
+              <CabinetComponentsTab 
+                cabinetId={cabinetType?.id || 'new'} 
+                cabinetStyle={formData.cabinet_style || 'standard'}
+                onCabinetStyleChange={(style) => handleInputChange('cabinet_style', style)}
+              />
             </TabsContent>
 
             <TabsContent value="hardware" className="p-6 space-y-8 m-0">

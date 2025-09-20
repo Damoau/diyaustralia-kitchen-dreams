@@ -31,9 +31,11 @@ interface CabinetPart {
 
 interface CabinetComponentsTabProps {
   cabinetId: string;
+  cabinetStyle: string;
+  onCabinetStyleChange: (style: string) => void;
 }
 
-export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ cabinetId }) => {
+export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ cabinetId, cabinetStyle, onCabinetStyleChange }) => {
   const [isAddingPart, setIsAddingPart] = useState(false);
   const [newPart, setNewPart] = useState({
     part_name: '',
@@ -150,83 +152,97 @@ export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ cabi
                 Define the parts that make up this cabinet type and their quantity formulas
               </CardDescription>
             </div>
-            <Dialog open={isAddingPart} onOpenChange={setIsAddingPart}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Component
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add Cabinet Component</DialogTitle>
-                  <DialogDescription>
-                    Define a new component for this cabinet type
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Part Name</Label>
-                    <Input
-                      value={newPart.part_name}
-                      onChange={(e) => setNewPart({ ...newPart, part_name: e.target.value })}
-                      placeholder="e.g., Left Side, Right Side, Door"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Quantity</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      value={newPart.quantity}
-                      onChange={(e) => setNewPart({ ...newPart, quantity: parseInt(e.target.value) || 1 })}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="cabinet_style" className="text-sm font-medium">Cabinet Style</Label>
+                <Select value={cabinetStyle || 'standard'} onValueChange={onCabinetStyleChange}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select style" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="standard">Standard Cabinet</SelectItem>
+                    <SelectItem value="corner">Corner Cabinet</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Dialog open={isAddingPart} onOpenChange={setIsAddingPart}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Component
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add Cabinet Component</DialogTitle>
+                    <DialogDescription>
+                      Define a new component for this cabinet type
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label>Width Formula</Label>
+                      <Label>Part Name</Label>
                       <Input
-                        value={newPart.width_formula}
-                        onChange={(e) => setNewPart({ ...newPart, width_formula: e.target.value })}
-                        placeholder="W or W-30"
+                        value={newPart.part_name}
+                        onChange={(e) => setNewPart({ ...newPart, part_name: e.target.value })}
+                        placeholder="e.g., Left Side, Right Side, Door"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Height Formula</Label>
+                      <Label>Quantity</Label>
                       <Input
-                        value={newPart.height_formula}
-                        onChange={(e) => setNewPart({ ...newPart, height_formula: e.target.value })}
-                        placeholder="H or H-20"
+                        type="number"
+                        min="1"
+                        value={newPart.quantity}
+                        onChange={(e) => setNewPart({ ...newPart, quantity: parseInt(e.target.value) || 1 })}
                       />
                     </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        checked={newPart.is_door}
-                        onCheckedChange={(checked) => setNewPart({ ...newPart, is_door: checked })}
-                      />
-                      <Label>Is Door</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Width Formula</Label>
+                        <Input
+                          value={newPart.width_formula}
+                          onChange={(e) => setNewPart({ ...newPart, width_formula: e.target.value })}
+                          placeholder="W or W-30"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Height Formula</Label>
+                        <Input
+                          value={newPart.height_formula}
+                          onChange={(e) => setNewPart({ ...newPart, height_formula: e.target.value })}
+                          placeholder="H or H-20"
+                        />
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        checked={newPart.is_hardware}
-                        onCheckedChange={(checked) => setNewPart({ ...newPart, is_hardware: checked })}
-                      />
-                      <Label>Is Hardware</Label>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          checked={newPart.is_door}
+                          onCheckedChange={(checked) => setNewPart({ ...newPart, is_door: checked })}
+                        />
+                        <Label>Is Door</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          checked={newPart.is_hardware}
+                          onCheckedChange={(checked) => setNewPart({ ...newPart, is_hardware: checked })}
+                        />
+                        <Label>Is Hardware</Label>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 pt-4">
+                      <Button onClick={handleAddPart} disabled={addPartMutation.isPending}>
+                        Add Component
+                      </Button>
+                      <Button variant="outline" onClick={() => setIsAddingPart(false)}>
+                        Cancel
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-2 pt-4">
-                    <Button onClick={handleAddPart} disabled={addPartMutation.isPending}>
-                      Add Component
-                    </Button>
-                    <Button variant="outline" onClick={() => setIsAddingPart(false)}>
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
