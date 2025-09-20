@@ -25,13 +25,30 @@ Subcategory: ${subcategory || 'N/A'}
 Style: ${cabinet_style || 'standard'}
 Dimensions: ${dimensions.width}mm W x ${dimensions.height}mm H x ${dimensions.depth}mm D
 
+MANDATORY CONTENT REQUIREMENTS:
+
+SHORT DESCRIPTION RULES:
+- Must include the cabinet name
+- Must include "Custom Australian kitchens at amazing prices"
+- Keep to 1-2 sentences for product listings
+
+LONG DESCRIPTION RULES:
+- Must include "The carcasses are HMR Australian made"
+- Must list available door options: Shaker, Flat Panel, Raised Panel, Glass Front, and other popular styles
+- Must mention "All hinges and drawer runners are soft close and come with a 20-year warranty"
+- Must state "All cabinets come with a 15-year warranty"
+- Must include "Feet included and adjustable from 100mm to 190mm. Most people set their kicks at 150mm"
+- Must mention "Kitchens can be delivered as flat pack or assembled in selected areas"
+- If category is "base" or contains "base": Must state "Height excludes the kick"
+- If category is "pantry" or contains "pantry": Must state "Pantry height excludes the kick"
+
 Please generate:
 1. Meta Title (under 60 characters, include product name and "DIY Australia")
 2. Meta Description (150-160 characters, SEO optimized with call to action)
 3. Meta Keywords (comma-separated, focus on kitchen cabinets, flat pack, DIY, Australia)
 4. URL Slug (lowercase, hyphen-separated, SEO friendly)
-5. Short Description (1-2 sentences for product listings)
-6. Long Description (3-4 paragraphs, detailed product description mentioning Australian-made, flat-pack, quality materials, Blum/Titus hardware, fast delivery)
+5. Short Description (following SHORT DESCRIPTION RULES above)
+6. Long Description (3-4 paragraphs following LONG DESCRIPTION RULES above)
 
 Format response as JSON with keys: meta_title, meta_description, meta_keywords, url_slug, short_description, long_description`;
 
