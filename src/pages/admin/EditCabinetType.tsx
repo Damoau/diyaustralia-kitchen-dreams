@@ -648,7 +648,12 @@ export default function EditCabinetType() {
           </Button>
           <div className="flex-1">
             <h1 className="text-2xl font-semibold">
-              {id === "new" ? "Create Cabinet Type" : "Edit Cabinet Type"}
+              {id === "new" 
+                ? "Create Cabinet Type" 
+                : cabinetType?.name 
+                  ? `Edit Cabinet Type - ${cabinetType.name}`
+                  : "Edit Cabinet Type"
+              }
             </h1>
             <p className="text-sm text-muted-foreground">
               Configure cabinet specifications, parts, and hardware requirements
