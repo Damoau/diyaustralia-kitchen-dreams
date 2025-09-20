@@ -858,15 +858,21 @@ export default function EditCabinetType() {
                     {cabinetType.cabinet_style === 'corner' ? (
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="left_side_width_mm">Left Width (mm)</Label>
-                            <Input
-                              id="left_side_width_mm"
-                              type="number"
-                              value={cabinetType.left_side_width_mm || 600}
-                              onChange={(e) => handleInputChange('left_side_width_mm', parseInt(e.target.value))}
-                            />
-                          </div>
+                           <div>
+                             <Label htmlFor="left_side_width_mm">Left Width (mm)</Label>
+                             <Input
+                               id="left_side_width_mm"
+                               type="number"
+                               step="50"
+                               value={cabinetType.left_side_width_mm || 600}
+                               onChange={(e) => {
+                                 const value = parseInt(e.target.value);
+                                 // Round to nearest 50mm increment
+                                 const rounded = Math.round(value / 50) * 50;
+                                 handleInputChange('left_side_width_mm', rounded);
+                               }}
+                             />
+                           </div>
                           <div>
                             <Label htmlFor="right_side_width_mm">Right Width (mm)</Label>
                             <Input
@@ -935,14 +941,14 @@ export default function EditCabinetType() {
                               onChange={(e) => handleInputChange('max_width_mm', parseInt(e.target.value) || 0)}
                             />
                           </div>
-                          <div className="space-y-2">
-                            <Label>Increment (mm)</Label>
-                            <Input
-                              type="number"
-                              value={cabinetType.width_increment}
-                              onChange={(e) => handleInputChange('width_increment', parseInt(e.target.value) || 0)}
-                            />
-                          </div>
+                           <div className="space-y-2">
+                             <Label>Increment (mm)</Label>
+                             <Input
+                               type="number"
+                               value={cabinetType.width_increment || 50}
+                               onChange={(e) => handleInputChange('width_increment', parseInt(e.target.value) || 50)}
+                             />
+                           </div>
                         </div>
 
                         <div className="space-y-4">
