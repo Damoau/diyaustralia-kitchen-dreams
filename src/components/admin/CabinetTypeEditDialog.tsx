@@ -10,9 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { EditDrawer } from '@/components/admin/shared/EditDrawer';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { DataTable } from '@/components/admin/shared/DataTable';
-import { Plus, Trash2, Edit, Package, Settings, Wrench } from 'lucide-react';
+import { Plus, Trash2, Edit, Package, Settings, Wrench, X } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 interface CabinetType {
@@ -543,6 +544,19 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
     saveCabinetType.mutate(formData);
   };
 
+  const handleClose = (open: boolean) => {
+    if (!open) {
+      // Auto-save if there are changes and required fields are filled
+      if (formData.name && formData.category && (cabinetType || formData.name !== defaultCabinetType.name)) {
+        handleSave();
+      } else {
+        onOpenChange(false);
+      }
+    } else {
+      onOpenChange(true);
+    }
+  };
+
   const handleInputChange = (field: keyof CabinetType, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -667,266 +681,298 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
   ];
 
   return (
-    <EditDrawer
-      open={open}
-      onOpenChange={onOpenChange}
-      title={cabinetType ? 'Edit Cabinet Type' : 'Add Cabinet Type'}
-      description="Configure cabinet specifications, parts, and hardware requirements"
-      onSave={handleSave}
-      saveDisabled={!formData.name || !formData.category}
-      loading={saveCabinetType.isPending}
-      size="lg"
-    >
-      <div className="space-y-8">
-        {/* Basic Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Basic Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name">Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  placeholder="e.g., Base Cabinet 2-Door"
-                />
-              </div>
-              <div>
-                <Label htmlFor="category">Category *</Label>
-                <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="base">Base Cabinets</SelectItem>
-                    <SelectItem value="wall">Wall Cabinets</SelectItem>
-                    <SelectItem value="tall">Tall Cabinets</SelectItem>
-                    <SelectItem value="specialty">Specialty</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="subcategory">Subcategory</Label>
-                <Input
-                  id="subcategory"
-                  value={formData.subcategory || ''}
-                  onChange={(e) => handleInputChange('subcategory', e.target.value)}
-                  placeholder="e.g., Standard, Corner"
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="active"
-                  checked={formData.active}
-                  onCheckedChange={(checked) => handleInputChange('active', checked)}
-                />
-                <Label htmlFor="active">Active</Label>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="default_width_mm">Default Width (mm)</Label>
-                <Input
-                  id="default_width_mm"
-                  type="number"
-                  value={formData.default_width_mm}
-                  onChange={(e) => handleInputChange('default_width_mm', parseInt(e.target.value))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="default_height_mm">Default Height (mm)</Label>
-                <Input
-                  id="default_height_mm"
-                  type="number"
-                  value={formData.default_height_mm}
-                  onChange={(e) => handleInputChange('default_height_mm', parseInt(e.target.value))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="default_depth_mm">Default Depth (mm)</Label>
-                <Input
-                  id="default_depth_mm"
-                  type="number"
-                  value={formData.default_depth_mm}
-                  onChange={(e) => handleInputChange('default_depth_mm', parseInt(e.target.value))}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="door_count">Door Count</Label>
-                <Input
-                  id="door_count"
-                  type="number"
-                  min="0"
-                  value={formData.door_count}
-                  onChange={(e) => handleInputChange('door_count', parseInt(e.target.value))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="drawer_count">Drawer Count</Label>
-                <Input
-                  id="drawer_count"
-                  type="number"
-                  min="0"
-                  value={formData.drawer_count}
-                  onChange={(e) => handleInputChange('drawer_count', parseInt(e.target.value))}
-                />
-              </div>
-            </div>
-
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+        <DialogHeader className="px-6 py-4 border-b">
+          <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="short_description">Short Description</Label>
-              <Input
-                id="short_description"
-                value={formData.short_description || ''}
-                onChange={(e) => handleInputChange('short_description', e.target.value)}
-                placeholder="Brief description for listings"
-              />
+              <DialogTitle>
+                {cabinetType ? 'Edit Cabinet Type' : 'Add Cabinet Type'}
+              </DialogTitle>
+              <DialogDescription>
+                Configure cabinet specifications, parts, and hardware requirements
+              </DialogDescription>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </DialogHeader>
 
-            <div>
-              <Label htmlFor="long_description">Long Description</Label>
-              <Textarea
-                id="long_description"
-                value={formData.long_description || ''}
-                onChange={(e) => handleInputChange('long_description', e.target.value)}
-                placeholder="Detailed description for product pages"
-                rows={3}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Parts & Formulas - Only show for existing cabinet types */}
-        {cabinetType?.id && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
+        <ScrollArea className="flex-1 px-6">
+          <div className="py-4 space-y-8">
+            {/* Basic Information */}
+            <Card>
+              <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  Parts & Formulas
+                  <Package className="h-5 w-5" />
+                  Basic Information
                 </CardTitle>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setEditingPart(null);
-                    setShowPartForm(true);
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Part
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {showPartForm && (
-                <Card className="border-dashed">
-                  <CardHeader>
-                    <CardTitle className="text-sm">
-                      {editingPart ? 'Edit Part' : 'Add New Part'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <PartForm
-                      part={editingPart}
-                      onSave={(partData) => saveCabinetPart.mutate(partData)}
-                      onCancel={() => {
-                        setEditingPart(null);
-                        setShowPartForm(false);
-                      }}
-                      loading={saveCabinetPart.isPending}
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name">Name *</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      placeholder="e.g., Base Cabinet 2-Door"
                     />
-                  </CardContent>
-                </Card>
-              )}
-              
-              <DataTable
-                columns={partsColumns}
-                data={(cabinetParts || []).filter(part => part.id).map(part => ({ 
-                  ...part, 
-                  id: part.id as string 
-                }))}
-                loading={loadingParts}
-              />
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Hardware Requirements - Only show for existing cabinet types */}
-        {cabinetType?.id && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Wrench className="h-5 w-5" />
-                    Hardware Requirements
-                  </CardTitle>
-                  <CardDescription>
-                    Define hardware requirements for this cabinet type
-                  </CardDescription>
+                  </div>
+                  <div>
+                    <Label htmlFor="category">Category *</Label>
+                    <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="base">Base Cabinets</SelectItem>
+                        <SelectItem value="wall">Wall Cabinets</SelectItem>
+                        <SelectItem value="tall">Tall Cabinets</SelectItem>
+                        <SelectItem value="specialty">Specialty</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setEditingHardware(null);
-                    setShowHardwareForm(true);
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Hardware
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {showHardwareForm && (
-                <Card className="border-dashed">
-                  <CardHeader>
-                    <CardTitle className="text-sm">
-                      {editingHardware ? 'Edit Hardware Requirement' : 'Add New Hardware Requirement'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <HardwareRequirementForm
-                      requirement={editingHardware}
-                      onSave={(hardwareData) => saveHardwareRequirement.mutate(hardwareData)}
-                      onCancel={() => {
-                        setEditingHardware(null);
-                        setShowHardwareForm(false);
-                      }}
-                      loading={saveHardwareRequirement.isPending}
-                      hardwareTypes={hardwareTypes || []}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="subcategory">Subcategory</Label>
+                    <Input
+                      id="subcategory"
+                      value={formData.subcategory || ''}
+                      onChange={(e) => handleInputChange('subcategory', e.target.value)}
+                      placeholder="e.g., Standard, Corner"
                     />
-                  </CardContent>
-                </Card>
-              )}
-              
-              <DataTable
-                columns={hardwareColumns}
-                data={(hardwareRequirements || []).filter(hw => hw.id).map(hw => ({ 
-                  ...hw, 
-                  id: hw.id as string 
-                }))}
-                loading={loadingHardware}
-              />
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </EditDrawer>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="active"
+                      checked={formData.active}
+                      onCheckedChange={(checked) => handleInputChange('active', checked)}
+                    />
+                    <Label htmlFor="active">Active</Label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="default_width_mm">Default Width (mm)</Label>
+                    <Input
+                      id="default_width_mm"
+                      type="number"
+                      value={formData.default_width_mm}
+                      onChange={(e) => handleInputChange('default_width_mm', parseInt(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="default_height_mm">Default Height (mm)</Label>
+                    <Input
+                      id="default_height_mm"
+                      type="number"
+                      value={formData.default_height_mm}
+                      onChange={(e) => handleInputChange('default_height_mm', parseInt(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="default_depth_mm">Default Depth (mm)</Label>
+                    <Input
+                      id="default_depth_mm"
+                      type="number"
+                      value={formData.default_depth_mm}
+                      onChange={(e) => handleInputChange('default_depth_mm', parseInt(e.target.value))}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="door_count">Door Count</Label>
+                    <Input
+                      id="door_count"
+                      type="number"
+                      min="0"
+                      value={formData.door_count}
+                      onChange={(e) => handleInputChange('door_count', parseInt(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="drawer_count">Drawer Count</Label>
+                    <Input
+                      id="drawer_count"
+                      type="number"
+                      min="0"
+                      value={formData.drawer_count}
+                      onChange={(e) => handleInputChange('drawer_count', parseInt(e.target.value))}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="short_description">Short Description</Label>
+                  <Input
+                    id="short_description"
+                    value={formData.short_description || ''}
+                    onChange={(e) => handleInputChange('short_description', e.target.value)}
+                    placeholder="Brief description for listings"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="long_description">Long Description</Label>
+                  <Textarea
+                    id="long_description"
+                    value={formData.long_description || ''}
+                    onChange={(e) => handleInputChange('long_description', e.target.value)}
+                    placeholder="Detailed description for product pages"
+                    rows={3}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Parts & Formulas - Only show for existing cabinet types */}
+            {cabinetType?.id && (
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Settings className="h-5 w-5" />
+                      Parts & Formulas
+                    </CardTitle>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEditingPart(null);
+                        setShowPartForm(true);
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Part
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {showPartForm && (
+                    <Card className="border-dashed">
+                      <CardHeader>
+                        <CardTitle className="text-sm">
+                          {editingPart ? 'Edit Part' : 'Add New Part'}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <PartForm
+                          part={editingPart}
+                          onSave={(partData) => saveCabinetPart.mutate(partData)}
+                          onCancel={() => {
+                            setEditingPart(null);
+                            setShowPartForm(false);
+                          }}
+                          loading={saveCabinetPart.isPending}
+                        />
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  <DataTable
+                    columns={partsColumns}
+                    data={(cabinetParts || []).filter(part => part.id).map(part => ({ 
+                      ...part, 
+                      id: part.id as string 
+                    }))}
+                    loading={loadingParts}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Hardware Requirements - Only show for existing cabinet types */}
+            {cabinetType?.id && (
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Wrench className="h-5 w-5" />
+                        Hardware Requirements
+                      </CardTitle>
+                      <CardDescription>
+                        Define hardware requirements for this cabinet type
+                      </CardDescription>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEditingHardware(null);
+                        setShowHardwareForm(true);
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Hardware
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {showHardwareForm && (
+                    <Card className="border-dashed">
+                      <CardHeader>
+                        <CardTitle className="text-sm">
+                          {editingHardware ? 'Edit Hardware Requirement' : 'Add New Hardware Requirement'}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <HardwareRequirementForm
+                          requirement={editingHardware}
+                          onSave={(hardwareData) => saveHardwareRequirement.mutate(hardwareData)}
+                          onCancel={() => {
+                            setEditingHardware(null);
+                            setShowHardwareForm(false);
+                          }}
+                          loading={saveHardwareRequirement.isPending}
+                          hardwareTypes={hardwareTypes || []}
+                        />
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  <DataTable
+                    columns={hardwareColumns}
+                    data={(hardwareRequirements || []).filter(hw => hw.id).map(hw => ({ 
+                      ...hw, 
+                      id: hw.id as string 
+                    }))}
+                    loading={loadingHardware}
+                  />
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </ScrollArea>
+
+        <div className="border-t px-6 py-4 bg-background">
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={!formData.name || !formData.category || saveCabinetType.isPending}
+            >
+              {saveCabinetType.isPending ? 'Saving...' : 'Save'}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
