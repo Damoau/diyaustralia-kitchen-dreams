@@ -29,9 +29,6 @@ interface CabinetType {
   drawer_count: number;
   featured_product: boolean;
   description?: string;
-  seo_title?: string;
-  seo_description?: string;
-  seo_keywords?: string;
   meta_title?: string;
   meta_description?: string;
   meta_keywords?: string;
@@ -114,9 +111,9 @@ const defaultCabinetType: CabinetType = {
   drawer_count: 0,
   featured_product: false,
   description: "",
-  seo_title: "",
-  seo_description: "",
-  seo_keywords: "",
+  meta_title: "",
+  meta_description: "",
+  meta_keywords: "",
   default_width_mm: 600,
   default_height_mm: 720,
   default_depth_mm: 560,
@@ -740,10 +737,10 @@ export default function EditCabinetType() {
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Base Cabinets">Base Cabinets</SelectItem>
-                          <SelectItem value="Wall Cabinets">Wall Cabinets</SelectItem>
-                          <SelectItem value="Tall Cabinets">Tall Cabinets</SelectItem>
-                          <SelectItem value="Corner Cabinets">Corner Cabinets</SelectItem>
+                          <SelectItem value="base">Base Cabinets</SelectItem>
+                          <SelectItem value="wall">Wall Cabinets</SelectItem>
+                          <SelectItem value="tall">Tall Cabinets</SelectItem>
+                          <SelectItem value="corner">Corner Cabinets</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -797,32 +794,32 @@ export default function EditCabinetType() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="seo_title">SEO Title</Label>
+                    <Label htmlFor="meta_title">SEO Title</Label>
                     <Input
-                      id="seo_title"
-                      value={cabinetType.seo_title || ''}
-                      onChange={(e) => handleInputChange('seo_title', e.target.value)}
+                      id="meta_title"
+                      value={cabinetType.meta_title || ''}
+                      onChange={(e) => handleInputChange('meta_title', e.target.value)}
                       placeholder="SEO optimized title"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="seo_description">SEO Description</Label>
+                    <Label htmlFor="meta_description">SEO Description</Label>
                     <Textarea
-                      id="seo_description"
-                      value={cabinetType.seo_description || ''}
-                      onChange={(e) => handleInputChange('seo_description', e.target.value)}
+                      id="meta_description"
+                      value={cabinetType.meta_description || ''}
+                      onChange={(e) => handleInputChange('meta_description', e.target.value)}
                       placeholder="SEO meta description"
                       rows={2}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="seo_keywords">SEO Keywords</Label>
+                    <Label htmlFor="meta_keywords">SEO Keywords</Label>
                     <Input
-                      id="seo_keywords"
-                      value={cabinetType.seo_keywords || ''}
-                      onChange={(e) => handleInputChange('seo_keywords', e.target.value)}
+                      id="meta_keywords"
+                      value={cabinetType.meta_keywords || ''}
+                      onChange={(e) => handleInputChange('meta_keywords', e.target.value)}
                       placeholder="keyword1, keyword2, keyword3"
                     />
                   </div>
