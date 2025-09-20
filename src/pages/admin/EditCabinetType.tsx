@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/admin/shared/DataTable";
 import { CabinetComponentsTab } from "@/components/admin/CabinetComponentsTab";
 import { toast } from "sonner";
@@ -228,6 +229,7 @@ export default function EditCabinetType() {
   const [cabinetType, setCabinetType] = useState<CabinetType>(defaultCabinetType);
   const [editingHardware, setEditingHardware] = useState<CabinetHardwareRequirement | null>(null);
   const [showHardwareForm, setShowHardwareForm] = useState(false);
+  const [generatedSizes, setGeneratedSizes] = useState<number[]>([]);
   const queryClient = useQueryClient();
 
   // Fetch cabinet type data
@@ -1183,6 +1185,7 @@ export default function EditCabinetType() {
                                for (let width = minWidth; width <= maxWidth; width += 50) {
                                  generated.push(width);
                                }
+                               setGeneratedSizes(generated);
                                toast.success(`Generated ${generated.length} width options: ${generated.join(', ')}mm`);
                              }}
                              className="gap-2"
@@ -1218,6 +1221,22 @@ export default function EditCabinetType() {
                          <div className="text-xs text-muted-foreground">
                            Available widths: {cabinetType.min_width_mm || 100}mm to {cabinetType.max_width_mm || 1200}mm in 50mm steps
                          </div>
+                         
+                         {generatedSizes.length > 0 && (
+                           <div className="space-y-2">
+                             <Label className="text-sm font-medium">Generated Width Options</Label>
+                             <div className="flex flex-wrap gap-2 p-3 bg-muted/50 rounded-md max-h-32 overflow-y-auto">
+                               {generatedSizes.map((size) => (
+                                 <Badge key={size} variant="outline" className="text-xs">
+                                   {size}mm
+                                 </Badge>
+                               ))}
+                             </div>
+                             <div className="text-xs text-muted-foreground">
+                               {generatedSizes.length} size options generated
+                             </div>
+                           </div>
+                         )}
                        </div>
                      )}
                   </div>
