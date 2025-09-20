@@ -265,13 +265,52 @@ const Header = () => {
                       >
                         Home
                       </Button>
-                      <Button
-                        variant="ghost"
-                        onClick={() => handleNavigation('/shop')}
-                        className="justify-start"
-                      >
-                        Shop
-                      </Button>
+                      <div className="space-y-2">
+                        <Button
+                          variant="ghost"
+                          onClick={() => handleNavigation('/shop')}
+                          className="justify-start font-medium"
+                        >
+                          Shop - All Categories
+                        </Button>
+                        <div className="ml-4 space-y-1">
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleNavigation('/shop/kitchen')}
+                            className="justify-start text-sm text-muted-foreground hover:text-foreground"
+                          >
+                            Kitchen Cabinets
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleNavigation('/shop/laundry')}
+                            className="justify-start text-sm text-muted-foreground hover:text-foreground"
+                          >
+                            Laundry Cabinets
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleNavigation('/shop/vanity')}
+                            className="justify-start text-sm text-muted-foreground hover:text-foreground"
+                          >
+                            Vanity Cabinets
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleNavigation('/shop/wardrobe')}
+                            className="justify-start text-sm text-muted-foreground hover:text-foreground"
+                          >
+                            Wardrobe Systems
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleNavigation('/shop/outdoor-kitchen')}
+                            className="justify-start text-sm text-muted-foreground hover:text-foreground"
+                          >
+                            Outdoor Kitchen
+                          </Button>
+                        </div>
+                      </div>
                       <Button
                         variant="ghost"
                         onClick={() => handleNavigation('/kitchen-styles')}
