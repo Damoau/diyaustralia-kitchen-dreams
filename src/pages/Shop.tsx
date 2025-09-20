@@ -182,6 +182,42 @@ const Shop = () => {
               Browse our complete range of kitchen cabinets. Configure and customize each cabinet to your exact specifications.
             </p>
 
+            {/* Quick Navigation to Category Pages */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <Button 
+                variant="outline" 
+                className="p-4 h-auto flex-col"
+                onClick={() => window.location.href = '/shop/base-cabinets'}
+              >
+                <div className="font-medium">Base Cabinets</div>
+                <div className="text-sm text-muted-foreground">Foundation cabinets</div>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="p-4 h-auto flex-col"
+                onClick={() => window.location.href = '/shop/wall-cabinets'}
+              >
+                <div className="font-medium">Wall Cabinets</div>
+                <div className="text-sm text-muted-foreground">Upper storage</div>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="p-4 h-auto flex-col"
+                onClick={() => window.location.href = '/shop/pantry-cabinets'}
+              >
+                <div className="font-medium">Pantry Cabinets</div>
+                <div className="text-sm text-muted-foreground">Storage solutions</div>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="p-4 h-auto flex-col"
+                onClick={() => window.location.href = '/shop/tall-cabinets'}
+              >
+                <div className="font-medium">Tall Cabinets</div>
+                <div className="text-sm text-muted-foreground">Full height units</div>
+              </Button>
+            </div>
+
             {/* Category Filter Buttons */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-12">
               {categories.map((category) => (
