@@ -492,6 +492,9 @@ export type Database = {
           max_depth_mm: number | null
           max_height_mm: number | null
           max_width_mm: number | null
+          meta_description: string | null
+          meta_keywords: string | null
+          meta_title: string | null
           min_depth_mm: number | null
           min_height_mm: number | null
           min_width_mm: number | null
@@ -509,6 +512,7 @@ export type Database = {
           subcategory: string | null
           subcategory_display_order: number | null
           subcategory_id: string | null
+          url_slug: string | null
         }
         Insert: {
           active?: boolean
@@ -533,6 +537,9 @@ export type Database = {
           max_depth_mm?: number | null
           max_height_mm?: number | null
           max_width_mm?: number | null
+          meta_description?: string | null
+          meta_keywords?: string | null
+          meta_title?: string | null
           min_depth_mm?: number | null
           min_height_mm?: number | null
           min_width_mm?: number | null
@@ -550,6 +557,7 @@ export type Database = {
           subcategory?: string | null
           subcategory_display_order?: number | null
           subcategory_id?: string | null
+          url_slug?: string | null
         }
         Update: {
           active?: boolean
@@ -574,6 +582,9 @@ export type Database = {
           max_depth_mm?: number | null
           max_height_mm?: number | null
           max_width_mm?: number | null
+          meta_description?: string | null
+          meta_keywords?: string | null
+          meta_title?: string | null
           min_depth_mm?: number | null
           min_height_mm?: number | null
           min_width_mm?: number | null
@@ -591,6 +602,7 @@ export type Database = {
           subcategory?: string | null
           subcategory_display_order?: number | null
           subcategory_id?: string | null
+          url_slug?: string | null
         }
         Relationships: [
           {
