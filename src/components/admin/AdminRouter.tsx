@@ -26,6 +26,7 @@ const Reports = lazy(() => import('@/pages/admin/Reports'));
 const Exports = lazy(() => import('@/pages/admin/Exports'));
 const Notifications = lazy(() => import('@/pages/admin/Notifications'));
 const Settings = lazy(() => import('@/pages/admin/Settings'));
+const EditCabinetType = lazy(() => import('@/pages/admin/EditCabinetType'));
 
 export const AdminRouter = () => {
   return (
@@ -52,6 +53,7 @@ export const AdminRouter = () => {
             <CabinetManager />
           </Suspense>
         } />
+        <Route path="cabinets/:id" element={<EditCabinetType />} />
           <Route path="hardware-manager" element={
             <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
               <HardwareManager />

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { DataTable } from '@/components/admin/shared/DataTable';
-import { CabinetTypeEditDialog } from '@/components/admin/CabinetTypeEditDialog';
 import { 
   Plus, 
   Edit, 
@@ -41,8 +41,7 @@ interface CabinetType {
 
 
 const CabinetManager: React.FC = () => {
-  const [editingType, setEditingType] = useState<CabinetType | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   // Fetch cabinet types
@@ -120,7 +119,7 @@ const CabinetManager: React.FC = () => {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => handleEditType(item)}
+          onClick={() => navigate(`/admin/cabinets/${item.id}`)}
         >
           <Edit className="h-4 w-4 mr-2" />
           Edit
@@ -129,11 +128,6 @@ const CabinetManager: React.FC = () => {
     },
   ];
 
-
-  const handleEditType = (type: CabinetType) => {
-    setEditingType(type);
-    setIsDialogOpen(true);
-  };
 
   const handleDeleteType = async (id: string) => {
     if (confirm('Are you sure you want to delete this cabinet type?')) {
@@ -152,8 +146,7 @@ const CabinetManager: React.FC = () => {
   };
 
   const handleAddNew = () => {
-    setEditingType(null);
-    setIsDialogOpen(true);
+    navigate('/admin/cabinets/new');
   };
 
   return (
@@ -202,11 +195,6 @@ const CabinetManager: React.FC = () => {
         </CardContent>
       </Card>
 
-      <CabinetTypeEditDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        cabinetType={editingType}
-      />
     </div>
   );
 };
