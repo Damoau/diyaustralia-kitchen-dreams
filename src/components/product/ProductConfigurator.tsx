@@ -333,6 +333,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     const constraint = constraints[dimension];
     const clampedValue = Math.max(constraint.min, Math.min(constraint.max, value));
 
+    console.log(`Dimension change - ${dimension}: ${value} -> ${clampedValue} (min: ${constraint.min}, max: ${constraint.max})`);
+
     setDimensions(prev => ({
       ...prev,
       [dimension]: clampedValue
