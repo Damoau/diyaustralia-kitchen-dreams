@@ -288,7 +288,9 @@ export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ cabi
             <div className="text-center py-8 text-muted-foreground">
               <Wrench className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p>No components defined yet</p>
-              <p className="text-sm">Add components to define how this cabinet is built</p>
+              <p className="text-sm">
+                Add components to define how this {cabinetStyle === 'corner' ? 'corner' : 'standard'} cabinet is built
+              </p>
             </div>
           )}
         </CardContent>

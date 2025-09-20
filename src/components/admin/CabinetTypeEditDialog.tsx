@@ -911,7 +911,7 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-6xl max-h-[95vh] p-0 flex flex-col">
+        <DialogContent className="max-w-6xl max-h-[95vh] p-0 flex flex-col overflow-hidden">
           <DialogHeader className="px-6 py-4 border-b flex-shrink-0">
             <div className="flex items-center justify-between">
               <div>
@@ -941,7 +941,7 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
               </TabsTrigger>
               <TabsTrigger value="sizes" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
-                Size Ranges
+                Default Sizes
               </TabsTrigger>
               <TabsTrigger value="doors" disabled={!cabinetType?.id} className="flex items-center gap-2">
                 <Wrench className="h-4 w-4" />
@@ -958,7 +958,7 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
             </TabsList>
           </div>
 
-          <ScrollArea className="flex-1">
+          <ScrollArea className="flex-1 overflow-auto">
             <TabsContent value="basic" className="p-6 space-y-8 m-0">
               <Card>
                 <CardHeader>
@@ -1058,101 +1058,6 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                     <Label htmlFor="is_featured">Featured Product</Label>
                   </div>
 
-                  {/* Corner Cabinet Specific Fields */}
-                  {formData.cabinet_style === 'corner' && (
-                    <>
-                      <Separator />
-                      <div className="space-y-4">
-                        <Label className="text-base font-semibold">Corner Cabinet Configuration</Label>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="left_side_width_mm">Left Side Width (mm)</Label>
-                            <Input
-                              id="left_side_width_mm"
-                              type="number"
-                              value={formData.left_side_width_mm || 600}
-                              onChange={(e) => handleInputChange('left_side_width_mm', parseInt(e.target.value))}
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="right_side_width_mm">Right Side Width (mm)</Label>
-                            <Input
-                              id="right_side_width_mm"
-                              type="number"
-                              value={formData.right_side_width_mm || 600}
-                              onChange={(e) => handleInputChange('right_side_width_mm', parseInt(e.target.value))}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="left_side_depth_mm">Left Side Depth (mm)</Label>
-                            <Input
-                              id="left_side_depth_mm"
-                              type="number"
-                              value={formData.left_side_depth_mm || 560}
-                              onChange={(e) => handleInputChange('left_side_depth_mm', parseInt(e.target.value))}
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="right_side_depth_mm">Right Side Depth (mm)</Label>
-                            <Input
-                              id="right_side_depth_mm"
-                              type="number"
-                              value={formData.right_side_depth_mm || 560}
-                              onChange={(e) => handleInputChange('right_side_depth_mm', parseInt(e.target.value))}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-4 gap-4">
-                          <div>
-                            <Label htmlFor="qty_left_side">Left Side Qty</Label>
-                            <Input
-                              id="qty_left_side"
-                              type="number"
-                              min="0"
-                              value={formData.qty_left_side || 0}
-                              onChange={(e) => handleInputChange('qty_left_side', parseInt(e.target.value))}
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="qty_right_side">Right Side Qty</Label>
-                            <Input
-                              id="qty_right_side"
-                              type="number"
-                              min="0"
-                              value={formData.qty_right_side || 0}
-                              onChange={(e) => handleInputChange('qty_right_side', parseInt(e.target.value))}
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="qty_left_back">Left Back Qty</Label>
-                            <Input
-                              id="qty_left_back"
-                              type="number"
-                              min="0"
-                              value={formData.qty_left_back || 0}
-                              onChange={(e) => handleInputChange('qty_left_back', parseInt(e.target.value))}
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="qty_right_back">Right Back Qty</Label>
-                            <Input
-                              id="qty_right_back"
-                              type="number"
-                              min="0"
-                              value={formData.qty_right_back || 0}
-                              onChange={(e) => handleInputChange('qty_right_back', parseInt(e.target.value))}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
                   <Separator />
                   
                   {/* SEO Section */}
@@ -1250,13 +1155,30 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Settings className="h-5 w-5" />
-                    Size Ranges & Defaults
+                    Default Sizes & Configuration
                   </CardTitle>
                   <CardDescription>
-                    Configure default dimensions and size ranges for this cabinet type
+                    Configure cabinet style, default dimensions, and size ranges
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {/* Cabinet Style Selection */}
+                  <div className="space-y-4">
+                    <Label className="text-base font-semibold">Cabinet Style</Label>
+                    <Select value={formData.cabinet_style || 'standard'} onValueChange={(value) => handleInputChange('cabinet_style', value)}>
+                      <SelectTrigger className="w-[250px]">
+                        <SelectValue placeholder="Select cabinet style" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="standard">Standard Cabinet</SelectItem>
+                        <SelectItem value="corner">Corner Cabinet</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Separator />
+
+                  {/* Default Dimensions */}
                   <div className="space-y-4">
                     <Label className="text-base font-semibold">Default Dimensions</Label>
                     <div className="grid grid-cols-3 gap-4">
@@ -1292,8 +1214,9 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
 
                   <Separator />
 
+                  {/* Size Ranges */}
                   <div className="space-y-4">
-                    <Label className="text-base font-semibold">Size Ranges</Label>
+                    <Label className="text-base font-semibold">Size Ranges (50mm increments will be generated)</Label>
                     <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <Label className="text-sm font-medium">Width Range (mm)</Label>
@@ -1303,8 +1226,10 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                             <Input
                               id="min_width_mm"
                               type="number"
-                              value={formData.min_width_mm || 100}
+                              step="50"
+                              value={formData.min_width_mm || 300}
                               onChange={(e) => handleInputChange('min_width_mm', parseInt(e.target.value))}
+                              placeholder="300"
                             />
                           </div>
                           <div>
@@ -1312,10 +1237,15 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                             <Input
                               id="max_width_mm"
                               type="number"
+                              step="50"
                               value={formData.max_width_mm || 1200}
                               onChange={(e) => handleInputChange('max_width_mm', parseInt(e.target.value))}
+                              placeholder="1200"
                             />
                           </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Available widths: {formData.min_width_mm || 300}mm to {formData.max_width_mm || 1200}mm in 50mm steps
                         </div>
                       </div>
 
@@ -1327,8 +1257,10 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                             <Input
                               id="min_height_mm"
                               type="number"
+                              step="50"
                               value={formData.min_height_mm || 200}
                               onChange={(e) => handleInputChange('min_height_mm', parseInt(e.target.value))}
+                              placeholder="200"
                             />
                           </div>
                           <div>
@@ -1336,10 +1268,15 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                             <Input
                               id="max_height_mm"
                               type="number"
+                              step="50"
                               value={formData.max_height_mm || 1000}
                               onChange={(e) => handleInputChange('max_height_mm', parseInt(e.target.value))}
+                              placeholder="1000"
                             />
                           </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Available heights: {formData.min_height_mm || 200}mm to {formData.max_height_mm || 1000}mm in 50mm steps
                         </div>
                       </div>
 
@@ -1351,8 +1288,10 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                             <Input
                               id="min_depth_mm"
                               type="number"
+                              step="50"
                               value={formData.min_depth_mm || 200}
                               onChange={(e) => handleInputChange('min_depth_mm', parseInt(e.target.value))}
+                              placeholder="200"
                             />
                           </div>
                           <div>
@@ -1360,10 +1299,15 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                             <Input
                               id="max_depth_mm"
                               type="number"
+                              step="50"
                               value={formData.max_depth_mm || 800}
                               onChange={(e) => handleInputChange('max_depth_mm', parseInt(e.target.value))}
+                              placeholder="800"
                             />
                           </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Available depths: {formData.min_depth_mm || 200}mm to {formData.max_depth_mm || 800}mm in 50mm steps
                         </div>
                       </div>
 
@@ -1379,6 +1323,101 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                       </div>
                     </div>
                   </div>
+
+                  {/* Corner Cabinet Configuration */}
+                  {formData.cabinet_style === 'corner' && (
+                    <>
+                      <Separator />
+                      <div className="space-y-4">
+                        <Label className="text-base font-semibold">Corner Cabinet Configuration</Label>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="left_side_width_mm">Left Side Width (mm)</Label>
+                            <Input
+                              id="left_side_width_mm"
+                              type="number"
+                              value={formData.left_side_width_mm || 600}
+                              onChange={(e) => handleInputChange('left_side_width_mm', parseInt(e.target.value))}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="right_side_width_mm">Right Side Width (mm)</Label>
+                            <Input
+                              id="right_side_width_mm"
+                              type="number"
+                              value={formData.right_side_width_mm || 600}
+                              onChange={(e) => handleInputChange('right_side_width_mm', parseInt(e.target.value))}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="left_side_depth_mm">Left Side Depth (mm)</Label>
+                            <Input
+                              id="left_side_depth_mm"
+                              type="number"
+                              value={formData.left_side_depth_mm || 560}
+                              onChange={(e) => handleInputChange('left_side_depth_mm', parseInt(e.target.value))}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="right_side_depth_mm">Right Side Depth (mm)</Label>
+                            <Input
+                              id="right_side_depth_mm"
+                              type="number"
+                              value={formData.right_side_depth_mm || 560}
+                              onChange={(e) => handleInputChange('right_side_depth_mm', parseInt(e.target.value))}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-4 gap-4">
+                          <div>
+                            <Label htmlFor="qty_left_side">Left Side Qty</Label>
+                            <Input
+                              id="qty_left_side"
+                              type="number"
+                              min="0"
+                              value={formData.qty_left_side || 0}
+                              onChange={(e) => handleInputChange('qty_left_side', parseInt(e.target.value))}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="qty_right_side">Right Side Qty</Label>
+                            <Input
+                              id="qty_right_side"
+                              type="number"
+                              min="0"
+                              value={formData.qty_right_side || 0}
+                              onChange={(e) => handleInputChange('qty_right_side', parseInt(e.target.value))}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="qty_left_back">Left Back Qty</Label>
+                            <Input
+                              id="qty_left_back"
+                              type="number"
+                              min="0"
+                              value={formData.qty_left_back || 0}
+                              onChange={(e) => handleInputChange('qty_left_back', parseInt(e.target.value))}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="qty_right_back">Right Back Qty</Label>
+                            <Input
+                              id="qty_right_back"
+                              type="number"
+                              min="0"
+                              value={formData.qty_right_back || 0}
+                              onChange={(e) => handleInputChange('qty_right_back', parseInt(e.target.value))}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
