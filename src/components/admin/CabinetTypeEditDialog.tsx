@@ -951,11 +951,8 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
             </TabsList>
           </div>
 
-          <div className="flex-1 min-h-0 overflow-hidden">
-            <div className="h-full overflow-y-auto p-6" style={{
-              scrollbarWidth: 'thin',
-              scrollbarColor: '#9CA3AF #F3F4F6'
-            }}>
+          <ScrollArea className="flex-1">
+            <div className="p-6">
             <TabsContent value="basic" className="p-6 space-y-8 m-0">
               <Card>
                 <CardHeader>
@@ -1752,7 +1749,7 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
               </Card>
             </TabsContent>
             </div>
-          </div>
+          </ScrollArea>
         </Tabs>
 
         <div className="border-t px-6 py-4 bg-background flex-shrink-0">
