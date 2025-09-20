@@ -741,7 +741,7 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
 
     setIsGeneratingContent(true);
     try {
-      const response = await fetch('/api/ai-content-generator', {
+      const response = await fetch('https://nqxsfmnvdfdfvndrodvs.supabase.co/functions/v1/ai-content-generator', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
