@@ -1363,62 +1363,6 @@ export default function EditCabinetType() {
                   cabinetStyle={cabinetType.cabinet_style || 'standard'}
                   onCabinetStyleChange={(style) => handleInputChange('cabinet_style', style)}
                 />
-                
-                {/* Corner Cabinet Part Quantities - Only show for corner cabinets */}
-                {cabinetType.cabinet_style === 'corner' && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Corner Cabinet Part Quantities</CardTitle>
-                      <CardDescription>
-                        Define the quantity of parts specific to corner cabinets
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-4 gap-4">
-                        <div>
-                          <Label htmlFor="qty_left_side">Left Side Qty</Label>
-                          <Input
-                            id="qty_left_side"
-                            type="number"
-                            min="0"
-                            value={cabinetType.qty_left_side || 0}
-                            onChange={(e) => handleInputChange('qty_left_side', parseInt(e.target.value))}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="qty_right_side">Right Side Qty</Label>
-                          <Input
-                            id="qty_right_side"
-                            type="number"
-                            min="0"
-                            value={cabinetType.qty_right_side || 0}
-                            onChange={(e) => handleInputChange('qty_right_side', parseInt(e.target.value))}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="qty_left_back">Left Back Qty</Label>
-                          <Input
-                            id="qty_left_back"
-                            type="number"
-                            min="0"
-                            value={cabinetType.qty_left_back || 0}
-                            onChange={(e) => handleInputChange('qty_left_back', parseInt(e.target.value))}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="qty_right_back">Right Back Qty</Label>
-                          <Input
-                            id="qty_right_back"
-                            type="number"
-                            min="0"
-                            value={cabinetType.qty_right_back || 0}
-                            onChange={(e) => handleInputChange('qty_right_back', parseInt(e.target.value))}
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
               </div>
             </TabsContent>
 
