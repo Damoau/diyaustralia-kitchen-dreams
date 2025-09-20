@@ -322,6 +322,14 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   };
 
   const handleDimensionChange = (dimension: 'width' | 'height' | 'depth', value: number) => {
+    // Allow any value during typing, validation happens on blur
+    setDimensions(prev => ({
+      ...prev,
+      [dimension]: value
+    }));
+  };
+
+  const handleDimensionBlur = (dimension: 'width' | 'height' | 'depth') => {
     if (!selectedCabinetType) return;
 
     const constraints = {
@@ -331,14 +339,20 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     };
 
     const constraint = constraints[dimension];
-    const clampedValue = Math.max(constraint.min, Math.min(constraint.max, value));
-
-    console.log(`Dimension change - ${dimension}: ${value} -> ${clampedValue} (min: ${constraint.min}, max: ${constraint.max})`);
-
-    setDimensions(prev => ({
-      ...prev,
-      [dimension]: clampedValue
-    }));
+    const currentValue = dimensions[dimension];
+    
+    if (currentValue < constraint.min || currentValue > constraint.max) {
+      const clampedValue = Math.max(constraint.min, Math.min(constraint.max, currentValue));
+      
+      toast.error(
+        `${dimension.charAt(0).toUpperCase() + dimension.slice(1)} must be between ${constraint.min}mm and ${constraint.max}mm. Adjusted to ${clampedValue}mm.`
+      );
+      
+      setDimensions(prev => ({
+        ...prev,
+        [dimension]: clampedValue
+      }));
+    }
   };
 
   const handleAddToCart = async () => {
@@ -414,8 +428,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                           type="number"
                           value={dimensions.width}
                           onChange={(e) => handleDimensionChange('width', parseInt(e.target.value) || 0)}
-                          min={selectedCabinetType.min_width_mm}
-                          max={selectedCabinetType.max_width_mm}
+                          onBlur={() => handleDimensionBlur('width')}
                         />
                         <div className="text-xs text-muted-foreground mt-1">
                           {selectedCabinetType.min_width_mm} - {selectedCabinetType.max_width_mm}mm
@@ -428,8 +441,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                           type="number"
                           value={dimensions.height}
                           onChange={(e) => handleDimensionChange('height', parseInt(e.target.value) || 0)}
-                          min={selectedCabinetType.min_height_mm}
-                          max={selectedCabinetType.max_height_mm}
+                          onBlur={() => handleDimensionBlur('height')}
                         />
                         <div className="text-xs text-muted-foreground mt-1">
                           {selectedCabinetType.min_height_mm} - {selectedCabinetType.max_height_mm}mm
@@ -442,8 +454,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                           type="number"
                           value={dimensions.depth}
                           onChange={(e) => handleDimensionChange('depth', parseInt(e.target.value) || 0)}
-                          min={selectedCabinetType.min_depth_mm}
-                          max={selectedCabinetType.max_depth_mm}
+                          onBlur={() => handleDimensionBlur('depth')}
                         />
                         <div className="text-xs text-muted-foreground mt-1">
                           {selectedCabinetType.min_depth_mm} - {selectedCabinetType.max_depth_mm}mm
