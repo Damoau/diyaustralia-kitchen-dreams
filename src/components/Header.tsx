@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, ShoppingCart, Settings, LogOut, LogIn } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
@@ -62,54 +62,54 @@ const Header = () => {
             </>
           ) : (
             <>
-              <a 
-                href="/"
+              <Link 
+                to="/"
                 className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
                   location.pathname === '/' ? 'text-foreground' : 'text-foreground/60'
                 }`}
               >
                 Home
-              </a>
-              <a 
-                href="/shop"
+              </Link>
+              <Link 
+                to="/shop"
                 className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
                   location.pathname === '/shop' ? 'text-foreground' : 'text-foreground/60'
                 }`}
               >
                 Shop
-              </a>
-              <a 
-                href="/kitchen-styles"
+              </Link>
+              <Link 
+                to="/kitchen-styles"
                 className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
                   location.pathname === '/kitchen-styles' ? 'text-foreground' : 'text-foreground/60'
                 }`}
               >
                 Kitchen Styles
-              </a>
-              <a 
-                href="/get-quote"
+              </Link>
+              <Link 
+                to="/get-quote"
                 className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
                   location.pathname === '/get-quote' ? 'text-foreground' : 'text-foreground/60'
                 }`}
               >
                 Get Quote
-              </a>
-              <a 
-                href="/manufacturing"
+              </Link>
+              <Link 
+                to="/manufacturing"
                 className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
                   location.pathname === '/manufacturing' ? 'text-foreground' : 'text-foreground/60'
                 }`}
               >
                 Manufacturing
-              </a>
-              <a 
-                href="/price-list"
+              </Link>
+              <Link 
+                to="/price-list"
                 className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
                   location.pathname === '/price-list' ? 'text-foreground' : 'text-foreground/60'
                 }`}
               >
                 Price List
-              </a>
+              </Link>
             </>
           )}
         </nav>
@@ -215,42 +215,42 @@ const Header = () => {
                     </>
                   ) : (
                     <>
-                      <a
-                        href="/"
+                      <Link
+                        to="/"
                         className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
                       >
                         Home
-                      </a>
-                      <a
-                        href="/shop"
+                      </Link>
+                      <Link
+                        to="/shop"
                         className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
                       >
                         Shop
-                      </a>
-                      <a
-                        href="/kitchen-styles"
+                      </Link>
+                      <Link
+                        to="/kitchen-styles"
                         className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
                       >
                         Kitchen Styles
-                      </a>
-                      <a
-                        href="/get-quote"
+                      </Link>
+                      <Link
+                        to="/get-quote"
                         className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
                       >
                         Get Quote
-                      </a>
-                       <a
-                         href="/manufacturing"
+                      </Link>
+                       <Link
+                         to="/manufacturing"
                          className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
                        >
                          Manufacturing
-                       </a>
-                       <a
-                         href="/price-list"
+                       </Link>
+                       <Link
+                         to="/price-list"
                          className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
                        >
                          Price List
-                       </a>
+                       </Link>
                     </>
                   )}
                   </nav>
