@@ -5,10 +5,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { ShoppingCart, Package, Layers, RectangleHorizontal, Wrench, Settings, ArrowRight, MessageSquare, FileText } from "lucide-react";
+import { ShoppingCart, Package, Layers, RectangleHorizontal, Wrench, Settings, ArrowRight, FileText } from "lucide-react";
 import { ProductConfigurator } from "@/components/product/ProductConfigurator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -36,15 +33,6 @@ const Shop = () => {
   const [configuratorOpen, setConfiguratorOpen] = useState(false);
   const [selectedCabinetTypeId, setSelectedCabinetTypeId] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  
-  // Specialty form state
-  const [specialtyForm, setSpecialtyForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    description: ''
-  });
-  const [specialtyFormLoading, setSpecialtyFormLoading] = useState(false);
 
   const categories = [
     {
@@ -116,51 +104,6 @@ const Shop = () => {
   const handleGetQuote = (cabinetType: CabinetType) => {
     console.log("Getting quote for:", cabinetType);
     toast.success(`Quote requested for ${cabinetType.name}`);
-  };
-
-  const handleSpecialtyFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!specialtyForm.name || !specialtyForm.email || !specialtyForm.description) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    setSpecialtyFormLoading(true);
-    
-    try {
-      // Submit specialty quote request with all required fields
-      const { error } = await supabase
-        .from('quote_requests')
-        .insert({
-          name: specialtyForm.name,
-          email: specialtyForm.email,
-          phone: specialtyForm.phone || '',
-          suburb: 'Not specified',
-          project_type: 'specialty_cabinet',
-          timeframe: 'flexible',
-          kitchen_style: 'specialty',
-          approximate_budget: 'to-be-determined',
-          additional_notes: `SPECIALTY CABINET REQUEST\n\nDescription: ${specialtyForm.description}\n\nSubmitted via: Shop Specialty Form`
-        });
-
-      if (error) throw error;
-
-      toast.success("Specialty quote request submitted successfully! We'll contact you within 24 hours.");
-      
-      // Reset form
-      setSpecialtyForm({
-        name: '',
-        email: '',
-        phone: '',
-        description: ''
-      });
-    } catch (error) {
-      console.error('Error submitting specialty quote:', error);
-      toast.error("Failed to submit request. Please try again.");
-    } finally {
-      setSpecialtyFormLoading(false);
-    }
   };
 
   const filteredCabinetTypes = selectedCategory === 'all' 
@@ -261,77 +204,10 @@ const Shop = () => {
                 </div>
 
                 <div className="p-8">
-                  <div className="grid md:grid-cols-2 gap-8">
-                    {/* Quick Quote Form */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-4">
-                        <MessageSquare className="h-5 w-5 text-primary" />
-                        <h3 className="text-xl font-semibold">Quick Quote Request</h3>
-                      </div>
-                      <p className="text-muted-foreground mb-6">
-                        Tell us about your custom cabinet needs and we'll get back to you within 24 hours.
-                      </p>
-                      
-                      <form onSubmit={handleSpecialtyFormSubmit} className="space-y-4">
-                        <div>
-                          <Label htmlFor="specialty-name">Name *</Label>
-                          <Input
-                            id="specialty-name"
-                            value={specialtyForm.name}
-                            onChange={(e) => setSpecialtyForm(prev => ({ ...prev, name: e.target.value }))}
-                            placeholder="Your full name"
-                            required
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="specialty-email">Email *</Label>
-                          <Input
-                            id="specialty-email"
-                            type="email"
-                            value={specialtyForm.email}
-                            onChange={(e) => setSpecialtyForm(prev => ({ ...prev, email: e.target.value }))}
-                            placeholder="your@email.com"
-                            required
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="specialty-phone">Phone (Optional)</Label>
-                          <Input
-                            id="specialty-phone"
-                            type="tel"
-                            value={specialtyForm.phone}
-                            onChange={(e) => setSpecialtyForm(prev => ({ ...prev, phone: e.target.value }))}
-                            placeholder="Your phone number"
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="specialty-description">Describe Your Cabinet Needs *</Label>
-                          <Textarea
-                            id="specialty-description"
-                            value={specialtyForm.description}
-                            onChange={(e) => setSpecialtyForm(prev => ({ ...prev, description: e.target.value }))}
-                            placeholder="Tell us about your custom cabinet requirements, dimensions, special features, etc."
-                            className="min-h-[100px]"
-                            required
-                          />
-                        </div>
-                        
-                        <Button 
-                          type="submit" 
-                          className="w-full"
-                          disabled={specialtyFormLoading}
-                        >
-                          {specialtyFormLoading ? 'Submitting...' : 'Submit Quick Quote Request'}
-                        </Button>
-                      </form>
-                    </div>
-
-                    {/* Full Quote Option */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-4">
+                  <div className="max-w-2xl mx-auto">
+                    {/* Detailed Quote */}
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-2 mb-4">
                         <FileText className="h-5 w-5 text-primary" />
                         <h3 className="text-xl font-semibold">Detailed Quote</h3>
                       </div>
@@ -342,7 +218,7 @@ const Shop = () => {
                       
                       <div className="bg-muted/50 rounded-lg p-6 mb-6">
                         <h4 className="font-medium mb-3">Perfect for:</h4>
-                        <ul className="space-y-2 text-sm text-muted-foreground">
+                        <ul className="space-y-2 text-sm text-muted-foreground text-left">
                           <li>• Complete kitchen renovations</li>
                           <li>• Complex corner cabinet solutions</li>
                           <li>• Custom storage requirements</li>
