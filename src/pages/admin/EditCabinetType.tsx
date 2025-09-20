@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, Settings, DoorOpen, Wrench, Cog, Sparkles, Plus, Edit, Trash2, Upload, ImageIcon } from "lucide-react";
+import { ArrowLeft, Package, Settings, DoorOpen, Wrench, Cog, Sparkles, Plus, Edit, Trash2, Upload, ImageIcon, DollarSign } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -60,6 +60,12 @@ interface CabinetType {
   qty_right_side?: number;
   qty_left_back?: number;
   qty_right_back?: number;
+  // Pricing fields
+  base_price?: number;
+  material_rate_per_sqm?: number;
+  door_rate_per_sqm?: number;
+  pricing_formula?: string;
+  price_calculation_method?: 'formula' | 'fixed' | 'area_based';
 }
 
 interface DoorStyle {
@@ -687,6 +693,10 @@ export default function EditCabinetType() {
             <TabsTrigger value="hardware" className="flex items-center gap-2">
               <Cog className="h-4 w-4" />
               Hardware Requirements
+            </TabsTrigger>
+            <TabsTrigger value="pricing" className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Pricing & Formulas
             </TabsTrigger>
           </TabsList>
 
@@ -1447,6 +1457,110 @@ export default function EditCabinetType() {
                       loading={loadingHardware}
                     />
                   )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="pricing" className="space-y-6 m-0">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5" />
+                    Pricing Configuration
+                  </CardTitle>
+                  <CardDescription>
+                    Configure pricing method and formula variables for this cabinet type
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="price_calculation_method">Price Calculation Method</Label>
+                      <Select
+                        value={cabinetType.price_calculation_method || 'formula'}
+                        onValueChange={(value) => handleInputChange('price_calculation_method', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select calculation method" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="formula">Formula Based (Advanced)</SelectItem>
+                          <SelectItem value="area_based">Area Based (Simple)</SelectItem>
+                          <SelectItem value="fixed">Fixed Price</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {cabinetType.price_calculation_method === 'fixed' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="base_price">Base Price ($)</Label>
+                        <Input
+                          id="base_price"
+                          type="number"
+                          step="0.01"
+                          value={cabinetType.base_price || ''}
+                          onChange={(e) => handleInputChange('base_price', parseFloat(e.target.value) || 0)}
+                          placeholder="Enter fixed price"
+                        />
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="material_rate_per_sqm">Material Rate ($/sqm)</Label>
+                        <Input
+                          id="material_rate_per_sqm"
+                          type="number"
+                          step="0.01"
+                          value={cabinetType.material_rate_per_sqm || '85'}
+                          onChange={(e) => handleInputChange('material_rate_per_sqm', parseFloat(e.target.value) || 85)}
+                          placeholder="Material cost per square meter"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="door_rate_per_sqm">Door Rate ($/sqm)</Label>
+                        <Input
+                          id="door_rate_per_sqm"
+                          type="number"
+                          step="0.01"
+                          value={cabinetType.door_rate_per_sqm || '120'}
+                          onChange={(e) => handleInputChange('door_rate_per_sqm', parseFloat(e.target.value) || 120)}
+                          placeholder="Door cost per square meter"
+                        />
+                      </div>
+                    </div>
+
+                    {cabinetType.price_calculation_method === 'formula' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="pricing_formula">Custom Pricing Formula</Label>
+                        <Textarea
+                          id="pricing_formula"
+                          value={cabinetType.pricing_formula || ''}
+                          onChange={(e) => handleInputChange('pricing_formula', e.target.value)}
+                          placeholder="e.g., ((width/1000*height/1000)*qty)*mat_rate_per_sqm + door_cost + color_cost"
+                          rows={4}
+                        />
+                        <div className="text-sm text-muted-foreground">
+                          <p><strong>Available Variables:</strong></p>
+                          <div className="grid grid-cols-2 gap-2 mt-1">
+                            <div>
+                              <p>• <code>width</code> or <code>w</code> - Cabinet width (mm)</p>
+                              <p>• <code>height</code> or <code>h</code> - Cabinet height (mm)</p>
+                              <p>• <code>depth</code> or <code>d</code> - Cabinet depth (mm)</p>
+                              <p>• <code>qty</code> - Quantity</p>
+                            </div>
+                            <div>
+                              <p>• <code>mat_rate_per_sqm</code> - Material rate</p>
+                              <p>• <code>door_cost</code> - Door cost</p>
+                              <p>• <code>color_cost</code> - Color surcharge</p>
+                              <p>• <code>finish_cost</code> - Finish cost</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

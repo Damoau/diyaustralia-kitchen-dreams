@@ -472,6 +472,7 @@ export type Database = {
         Row: {
           active: boolean
           backs_qty: number | null
+          base_price: number | null
           bottoms_qty: number | null
           cabinet_style: string | null
           category: string
@@ -483,12 +484,14 @@ export type Database = {
           display_order: number | null
           door_count: number
           door_qty: number | null
+          door_rate_per_sqm: number | null
           drawer_count: number
           id: string
           is_featured: boolean | null
           left_side_depth_mm: number | null
           left_side_width_mm: number | null
           long_description: string | null
+          material_rate_per_sqm: number | null
           max_depth_mm: number | null
           max_height_mm: number | null
           max_width_mm: number | null
@@ -499,6 +502,8 @@ export type Database = {
           min_height_mm: number | null
           min_width_mm: number | null
           name: string
+          price_calculation_method: string | null
+          pricing_formula: string | null
           product_image_url: string | null
           qty_left_back: number | null
           qty_left_side: number | null
@@ -517,6 +522,7 @@ export type Database = {
         Insert: {
           active?: boolean
           backs_qty?: number | null
+          base_price?: number | null
           bottoms_qty?: number | null
           cabinet_style?: string | null
           category: string
@@ -528,12 +534,14 @@ export type Database = {
           display_order?: number | null
           door_count?: number
           door_qty?: number | null
+          door_rate_per_sqm?: number | null
           drawer_count?: number
           id?: string
           is_featured?: boolean | null
           left_side_depth_mm?: number | null
           left_side_width_mm?: number | null
           long_description?: string | null
+          material_rate_per_sqm?: number | null
           max_depth_mm?: number | null
           max_height_mm?: number | null
           max_width_mm?: number | null
@@ -544,6 +552,8 @@ export type Database = {
           min_height_mm?: number | null
           min_width_mm?: number | null
           name: string
+          price_calculation_method?: string | null
+          pricing_formula?: string | null
           product_image_url?: string | null
           qty_left_back?: number | null
           qty_left_side?: number | null
@@ -562,6 +572,7 @@ export type Database = {
         Update: {
           active?: boolean
           backs_qty?: number | null
+          base_price?: number | null
           bottoms_qty?: number | null
           cabinet_style?: string | null
           category?: string
@@ -573,12 +584,14 @@ export type Database = {
           display_order?: number | null
           door_count?: number
           door_qty?: number | null
+          door_rate_per_sqm?: number | null
           drawer_count?: number
           id?: string
           is_featured?: boolean | null
           left_side_depth_mm?: number | null
           left_side_width_mm?: number | null
           long_description?: string | null
+          material_rate_per_sqm?: number | null
           max_depth_mm?: number | null
           max_height_mm?: number | null
           max_width_mm?: number | null
@@ -589,6 +602,8 @@ export type Database = {
           min_height_mm?: number | null
           min_width_mm?: number | null
           name?: string
+          price_calculation_method?: string | null
+          pricing_formula?: string | null
           product_image_url?: string | null
           qty_left_back?: number | null
           qty_left_side?: number | null

@@ -1,0 +1,132 @@
+import React, { useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import PricingCalculator from '@/lib/pricingCalculator';
+import { DollarSign } from 'lucide-react';
+
+interface PricingDisplayProps {
+  cabinetType: any;
+  dimensions: {
+    width: number;
+    height: number;
+    depth: number;
+  };
+  quantity?: number;
+  selectedDoorStyle?: any;
+  selectedColor?: any;
+  selectedFinish?: any;
+  className?: string;
+}
+
+export const PricingDisplay: React.FC<PricingDisplayProps> = ({
+  cabinetType,
+  dimensions,
+  quantity = 1,
+  selectedDoorStyle,
+  selectedColor,
+  selectedFinish,
+  className
+}) => {
+  const pricing = useMemo(() => {
+    if (!cabinetType || !dimensions.width || !dimensions.height || !dimensions.depth) {
+      return null;
+    }
+
+    const rates = {
+      materialRate: cabinetType.material_rate_per_sqm || 85,
+      doorRate: selectedDoorStyle?.base_rate_per_sqm || cabinetType.door_rate_per_sqm || 120,
+      colorSurcharge: selectedColor?.surcharge_rate_per_sqm || 0,
+      finishSurcharge: selectedFinish?.rate_per_sqm || 0,
+    };
+
+    // Calculate door area for surcharges
+    const doorArea = (dimensions.width / 1000) * (dimensions.height / 1000) * (cabinetType.door_count || 1);
+    rates.colorSurcharge *= doorArea * quantity;
+    rates.finishSurcharge *= doorArea * quantity;
+
+    return PricingCalculator.calculateCabinetPrice(
+      cabinetType,
+      dimensions,
+      quantity,
+      rates
+    );
+  }, [cabinetType, dimensions, quantity, selectedDoorStyle, selectedColor, selectedFinish]);
+
+  if (!pricing) {
+    return (
+      <Card className={className}>
+        <CardContent className="p-4">
+          <div className="text-center text-muted-foreground">
+            Enter dimensions to see pricing
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const formatPrice = (price: number) => `$${price.toFixed(2)}`;
+
+  return (
+    <Card className={className}>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <DollarSign className="h-5 w-5" />
+          Pricing Breakdown
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground">Carcass Cost:</span>
+            <span className="font-medium">{formatPrice(pricing.breakdown.carcass)}</span>
+          </div>
+          
+          {pricing.breakdown.doors > 0 && (
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Doors Cost:</span>
+              <span className="font-medium">{formatPrice(pricing.breakdown.doors)}</span>
+            </div>
+          )}
+          
+          {pricing.breakdown.hardware > 0 && (
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Hardware Cost:</span>
+              <span className="font-medium">{formatPrice(pricing.breakdown.hardware)}</span>
+            </div>
+          )}
+          
+          {pricing.breakdown.surcharges > 0 && (
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Surcharges:</span>
+              <span className="font-medium">{formatPrice(pricing.breakdown.surcharges)}</span>
+            </div>
+          )}
+        </div>
+
+        <Separator />
+        
+        <div className="flex justify-between items-center">
+          <span className="text-base font-semibold">Total Price:</span>
+          <Badge variant="secondary" className="text-base px-3 py-1">
+            {formatPrice(pricing.totalPrice)}
+          </Badge>
+        </div>
+
+        {quantity > 1 && (
+          <div className="text-xs text-muted-foreground text-center">
+            Price per unit: {formatPrice(pricing.totalPrice / quantity)}
+          </div>
+        )}
+
+        <div className="text-xs text-muted-foreground">
+          <p><strong>Calculation Method:</strong> {cabinetType.price_calculation_method || 'formula'}</p>
+          <p><strong>Dimensions:</strong> {dimensions.width}mm × {dimensions.height}mm × {dimensions.depth}mm</p>
+          {quantity > 1 && <p><strong>Quantity:</strong> {quantity}</p>}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default PricingDisplay;
