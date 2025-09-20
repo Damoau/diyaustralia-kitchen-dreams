@@ -102,6 +102,14 @@ const Header = () => {
               >
                 Manufacturing
               </a>
+              <a 
+                href="/price-list"
+                className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
+                  location.pathname === '/price-list' ? 'text-foreground' : 'text-foreground/60'
+                }`}
+              >
+                Price List
+              </a>
             </>
           )}
         </nav>
@@ -231,12 +239,18 @@ const Header = () => {
                       >
                         Get Quote
                       </a>
-                      <a
-                        href="/manufacturing"
-                        className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
-                      >
-                        Manufacturing
-                      </a>
+                       <a
+                         href="/manufacturing"
+                         className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
+                       >
+                         Manufacturing
+                       </a>
+                       <a
+                         href="/price-list"
+                         className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
+                       >
+                         Price List
+                       </a>
                     </>
                   )}
                   </nav>
