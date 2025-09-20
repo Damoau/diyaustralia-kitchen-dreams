@@ -384,19 +384,9 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           <DialogTitle>{selectedCabinetType?.name || 'Configure Product'}</DialogTitle>
         </DialogHeader>
 
-        {/* Sticky Price - Always at top on all devices */}
-        <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b p-4 mb-6 z-10">
-          <div className="text-center">
-            <div className="text-2xl font-bold">
-              ${selectedCabinetType ? calculateTotalPrice().toFixed(2) : '0.00'}
-            </div>
-            <div className="text-sm text-muted-foreground">Total Price</div>
-          </div>
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Image */}
-          <div className="space-y-6">
+          {/* Left Column - Image (Sticky) */}
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-6">
             {selectedCabinetType && (
               <>
                 {/* Cabinet Image */}
@@ -415,6 +405,16 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                         </div>
                       )}
                     </div>
+                  </CardContent>
+                </Card>
+
+                {/* Price Box */}
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <div className="text-3xl font-bold mb-2">
+                      ${calculateTotalPrice().toFixed(2)}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Total Price</div>
                   </CardContent>
                 </Card>
               </>
