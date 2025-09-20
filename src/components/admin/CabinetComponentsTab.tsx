@@ -610,37 +610,6 @@ export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ cabi
         </Dialog>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calculator className="h-5 w-5" />
-            Formula Reference
-          </CardTitle>
-          <CardDescription>
-            Use these variables in your formulas
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="space-y-2">
-              <h4 className="font-medium">Dimensions</h4>
-              <ul className="space-y-1 text-muted-foreground">
-                <li><code className="bg-muted px-1 rounded">W</code> - Cabinet width</li>
-                <li><code className="bg-muted px-1 rounded">H</code> - Cabinet height</li>
-                <li><code className="bg-muted px-1 rounded">D</code> - Cabinet depth</li>
-              </ul>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-medium">Operations</h4>
-              <ul className="space-y-1 text-muted-foreground">
-                <li><code className="bg-muted px-1 rounded">W-30</code> - Width minus 30mm</li>
-                <li><code className="bg-muted px-1 rounded">H/2</code> - Height divided by 2</li>
-                <li><code className="bg-muted px-1 rounded">D+18</code> - Depth plus 18mm</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
