@@ -90,7 +90,7 @@ const Settings = () => {
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <Label htmlFor="company-name">Company Name</Label>
-              <Input id="company-name" placeholder="DIY Australia" />
+              <Input id="company-name" placeholder="DIY Kitchens" />
             </div>
             <div>
               <Label htmlFor="abn">ABN</Label>

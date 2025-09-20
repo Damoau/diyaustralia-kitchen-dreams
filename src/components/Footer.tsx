@@ -7,7 +7,7 @@ const Footer = () => {
           <div className="md:col-span-2">
             <div className="flex items-center space-x-3 mb-6">
               <div className="w-10 h-10 bg-gradient-to-br from-primary to-blue-dark rounded-xl"></div>
-              <span className="text-2xl font-bold">DIY Australia</span>
+              <span className="text-2xl font-bold">DIY Kitchens</span>
             </div>
             <p className="text-gray-300 mb-8 max-w-md text-lg leading-relaxed">
               Transforming Australian homes with premium custom kitchen cabinets and benchtops. 
@@ -66,7 +66,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400">
-          <p>&copy; 2024 DIY Australia. All rights reserved. | Privacy Policy | Terms of Service</p>
+          <p>&copy; 2024 DIY Kitchens. All rights reserved. | Privacy Policy | Terms of Service</p>
         </div>
       </div>
     </footer>

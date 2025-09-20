@@ -42,7 +42,7 @@ LONG DESCRIPTION RULES:
 - If category is "pantry" or contains "pantry": Must state "Pantry height excludes the kick"
 
 Please generate:
-1. Meta Title (under 60 characters, include product name and "DIY Australia")
+1. Meta Title (under 60 characters, include product name and "DIY Kitchens")
 2. Meta Description (150-160 characters, SEO optimized with call to action)
 3. Meta Keywords (comma-separated, focus on kitchen cabinets, flat pack, DIY, Australia)
 4. URL Slug (lowercase, hyphen-separated, SEO friendly)

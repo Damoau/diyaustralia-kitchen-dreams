@@ -108,7 +108,7 @@ export default function Auth() {
         <div className="max-w-md mx-auto">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Welcome to DIY Australia</CardTitle>
+              <CardTitle className="text-2xl">Welcome to DIY Kitchens</CardTitle>
               <CardDescription>
                 Sign in to save your cart and access your quotes
               </CardDescription>

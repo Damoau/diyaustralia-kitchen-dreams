@@ -345,7 +345,7 @@ function generateEnhancedInvoiceHTML(order: any, invoice: any, contact: any, ite
     <body>
       <div class="invoice-container">
         <div class="invoice-header">
-          <div class="company-name">DIY Australia</div>
+          <div class="company-name">DIY Kitchens</div>
           <div class="invoice-title">INVOICE</div>
           <div class="invoice-number">${invoice.invoice_number}</div>
         </div>
@@ -447,7 +447,7 @@ function generateEnhancedInvoiceHTML(order: any, invoice: any, contact: any, ite
         </div>
 
         <div class="footer">
-          <p>Thank you for choosing DIY Australia</p>
+          <p>Thank you for choosing DIY Kitchens</p>
           <p>For any queries regarding this invoice, please contact our accounts team.</p>
         </div>
       </div>

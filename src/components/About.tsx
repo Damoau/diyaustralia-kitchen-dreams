@@ -10,7 +10,7 @@ const About = () => {
               Australian Craftsmanship Since 2008
             </h2>
             <p className="text-xl text-muted-foreground leading-relaxed">
-              At DIY Australia, we're passionate about creating beautiful, functional kitchens 
+              At DIY Kitchens, we're passionate about creating beautiful, functional kitchens 
               that become the heart of your home. With over 15 years of experience, we combine 
               traditional craftsmanship with modern techniques to deliver exceptional results.
             </p>
@@ -18,7 +18,7 @@ const About = () => {
 
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <h3 className="text-2xl font-bold mb-6 text-foreground">Why Choose DIY Australia?</h3>
+              <h3 className="text-2xl font-bold mb-6 text-foreground">Why Choose DIY Kitchens?</h3>
               <div className="space-y-4">
                 <div className="flex items-start">
                   <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center mr-4 mt-1">
