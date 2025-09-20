@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { Plus, Trash2, Calculator, Wrench } from 'lucide-react';
+import { Plus, Trash2, Calculator, Wrench, Edit } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -17,7 +17,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface CabinetPart {
   id: string;
@@ -35,8 +34,29 @@ interface CabinetComponentsTabProps {
   onCabinetStyleChange: (style: string) => void;
 }
 
+// Default parts for different cabinet styles
+const getDefaultParts = (style: string): Omit<CabinetPart, 'id'>[] => {
+  if (style === 'corner') {
+    return [
+      { part_name: 'Left Back', quantity: 1, width_formula: 'W', height_formula: 'H', is_door: false, is_hardware: false },
+      { part_name: 'Right Back', quantity: 1, width_formula: 'W', height_formula: 'H', is_door: false, is_hardware: false },
+      { part_name: 'Bottom', quantity: 1, width_formula: 'W', height_formula: 'D', is_door: false, is_hardware: false },
+      { part_name: 'Left Side', quantity: 1, width_formula: 'D', height_formula: 'H', is_door: false, is_hardware: false },
+      { part_name: 'Right Side', quantity: 1, width_formula: 'D', height_formula: 'H', is_door: false, is_hardware: false },
+    ];
+  } else {
+    return [
+      { part_name: 'Back', quantity: 1, width_formula: 'W', height_formula: 'H', is_door: false, is_hardware: false },
+      { part_name: 'Bottom', quantity: 1, width_formula: 'W', height_formula: 'D', is_door: false, is_hardware: false },
+      { part_name: 'Door', quantity: 1, width_formula: 'W', height_formula: 'H', is_door: true, is_hardware: false },
+      { part_name: 'Side', quantity: 2, width_formula: 'D', height_formula: 'H', is_door: false, is_hardware: false },
+    ];
+  }
+};
+
 export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ cabinetId, cabinetStyle, onCabinetStyleChange }) => {
   const [isAddingPart, setIsAddingPart] = useState(false);
+  const [editingPart, setEditingPart] = useState<CabinetPart | null>(null);
   const [newPart, setNewPart] = useState({
     part_name: '',
     quantity: 1,
@@ -79,18 +99,39 @@ export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ cabi
       queryClient.invalidateQueries({ queryKey: ['cabinet-parts'] });
       toast.success('Cabinet part added');
       setIsAddingPart(false);
-      setNewPart({
-        part_name: '',
-        quantity: 1,
-        width_formula: '',
-        height_formula: '',
-        is_door: false,
-        is_hardware: false,
-      });
+      resetForm();
     },
     onError: (error) => {
       console.error('Error adding part:', error);
       toast.error('Failed to add cabinet part');
+    },
+  });
+
+  // Update part mutation
+  const updatePartMutation = useMutation({
+    mutationFn: async (part: CabinetPart) => {
+      const { error } = await supabase
+        .from('cabinet_parts')
+        .update({
+          part_name: part.part_name,
+          quantity: part.quantity,
+          width_formula: part.width_formula,
+          height_formula: part.height_formula,
+          is_door: part.is_door,
+          is_hardware: part.is_hardware,
+        })
+        .eq('id', part.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cabinet-parts'] });
+      toast.success('Cabinet part updated');
+      setEditingPart(null);
+    },
+    onError: (error) => {
+      console.error('Error updating part:', error);
+      toast.error('Failed to update cabinet part');
     },
   });
 
@@ -114,6 +155,42 @@ export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ cabi
     },
   });
 
+  // Initialize default parts mutation
+  const initializePartsMutation = useMutation({
+    mutationFn: async () => {
+      const defaultParts = getDefaultParts(cabinetStyle);
+      const partsToInsert = defaultParts.map(part => ({
+        ...part,
+        cabinet_type_id: cabinetId
+      }));
+
+      const { error } = await supabase
+        .from('cabinet_parts')
+        .insert(partsToInsert);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cabinet-parts'] });
+      toast.success(`Default ${cabinetStyle} cabinet parts added`);
+    },
+    onError: (error) => {
+      console.error('Error initializing parts:', error);
+      toast.error('Failed to initialize default parts');
+    },
+  });
+
+  const resetForm = () => {
+    setNewPart({
+      part_name: '',
+      quantity: 1,
+      width_formula: '',
+      height_formula: '',
+      is_door: false,
+      is_hardware: false,
+    });
+  };
+
   const handleAddPart = () => {
     if (!newPart.part_name.trim()) {
       toast.error('Part name is required');
@@ -122,9 +199,19 @@ export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ cabi
     addPartMutation.mutate(newPart);
   };
 
-  // Handle cabinet style change and update parent
-  const handleCabinetStyleChange = (style: string) => {
-    onCabinetStyleChange(style);
+  const handleUpdatePart = () => {
+    if (!editingPart) return;
+    updatePartMutation.mutate(editingPart);
+  };
+
+  const handleInitializeDefaultParts = () => {
+    if (parts && parts.length > 0) {
+      if (confirm('This will add default parts. Existing parts will remain. Continue?')) {
+        initializePartsMutation.mutate();
+      }
+    } else {
+      initializePartsMutation.mutate();
+    }
   };
 
   if (cabinetId === 'new') {
@@ -151,25 +238,22 @@ export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ cabi
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Wrench className="h-5 w-5" />
-                Cabinet Components
+                {cabinetStyle === 'corner' ? 'Corner Cabinet Components' : 'Standard Cabinet Components'}
               </CardTitle>
               <CardDescription>
-                Define the parts that make up this cabinet type and their quantity formulas
+                Define the parts that make up this {cabinetStyle === 'corner' ? 'corner' : 'standard'} cabinet type and their quantity formulas
               </CardDescription>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="cabinet_style" className="text-sm font-medium">Cabinet Style</Label>
-                <Select value={cabinetStyle || 'standard'} onValueChange={handleCabinetStyleChange}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select style" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="standard">Standard Cabinet</SelectItem>
-                    <SelectItem value="corner">Corner Cabinet</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="flex items-center gap-2">
+              {cabinetId !== 'new' && (!parts || parts.length === 0) && (
+                <Button
+                  variant="secondary"
+                  onClick={handleInitializeDefaultParts}
+                  disabled={initializePartsMutation.isPending}
+                >
+                  {initializePartsMutation.isPending ? 'Adding...' : `Add Default ${cabinetStyle === 'corner' ? 'Corner' : 'Standard'} Parts`}
+                </Button>
+              )}
               <Dialog open={isAddingPart} onOpenChange={setIsAddingPart}>
                 <DialogTrigger asChild>
                   <Button>
@@ -273,14 +357,23 @@ export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ cabi
                       </div>
                     )}
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => deletePartMutation.mutate(part.id)}
-                    disabled={deletePartMutation.isPending}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingPart(part)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => deletePartMutation.mutate(part.id)}
+                      disabled={deletePartMutation.isPending}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -295,6 +388,81 @@ export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ cabi
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Component Dialog */}
+      {editingPart && (
+        <Dialog open={!!editingPart} onOpenChange={() => setEditingPart(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Cabinet Component</DialogTitle>
+              <DialogDescription>
+                Modify the component details
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Part Name</Label>
+                <Input
+                  value={editingPart.part_name}
+                  onChange={(e) => setEditingPart({ ...editingPart, part_name: e.target.value })}
+                  placeholder="e.g., Left Side, Right Side, Door"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Quantity</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={editingPart.quantity}
+                  onChange={(e) => setEditingPart({ ...editingPart, quantity: parseInt(e.target.value) || 1 })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Width Formula</Label>
+                  <Input
+                    value={editingPart.width_formula || ''}
+                    onChange={(e) => setEditingPart({ ...editingPart, width_formula: e.target.value })}
+                    placeholder="W or W-30"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Height Formula</Label>
+                  <Input
+                    value={editingPart.height_formula || ''}
+                    onChange={(e) => setEditingPart({ ...editingPart, height_formula: e.target.value })}
+                    placeholder="H or H-20"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={editingPart.is_door}
+                    onCheckedChange={(checked) => setEditingPart({ ...editingPart, is_door: checked })}
+                  />
+                  <Label>Is Door</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={editingPart.is_hardware}
+                    onCheckedChange={(checked) => setEditingPart({ ...editingPart, is_hardware: checked })}
+                  />
+                  <Label>Is Hardware</Label>
+                </div>
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button onClick={handleUpdatePart} disabled={updatePartMutation.isPending}>
+                  {updatePartMutation.isPending ? 'Updating...' : 'Update Component'}
+                </Button>
+                <Button variant="outline" onClick={() => setEditingPart(null)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       <Card>
         <CardHeader>
