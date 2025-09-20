@@ -15,6 +15,17 @@ interface PricingVariables {
   right_side?: number;   // Right side thickness
 }
 
+interface HardwareRequirement {
+  id: string;
+  hardware_type_id: string;
+  unit_scope: string;
+  units_per_scope: number;
+  hardware_type?: {
+    name: string;
+    category: string;
+  };
+}
+
 /**
  * Formula Variables Explained:
  * - w, width = Cabinet width in mm
@@ -96,7 +107,8 @@ export class PricingCalculator {
       doorRate?: number;
       colorSurcharge?: number;
       finishSurcharge?: number;
-    } = {}
+    } = {},
+    hardwareRequirements: HardwareRequirement[] = []
   ): { 
     totalPrice: number; 
     breakdown: { 
@@ -169,6 +181,40 @@ export class PricingCalculator {
         doorRate: variables.door_cost,
         carcassPrice: carcassPrice.toFixed(2),
         doorPrice: doorPrice.toFixed(2)
+      });
+    }
+    
+    // Calculate hardware requirements cost
+    if (hardwareRequirements && hardwareRequirements.length > 0) {
+      console.log('Calculating hardware requirements:', hardwareRequirements);
+      
+      hardwareRequirements.forEach((req: HardwareRequirement) => {
+        let units = 0;
+        
+        // Calculate units needed based on scope
+        switch (req.unit_scope?.toLowerCase()) {
+          case 'cabinet':
+          case 'custom':
+            units = req.units_per_scope * quantity;
+            break;
+          case 'door':
+            const doorCount = Math.max(cabinetType.door_qty || cabinetType.door_count || 1, 1);
+            units = req.units_per_scope * doorCount * quantity;
+            break;
+          case 'drawer':
+            const drawerCount = cabinetType.drawer_count || 0;
+            units = req.units_per_scope * drawerCount * quantity;
+            break;
+          default:
+            units = req.units_per_scope * quantity;
+        }
+        
+        // Use a default cost per unit for hardware (this should come from hardware_products table)
+        const costPerUnit = 5.50; // Default hinge cost - should be looked up from database
+        const reqCost = units * costPerUnit;
+        
+        console.log(`${req.hardware_type?.name || 'Hardware'} (${req.unit_scope}): ${units} units × $${costPerUnit} = $${reqCost.toFixed(2)}`);
+        hardwarePrice += reqCost;
       });
     }
     

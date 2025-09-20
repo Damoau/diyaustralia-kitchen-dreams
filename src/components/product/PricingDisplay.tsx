@@ -34,29 +34,45 @@ export const PricingDisplay: React.FC<PricingDisplayProps> = ({
     breakdown: { carcass: number; doors: number; hardware: number; surcharges: number; };
   } | null>(null);
   const [cabinetParts, setCabinetParts] = useState<any[]>([]);
+  const [hardwareRequirements, setHardwareRequirements] = useState<any[]>([]);
 
   // Fetch cabinet parts when cabinetType changes
   useEffect(() => {
-    const fetchCabinetParts = async () => {
+    const fetchCabinetPartsAndHardware = async () => {
       if (!cabinetType?.id) {
         setCabinetParts([]);
+        setHardwareRequirements([]);
         return;
       }
 
       try {
+        // Fetch cabinet parts
         const { data: parts } = await supabase
           .from('cabinet_parts')
           .select('*')
           .eq('cabinet_type_id', cabinetType.id);
         
         setCabinetParts(parts || []);
+
+        // Fetch hardware requirements
+        const { data: hardware } = await supabase
+          .from('cabinet_hardware_requirements')
+          .select(`
+            *,
+            hardware_type:hardware_types(name, category)
+          `)
+          .eq('cabinet_type_id', cabinetType.id)
+          .eq('active', true);
+        
+        setHardwareRequirements(hardware || []);
       } catch (error) {
-        console.error('Error fetching cabinet parts:', error);
+        console.error('Error fetching cabinet data:', error);
         setCabinetParts([]);
+        setHardwareRequirements([]);
       }
     };
 
-    fetchCabinetParts();
+    fetchCabinetPartsAndHardware();
   }, [cabinetType?.id]);
 
   // Calculate pricing when dependencies change
@@ -88,11 +104,12 @@ export const PricingDisplay: React.FC<PricingDisplayProps> = ({
       cabinetTypeWithParts,
       dimensions,
       quantity,
-      rates
+      rates,
+      hardwareRequirements
     );
 
     setPricing(calculatedPricing);
-  }, [cabinetType, cabinetParts, dimensions, quantity, selectedDoorStyle, selectedColor, selectedFinish]);
+  }, [cabinetType, cabinetParts, hardwareRequirements, dimensions, quantity, selectedDoorStyle, selectedColor, selectedFinish]);
 
   if (!pricing) {
     return (

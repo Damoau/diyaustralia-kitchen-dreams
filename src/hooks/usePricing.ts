@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import PricingCalculator from '@/lib/pricingCalculator';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UsePricingProps {
   cabinetType: any;
@@ -33,6 +34,34 @@ export const usePricing = ({
   } | null>(null);
 
   const [loading, setLoading] = useState(false);
+  const [hardwareRequirements, setHardwareRequirements] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchHardwareRequirements = async () => {
+      if (!cabinetType?.id) {
+        setHardwareRequirements([]);
+        return;
+      }
+
+      try {
+        const { data: hardware } = await supabase
+          .from('cabinet_hardware_requirements')
+          .select(`
+            *,
+            hardware_type:hardware_types(name, category)
+          `)
+          .eq('cabinet_type_id', cabinetType.id)
+          .eq('active', true);
+        
+        setHardwareRequirements(hardware || []);
+      } catch (error) {
+        console.error('Error fetching hardware requirements:', error);
+        setHardwareRequirements([]);
+      }
+    };
+
+    fetchHardwareRequirements();
+  }, [cabinetType?.id]);
 
   useEffect(() => {
     const calculatePricing = async () => {
@@ -61,7 +90,8 @@ export const usePricing = ({
           cabinetType,
           dimensions,
           quantity,
-          rates
+          rates,
+          hardwareRequirements
         );
 
         setPricing(result);
@@ -76,6 +106,7 @@ export const usePricing = ({
     calculatePricing();
   }, [
     cabinetType,
+    hardwareRequirements,
     dimensions.width,
     dimensions.height,
     dimensions.depth,

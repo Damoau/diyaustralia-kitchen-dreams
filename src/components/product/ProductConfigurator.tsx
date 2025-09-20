@@ -295,15 +295,16 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       cabinetParts: cabinetParts.length
     });
 
-    const pricing = PricingCalculator.calculateCabinetPrice(
+    const calculatedPricing = PricingCalculator.calculateCabinetPrice(
       cabinetTypeWithParts,
       dimensions,
       quantity,
-      rates
+      rates,
+      hardwareRequirements
     );
 
-    console.log('Calculated pricing:', pricing);
-    return pricing.totalPrice;
+    console.log('Calculated pricing:', calculatedPricing);
+    return calculatedPricing.totalPrice;
   };
 
   const calculateDoorArea = () => {
