@@ -3867,6 +3867,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      test_quote_requests_security_final: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       app_role:
