@@ -383,11 +383,20 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           <DialogTitle>{selectedCabinetType?.name || 'Configure Product'}</DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Configuration */}
+        <div className="max-w-md mx-auto">
+          {/* Configuration */}
           <div className="space-y-6">
             {selectedCabinetType && (
               <>
+                {/* Price - Move to top */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-2xl font-bold text-center">
+                      ${calculateTotalPrice().toFixed(2)}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+
                 {/* Cabinet Image */}
                 <Card>
                   <CardContent className="p-0">
@@ -409,7 +418,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                 {/* Dimensions */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Dimensions (mm)</CardTitle>
+                    <CardTitle>Sizes (mm)</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-3 gap-4">
@@ -459,7 +468,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                 {/* Style & Finish */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Style & Finish</CardTitle>
+                    <CardTitle>Door Style, Colour & Finish</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
@@ -471,7 +480,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                         <SelectContent>
                           {doorStyles.map((style) => (
                             <SelectItem key={style.id} value={style.id}>
-                              {style.name} (+${style.base_rate_per_sqm}/m²)
+                              {style.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -479,10 +488,10 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                     </div>
 
                     <div>
-                      <Label>Color</Label>
+                      <Label>Colour</Label>
                       <Select value={selectedColor} onValueChange={setSelectedColor}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select color" />
+                          <SelectValue placeholder="Select colour" />
                         </SelectTrigger>
                         <SelectContent>
                           {colors.map((color) => (
@@ -494,7 +503,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                                     style={{ backgroundColor: color.hex_code }}
                                   />
                                 )}
-                                {color.name} (+${color.surcharge_rate_per_sqm}/m²)
+                                {color.name}
                               </div>
                             </SelectItem>
                           ))}
@@ -511,13 +520,50 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                         <SelectContent>
                           {finishes.map((finish) => (
                             <SelectItem key={finish.id} value={finish.id}>
-                              {finish.name} - {finish.finish_type} (+${finish.rate_per_sqm}/m²)
+                              {finish.name} - {finish.finish_type}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
+                  </CardContent>
+                </Card>
 
+                {/* Hardware Brand */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Hardware Brand</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select hardware brand" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="blum">Blum</SelectItem>
+                        <SelectItem value="hettich">Hettich</SelectItem>
+                        <SelectItem value="hafele">Häfele</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </CardContent>
+                </Card>
+
+                {/* Notes */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Notes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <textarea
+                      placeholder="Add any special requirements or notes..."
+                      className="w-full h-20 p-2 border rounded-md resize-none"
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Quantity & Add to Cart */}
+                <Card>
+                  <CardContent className="space-y-4">
                     <div>
                       <Label htmlFor="quantity">Quantity</Label>
                       <Input
@@ -528,14 +574,23 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                         min={1}
                       />
                     </div>
+                    
+                    <Button 
+                      onClick={handleAddToCart} 
+                      disabled={loading || !selectedDoorStyle || !selectedColor || !selectedFinish}
+                      className="w-full"
+                      size="lg"
+                    >
+                      {loading ? 'Adding...' : 'ADD TO CART'}
+                    </Button>
                   </CardContent>
                 </Card>
               </>
             )}
           </div>
 
-          {/* Right Column - Preview & Details */}
-          <div className="space-y-6">
+          {/* Right Column - Hidden (detailed breakdown available for reference) */}
+          <div className="hidden space-y-6">
             {selectedCabinetType && (
               <>
                  {/* Cabinet Parts Breakdown */}
