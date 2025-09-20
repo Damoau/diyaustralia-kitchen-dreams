@@ -17,6 +17,7 @@ interface Color {
   name: string;
   surcharge_rate_per_sqm: number;
   hex_code?: string;
+  door_style_id?: string;
 }
 
 interface Finish {
@@ -108,6 +109,27 @@ export const StyleColorFinishSelector: React.FC<StyleColorFinishSelectorProps> =
         setTempFinish('');
       }
     }
+  };
+
+  // Filter colors based on selected door style
+  const getFilteredColors = () => {
+    if (!tempDoorStyle) return colors;
+    return colors.filter(color => 
+      !color.door_style_id || color.door_style_id === tempDoorStyle
+    );
+  };
+
+  // Filter finishes based on selected color's brand or door style
+  const getFilteredFinishes = () => {
+    if (!tempColor) return finishes;
+    
+    // Get the selected color to find its associated brand
+    const selectedColor = colors.find(c => c.id === tempColor);
+    if (!selectedColor) return finishes;
+    
+    // For now, show all finishes - in a real scenario, you might filter by brand
+    // or have a more complex relationship between colors and finishes
+    return finishes;
   };
 
   const canProceed = () => {
@@ -214,39 +236,45 @@ export const StyleColorFinishSelector: React.FC<StyleColorFinishSelectorProps> =
           {currentStep === 2 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-center">Choose Color</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {colors.map((color) => (
-                  <Card 
-                    key={color.id}
-                    className={`cursor-pointer transition-all hover:shadow-md ${
-                      tempColor === color.id ? 'ring-2 ring-primary bg-primary/5' : ''
-                    }`}
-                    onClick={() => handleColorSelect(color.id)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex flex-col items-center space-y-3">
-                        <div 
-                          className="w-16 h-16 rounded-full border-2 border-border shadow-sm"
-                          style={{ backgroundColor: color.hex_code || '#f3f4f6' }}
-                        />
-                        <div className="text-center">
-                          <h4 className="font-medium text-sm">{color.name}</h4>
-                          {color.surcharge_rate_per_sqm > 0 && (
-                            <p className="text-xs text-muted-foreground">
-                              +${color.surcharge_rate_per_sqm}/m²
-                            </p>
+              {getFilteredColors().length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No colors available for the selected door style.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {getFilteredColors().map((color) => (
+                    <Card 
+                      key={color.id}
+                      className={`cursor-pointer transition-all hover:shadow-md ${
+                        tempColor === color.id ? 'ring-2 ring-primary bg-primary/5' : ''
+                      }`}
+                      onClick={() => handleColorSelect(color.id)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex flex-col items-center space-y-3">
+                          <div 
+                            className="w-16 h-16 rounded-full border-2 border-border shadow-sm"
+                            style={{ backgroundColor: color.hex_code || '#f3f4f6' }}
+                          />
+                          <div className="text-center">
+                            <h4 className="font-medium text-sm">{color.name}</h4>
+                            {color.surcharge_rate_per_sqm > 0 && (
+                              <p className="text-xs text-muted-foreground">
+                                +${color.surcharge_rate_per_sqm}/m²
+                              </p>
+                            )}
+                          </div>
+                          {tempColor === color.id && (
+                            <Badge variant="default" className="text-xs">
+                              <Check className="w-3 h-3 mr-1" /> Selected
+                            </Badge>
                           )}
                         </div>
-                        {tempColor === color.id && (
-                          <Badge variant="default" className="text-xs">
-                            <Check className="w-3 h-3 mr-1" /> Selected
-                          </Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -254,36 +282,42 @@ export const StyleColorFinishSelector: React.FC<StyleColorFinishSelectorProps> =
           {currentStep === 3 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-center">Choose Finish</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {finishes.map((finish) => (
-                  <Card 
-                    key={finish.id}
-                    className={`cursor-pointer transition-all hover:shadow-md ${
-                      tempFinish === finish.id ? 'ring-2 ring-primary bg-primary/5' : ''
-                    }`}
-                    onClick={() => handleFinishSelect(finish.id)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-medium">{finish.name}</h4>
-                          <p className="text-sm text-muted-foreground">{finish.finish_type}</p>
-                          {finish.rate_per_sqm > 0 && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              +${finish.rate_per_sqm}/m²
-                            </p>
+              {getFilteredFinishes().length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No finishes available for the selected options.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {getFilteredFinishes().map((finish) => (
+                    <Card 
+                      key={finish.id}
+                      className={`cursor-pointer transition-all hover:shadow-md ${
+                        tempFinish === finish.id ? 'ring-2 ring-primary bg-primary/5' : ''
+                      }`}
+                      onClick={() => handleFinishSelect(finish.id)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium">{finish.name}</h4>
+                            <p className="text-sm text-muted-foreground">{finish.finish_type}</p>
+                            {finish.rate_per_sqm > 0 && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                +${finish.rate_per_sqm}/m²
+                              </p>
+                            )}
+                          </div>
+                          {tempFinish === finish.id && (
+                            <Badge variant="default" className="text-xs">
+                              <Check className="w-3 h-3 mr-1" /> Selected
+                            </Badge>
                           )}
                         </div>
-                        {tempFinish === finish.id && (
-                          <Badge variant="default" className="text-xs">
-                            <Check className="w-3 h-3 mr-1" /> Selected
-                          </Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
