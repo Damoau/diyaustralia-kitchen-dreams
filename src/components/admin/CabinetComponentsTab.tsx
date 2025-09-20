@@ -86,22 +86,70 @@ export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ cabi
     enabled: cabinetId !== 'new',
   });
 
+  // Replace all parts with defaults for cabinet style
+  const replacePartsWithDefaultsMutation = useMutation({
+    mutationFn: async (newStyle: string) => {
+      // First delete all existing parts
+      const { error: deleteError } = await supabase
+        .from('cabinet_parts')
+        .delete()
+        .eq('cabinet_type_id', cabinetId);
+
+      if (deleteError) throw deleteError;
+
+      // Then add the new default parts
+      const defaultParts = getDefaultParts(newStyle);
+      const partsToInsert = defaultParts.map(part => ({
+        ...part,
+        cabinet_type_id: cabinetId,
+        width_formula: part.width_formula || '',
+        height_formula: part.height_formula || '',
+      }));
+
+      const { error: insertError } = await supabase
+        .from('cabinet_parts')
+        .insert(partsToInsert);
+
+      if (insertError) throw insertError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cabinet-parts'] });
+      toast.success('Cabinet parts updated for new style');
+    },
+    onError: (error) => {
+      console.error('Error replacing parts:', error);
+      toast.error('Failed to update cabinet parts');
+    },
+  });
+
   // Update parts when cabinet style changes
   useEffect(() => {
-    if (cabinetId !== 'new' && parts && parts.length === 0) {
-      // Auto-add default parts when style changes and no parts exist
-      const defaultParts = getDefaultParts(cabinetStyle);
-      defaultParts.forEach(part => {
-        const partWithFormulas = {
-          part_name: part.part_name,
-          quantity: part.quantity,
-          width_formula: part.width_formula || '',
-          height_formula: part.height_formula || '',
-          is_door: part.is_door,
-          is_hardware: part.is_hardware,
-        };
-        addPartMutation.mutate(partWithFormulas);
-      });
+    if (cabinetId !== 'new' && parts !== undefined) {
+      if (parts.length === 0) {
+        // No existing parts - add defaults
+        const defaultParts = getDefaultParts(cabinetStyle);
+        defaultParts.forEach(part => {
+          const partWithFormulas = {
+            part_name: part.part_name,
+            quantity: part.quantity,
+            width_formula: part.width_formula || '',
+            height_formula: part.height_formula || '',
+            is_door: part.is_door,
+            is_hardware: part.is_hardware,
+          };
+          addPartMutation.mutate(partWithFormulas);
+        });
+      } else {
+        // Parts exist - check if they match the current style
+        const expectedParts = getDefaultParts(cabinetStyle);
+        const currentPartNames = parts.map(p => p.part_name).sort();
+        const expectedPartNames = expectedParts.map(p => p.part_name).sort();
+        
+        // If part names don't match, replace with new defaults
+        if (JSON.stringify(currentPartNames) !== JSON.stringify(expectedPartNames)) {
+          replacePartsWithDefaultsMutation.mutate(cabinetStyle);
+        }
+      }
     }
   }, [cabinetStyle, parts, cabinetId]);
 
