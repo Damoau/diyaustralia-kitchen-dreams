@@ -46,10 +46,10 @@ const getDefaultParts = (style: string): Omit<CabinetPart, 'id'>[] => {
     ];
   } else {
     return [
-      { part_name: 'Back', quantity: 1, width_formula: 'W', height_formula: 'H', is_door: false, is_hardware: false },
-      { part_name: 'Bottom', quantity: 1, width_formula: 'W', height_formula: 'D', is_door: false, is_hardware: false },
+      { part_name: 'Sides', quantity: 2, width_formula: 'D', height_formula: 'H', is_door: false, is_hardware: false },
+      { part_name: 'Backs', quantity: 1, width_formula: 'W', height_formula: 'H', is_door: false, is_hardware: false },
+      { part_name: 'Bottoms', quantity: 1, width_formula: 'W', height_formula: 'D', is_door: false, is_hardware: false },
       { part_name: 'Door', quantity: 1, width_formula: 'W', height_formula: 'H', is_door: true, is_hardware: false },
-      { part_name: 'Side', quantity: 2, width_formula: 'D', height_formula: 'H', is_door: false, is_hardware: false },
     ];
   }
 };
@@ -85,6 +85,25 @@ export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ cabi
     },
     enabled: cabinetId !== 'new',
   });
+
+  // Update parts when cabinet style changes
+  useEffect(() => {
+    if (cabinetId !== 'new' && parts && parts.length === 0) {
+      // Auto-add default parts when style changes and no parts exist
+      const defaultParts = getDefaultParts(cabinetStyle);
+      defaultParts.forEach(part => {
+        const partWithFormulas = {
+          part_name: part.part_name,
+          quantity: part.quantity,
+          width_formula: part.width_formula || '',
+          height_formula: part.height_formula || '',
+          is_door: part.is_door,
+          is_hardware: part.is_hardware,
+        };
+        addPartMutation.mutate(partWithFormulas);
+      });
+    }
+  }, [cabinetStyle, parts, cabinetId]);
 
   // Add part mutation
   const addPartMutation = useMutation({

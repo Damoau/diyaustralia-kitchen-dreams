@@ -896,117 +896,93 @@ export default function EditCabinetType() {
                           </div>
                         </div>
                       </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="space-y-4">
-                          <h4 className="font-medium">Width</h4>
-                          <div className="space-y-2">
-                            <Label>Default (mm)</Label>
-                            <Input
-                              type="number"
-                              value={cabinetType.default_width_mm}
-                              onChange={(e) => handleInputChange('default_width_mm', parseInt(e.target.value) || 0)}
-                            />
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div className="space-y-4">
+                            <h4 className="font-medium">Width</h4>
+                            <div className="space-y-2">
+                              <Label>Default (mm)</Label>
+                              <Input
+                                type="number"
+                                value={cabinetType.default_width_mm}
+                                onChange={(e) => handleInputChange('default_width_mm', parseInt(e.target.value) || 0)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Min (mm)</Label>
+                              <Input
+                                type="number"
+                                value={cabinetType.min_width_mm || 300}
+                                onChange={(e) => handleInputChange('min_width_mm', parseInt(e.target.value) || 0)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Max (mm)</Label>
+                              <Input
+                                type="number"
+                                value={cabinetType.max_width_mm || 1200}
+                                onChange={(e) => handleInputChange('max_width_mm', parseInt(e.target.value) || 0)}
+                              />
+                            </div>
                           </div>
-                          <div className="space-y-2">
-                            <Label>Min (mm)</Label>
-                            <Input
-                              type="number"
-                              value={cabinetType.min_width_mm || 300}
-                              onChange={(e) => handleInputChange('min_width_mm', parseInt(e.target.value) || 0)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Max (mm)</Label>
-                            <Input
-                              type="number"
-                              value={cabinetType.max_width_mm || 1200}
-                              onChange={(e) => handleInputChange('max_width_mm', parseInt(e.target.value) || 0)}
-                            />
-                          </div>
-                           <div className="space-y-2">
-                             <Label>Increment (mm)</Label>
-                             <Input
-                               type="number"
-                               value={cabinetType.width_increment || 50}
-                               onChange={(e) => handleInputChange('width_increment', parseInt(e.target.value) || 50)}
-                             />
-                           </div>
-                        </div>
 
-                        <div className="space-y-4">
-                          <h4 className="font-medium">Height</h4>
-                          <div className="space-y-2">
-                            <Label>Default (mm)</Label>
-                            <Input
-                              type="number"
-                              value={cabinetType.default_height_mm}
-                              onChange={(e) => handleInputChange('default_height_mm', parseInt(e.target.value) || 0)}
-                            />
+                          <div className="space-y-4">
+                            <h4 className="font-medium">Height</h4>
+                            <div className="space-y-2">
+                              <Label>Default (mm)</Label>
+                              <Input
+                                type="number"
+                                value={cabinetType.default_height_mm}
+                                onChange={(e) => handleInputChange('default_height_mm', parseInt(e.target.value) || 0)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Min (mm)</Label>
+                              <Input
+                                type="number"
+                                value={cabinetType.min_height_mm || 300}
+                                onChange={(e) => handleInputChange('min_height_mm', parseInt(e.target.value) || 0)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Max (mm)</Label>
+                              <Input
+                                type="number"
+                                value={cabinetType.max_height_mm || 900}
+                                onChange={(e) => handleInputChange('max_height_mm', parseInt(e.target.value) || 0)}
+                              />
+                            </div>
                           </div>
-                          <div className="space-y-2">
-                            <Label>Min (mm)</Label>
-                            <Input
-                              type="number"
-                              value={cabinetType.min_height_mm || 300}
-                              onChange={(e) => handleInputChange('min_height_mm', parseInt(e.target.value) || 0)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Max (mm)</Label>
-                            <Input
-                              type="number"
-                              value={cabinetType.max_height_mm || 900}
-                              onChange={(e) => handleInputChange('max_height_mm', parseInt(e.target.value) || 0)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Increment (mm)</Label>
-                            <Input
-                              type="number"
-                              value={cabinetType.height_increment}
-                              onChange={(e) => handleInputChange('height_increment', parseInt(e.target.value) || 0)}
-                            />
-                          </div>
-                        </div>
 
-                        <div className="space-y-4">
-                          <h4 className="font-medium">Depth</h4>
-                          <div className="space-y-2">
-                            <Label>Default (mm)</Label>
-                            <Input
-                              type="number"
-                              value={cabinetType.default_depth_mm}
-                              onChange={(e) => handleInputChange('default_depth_mm', parseInt(e.target.value) || 0)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Min (mm)</Label>
-                            <Input
-                              type="number"
-                              value={cabinetType.min_depth_mm || 300}
-                              onChange={(e) => handleInputChange('min_depth_mm', parseInt(e.target.value) || 0)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Max (mm)</Label>
-                            <Input
-                              type="number"
-                              value={cabinetType.max_depth_mm || 600}
-                              onChange={(e) => handleInputChange('max_depth_mm', parseInt(e.target.value) || 0)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Increment (mm)</Label>
-                            <Input
-                              type="number"
-                              value={cabinetType.depth_increment}
-                              onChange={(e) => handleInputChange('depth_increment', parseInt(e.target.value) || 0)}
-                            />
+                          <div className="space-y-4">
+                            <h4 className="font-medium">Depth</h4>
+                            <div className="space-y-2">
+                              <Label>Default (mm)</Label>
+                              <Input
+                                type="number"
+                                value={cabinetType.default_depth_mm}
+                                onChange={(e) => handleInputChange('default_depth_mm', parseInt(e.target.value) || 0)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Min (mm)</Label>
+                              <Input
+                                type="number"
+                                value={cabinetType.min_depth_mm || 300}
+                                onChange={(e) => handleInputChange('min_depth_mm', parseInt(e.target.value) || 0)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Max (mm)</Label>
+                              <Input
+                                type="number"
+                                value={cabinetType.max_depth_mm || 600}
+                                onChange={(e) => handleInputChange('max_depth_mm', parseInt(e.target.value) || 0)}
+                              />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                   </div>
 
                   <Separator />
