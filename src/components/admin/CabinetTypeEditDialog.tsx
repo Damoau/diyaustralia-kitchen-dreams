@@ -922,13 +922,6 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                   Configure cabinet specifications, parts, and hardware requirements
                 </DialogDescription>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onOpenChange(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
             </div>
           </DialogHeader>
 
@@ -1178,162 +1171,14 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
 
                   <Separator />
 
-                  {/* Default Dimensions */}
+                  {/* Default Dimensions - Different for Corner vs Standard */}
                   <div className="space-y-4">
                     <Label className="text-base font-semibold">Default Dimensions</Label>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <Label htmlFor="default_width_mm">Default Width (mm)</Label>
-                        <Input
-                          id="default_width_mm"
-                          type="number"
-                          value={formData.default_width_mm}
-                          onChange={(e) => handleInputChange('default_width_mm', parseInt(e.target.value))}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="default_height_mm">Default Height (mm)</Label>
-                        <Input
-                          id="default_height_mm"
-                          type="number"
-                          value={formData.default_height_mm}
-                          onChange={(e) => handleInputChange('default_height_mm', parseInt(e.target.value))}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="default_depth_mm">Default Depth (mm)</Label>
-                        <Input
-                          id="default_depth_mm"
-                          type="number"
-                          value={formData.default_depth_mm}
-                          onChange={(e) => handleInputChange('default_depth_mm', parseInt(e.target.value))}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Size Ranges */}
-                  <div className="space-y-4">
-                    <Label className="text-base font-semibold">Size Ranges (50mm increments will be generated)</Label>
-                    <div className="grid grid-cols-2 gap-6">
+                    {formData.cabinet_style === 'corner' ? (
                       <div className="space-y-4">
-                        <Label className="text-sm font-medium">Width Range (mm)</Label>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <Label htmlFor="min_width_mm" className="text-xs">Minimum</Label>
-                            <Input
-                              id="min_width_mm"
-                              type="number"
-                              step="50"
-                              value={formData.min_width_mm || 300}
-                              onChange={(e) => handleInputChange('min_width_mm', parseInt(e.target.value))}
-                              placeholder="300"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="max_width_mm" className="text-xs">Maximum</Label>
-                            <Input
-                              id="max_width_mm"
-                              type="number"
-                              step="50"
-                              value={formData.max_width_mm || 1200}
-                              onChange={(e) => handleInputChange('max_width_mm', parseInt(e.target.value))}
-                              placeholder="1200"
-                            />
-                          </div>
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Available widths: {formData.min_width_mm || 300}mm to {formData.max_width_mm || 1200}mm in 50mm steps
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <Label className="text-sm font-medium">Height Range (mm)</Label>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <Label htmlFor="min_height_mm" className="text-xs">Minimum</Label>
-                            <Input
-                              id="min_height_mm"
-                              type="number"
-                              step="50"
-                              value={formData.min_height_mm || 200}
-                              onChange={(e) => handleInputChange('min_height_mm', parseInt(e.target.value))}
-                              placeholder="200"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="max_height_mm" className="text-xs">Maximum</Label>
-                            <Input
-                              id="max_height_mm"
-                              type="number"
-                              step="50"
-                              value={formData.max_height_mm || 1000}
-                              onChange={(e) => handleInputChange('max_height_mm', parseInt(e.target.value))}
-                              placeholder="1000"
-                            />
-                          </div>
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Available heights: {formData.min_height_mm || 200}mm to {formData.max_height_mm || 1000}mm in 50mm steps
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <Label className="text-sm font-medium">Depth Range (mm)</Label>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <Label htmlFor="min_depth_mm" className="text-xs">Minimum</Label>
-                            <Input
-                              id="min_depth_mm"
-                              type="number"
-                              step="50"
-                              value={formData.min_depth_mm || 200}
-                              onChange={(e) => handleInputChange('min_depth_mm', parseInt(e.target.value))}
-                              placeholder="200"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="max_depth_mm" className="text-xs">Maximum</Label>
-                            <Input
-                              id="max_depth_mm"
-                              type="number"
-                              step="50"
-                              value={formData.max_depth_mm || 800}
-                              onChange={(e) => handleInputChange('max_depth_mm', parseInt(e.target.value))}
-                              placeholder="800"
-                            />
-                          </div>
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Available depths: {formData.min_depth_mm || 200}mm to {formData.max_depth_mm || 800}mm in 50mm steps
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <Label className="text-sm font-medium">Display Order</Label>
-                        <Input
-                          id="display_order"
-                          type="number"
-                          value={formData.display_order || 0}
-                          onChange={(e) => handleInputChange('display_order', parseInt(e.target.value))}
-                          placeholder="0"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Corner Cabinet Configuration */}
-                  {formData.cabinet_style === 'corner' && (
-                    <>
-                      <Separator />
-                      <div className="space-y-4">
-                        <Label className="text-base font-semibold">Corner Cabinet Configuration</Label>
-                        
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <Label htmlFor="left_side_width_mm">Left Side Width (mm)</Label>
+                            <Label htmlFor="left_side_width_mm">Left Width (mm)</Label>
                             <Input
                               id="left_side_width_mm"
                               type="number"
@@ -1342,7 +1187,7 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                             />
                           </div>
                           <div>
-                            <Label htmlFor="right_side_width_mm">Right Side Width (mm)</Label>
+                            <Label htmlFor="right_side_width_mm">Right Width (mm)</Label>
                             <Input
                               id="right_side_width_mm"
                               type="number"
@@ -1351,10 +1196,18 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                             />
                           </div>
                         </div>
-
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-3 gap-4">
                           <div>
-                            <Label htmlFor="left_side_depth_mm">Left Side Depth (mm)</Label>
+                            <Label htmlFor="default_height_mm">Height (mm)</Label>
+                            <Input
+                              id="default_height_mm"
+                              type="number"
+                              value={formData.default_height_mm}
+                              onChange={(e) => handleInputChange('default_height_mm', parseInt(e.target.value))}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="left_side_depth_mm">Left Depth (mm)</Label>
                             <Input
                               id="left_side_depth_mm"
                               type="number"
@@ -1363,7 +1216,7 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                             />
                           </div>
                           <div>
-                            <Label htmlFor="right_side_depth_mm">Right Side Depth (mm)</Label>
+                            <Label htmlFor="right_side_depth_mm">Right Depth (mm)</Label>
                             <Input
                               id="right_side_depth_mm"
                               type="number"
@@ -1372,7 +1225,287 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                             />
                           </div>
                         </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="default_width_mm">Default Width (mm)</Label>
+                          <Input
+                            id="default_width_mm"
+                            type="number"
+                            value={formData.default_width_mm}
+                            onChange={(e) => handleInputChange('default_width_mm', parseInt(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="default_height_mm">Default Height (mm)</Label>
+                          <Input
+                            id="default_height_mm"
+                            type="number"
+                            value={formData.default_height_mm}
+                            onChange={(e) => handleInputChange('default_height_mm', parseInt(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="default_depth_mm">Default Depth (mm)</Label>
+                          <Input
+                            id="default_depth_mm"
+                            type="number"
+                            value={formData.default_depth_mm}
+                            onChange={(e) => handleInputChange('default_depth_mm', parseInt(e.target.value))}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
+                  <Separator />
+
+                  {/* Size Ranges - Different for Corner vs Standard */}
+                  <div className="space-y-4">
+                    <Label className="text-base font-semibold">Size Ranges (50mm increments will be generated)</Label>
+                    {formData.cabinet_style === 'corner' ? (
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <Label className="text-sm font-medium">Left Width Range (mm)</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label htmlFor="min_left_width" className="text-xs">Minimum</Label>
+                              <Input
+                                id="min_left_width"
+                                type="number"
+                                step="50"
+                                value={formData.min_width_mm || 300}
+                                onChange={(e) => handleInputChange('min_width_mm', parseInt(e.target.value))}
+                                placeholder="300"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="max_left_width" className="text-xs">Maximum</Label>
+                              <Input
+                                id="max_left_width"
+                                type="number"
+                                step="50"
+                                value={formData.max_width_mm || 800}
+                                onChange={(e) => handleInputChange('max_width_mm', parseInt(e.target.value))}
+                                placeholder="800"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Available left widths: {formData.min_width_mm || 300}mm to {formData.max_width_mm || 800}mm in 50mm steps
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <Label className="text-sm font-medium">Right Width Range (mm)</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label htmlFor="min_right_width" className="text-xs">Minimum</Label>
+                              <Input
+                                id="min_right_width"
+                                type="number"
+                                step="50"
+                                value={formData.min_width_mm || 300}
+                                onChange={(e) => handleInputChange('min_width_mm', parseInt(e.target.value))}
+                                placeholder="300"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="max_right_width" className="text-xs">Maximum</Label>
+                              <Input
+                                id="max_right_width"
+                                type="number"
+                                step="50"
+                                value={formData.max_width_mm || 800}
+                                onChange={(e) => handleInputChange('max_width_mm', parseInt(e.target.value))}
+                                placeholder="800"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Available right widths: {formData.min_width_mm || 300}mm to {formData.max_width_mm || 800}mm in 50mm steps
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <Label className="text-sm font-medium">Height Range (mm)</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label htmlFor="min_height_mm" className="text-xs">Minimum</Label>
+                              <Input
+                                id="min_height_mm"
+                                type="number"
+                                step="50"
+                                value={formData.min_height_mm || 200}
+                                onChange={(e) => handleInputChange('min_height_mm', parseInt(e.target.value))}
+                                placeholder="200"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="max_height_mm" className="text-xs">Maximum</Label>
+                              <Input
+                                id="max_height_mm"
+                                type="number"
+                                step="50"
+                                value={formData.max_height_mm || 1000}
+                                onChange={(e) => handleInputChange('max_height_mm', parseInt(e.target.value))}
+                                placeholder="1000"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Available heights: {formData.min_height_mm || 200}mm to {formData.max_height_mm || 1000}mm in 50mm steps
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <Label className="text-sm font-medium">Depth Range (mm)</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label htmlFor="min_depth_mm" className="text-xs">Minimum</Label>
+                              <Input
+                                id="min_depth_mm"
+                                type="number"
+                                step="50"
+                                value={formData.min_depth_mm || 200}
+                                onChange={(e) => handleInputChange('min_depth_mm', parseInt(e.target.value))}
+                                placeholder="200"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="max_depth_mm" className="text-xs">Maximum</Label>
+                              <Input
+                                id="max_depth_mm"
+                                type="number"
+                                step="50"
+                                value={formData.max_depth_mm || 600}
+                                onChange={(e) => handleInputChange('max_depth_mm', parseInt(e.target.value))}
+                                placeholder="600"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Available depths: {formData.min_depth_mm || 200}mm to {formData.max_depth_mm || 600}mm in 50mm steps
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <Label className="text-sm font-medium">Width Range (mm)</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label htmlFor="min_width_mm" className="text-xs">Minimum</Label>
+                              <Input
+                                id="min_width_mm"
+                                type="number"
+                                step="50"
+                                value={formData.min_width_mm || 300}
+                                onChange={(e) => handleInputChange('min_width_mm', parseInt(e.target.value))}
+                                placeholder="300"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="max_width_mm" className="text-xs">Maximum</Label>
+                              <Input
+                                id="max_width_mm"
+                                type="number"
+                                step="50"
+                                value={formData.max_width_mm || 1200}
+                                onChange={(e) => handleInputChange('max_width_mm', parseInt(e.target.value))}
+                                placeholder="1200"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Available widths: {formData.min_width_mm || 300}mm to {formData.max_width_mm || 1200}mm in 50mm steps
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <Label className="text-sm font-medium">Height Range (mm)</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label htmlFor="min_height_mm" className="text-xs">Minimum</Label>
+                              <Input
+                                id="min_height_mm"
+                                type="number"
+                                step="50"
+                                value={formData.min_height_mm || 200}
+                                onChange={(e) => handleInputChange('min_height_mm', parseInt(e.target.value))}
+                                placeholder="200"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="max_height_mm" className="text-xs">Maximum</Label>
+                              <Input
+                                id="max_height_mm"
+                                type="number"
+                                step="50"
+                                value={formData.max_height_mm || 1000}
+                                onChange={(e) => handleInputChange('max_height_mm', parseInt(e.target.value))}
+                                placeholder="1000"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Available heights: {formData.min_height_mm || 200}mm to {formData.max_height_mm || 1000}mm in 50mm steps
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <Label className="text-sm font-medium">Depth Range (mm)</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label htmlFor="min_depth_mm" className="text-xs">Minimum</Label>
+                              <Input
+                                id="min_depth_mm"
+                                type="number"
+                                step="50"
+                                value={formData.min_depth_mm || 200}
+                                onChange={(e) => handleInputChange('min_depth_mm', parseInt(e.target.value))}
+                                placeholder="200"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="max_depth_mm" className="text-xs">Maximum</Label>
+                              <Input
+                                id="max_depth_mm"
+                                type="number"
+                                step="50"
+                                value={formData.max_depth_mm || 800}
+                                onChange={(e) => handleInputChange('max_depth_mm', parseInt(e.target.value))}
+                                placeholder="800"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Available depths: {formData.min_depth_mm || 200}mm to {formData.max_depth_mm || 800}mm in 50mm steps
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <Label className="text-sm font-medium">Display Order</Label>
+                          <Input
+                            id="display_order"
+                            type="number"
+                            value={formData.display_order || 0}
+                            onChange={(e) => handleInputChange('display_order', parseInt(e.target.value))}
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Corner Cabinet Quantities */}
+                  {formData.cabinet_style === 'corner' && (
+                    <>
+                      <Separator />
+                      <div className="space-y-4">
+                        <Label className="text-base font-semibold">Corner Cabinet Part Quantities</Label>
+                        
                         <div className="grid grid-cols-4 gap-4">
                           <div>
                             <Label htmlFor="qty_left_side">Left Side Qty</Label>
