@@ -38,18 +38,97 @@ interface CabinetComponentsTabProps {
 const getDefaultParts = (style: string): Omit<CabinetPart, 'id'>[] => {
   if (style === 'corner') {
     return [
-      { part_name: 'Left Back', quantity: 1, width_formula: 'W', height_formula: 'H', is_door: false, is_hardware: false },
-      { part_name: 'Right Back', quantity: 1, width_formula: 'W', height_formula: 'H', is_door: false, is_hardware: false },
-      { part_name: 'Bottom', quantity: 1, width_formula: 'W', height_formula: 'D', is_door: false, is_hardware: false },
-      { part_name: 'Left Side', quantity: 1, width_formula: 'D', height_formula: 'H', is_door: false, is_hardware: false },
-      { part_name: 'Right Side', quantity: 1, width_formula: 'D', height_formula: 'H', is_door: false, is_hardware: false },
+      { 
+        part_name: 'Left Back', 
+        quantity: 1, 
+        width_formula: '(((left_width/1000*height/1000)*qty)*mat_rate_per_sqm)', 
+        height_formula: 'H', 
+        is_door: false, 
+        is_hardware: false 
+      },
+      { 
+        part_name: 'Right Back', 
+        quantity: 1, 
+        width_formula: '(((right_width/1000*height/1000)*qty)*mat_rate_per_sqm)', 
+        height_formula: 'H', 
+        is_door: false, 
+        is_hardware: false 
+      },
+      { 
+        part_name: 'Bottom', 
+        quantity: 1, 
+        width_formula: '(((right_depth/1000*left_depth/1000)*qty)*mat_rate_per_sqm)', 
+        height_formula: 'D', 
+        is_door: false, 
+        is_hardware: false 
+      },
+      { 
+        part_name: 'Left Side', 
+        quantity: 1, 
+        width_formula: '(((left_depth/1000*height/1000)*qty)*mat_rate_per_sqm)', 
+        height_formula: 'H', 
+        is_door: false, 
+        is_hardware: false 
+      },
+      { 
+        part_name: 'Right Side', 
+        quantity: 1, 
+        width_formula: '(((right_depth/1000*height/1000)*qty)*mat_rate_per_sqm)', 
+        height_formula: 'H', 
+        is_door: false, 
+        is_hardware: false 
+      },
+      { 
+        part_name: 'Door 1', 
+        quantity: 1, 
+        width_formula: '(((right_width/1000-left_side/1000)*qty)*door_cost+color_cost+finish_cost)', 
+        height_formula: 'H', 
+        is_door: true, 
+        is_hardware: false 
+      },
+      { 
+        part_name: 'Door 2', 
+        quantity: 1, 
+        width_formula: '(((left_width/1000-right_side/1000)*qty)*door_cost+color_cost+finish_cost)', 
+        height_formula: 'H', 
+        is_door: true, 
+        is_hardware: false 
+      },
     ];
   } else {
     return [
-      { part_name: 'Sides', quantity: 2, width_formula: 'D', height_formula: 'H', is_door: false, is_hardware: false },
-      { part_name: 'Backs', quantity: 1, width_formula: 'W', height_formula: 'H', is_door: false, is_hardware: false },
-      { part_name: 'Bottoms', quantity: 1, width_formula: 'W', height_formula: 'D', is_door: false, is_hardware: false },
-      { part_name: 'Door', quantity: 1, width_formula: 'W', height_formula: 'H', is_door: true, is_hardware: false },
+      { 
+        part_name: 'Sides', 
+        quantity: 2, 
+        width_formula: '(((height/1000*depth/1000)*qty)*mat_rate_per_sqm)', 
+        height_formula: 'H', 
+        is_door: false, 
+        is_hardware: false 
+      },
+      { 
+        part_name: 'Backs', 
+        quantity: 1, 
+        width_formula: '(((height/1000*width/1000)*qty)*mat_rate_per_sqm)', 
+        height_formula: 'H', 
+        is_door: false, 
+        is_hardware: false 
+      },
+      { 
+        part_name: 'Bottoms', 
+        quantity: 1, 
+        width_formula: '(((depth/1000*width/1000)*qty)*mat_rate_per_sqm)', 
+        height_formula: 'D', 
+        is_door: false, 
+        is_hardware: false 
+      },
+      { 
+        part_name: 'Door', 
+        quantity: 1, 
+        width_formula: '(((height/1000*width/1000)*qty)*door_cost+color_cost+finish_cost)', 
+        height_formula: 'H', 
+        is_door: true, 
+        is_hardware: false 
+      },
     ];
   }
 };
