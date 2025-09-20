@@ -247,12 +247,12 @@ const defaultCabinetType: CabinetType = {
   default_width_mm: 600,
   default_height_mm: 720,
   default_depth_mm: 560,
-  min_width_mm: 300,
+  min_width_mm: 100,
   max_width_mm: 1200,
   min_height_mm: 200,
   max_height_mm: 1000,
   min_depth_mm: 200,
-  max_depth_mm: 800,
+  max_depth_mm: 1200,
   door_count: 0,
   drawer_count: 0,
   active: true,
@@ -1276,9 +1276,9 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                                 id="min_left_width"
                                 type="number"
                                 step="50"
-                                value={formData.min_width_mm || 300}
+                                value={formData.min_width_mm || 100}
                                 onChange={(e) => handleInputChange('min_width_mm', parseInt(e.target.value))}
-                                placeholder="300"
+                                placeholder="100"
                               />
                             </div>
                             <div>
@@ -1287,14 +1287,14 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                                 id="max_left_width"
                                 type="number"
                                 step="50"
-                                value={formData.max_width_mm || 800}
+                                value={formData.max_width_mm || 1200}
                                 onChange={(e) => handleInputChange('max_width_mm', parseInt(e.target.value))}
-                                placeholder="800"
+                                placeholder="1200"
                               />
                             </div>
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            Available left widths: {formData.min_width_mm || 300}mm to {formData.max_width_mm || 800}mm in 50mm steps
+                            Available left widths: {formData.min_width_mm || 100}mm to {formData.max_width_mm || 1200}mm in 50mm steps
                           </div>
                         </div>
 
@@ -1307,9 +1307,9 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                                 id="min_right_width"
                                 type="number"
                                 step="50"
-                                value={formData.min_width_mm || 300}
+                                value={formData.min_width_mm || 100}
                                 onChange={(e) => handleInputChange('min_width_mm', parseInt(e.target.value))}
-                                placeholder="300"
+                                placeholder="100"
                               />
                             </div>
                             <div>
@@ -1318,14 +1318,14 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                                 id="max_right_width"
                                 type="number"
                                 step="50"
-                                value={formData.max_width_mm || 800}
+                                value={formData.max_width_mm || 1200}
                                 onChange={(e) => handleInputChange('max_width_mm', parseInt(e.target.value))}
-                                placeholder="800"
+                                placeholder="1200"
                               />
                             </div>
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            Available right widths: {formData.min_width_mm || 300}mm to {formData.max_width_mm || 800}mm in 50mm steps
+                            Available right widths: {formData.min_width_mm || 100}mm to {formData.max_width_mm || 1200}mm in 50mm steps
                           </div>
                         </div>
 
@@ -1380,14 +1380,14 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                                 id="max_depth_mm"
                                 type="number"
                                 step="50"
-                                value={formData.max_depth_mm || 600}
+                                value={formData.max_depth_mm || 1200}
                                 onChange={(e) => handleInputChange('max_depth_mm', parseInt(e.target.value))}
-                                placeholder="600"
+                                placeholder="1200"
                               />
                             </div>
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            Available depths: {formData.min_depth_mm || 200}mm to {formData.max_depth_mm || 600}mm in 50mm steps
+                            Available depths: {formData.min_depth_mm || 200}mm to {formData.max_depth_mm || 1200}mm in 50mm steps
                           </div>
                         </div>
                       </div>
@@ -1402,9 +1402,9 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                                 id="min_width_mm"
                                 type="number"
                                 step="50"
-                                value={formData.min_width_mm || 300}
+                                value={formData.min_width_mm || 100}
                                 onChange={(e) => handleInputChange('min_width_mm', parseInt(e.target.value))}
-                                placeholder="300"
+                                placeholder="100"
                               />
                             </div>
                             <div>
@@ -1420,7 +1420,7 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                             </div>
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            Available widths: {formData.min_width_mm || 300}mm to {formData.max_width_mm || 1200}mm in 50mm steps
+                            Available widths: {formData.min_width_mm || 100}mm to {formData.max_width_mm || 1200}mm in 50mm steps
                           </div>
                         </div>
 
