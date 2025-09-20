@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { ImageDropzone } from "./ImageDropzone";
 
 interface DoorStyle {
   id: string;
@@ -12,6 +13,7 @@ interface DoorStyle {
   description: string;
   base_rate_per_sqm: number;
   active: boolean;
+  image_url?: string;
 }
 
 interface DoorStyleEditDialogProps {
@@ -26,7 +28,8 @@ const DoorStyleEditDialog = ({ doorStyle, open, onOpenChange, onSave }: DoorStyl
     name: "",
     description: "",
     base_rate_per_sqm: 0,
-    active: true
+    active: true,
+    image_url: ""
   });
 
   useEffect(() => {
@@ -35,14 +38,16 @@ const DoorStyleEditDialog = ({ doorStyle, open, onOpenChange, onSave }: DoorStyl
         name: doorStyle.name,
         description: doorStyle.description || "",
         base_rate_per_sqm: doorStyle.base_rate_per_sqm,
-        active: doorStyle.active
+        active: doorStyle.active,
+        image_url: doorStyle.image_url || ""
       });
     } else {
       setFormData({
         name: "",
         description: "",
         base_rate_per_sqm: 0,
-        active: true
+        active: true,
+        image_url: ""
       });
     }
   }, [doorStyle]);
@@ -89,6 +94,13 @@ const DoorStyleEditDialog = ({ doorStyle, open, onOpenChange, onSave }: DoorStyl
               value={formData.base_rate_per_sqm}
               onChange={(e) => setFormData({...formData, base_rate_per_sqm: parseFloat(e.target.value) || 0})}
               placeholder="0.00"
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="image">Door Style Image</Label>
+            <ImageDropzone
+              value={formData.image_url}
+              onChange={(imageUrl) => setFormData({...formData, image_url: imageUrl})}
             />
           </div>
           <div className="flex items-center space-x-2">
