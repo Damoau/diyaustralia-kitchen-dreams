@@ -83,7 +83,15 @@ Format response as JSON with keys: meta_title, meta_description, meta_keywords, 
     // Parse the JSON response
     let contentData;
     try {
-      contentData = JSON.parse(generatedContent);
+      // Remove markdown code blocks if present
+      let cleanContent = generatedContent.trim();
+      if (cleanContent.startsWith('```json')) {
+        cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanContent.startsWith('```')) {
+        cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      contentData = JSON.parse(cleanContent);
     } catch (parseError) {
       console.error('Failed to parse AI response:', generatedContent);
       throw new Error('Invalid AI response format');

@@ -911,8 +911,8 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-6xl max-h-[95vh] p-0 flex flex-col overflow-hidden">
-          <DialogHeader className="px-6 py-4 border-b flex-shrink-0">
+        <DialogContent className="max-w-6xl max-h-[95vh] flex flex-col overflow-hidden">
+          <DialogHeader className="px-6 py-4 border-b flex-shrink-0 bg-background">
             <div className="flex items-center justify-between">
               <div>
                 <DialogTitle>
@@ -925,8 +925,8 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
             </div>
           </DialogHeader>
 
-        <Tabs defaultValue="basic" className="flex-1 flex flex-col">
-          <div className="px-6 py-2 border-b">
+        <Tabs defaultValue="basic" className="flex-1 flex flex-col min-h-0">
+          <div className="px-6 py-2 border-b flex-shrink-0 bg-background">
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="basic" className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
@@ -951,9 +951,11 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
             </TabsList>
           </div>
 
-          <ScrollArea className="flex-1 h-[calc(95vh-200px)] [&>div>div[style]]:!block">
-            <div className="overflow-y-auto max-h-full pr-4 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400"
-                 style={{ scrollbarWidth: 'thin', scrollbarColor: '#D1D5DB #F3F4F6' }}>
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="h-full overflow-y-auto p-6" style={{
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#9CA3AF #F3F4F6'
+            }}>
             <TabsContent value="basic" className="p-6 space-y-8 m-0">
               <Card>
                 <CardHeader>
@@ -1750,7 +1752,7 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
               </Card>
             </TabsContent>
             </div>
-          </ScrollArea>
+          </div>
         </Tabs>
 
         <div className="border-t px-6 py-4 bg-background flex-shrink-0">
