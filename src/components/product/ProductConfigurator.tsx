@@ -403,16 +403,20 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         <div className="relative">
           {/* Mobile Sticky Price Bar - Top */}
           {selectedCabinetType && (
-            <div className="lg:hidden sticky top-0 bg-primary text-primary-foreground px-3 py-2 z-50 flex items-center justify-between">
-              <div>
+            <div className="lg:hidden sticky top-0 bg-primary text-primary-foreground px-4 py-3 z-50 flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-base truncate">
+                  {selectedCabinetType.name}
+                </h3>
+              </div>
+              <div className="flex items-center gap-3 flex-shrink-0">
                 <div className="text-lg font-bold">
                   ${calculateTotalPrice().toFixed(2)}
                 </div>
-                <div className="text-xs opacity-90">Total Price</div>
+                <Badge variant="secondary" className="text-xs px-2 py-1">
+                  {quantity} item{quantity !== 1 ? 's' : ''}
+                </Badge>
               </div>
-              <Badge variant="secondary" className="text-xs px-2 py-1">
-                {quantity} item{quantity !== 1 ? 's' : ''}
-              </Badge>
             </div>
           )}
 
