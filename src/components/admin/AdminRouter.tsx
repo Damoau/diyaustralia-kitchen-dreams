@@ -60,6 +60,7 @@ export const AdminRouter = () => {
               <HardwareManager />
             </Suspense>
           } />
+          <Route path="materials" element={<Pricing />} />
           <Route path="pricing" element={<Pricing />} />
           <Route path="discounts" element={<Discounts />} />
           <Route path="users" element={<Users />} />
