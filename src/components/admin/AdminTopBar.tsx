@@ -18,7 +18,8 @@ import {
   Settings, 
   LogOut, 
   User,
-  Menu
+  Menu,
+  ExternalLink
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { EnhancedBreadcrumbs } from './EnhancedBreadcrumbs';
@@ -56,6 +57,14 @@ export const AdminTopBar = () => {
         <div className="flex items-center space-x-4">
           {/* Contextual Quick Actions */}
           <QuickActionsBar />
+
+          {/* Return to Frontend */}
+          <Button variant="outline" size="sm" asChild>
+            <a href="/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+              <ExternalLink className="h-4 w-4" />
+              <span className="hidden sm:inline">Return to Frontend</span>
+            </a>
+          </Button>
 
           {/* Notifications */}
           <Button variant="ghost" size="sm" className="relative">

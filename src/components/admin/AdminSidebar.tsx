@@ -77,7 +77,6 @@ const navigationItems = [
       { title: 'Hardware Manager', url: 'hardware-manager', icon: Wrench },
       { title: 'Materials & Pricing', url: 'materials', icon: DollarSign },
       { title: 'Configuration Migration', url: 'configuration-migration', icon: MapPin },
-      { title: 'Pricing', url: 'pricing', icon: DollarSign },
       { title: 'Discounts', url: 'discounts', icon: DollarSign },
       { title: 'Users', url: 'users', icon: Users },
       { title: 'Roles', url: 'roles', icon: Users },
