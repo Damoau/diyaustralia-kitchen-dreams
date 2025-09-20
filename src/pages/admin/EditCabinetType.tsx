@@ -1225,20 +1225,28 @@ export default function EditCabinetType() {
                          {generatedSizes.length > 0 && (
                            <div className="space-y-2">
                              <Label className="text-sm font-medium">Generated Width Ranges</Label>
-                             <div className="flex flex-wrap gap-2 p-3 bg-muted/50 rounded-md max-h-32 overflow-y-auto">
-                               {generatedSizes.map((size, index) => {
-                                 const nextSize = generatedSizes[index + 1];
-                                 if (!nextSize) return null; // Skip the last item
-                                 return (
-                                   <Badge key={size} variant="outline" className="text-xs">
-                                     {size}-{nextSize - 1}mm
-                                   </Badge>
-                                 );
-                               })}
-                             </div>
-                             <div className="text-xs text-muted-foreground">
-                               {generatedSizes.length - 1} size ranges generated
-                             </div>
+                              <div className="flex flex-wrap gap-2 p-3 bg-muted/50 rounded-md max-h-32 overflow-y-auto">
+                                {generatedSizes.map((size, index) => {
+                                  const nextSize = generatedSizes[index + 1];
+                                  if (index === generatedSizes.length - 1) {
+                                    // Last item - show range to max width
+                                    const maxWidth = cabinetType.max_width_mm || 1200;
+                                    return (
+                                      <Badge key={size} variant="outline" className="text-xs">
+                                        {size}-{maxWidth}mm
+                                      </Badge>
+                                    );
+                                  }
+                                  return (
+                                    <Badge key={size} variant="outline" className="text-xs">
+                                      {size}-{nextSize - 1}mm
+                                    </Badge>
+                                  );
+                                })}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {generatedSizes.length} size ranges generated
+                              </div>
                            </div>
                          )}
                        </div>
