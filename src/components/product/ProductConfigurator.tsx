@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import PricingCalculator from '@/lib/pricingCalculator';
+import { StyleColorFinishSelector } from './StyleColorFinishSelector';
 
 interface CabinetType {
   id: string;
@@ -103,6 +104,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedFinish, setSelectedFinish] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
+  const [styleColorFinishSelectorOpen, setStyleColorFinishSelectorOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -377,6 +379,16 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     }
   };
 
+  const handleStyleColorFinishSelection = (doorStyleId: string, colorId: string, finishId: string) => {
+    setSelectedDoorStyle(doorStyleId);
+    setSelectedColor(colorId);
+    setSelectedFinish(finishId);
+  };
+
+  const getSelectedDoorStyle = () => doorStyles.find(ds => ds.id === selectedDoorStyle);
+  const getSelectedColor = () => colors.find(c => c.id === selectedColor);
+  const getSelectedFinish = () => finishes.find(f => f.id === selectedFinish);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden p-0 z-50">
@@ -545,139 +557,103 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                       </CardContent>
                     </Card>
 
-                    {/* Style & Color Combined */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                      {/* Door Style */}
-                      <Card>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-base flex items-center gap-1">
-                            🎨 Door Style
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="pt-0">
-                          <div className="grid grid-cols-1 gap-2">
-                            {doorStyles.slice(0, 3).map((style) => (
-                              <div
-                                key={style.id}
-                                onClick={() => setSelectedDoorStyle(style.id)}
-                                className={`relative p-2 border rounded cursor-pointer transition-all text-sm ${
-                                  selectedDoorStyle === style.id 
-                                    ? 'border-primary bg-primary/10' 
-                                    : 'border-border hover:border-primary/50'
-                                }`}
-                              >
-                                {style.name}
-                                {selectedDoorStyle === style.id && (
-                                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-primary text-xs">✓</span>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Color */}
-                      <Card>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-base flex items-center gap-1">
-                            🎨 Color
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="pt-0">
-                          <div className="grid grid-cols-2 gap-2">
-                            {colors.slice(0, 6).map((color) => (
-                              <div
-                                key={color.id}
-                                onClick={() => setSelectedColor(color.id)}
-                                className={`relative p-2 border rounded cursor-pointer transition-all ${
-                                  selectedColor === color.id 
-                                    ? 'border-primary bg-primary/10' 
-                                    : 'border-border hover:border-primary/50'
-                                }`}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <div 
-                                    className="w-4 h-4 rounded-full border shadow-sm flex-shrink-0"
-                                    style={{ backgroundColor: color.hex_code || '#f3f4f6' }}
-                                  />
-                                  <span className="text-xs font-medium truncate">{color.name}</span>
+                    {/* Door Style, Color & Finish Selector */}
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base flex items-center gap-1">
+                          🎨 Door Style, Colour & Finish
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div 
+                          onClick={() => setStyleColorFinishSelectorOpen(true)}
+                          className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all min-h-[120px] flex items-center justify-center"
+                        >
+                          {selectedDoorStyle && selectedColor && selectedFinish ? (
+                            <div className="w-full">
+                              <div className="flex items-center gap-4">
+                                {/* Door Style Image */}
+                                <div className="w-16 h-16 rounded-lg overflow-hidden border flex-shrink-0">
+                                  {getSelectedDoorStyle()?.image_url ? (
+                                    <img 
+                                      src={getSelectedDoorStyle()?.image_url} 
+                                      alt={getSelectedDoorStyle()?.name}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                                      <span className="text-2xl">🚪</span>
+                                    </div>
+                                  )}
                                 </div>
-                                {selectedColor === color.id && (
-                                  <span className="absolute right-1 top-1 text-primary text-xs">✓</span>
-                                )}
+                                
+                                {/* Details */}
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-medium truncate">{getSelectedDoorStyle()?.name}</h4>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <div 
+                                      className="w-4 h-4 rounded-full border border-border flex-shrink-0"
+                                      style={{ backgroundColor: getSelectedColor()?.hex_code || '#f3f4f6' }}
+                                    />
+                                    <span className="text-sm text-muted-foreground truncate">
+                                      {getSelectedColor()?.name}
+                                    </span>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground truncate mt-1">
+                                    {getSelectedFinish()?.name} ({getSelectedFinish()?.finish_type})
+                                  </p>
+                                </div>
                               </div>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    {/* Finish & Hardware Combined */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                      {/* Finish */}
-                      <Card>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-base flex items-center gap-1">
-                            ✨ Finish
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="pt-0">
-                          <div className="space-y-2">
-                            {finishes.slice(0, 3).map((finish) => (
-                              <div
-                                key={finish.id}
-                                onClick={() => setSelectedFinish(finish.id)}
-                                className={`relative p-2 border rounded cursor-pointer transition-all ${
-                                  selectedFinish === finish.id 
-                                    ? 'border-primary bg-primary/10' 
-                                    : 'border-border hover:border-primary/50'
-                                }`}
-                              >
-                                <div className="text-sm font-medium">{finish.name}</div>
-                                <div className="text-xs text-muted-foreground">{finish.finish_type}</div>
-                                {selectedFinish === finish.id && (
-                                  <span className="absolute right-2 top-2 text-primary text-xs">✓</span>
-                                )}
+                              <p className="text-xs text-muted-foreground text-center mt-3">
+                                Click to change selection
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="text-center">
+                              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                                <span className="text-2xl">🎨</span>
                               </div>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
+                              <p className="font-medium mb-1">Select Door Style, Colour & Finish</p>
+                              <p className="text-sm text-muted-foreground">Click to customize your cabinet</p>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
 
-                      {/* Hardware & Quantity */}
-                      <Card>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-base flex items-center gap-1">
-                            🔧 Options
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="pt-0 space-y-3">
-                          <div>
-                            <Label className="text-xs">Hardware Brand</Label>
-                            <Select>
-                              <SelectTrigger className="h-8">
-                                <SelectValue placeholder="Select brand" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="blum">Blum</SelectItem>
-                                <SelectItem value="hettich">Hettich</SelectItem>
-                                <SelectItem value="hafele">Häfele</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label className="text-xs">Quantity</Label>
-                            <Input
-                              type="number"
-                              value={quantity}
-                              onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                              min={1}
-                              className="text-center font-mono h-8"
-                            />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
+                    {/* Hardware & Quantity */}
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base flex items-center gap-1">
+                          🔧 Options
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-0 space-y-3">
+                        <div>
+                          <Label className="text-xs">Hardware Brand</Label>
+                          <Select>
+                            <SelectTrigger className="h-8">
+                              <SelectValue placeholder="Select brand" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="blum">Blum</SelectItem>
+                              <SelectItem value="hettich">Hettich</SelectItem>
+                              <SelectItem value="hafele">Häfele</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-xs">Quantity</Label>
+                          <Input
+                            type="number"
+                            value={quantity}
+                            onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                            min={1}
+                            className="text-center font-mono h-8"
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
 
                     {/* Notes - Compact */}
                     <Card>
@@ -721,6 +697,19 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Style Color Finish Selector Dialog */}
+        <StyleColorFinishSelector
+          open={styleColorFinishSelectorOpen}
+          onOpenChange={setStyleColorFinishSelectorOpen}
+          doorStyles={doorStyles}
+          colors={colors}
+          finishes={finishes}
+          selectedDoorStyle={selectedDoorStyle}
+          selectedColor={selectedColor}
+          selectedFinish={selectedFinish}
+          onSelectionComplete={handleStyleColorFinishSelection}
+        />
       </DialogContent>
     </Dialog>
   );
