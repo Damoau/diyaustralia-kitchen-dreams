@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -383,20 +384,21 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           <DialogTitle>{selectedCabinetType?.name || 'Configure Product'}</DialogTitle>
         </DialogHeader>
 
-        <div className="max-w-md mx-auto">
-          {/* Configuration */}
+        {/* Sticky Price - Always at top on all devices */}
+        <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b p-4 mb-6 z-10">
+          <div className="text-center">
+            <div className="text-2xl font-bold">
+              ${selectedCabinetType ? calculateTotalPrice().toFixed(2) : '0.00'}
+            </div>
+            <div className="text-sm text-muted-foreground">Total Price</div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column - Image */}
           <div className="space-y-6">
             {selectedCabinetType && (
               <>
-                {/* Price - Move to top */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-2xl font-bold text-center">
-                      ${calculateTotalPrice().toFixed(2)}
-                    </CardTitle>
-                  </CardHeader>
-                </Card>
-
                 {/* Cabinet Image */}
                 <Card>
                   <CardContent className="p-0">
@@ -415,6 +417,14 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                     </div>
                   </CardContent>
                 </Card>
+              </>
+            )}
+          </div>
+
+          {/* Right Column - Configuration */}
+          <div className="space-y-6">
+            {selectedCabinetType && (
+              <>
                 {/* Dimensions */}
                 <Card>
                   <CardHeader>
@@ -585,176 +595,6 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                     </Button>
                   </CardContent>
                 </Card>
-              </>
-            )}
-          </div>
-
-          {/* Right Column - Hidden (detailed breakdown available for reference) */}
-          <div className="hidden space-y-6">
-            {selectedCabinetType && (
-              <>
-                 {/* Cabinet Parts Breakdown */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Parts Breakdown</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {cabinetParts.map((part) => {
-                        const partDimensions = calculatePartDimensions(part);
-                        
-                        // Calculate individual part cost using the same logic as PricingCalculator
-                        const rates = {
-                          materialRate: selectedCabinetType.material_rate_per_sqm || 85,
-                          doorRate: selectedDoorStyle ? doorStyles.find(ds => ds.id === selectedDoorStyle)?.base_rate_per_sqm || 120 : 120,
-                          colorSurcharge: selectedColor ? colors.find(c => c.id === selectedColor)?.surcharge_rate_per_sqm || 0 : 0,
-                          finishSurcharge: selectedFinish ? finishes.find(f => f.id === selectedFinish)?.rate_per_sqm || 0 : 0,
-                        };
-
-                        const variables = {
-                          width: dimensions.width,
-                          height: dimensions.height,
-                          depth: dimensions.depth,
-                          qty: quantity,
-                          mat_rate_per_sqm: rates.materialRate,
-                          door_cost: rates.doorRate,
-                          color_cost: rates.colorSurcharge,
-                          finish_cost: rates.finishSurcharge,
-                        };
-
-                        // Use PricingCalculator to evaluate the formula
-                        let partUnitCost = 0;
-                        try {
-                          partUnitCost = PricingCalculator.evaluateFormula(part.width_formula || '', variables as any);
-                        } catch (error) {
-                          console.error('Error calculating part cost:', error);
-                        }
-                        
-                        const partTotalCost = partUnitCost * (part.quantity || 1);
-
-                        return (
-                          <div key={part.id} className="flex justify-between items-center text-sm border-b pb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">{part.part_name}</span>
-                              {part.is_door && <Badge variant="secondary">Door</Badge>}
-                              {part.is_hardware && <Badge variant="outline">Hardware</Badge>}
-                            </div>
-                            <div className="text-right">
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs text-muted-foreground">Qty: {part.quantity}</span>
-                                <span className="font-medium">${partTotalCost.toFixed(2)}</span>
-                              </div>
-                              {(part.width_formula || part.height_formula) && (
-                                <div className="text-xs text-muted-foreground">
-                                  {Math.round(partDimensions.width)}×{Math.round(partDimensions.height)}mm
-                                  {partUnitCost > 0 && (
-                                    <span className="ml-2">${partUnitCost.toFixed(2)} × {part.quantity}</span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                 {/* Hardware Requirements */}
-                {hardwareRequirements.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Hardware Requirements</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        {hardwareRequirements.map((req) => {
-                          // Calculate hardware cost
-                          let units = 0;
-                          switch (req.unit_scope?.toLowerCase()) {
-                            case 'cabinet':
-                            case 'custom':
-                              units = req.units_per_scope * quantity;
-                              break;
-                            case 'door':
-                              const doorCount = Math.max(selectedCabinetType.door_qty || selectedCabinetType.door_count || 1, 1);
-                              units = req.units_per_scope * doorCount * quantity;
-                              break;
-                            case 'drawer':
-                              const drawerCount = selectedCabinetType.drawer_count || 0;
-                              units = req.units_per_scope * drawerCount * quantity;
-                              break;
-                            default:
-                              units = req.units_per_scope * quantity;
-                          }
-                          
-                          const costPerUnit = 5.50; // Default hardware cost
-                          const totalCost = units * costPerUnit;
-
-                          return (
-                            <div key={req.id} className="flex justify-between items-center text-sm border-b pb-2">
-                              <div>
-                                <div className="font-medium">{req.hardware_type.name}</div>
-                                <div className="text-xs text-muted-foreground">
-                                  {req.hardware_type.category}
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-muted-foreground">
-                                    {req.units_per_scope} per {req.unit_scope}
-                                  </span>
-                                  <span className="font-medium">${totalCost.toFixed(2)}</span>
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  ${costPerUnit.toFixed(2)} × {units} units
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Price Summary */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Price Summary</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span>Door Area:</span>
-                        <span>{calculateDoorArea().toFixed(2)} m²</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Unit Price:</span>
-                        <span>${(calculateTotalPrice() / quantity).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Quantity:</span>
-                        <span>{quantity}</span>
-                      </div>
-                      <div className="border-t pt-2">
-                        <div className="flex justify-between font-semibold">
-                          <span>Total Price:</span>
-                          <span>${calculateTotalPrice().toFixed(2)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Add to Cart Button */}
-                <Button 
-                  onClick={handleAddToCart} 
-                  disabled={loading || !selectedDoorStyle || !selectedColor || !selectedFinish}
-                  className="w-full"
-                >
-                  {loading ? 'Adding...' : 'Add to Cart'}
-                </Button>
               </>
             )}
           </div>
