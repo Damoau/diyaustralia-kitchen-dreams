@@ -590,9 +590,9 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                                 {/* Details */}
                                 <div className="flex-1 min-w-0">
                                   <h4 className="font-medium truncate">{getSelectedDoorStyle()?.name}</h4>
-                                  <div className="flex items-center gap-2 mt-1">
+                                  <div className="flex items-center gap-3 mt-1">
                                     <div 
-                                      className="w-4 h-4 rounded-full border border-border flex-shrink-0"
+                                      className="w-6 h-6 rounded-full border border-border flex-shrink-0 shadow-sm"
                                       style={{ backgroundColor: getSelectedColor()?.hex_code || '#f3f4f6' }}
                                     />
                                     <span className="text-sm text-muted-foreground truncate">

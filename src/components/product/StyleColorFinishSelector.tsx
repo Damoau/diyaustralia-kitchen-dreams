@@ -95,7 +95,18 @@ export const StyleColorFinishSelector: React.FC<StyleColorFinishSelectorProps> =
 
   const handleBack = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+      const newStep = currentStep - 1;
+      setCurrentStep(newStep);
+      
+      // Reset selections when going back to maintain proper state
+      if (newStep === 1) {
+        // Going back to door style step, clear color and finish
+        setTempColor('');
+        setTempFinish('');
+      } else if (newStep === 2) {
+        // Going back to color step, clear finish
+        setTempFinish('');
+      }
     }
   };
 
