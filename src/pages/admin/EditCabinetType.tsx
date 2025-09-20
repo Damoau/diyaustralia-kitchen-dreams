@@ -28,7 +28,6 @@ interface CabinetType {
   door_count: number;
   drawer_count: number;
   featured_product: boolean;
-  description?: string;
   meta_title?: string;
   meta_description?: string;
   meta_keywords?: string;
@@ -110,7 +109,6 @@ const defaultCabinetType: CabinetType = {
   door_count: 0,
   drawer_count: 0,
   featured_product: false,
-  description: "",
   meta_title: "",
   meta_description: "",
   meta_keywords: "",
@@ -517,7 +515,6 @@ export default function EditCabinetType() {
           meta_description: data.meta_description || '',
           meta_keywords: data.meta_keywords || '',
           url_slug: data.url_slug || '',
-          description: data.short_description || cabinetType.description,
           short_description: data.short_description || cabinetType.short_description,
           long_description: data.long_description || cabinetType.long_description,
         };
@@ -819,11 +816,11 @@ export default function EditCabinetType() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="short_description">Description</Label>
                     <Textarea
-                      id="description"
-                      value={cabinetType.description || ''}
-                      onChange={(e) => handleInputChange('description', e.target.value)}
+                      id="short_description"
+                      value={cabinetType.short_description || ''}
+                      onChange={(e) => handleInputChange('short_description', e.target.value)}
                       placeholder="Enter cabinet description..."
                       rows={3}
                     />
