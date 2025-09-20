@@ -229,12 +229,12 @@ const CarrierManagement = () => {
 
       {/* Filters */}
       <div className="flex items-center space-x-4">
-        <Select value={filters.carrier} onValueChange={(value) => setFilters({...filters, carrier: value})}>
+        <Select value={filters.carrier || "all"} onValueChange={(value) => setFilters({...filters, carrier: value === "all" ? "" : value})}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="All carriers" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All carriers</SelectItem>
+            <SelectItem value="all">All carriers</SelectItem>
             {carriers.map((carrier) => (
               <SelectItem key={carrier} value={carrier}>
                 {carrier}

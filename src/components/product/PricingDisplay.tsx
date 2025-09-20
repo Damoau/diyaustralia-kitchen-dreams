@@ -41,7 +41,8 @@ export const PricingDisplay: React.FC<PricingDisplayProps> = ({
     };
 
     // Calculate door area for surcharges
-    const doorArea = (dimensions.width / 1000) * (dimensions.height / 1000) * (cabinetType.door_count || 1);
+    const doorCount = Math.max(cabinetType.door_qty || cabinetType.door_count || 1, 1);
+    const doorArea = (dimensions.width / 1000) * (dimensions.height / 1000) * doorCount;
     rates.colorSurcharge *= doorArea * quantity;
     rates.finishSurcharge *= doorArea * quantity;
 

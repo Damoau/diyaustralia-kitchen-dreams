@@ -837,7 +837,7 @@ export default function EditCabinetType() {
                             </>
                           )}
                           {!cabinetType.category && (
-                            <SelectItem value="" disabled>Select a category first</SelectItem>
+                            <SelectItem value="none" disabled>Select a category first</SelectItem>
                           )}
                         </SelectContent>
                       </Select>

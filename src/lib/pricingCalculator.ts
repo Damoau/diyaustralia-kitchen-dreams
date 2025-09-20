@@ -124,7 +124,7 @@ export class PricingCalculator {
     let carcassPrice = 0;
     let doorPrice = 0;
     let hardwarePrice = 0;
-    let surcharges = rates.colorSurcharge || 0 + rates.finishSurcharge || 0;
+    let surcharges = (rates.colorSurcharge || 0) + (rates.finishSurcharge || 0);
     
     // Calculate based on cabinet parts if available
     if (cabinetType.cabinet_parts && cabinetType.cabinet_parts.length > 0) {
@@ -144,9 +144,20 @@ export class PricingCalculator {
       const area = (dimensions.width / 1000) * (dimensions.height / 1000);
       carcassPrice = area * variables.mat_rate_per_sqm * quantity;
       
-      // Basic door calculation
-      const doorArea = area * (cabinetType.door_count || 1);
+      // Basic door calculation - ensure door_count is at least 1 if not set
+      const doorCount = Math.max(cabinetType.door_qty || cabinetType.door_count || 1, 1);
+      const doorArea = area * doorCount;
       doorPrice = doorArea * variables.door_cost;
+      
+      console.log('Pricing calculation:', {
+        area: area.toFixed(4),
+        doorCount,
+        doorArea: doorArea.toFixed(4), 
+        materialRate: variables.mat_rate_per_sqm,
+        doorRate: variables.door_cost,
+        carcassPrice: carcassPrice.toFixed(2),
+        doorPrice: doorPrice.toFixed(2)
+      });
     }
     
     const totalPrice = carcassPrice + doorPrice + hardwarePrice + surcharges;

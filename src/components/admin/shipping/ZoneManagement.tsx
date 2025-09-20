@@ -231,24 +231,24 @@ const ZoneManagement = () => {
       <Card>
         <CardContent className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-            <Select value={filters.state} onValueChange={(value) => setFilters({...filters, state: value})}>
+            <Select value={filters.state || "all_states"} onValueChange={(value) => setFilters({...filters, state: value === "all_states" ? "" : value})}>
               <SelectTrigger>
                 <SelectValue placeholder="All states" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All states</SelectItem>
+                <SelectItem value="all_states">All states</SelectItem>
                 {states.map((state) => (
                   <SelectItem key={state} value={state}>{state}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             
-            <Select value={filters.zone} onValueChange={(value) => setFilters({...filters, zone: value})}>
+            <Select value={filters.zone || "all_zones"} onValueChange={(value) => setFilters({...filters, zone: value === "all_zones" ? "" : value})}>
               <SelectTrigger>
                 <SelectValue placeholder="All zones" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All zones</SelectItem>
+                <SelectItem value="all_zones">All zones</SelectItem>
                 {zoneTypes.map((zone) => (
                   <SelectItem key={zone} value={zone}>{zone}</SelectItem>
                 ))}
@@ -262,28 +262,28 @@ const ZoneManagement = () => {
             />
 
             <Select 
-              value={filters.assemblyEligible === null ? "" : filters.assemblyEligible.toString()}
-              onValueChange={(value) => setFilters({...filters, assemblyEligible: value === "" ? null : value === "true"})}
+              value={filters.assemblyEligible === null ? "all_assembly" : filters.assemblyEligible.toString()}
+              onValueChange={(value) => setFilters({...filters, assemblyEligible: value === "all_assembly" ? null : value === "true"})}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Assembly" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All</SelectItem>
+                <SelectItem value="all_assembly">All</SelectItem>
                 <SelectItem value="true">Eligible</SelectItem>
                 <SelectItem value="false">Not Eligible</SelectItem>
               </SelectContent>
             </Select>
 
             <Select 
-              value={filters.metro === null ? "" : filters.metro.toString()}
-              onValueChange={(value) => setFilters({...filters, metro: value === "" ? null : value === "true"})}
+              value={filters.metro === null ? "all_area" : filters.metro.toString()}
+              onValueChange={(value) => setFilters({...filters, metro: value === "all_area" ? null : value === "true"})}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Area Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All</SelectItem>
+                <SelectItem value="all_area">All</SelectItem>
                 <SelectItem value="true">Metro</SelectItem>
                 <SelectItem value="false">Regional</SelectItem>
               </SelectContent>
