@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataTable } from '@/components/admin/shared/DataTable';
-import { Plus, Trash2, Edit, Package, Settings, Wrench, X } from 'lucide-react';
+import { Plus, Trash2, Edit, Package, Settings, Wrench, X, Upload, Image as ImageIcon } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 interface CabinetType {
@@ -60,6 +60,29 @@ interface CabinetPart {
   height_formula?: string;
   is_door: boolean;
   is_hardware: boolean;
+}
+
+interface CabinetDoorStyle {
+  id: string;
+  cabinet_type_id: string;
+  door_style_id: string;
+  image_url?: string;
+  sort_order: number;
+  active: boolean;
+  door_styles?: {
+    name: string;
+    description?: string;
+    base_rate_per_sqm: number;
+  };
+}
+
+interface DoorStyle {
+  id: string;
+  name: string;
+  description?: string;
+  image_url?: string;
+  base_rate_per_sqm: number;
+  active: boolean;
 }
 
 interface CabinetHardwareRequirement {
@@ -390,6 +413,46 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
     enabled: !!cabinetType?.id,
   });
 
+  // Fetch cabinet door styles for this cabinet type
+  const { data: cabinetDoorStyles, isLoading: loadingDoorStyles } = useQuery({
+    queryKey: ['cabinet-door-styles', cabinetType?.id],
+    queryFn: async () => {
+      if (!cabinetType?.id) return [];
+      const { data, error } = await supabase
+        .from('cabinet_door_styles')
+        .select(`
+          *,
+          door_styles (
+            name,
+            description,
+            base_rate_per_sqm
+          )
+        `)
+        .eq('cabinet_type_id', cabinetType.id)
+        .eq('active', true)
+        .order('sort_order');
+      
+      if (error) throw error;
+      return data as CabinetDoorStyle[];
+    },
+    enabled: !!cabinetType?.id,
+  });
+
+  // Fetch all available door styles
+  const { data: allDoorStyles } = useQuery({
+    queryKey: ['door-styles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('door_styles')
+        .select('*')
+        .eq('active', true)
+        .order('name');
+      
+      if (error) throw error;
+      return data as DoorStyle[];
+    },
+  });
+
   // Fetch hardware requirements for this cabinet type
   const { data: hardwareRequirements, isLoading: loadingHardware } = useQuery({
     queryKey: ['cabinet-hardware-requirements', cabinetType?.id],
@@ -453,6 +516,54 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
     },
     onError: (error) => {
       toast.error(`Failed to ${cabinetType ? 'update' : 'create'} cabinet type`);
+      console.error(error);
+    },
+  });
+
+  // Save cabinet door style mutation
+  const saveCabinetDoorStyle = useMutation({
+    mutationFn: async (data: { door_style_id: string; image_url?: string }) => {
+      const doorStyleData = {
+        cabinet_type_id: cabinetType?.id,
+        door_style_id: data.door_style_id,
+        image_url: data.image_url,
+        sort_order: 0,
+        active: true,
+      };
+      
+      const { error } = await supabase
+        .from('cabinet_door_styles')
+        .upsert(doorStyleData, {
+          onConflict: 'cabinet_type_id,door_style_id'
+        });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cabinet-door-styles', cabinetType?.id] });
+      toast.success('Door style updated successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to update door style');
+      console.error(error);
+    },
+  });
+
+  // Delete cabinet door style mutation
+  const removeCabinetDoorStyle = useMutation({
+    mutationFn: async (doorStyleId: string) => {
+      const { error } = await supabase
+        .from('cabinet_door_styles')
+        .delete()
+        .eq('cabinet_type_id', cabinetType?.id)
+        .eq('door_style_id', doorStyleId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cabinet-door-styles', cabinetType?.id] });
+      toast.success('Door style removed successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to remove door style');
       console.error(error);
     },
   });
@@ -575,6 +686,39 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
       }
     } else {
       onOpenChange(true);
+    }
+  };
+
+  const handleImageUpload = async (doorStyleId: string, file: File) => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${cabinetType?.id}-${doorStyleId}-${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('door-style-images')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('door-style-images')
+        .getPublicUrl(fileName);
+
+      await saveCabinetDoorStyle.mutateAsync({
+        door_style_id: doorStyleId,
+        image_url: publicUrl
+      });
+    } catch (error) {
+      toast.error('Failed to upload image');
+      console.error(error);
+    }
+  };
+
+  const handleToggleDoorStyle = (doorStyleId: string, enabled: boolean) => {
+    if (enabled) {
+      saveCabinetDoorStyle.mutate({ door_style_id: doorStyleId });
+    } else {
+      removeCabinetDoorStyle.mutate(doorStyleId);
     }
   };
 
@@ -726,10 +870,14 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
 
         <Tabs defaultValue="basic" className="flex-1 flex flex-col">
           <div className="px-6 py-2 border-b">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="basic" className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
                 Basic Information
+              </TabsTrigger>
+              <TabsTrigger value="doors" disabled={!cabinetType?.id} className="flex items-center gap-2">
+                <Wrench className="h-4 w-4" />
+                Door Options
               </TabsTrigger>
               <TabsTrigger value="parts" disabled={!cabinetType?.id} className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
@@ -979,6 +1127,101 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                       rows={3}
                     />
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="doors" className="py-4 space-y-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ImageIcon className="h-5 w-5" />
+                    Door Style Options
+                  </CardTitle>
+                  <CardDescription>
+                    Select which door styles are available for this cabinet type and customize their images
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {allDoorStyles?.map((doorStyle) => {
+                    const isEnabled = cabinetDoorStyles?.some(cds => cds.door_style_id === doorStyle.id);
+                    const existingStyle = cabinetDoorStyles?.find(cds => cds.door_style_id === doorStyle.id);
+                    
+                    return (
+                      <div key={doorStyle.id} className="border rounded-lg p-4 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="checkbox"
+                              id={`door-${doorStyle.id}`}
+                              checked={isEnabled}
+                              onChange={(e) => handleToggleDoorStyle(doorStyle.id, e.target.checked)}
+                              className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                            />
+                            <div>
+                              <Label htmlFor={`door-${doorStyle.id}`} className="text-base font-medium">
+                                {doorStyle.name}
+                              </Label>
+                              {doorStyle.description && (
+                                <p className="text-sm text-muted-foreground">{doorStyle.description}</p>
+                              )}
+                              <p className="text-sm text-muted-foreground">
+                                Base Rate: ${doorStyle.base_rate_per_sqm}/sqm
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {isEnabled && (
+                            <div className="flex items-center gap-2">
+                              {existingStyle?.image_url && (
+                                <img
+                                  src={existingStyle.image_url}
+                                  alt={doorStyle.name}
+                                  className="w-12 h-12 object-cover rounded border"
+                                />
+                              )}
+                              <div className="relative">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      handleImageUpload(doorStyle.id, file);
+                                    }
+                                  }}
+                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                />
+                                <Button variant="outline" size="sm">
+                                  <Upload className="h-4 w-4 mr-2" />
+                                  {existingStyle?.image_url ? 'Change Image' : 'Add Image'}
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {isEnabled && existingStyle?.image_url && (
+                          <div className="mt-3">
+                            <Label className="text-sm font-medium">Preview Image</Label>
+                            <div className="mt-2">
+                              <img
+                                src={existingStyle.image_url}
+                                alt={doorStyle.name}
+                                className="w-32 h-32 object-cover rounded border"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  
+                  {!allDoorStyles?.length && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No door styles available. Create door styles first in the Door Styles management section.
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
