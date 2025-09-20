@@ -108,20 +108,7 @@ export const QuickActionsBar = () => {
     }
     
     // Default actions for other routes
-    return [
-      { 
-        label: 'New Cart', 
-        icon: ShoppingCart, 
-        action: () => navigate('/shop'), 
-        variant: 'outline' as const 
-      },
-      { 
-        label: 'New Quote', 
-        icon: FileText, 
-        action: () => navigate('/get-quote'), 
-        variant: 'outline' as const 
-      }
-    ];
+    return [];
   };
 
   const actions = getContextualActions();
