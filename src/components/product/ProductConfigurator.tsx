@@ -379,7 +379,15 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden p-0">
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden p-0 z-50">
+        {/* Debug info - Remove after testing */}
+        {!selectedCabinetType && open && (
+          <div className="p-4 text-center">
+            <p className="text-muted-foreground">Loading cabinet configuration...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mt-4"></div>
+          </div>
+        )}
+        
         <div className="relative">
           {/* Mobile Sticky Price Bar - Top */}
           {selectedCabinetType && (
@@ -398,7 +406,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
           {/* Desktop Floating Price Box - Top Right */}
           {selectedCabinetType && (
-            <div className="hidden lg:block fixed top-4 right-4 z-50">
+            <div className="hidden lg:block absolute top-4 right-4 z-10">
               <Card className="shadow-xl border-2 bg-primary text-primary-foreground">
                 <CardContent className="p-3 text-center min-w-[180px]">
                   <div className="text-xl font-bold mb-1">
