@@ -14,6 +14,8 @@ export interface DoorStyle {
   active: boolean;
   created_at: string;
   image_url?: string;
+  brand_id?: string;
+  brand?: Brand;
 }
 
 export interface Finish {
@@ -236,6 +238,29 @@ export interface CabinetHardwareOption {
   hardware_product_id: string;
   active: boolean;
   created_at: string;
+}
+
+// Junction table interfaces for relationships
+export interface DoorStyleFinish {
+  id: string;
+  door_style_id: string;
+  finish_id: string;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+  door_style?: DoorStyle;
+  finish?: Finish;
+}
+
+export interface ColorFinish {
+  id: string;
+  color_id: string;
+  finish_id: string;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+  color?: Color;
+  finish?: Finish;
 }
 
 export interface CabinetConfiguration {

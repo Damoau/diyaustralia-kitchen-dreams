@@ -12,37 +12,7 @@ import { toast } from 'sonner';
 import PricingCalculator from '@/lib/pricingCalculator';
 import { StyleColorFinishSelector } from './StyleColorFinishSelector';
 import { Ruler, Palette, Settings, FileText, ShoppingCart } from 'lucide-react';
-
-interface CabinetType {
-  id: string;
-  name: string;
-  category: string;
-  default_width_mm: number;
-  default_height_mm: number;
-  default_depth_mm: number;
-  min_width_mm: number;
-  max_width_mm: number;
-  min_height_mm: number;
-  max_height_mm: number;
-  min_depth_mm: number;
-  max_depth_mm: number;
-  door_count: number;
-  drawer_count: number;
-  product_image_url?: string;
-  material_rate_per_sqm?: number;
-  door_rate_per_sqm?: number;
-  door_qty?: number;
-}
-
-interface CabinetPart {
-  id: string;
-  part_name: string;
-  quantity: number;
-  width_formula?: string;
-  height_formula?: string;
-  is_door: boolean;
-  is_hardware: boolean;
-}
+import { CabinetType, CabinetPart, DoorStyle, Color, Finish, DoorStyleFinish, ColorFinish } from '@/types/cabinet';
 
 interface HardwareRequirement {
   id: string;
@@ -53,27 +23,6 @@ interface HardwareRequirement {
     name: string;
     category: string;
   };
-}
-
-interface DoorStyle {
-  id: string;
-  name: string;
-  base_rate_per_sqm: number;
-  image_url?: string;
-}
-
-interface Color {
-  id: string;
-  name: string;
-  surcharge_rate_per_sqm: number;
-  hex_code?: string;
-}
-
-interface Finish {
-  id: string;
-  name: string;
-  rate_per_sqm: number;
-  finish_type: string;
 }
 
 interface ProductConfiguratorProps {
@@ -94,6 +43,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
   const [colors, setColors] = useState<Color[]>([]);
   const [finishes, setFinishes] = useState<Finish[]>([]);
+  const [doorStyleFinishes, setDoorStyleFinishes] = useState<DoorStyleFinish[]>([]);
+  const [colorFinishes, setColorFinishes] = useState<ColorFinish[]>([]);
 
   // Configuration state
   const [dimensions, setDimensions] = useState({
@@ -115,6 +66,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       loadDoorStyles();
       loadColors();
       loadFinishes();
+      loadDoorStyleFinishes();
+      loadColorFinishes();
     }
   }, [open]);
 
@@ -149,7 +102,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         .order('name', { ascending: true });
 
       if (error) throw error;
-      setCabinetTypes(data || []);
+      setCabinetTypes(data as CabinetType[] || []);
     } catch (error) {
       console.error('Error loading cabinet types:', error);
       toast.error('Failed to load cabinet types');
@@ -236,6 +189,34 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     }
   };
 
+  const loadDoorStyleFinishes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('door_style_finishes')
+        .select('*')
+        .eq('active', true);
+
+      if (error) throw error;
+      setDoorStyleFinishes(data || []);
+    } catch (error) {
+      console.error('Error loading door style finishes:', error);
+    }
+  };
+
+  const loadColorFinishes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('color_finishes')
+        .select('*')
+        .eq('active', true);
+
+      if (error) throw error;
+      setColorFinishes(data || []);
+    } catch (error) {
+      console.error('Error loading color finishes:', error);
+    }
+  };
+
   const calculatePartDimensions = (part: CabinetPart) => {
     const { width, height, depth } = dimensions;
     
@@ -279,8 +260,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     };
 
     const rates = {
-      materialRate: selectedCabinetType.material_rate_per_sqm || 85,
-      doorRate: doorStyle?.base_rate_per_sqm || selectedCabinetType.door_rate_per_sqm || 120,
+      materialRate: (selectedCabinetType as any).material_rate_per_sqm || 85,
+      doorRate: doorStyle?.base_rate_per_sqm || (selectedCabinetType as any).door_rate_per_sqm || 120,
       colorSurcharge: color?.surcharge_rate_per_sqm || 0,
       finishSurcharge: finish?.rate_per_sqm || 0,
     };
@@ -717,6 +698,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           doorStyles={doorStyles}
           colors={colors}
           finishes={finishes}
+          doorStyleFinishes={doorStyleFinishes}
+          colorFinishes={colorFinishes}
           selectedDoorStyle={selectedDoorStyle}
           selectedColor={selectedColor}
           selectedFinish={selectedFinish}

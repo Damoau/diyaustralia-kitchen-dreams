@@ -975,6 +975,48 @@ export type Database = {
           },
         ]
       }
+      color_finishes: {
+        Row: {
+          active: boolean
+          color_id: string
+          created_at: string
+          finish_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          color_id: string
+          created_at?: string
+          finish_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          color_id?: string
+          created_at?: string
+          finish_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "color_finishes_color_id_fkey"
+            columns: ["color_id"]
+            isOneToOne: false
+            referencedRelation: "colors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "color_finishes_finish_id_fkey"
+            columns: ["finish_id"]
+            isOneToOne: false
+            referencedRelation: "finishes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       colors: {
         Row: {
           active: boolean
@@ -1341,10 +1383,53 @@ export type Database = {
           },
         ]
       }
+      door_style_finishes: {
+        Row: {
+          active: boolean
+          created_at: string
+          door_style_id: string
+          finish_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          door_style_id: string
+          finish_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          door_style_id?: string
+          finish_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "door_style_finishes_door_style_id_fkey"
+            columns: ["door_style_id"]
+            isOneToOne: false
+            referencedRelation: "door_styles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "door_style_finishes_finish_id_fkey"
+            columns: ["finish_id"]
+            isOneToOne: false
+            referencedRelation: "finishes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       door_styles: {
         Row: {
           active: boolean
           base_rate_per_sqm: number
+          brand_id: string | null
           created_at: string
           description: string | null
           id: string
@@ -1354,6 +1439,7 @@ export type Database = {
         Insert: {
           active?: boolean
           base_rate_per_sqm?: number
+          brand_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -1363,13 +1449,22 @@ export type Database = {
         Update: {
           active?: boolean
           base_rate_per_sqm?: number
+          brand_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
           image_url?: string | null
           name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "door_styles_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_verifications: {
         Row: {

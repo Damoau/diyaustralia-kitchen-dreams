@@ -4,28 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
-
-interface DoorStyle {
-  id: string;
-  name: string;
-  base_rate_per_sqm: number;
-  image_url?: string;
-}
-
-interface Color {
-  id: string;
-  name: string;
-  surcharge_rate_per_sqm: number;
-  hex_code?: string;
-  door_style_id?: string;
-}
-
-interface Finish {
-  id: string;
-  name: string;
-  rate_per_sqm: number;
-  finish_type: string;
-}
+import { DoorStyle, Color, Finish, DoorStyleFinish, ColorFinish } from '@/types/cabinet';
 
 interface StyleColorFinishSelectorProps {
   open: boolean;
@@ -33,6 +12,8 @@ interface StyleColorFinishSelectorProps {
   doorStyles: DoorStyle[];
   colors: Color[];
   finishes: Finish[];
+  doorStyleFinishes: DoorStyleFinish[];
+  colorFinishes: ColorFinish[];
   selectedDoorStyle?: string;
   selectedColor?: string;
   selectedFinish?: string;
@@ -45,6 +26,8 @@ export const StyleColorFinishSelector: React.FC<StyleColorFinishSelectorProps> =
   doorStyles,
   colors,
   finishes,
+  doorStyleFinishes,
+  colorFinishes,
   selectedDoorStyle,
   selectedColor,
   selectedFinish,
@@ -119,17 +102,32 @@ export const StyleColorFinishSelector: React.FC<StyleColorFinishSelectorProps> =
     );
   };
 
-  // Filter finishes based on selected color's brand or door style
+  // Filter finishes based on selected door style and color relationships
   const getFilteredFinishes = () => {
-    if (!tempColor) return finishes;
-    
-    // Get the selected color to find its associated brand
-    const selectedColor = colors.find(c => c.id === tempColor);
-    if (!selectedColor) return finishes;
-    
-    // For now, show all finishes - in a real scenario, you might filter by brand
-    // or have a more complex relationship between colors and finishes
-    return finishes;
+    if (!tempDoorStyle) return [];
+
+    // Get finishes available for the selected door style
+    const doorStyleFinishIds = doorStyleFinishes
+      .filter(dsf => dsf.door_style_id === tempDoorStyle && dsf.active)
+      .map(dsf => dsf.finish_id);
+
+    let availableFinishes = finishes.filter(finish => 
+      doorStyleFinishIds.includes(finish.id) && finish.active
+    );
+
+    // Further filter by color if both color and door style are selected
+    if (tempColor && colorFinishes.length > 0) {
+      const colorFinishIds = colorFinishes
+        .filter(cf => cf.color_id === tempColor && cf.active)
+        .map(cf => cf.finish_id);
+      
+      // Only show finishes that are available for both the door style AND the color
+      availableFinishes = availableFinishes.filter(finish =>
+        colorFinishIds.includes(finish.id)
+      );
+    }
+
+    return availableFinishes;
   };
 
   const canProceed = () => {
