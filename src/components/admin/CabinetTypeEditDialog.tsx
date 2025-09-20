@@ -39,6 +39,16 @@ interface CabinetType {
   product_image_url?: string;
   is_featured?: boolean;
   display_order?: number;
+  cabinet_style?: string;
+  // Corner cabinet specific fields
+  right_side_width_mm?: number;
+  left_side_width_mm?: number;
+  right_side_depth_mm?: number;
+  left_side_depth_mm?: number;
+  qty_left_back?: number;
+  qty_right_back?: number;
+  qty_left_side?: number;
+  qty_right_side?: number;
 }
 
 interface CabinetPart {
@@ -222,6 +232,16 @@ const defaultCabinetType: CabinetType = {
   product_image_url: '',
   is_featured: false,
   display_order: 0,
+  cabinet_style: 'standard',
+  // Corner cabinet defaults
+  right_side_width_mm: 600,
+  left_side_width_mm: 600,
+  right_side_depth_mm: 560,
+  left_side_depth_mm: 560,
+  qty_left_back: 0,
+  qty_right_back: 0,
+  qty_left_side: 0,
+  qty_right_side: 0,
 };
 
 interface PartFormProps {
@@ -758,55 +778,163 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="subcategory">Subcategory</Label>
-                      <Input
-                        id="subcategory"
-                        value={formData.subcategory || ''}
-                        onChange={(e) => handleInputChange('subcategory', e.target.value)}
-                        placeholder="e.g., Standard, Corner"
-                      />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="active"
-                        checked={formData.active}
-                        onCheckedChange={(checked) => handleInputChange('active', checked)}
-                      />
-                      <Label htmlFor="active">Active</Label>
-                    </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="subcategory">Subcategory</Label>
+                    <Input
+                      id="subcategory"
+                      value={formData.subcategory || ''}
+                      onChange={(e) => handleInputChange('subcategory', e.target.value)}
+                      placeholder="e.g., Standard, Corner"
+                    />
                   </div>
+                  <div>
+                    <Label htmlFor="cabinet_style">Cabinet Style</Label>
+                    <Select value={formData.cabinet_style || 'standard'} onValueChange={(value) => handleInputChange('cabinet_style', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select cabinet style" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="standard">Standard Cabinet</SelectItem>
+                        <SelectItem value="corner">Corner Cabinet</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="default_width_mm">Default Width (mm)</Label>
-                      <Input
-                        id="default_width_mm"
-                        type="number"
-                        value={formData.default_width_mm}
-                        onChange={(e) => handleInputChange('default_width_mm', parseInt(e.target.value))}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="default_height_mm">Default Height (mm)</Label>
-                      <Input
-                        id="default_height_mm"
-                        type="number"
-                        value={formData.default_height_mm}
-                        onChange={(e) => handleInputChange('default_height_mm', parseInt(e.target.value))}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="default_depth_mm">Default Depth (mm)</Label>
-                      <Input
-                        id="default_depth_mm"
-                        type="number"
-                        value={formData.default_depth_mm}
-                        onChange={(e) => handleInputChange('default_depth_mm', parseInt(e.target.value))}
-                      />
-                    </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="active"
+                    checked={formData.active}
+                    onCheckedChange={(checked) => handleInputChange('active', checked)}
+                  />
+                  <Label htmlFor="active">Active</Label>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="default_width_mm">Default Width (mm)</Label>
+                    <Input
+                      id="default_width_mm"
+                      type="number"
+                      value={formData.default_width_mm}
+                      onChange={(e) => handleInputChange('default_width_mm', parseInt(e.target.value))}
+                    />
                   </div>
+                  <div>
+                    <Label htmlFor="default_height_mm">Default Height (mm)</Label>
+                    <Input
+                      id="default_height_mm"
+                      type="number"
+                      value={formData.default_height_mm}
+                      onChange={(e) => handleInputChange('default_height_mm', parseInt(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="default_depth_mm">Default Depth (mm)</Label>
+                    <Input
+                      id="default_depth_mm"
+                      type="number"
+                      value={formData.default_depth_mm}
+                      onChange={(e) => handleInputChange('default_depth_mm', parseInt(e.target.value))}
+                    />
+                  </div>
+                </div>
+
+                {/* Corner Cabinet Specific Fields */}
+                {formData.cabinet_style === 'corner' && (
+                  <>
+                    <Separator />
+                    <div className="space-y-4">
+                      <Label className="text-base font-semibold">Corner Cabinet Configuration</Label>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="left_side_width_mm">Left Side Width (mm)</Label>
+                          <Input
+                            id="left_side_width_mm"
+                            type="number"
+                            value={formData.left_side_width_mm || 600}
+                            onChange={(e) => handleInputChange('left_side_width_mm', parseInt(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="right_side_width_mm">Right Side Width (mm)</Label>
+                          <Input
+                            id="right_side_width_mm"
+                            type="number"
+                            value={formData.right_side_width_mm || 600}
+                            onChange={(e) => handleInputChange('right_side_width_mm', parseInt(e.target.value))}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="left_side_depth_mm">Left Side Depth (mm)</Label>
+                          <Input
+                            id="left_side_depth_mm"
+                            type="number"
+                            value={formData.left_side_depth_mm || 560}
+                            onChange={(e) => handleInputChange('left_side_depth_mm', parseInt(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="right_side_depth_mm">Right Side Depth (mm)</Label>
+                          <Input
+                            id="right_side_depth_mm"
+                            type="number"
+                            value={formData.right_side_depth_mm || 560}
+                            onChange={(e) => handleInputChange('right_side_depth_mm', parseInt(e.target.value))}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-4">
+                        <div>
+                          <Label htmlFor="qty_left_side">Left Side Qty</Label>
+                          <Input
+                            id="qty_left_side"
+                            type="number"
+                            min="0"
+                            value={formData.qty_left_side || 0}
+                            onChange={(e) => handleInputChange('qty_left_side', parseInt(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="qty_right_side">Right Side Qty</Label>
+                          <Input
+                            id="qty_right_side"
+                            type="number"
+                            min="0"
+                            value={formData.qty_right_side || 0}
+                            onChange={(e) => handleInputChange('qty_right_side', parseInt(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="qty_left_back">Left Back Qty</Label>
+                          <Input
+                            id="qty_left_back"
+                            type="number"
+                            min="0"
+                            value={formData.qty_left_back || 0}
+                            onChange={(e) => handleInputChange('qty_left_back', parseInt(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="qty_right_back">Right Back Qty</Label>
+                          <Input
+                            id="qty_right_back"
+                            type="number"
+                            min="0"
+                            value={formData.qty_right_back || 0}
+                            onChange={(e) => handleInputChange('qty_right_back', parseInt(e.target.value))}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
