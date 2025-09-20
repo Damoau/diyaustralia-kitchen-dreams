@@ -571,42 +571,42 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                         >
                           {selectedDoorStyle && selectedColor && selectedFinish ? (
                             <div className="w-full">
-                              <div className="flex items-center gap-4">
-                                {/* Door Style Image */}
-                                <div className="w-16 h-16 rounded-lg overflow-hidden border flex-shrink-0">
-                                  {getSelectedDoorStyle()?.image_url ? (
-                                    <img 
-                                      src={getSelectedDoorStyle()?.image_url} 
-                                      alt={getSelectedDoorStyle()?.name}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  ) : (
-                                    <div className="w-full h-full bg-muted flex items-center justify-center">
-                                      <span className="text-2xl">🚪</span>
-                                    </div>
-                                  )}
+                              <div className="flex items-center gap-4 mb-3">
+                                {/* Door Style Image Box */}
+                                <div className="flex-1">
+                                  <div className="aspect-square rounded-lg overflow-hidden border bg-muted">
+                                    {getSelectedDoorStyle()?.image_url ? (
+                                      <img 
+                                        src={getSelectedDoorStyle()?.image_url} 
+                                        alt={getSelectedDoorStyle()?.name}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center">
+                                        <span className="text-2xl">🚪</span>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                                 
-                                {/* Details */}
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="font-medium truncate">{getSelectedDoorStyle()?.name}</h4>
-                                  <div className="flex items-center gap-3 mt-1">
-                                    <div 
-                                      className="w-6 h-6 rounded-full border border-border flex-shrink-0 shadow-sm"
-                                      style={{ backgroundColor: getSelectedColor()?.hex_code || '#f3f4f6' }}
-                                    />
-                                    <span className="text-sm text-muted-foreground truncate">
-                                      {getSelectedColor()?.name}
-                                    </span>
-                                  </div>
-                                  <p className="text-sm text-muted-foreground truncate mt-1">
-                                    {getSelectedFinish()?.name} ({getSelectedFinish()?.finish_type})
-                                  </p>
+                                {/* Color Square Box */}
+                                <div className="flex-1">
+                                  <div 
+                                    className="aspect-square rounded-lg border-2 border-border shadow-sm"
+                                    style={{ backgroundColor: getSelectedColor()?.hex_code || '#f3f4f6' }}
+                                  />
                                 </div>
                               </div>
-                              <p className="text-xs text-muted-foreground text-center mt-3">
-                                Click to change selection
-                              </p>
+                              
+                              {/* Single line with all selections */}
+                              <div className="text-center">
+                                <p className="text-sm font-medium truncate">
+                                  {getSelectedDoorStyle()?.name} | {getSelectedColor()?.name} | {getSelectedFinish()?.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Click to change selection
+                                </p>
+                              </div>
                             </div>
                           ) : (
                             <div className="text-center">
