@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import PricingCalculator from '@/lib/pricingCalculator';
 import { DollarSign } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PricingDisplayProps {
   cabinetType: any;
@@ -28,10 +29,47 @@ export const PricingDisplay: React.FC<PricingDisplayProps> = ({
   selectedFinish,
   className
 }) => {
-  const pricing = useMemo(() => {
+  const [pricing, setPricing] = useState<{
+    totalPrice: number;
+    breakdown: { carcass: number; doors: number; hardware: number; surcharges: number; };
+  } | null>(null);
+  const [cabinetParts, setCabinetParts] = useState<any[]>([]);
+
+  // Fetch cabinet parts when cabinetType changes
+  useEffect(() => {
+    const fetchCabinetParts = async () => {
+      if (!cabinetType?.id) {
+        setCabinetParts([]);
+        return;
+      }
+
+      try {
+        const { data: parts } = await supabase
+          .from('cabinet_parts')
+          .select('*')
+          .eq('cabinet_type_id', cabinetType.id);
+        
+        setCabinetParts(parts || []);
+      } catch (error) {
+        console.error('Error fetching cabinet parts:', error);
+        setCabinetParts([]);
+      }
+    };
+
+    fetchCabinetParts();
+  }, [cabinetType?.id]);
+
+  // Calculate pricing when dependencies change
+  useEffect(() => {
     if (!cabinetType || !dimensions.width || !dimensions.height || !dimensions.depth) {
-      return null;
+      setPricing(null);
+      return;
     }
+
+    const cabinetTypeWithParts = {
+      ...cabinetType,
+      cabinet_parts: cabinetParts
+    };
 
     const rates = {
       materialRate: cabinetType.material_rate_per_sqm || 85,
@@ -46,13 +84,15 @@ export const PricingDisplay: React.FC<PricingDisplayProps> = ({
     rates.colorSurcharge *= doorArea * quantity;
     rates.finishSurcharge *= doorArea * quantity;
 
-    return PricingCalculator.calculateCabinetPrice(
-      cabinetType,
+    const calculatedPricing = PricingCalculator.calculateCabinetPrice(
+      cabinetTypeWithParts,
       dimensions,
       quantity,
       rates
     );
-  }, [cabinetType, dimensions, quantity, selectedDoorStyle, selectedColor, selectedFinish]);
+
+    setPricing(calculatedPricing);
+  }, [cabinetType, cabinetParts, dimensions, quantity, selectedDoorStyle, selectedColor, selectedFinish]);
 
   if (!pricing) {
     return (

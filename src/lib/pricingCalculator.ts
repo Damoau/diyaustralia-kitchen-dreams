@@ -128,16 +128,28 @@ export class PricingCalculator {
     
     // Calculate based on cabinet parts if available
     if (cabinetType.cabinet_parts && cabinetType.cabinet_parts.length > 0) {
+      console.log('Using cabinet parts for pricing calculation:', cabinetType.cabinet_parts);
+      
       cabinetType.cabinet_parts.forEach((part: any) => {
         const partCost = this.evaluateFormula(part.width_formula || '', variables);
+        const partTotal = partCost * (part.quantity || 1);
+        
+        console.log(`${part.part_name} (Qty: ${part.quantity}): Formula: ${part.width_formula} = $${partCost.toFixed(2)} × ${part.quantity} = $${partTotal.toFixed(2)}`);
         
         if (part.is_door) {
-          doorPrice += partCost;
+          doorPrice += partTotal;
         } else if (part.is_hardware) {
-          hardwarePrice += partCost;
+          hardwarePrice += partTotal;
         } else {
-          carcassPrice += partCost;
+          carcassPrice += partTotal;
         }
+      });
+      
+      console.log('Parts breakdown:', {
+        carcassPrice: carcassPrice.toFixed(2),
+        doorPrice: doorPrice.toFixed(2),
+        hardwarePrice: hardwarePrice.toFixed(2),
+        surcharges: surcharges.toFixed(2)
       });
     } else {
       // Fallback calculation for basic carcass
