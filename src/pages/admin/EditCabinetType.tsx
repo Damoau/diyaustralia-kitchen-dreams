@@ -493,7 +493,7 @@ export default function EditCabinetType() {
           cabinetName: cabinetType.name,
           category: cabinetType.category,
           subcategory: cabinetType.subcategory,
-          description: cabinetType.description
+          description: cabinetType.short_description
         }
       });
 
@@ -505,10 +505,12 @@ export default function EditCabinetType() {
       if (data) {
         const updatedCabinetType = {
           ...cabinetType,
-          seo_title: data.meta_title || '',
-          seo_description: data.meta_description || '',
-          seo_keywords: data.meta_keywords || '',
-          description: data.short_description || cabinetType.description,
+          meta_title: data.meta_title || '',
+          meta_description: data.meta_description || '',
+          meta_keywords: data.meta_keywords || '',
+          url_slug: data.url_slug || '',
+          short_description: data.short_description || cabinetType.short_description,
+          long_description: data.long_description || cabinetType.long_description,
         };
         
         setCabinetType(updatedCabinetType);
