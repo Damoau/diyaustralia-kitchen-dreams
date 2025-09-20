@@ -748,12 +748,54 @@ export default function EditCabinetType() {
 
                     <div className="space-y-2">
                       <Label htmlFor="subcategory">Subcategory</Label>
-                      <Input
-                        id="subcategory"
+                      <Select
                         value={cabinetType.subcategory || ''}
-                        onChange={(e) => handleInputChange('subcategory', e.target.value)}
-                        placeholder="e.g., doors"
-                      />
+                        onValueChange={(value) => handleInputChange('subcategory', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select subcategory" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {cabinetType.category === 'base' && (
+                            <>
+                              <SelectItem value="doors">Doors</SelectItem>
+                              <SelectItem value="drawers">Drawers</SelectItem>
+                              <SelectItem value="bin_cabinets">Bin Cabinets</SelectItem>
+                              <SelectItem value="sink_cabinets">Sink Cabinets</SelectItem>
+                              <SelectItem value="appliance_cabinets">Appliance Cabinets</SelectItem>
+                            </>
+                          )}
+                          {cabinetType.category === 'wall' && (
+                            <>
+                              <SelectItem value="standard">Standard Wall</SelectItem>
+                              <SelectItem value="glass_door">Glass Door</SelectItem>
+                              <SelectItem value="open_shelves">Open Shelves</SelectItem>
+                              <SelectItem value="microwave">Microwave</SelectItem>
+                              <SelectItem value="rangehood">Rangehood</SelectItem>
+                            </>
+                          )}
+                          {cabinetType.category === 'tall' && (
+                            <>
+                              <SelectItem value="pantry">Pantry</SelectItem>
+                              <SelectItem value="broom_cabinet">Broom Cabinet</SelectItem>
+                              <SelectItem value="oven_tower">Oven Tower</SelectItem>
+                              <SelectItem value="fridge_cabinet">Fridge Cabinet</SelectItem>
+                              <SelectItem value="storage_cabinet">Storage Cabinet</SelectItem>
+                            </>
+                          )}
+                          {cabinetType.category === 'corner' && (
+                            <>
+                              <SelectItem value="lazy_susan">Lazy Susan</SelectItem>
+                              <SelectItem value="blind_corner">Blind Corner</SelectItem>
+                              <SelectItem value="magic_corner">Magic Corner</SelectItem>
+                              <SelectItem value="diagonal_corner">Diagonal Corner</SelectItem>
+                            </>
+                          )}
+                          {!cabinetType.category && (
+                            <SelectItem value="" disabled>Select a category first</SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="flex items-center space-x-2">
