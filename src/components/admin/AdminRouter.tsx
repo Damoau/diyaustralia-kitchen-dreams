@@ -27,6 +27,7 @@ const Exports = lazy(() => import('@/pages/admin/Exports'));
 const Notifications = lazy(() => import('@/pages/admin/Notifications'));
 const Settings = lazy(() => import('@/pages/admin/Settings'));
 const EditCabinetType = lazy(() => import('@/pages/admin/EditCabinetType'));
+const Pricing = lazy(() => import('@/pages/admin/Pricing'));
 
 export const AdminRouter = () => {
   return (
@@ -59,6 +60,7 @@ export const AdminRouter = () => {
               <HardwareManager />
             </Suspense>
           } />
+          <Route path="pricing" element={<Pricing />} />
           <Route path="discounts" element={<Discounts />} />
           <Route path="users" element={<Users />} />
           <Route path="roles" element={<RoleManagement />} />

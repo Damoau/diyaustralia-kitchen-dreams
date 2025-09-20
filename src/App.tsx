@@ -16,6 +16,7 @@ const GetQuote = lazy(() => import("./pages/GetQuote"));
 const Manufacturing = lazy(() => import("./pages/Manufacturing"));
 const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const PriceList = lazy(() => import("./pages/PriceList"));
 
 // Admin components
 const AdminRouter = lazy(() => import("./components/admin/AdminRouter"));
@@ -56,6 +57,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/shop" element={<Shop />} />
+                <Route path="/price-list" element={<PriceList />} />
                 <Route path="/get-quote" element={<GetQuote />} />
                 <Route path="/manufacturing" element={<Manufacturing />} />
                 <Route path="/kitchen-styles" element={<KitchenStyles />} />

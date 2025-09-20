@@ -1224,16 +1224,20 @@ export default function EditCabinetType() {
                          
                          {generatedSizes.length > 0 && (
                            <div className="space-y-2">
-                             <Label className="text-sm font-medium">Generated Width Options</Label>
+                             <Label className="text-sm font-medium">Generated Width Ranges</Label>
                              <div className="flex flex-wrap gap-2 p-3 bg-muted/50 rounded-md max-h-32 overflow-y-auto">
-                               {generatedSizes.map((size) => (
-                                 <Badge key={size} variant="outline" className="text-xs">
-                                   {size}mm
-                                 </Badge>
-                               ))}
+                               {generatedSizes.map((size, index) => {
+                                 const nextSize = generatedSizes[index + 1];
+                                 if (!nextSize) return null; // Skip the last item
+                                 return (
+                                   <Badge key={size} variant="outline" className="text-xs">
+                                     {size}-{nextSize - 1}mm
+                                   </Badge>
+                                 );
+                               })}
                              </div>
                              <div className="text-xs text-muted-foreground">
-                               {generatedSizes.length} size options generated
+                               {generatedSizes.length - 1} size ranges generated
                              </div>
                            </div>
                          )}
