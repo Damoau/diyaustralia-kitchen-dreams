@@ -231,6 +231,8 @@ export default function EditCabinetType() {
   const [editingHardware, setEditingHardware] = useState<CabinetHardwareRequirement | null>(null);
   const [showHardwareForm, setShowHardwareForm] = useState(false);
   const [generatedSizes, setGeneratedSizes] = useState<number[]>([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch cabinet type data
@@ -459,19 +461,53 @@ export default function EditCabinetType() {
     },
   });
 
-  // Initialize cabinet type data
+  // Initialize cabinet type data - only set once to avoid overriding user changes
   useEffect(() => {
-    if (existingCabinetType) {
+    if (existingCabinetType && !isInitialized) {
       setCabinetType(existingCabinetType);
-    } else if (id === 'new') {
+      setIsInitialized(true);
+    } else if (id === 'new' && !isInitialized) {
       setCabinetType(defaultCabinetType);
+      setIsInitialized(true);
     }
-  }, [existingCabinetType, id]);
+  }, [existingCabinetType, id, isInitialized]);
+
+  // Auto-save debounced changes after 2 seconds of inactivity
+  useEffect(() => {
+    if (!hasUnsavedChanges || id === 'new' || !isInitialized) return;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        await saveCabinetType.mutateAsync(cabinetType);
+        setHasUnsavedChanges(false);
+        toast.success('Changes saved automatically');
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+        toast.error('Auto-save failed');
+      }
+    }, 2000);
+
+    return () => clearTimeout(timeoutId);
+  }, [cabinetType, hasUnsavedChanges, id, isInitialized]);
+
+  // Warn about unsaved changes when navigating away
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   const handleSave = async () => {
     setIsLoading(true);
     try {
       await saveCabinetType.mutateAsync(cabinetType);
+      setHasUnsavedChanges(false);
     } finally {
       setIsLoading(false);
     }
@@ -479,6 +515,7 @@ export default function EditCabinetType() {
 
   const handleInputChange = (field: keyof CabinetType, value: any) => {
     setCabinetType(prev => ({ ...prev, [field]: value }));
+    setHasUnsavedChanges(true);
   };
 
   const handleGenerateContent = async () => {
@@ -523,6 +560,7 @@ export default function EditCabinetType() {
         
         // Auto-save the generated content
         await saveCabinetType.mutateAsync(updatedCabinetType);
+        setHasUnsavedChanges(false);
         toast.success("SEO content generated and saved successfully");
       }
     } catch (error) {
@@ -664,8 +702,13 @@ export default function EditCabinetType() {
               Cancel
             </Button>
             <Button onClick={handleSave} disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save"}
+              {isLoading ? "Saving..." : hasUnsavedChanges ? "Save Changes" : "Save"}
             </Button>
+            {hasUnsavedChanges && (
+              <span className="text-sm text-orange-600 font-medium">
+                Unsaved changes (auto-saves in 2s)
+              </span>
+            )}
           </div>
         </div>
       </div>
