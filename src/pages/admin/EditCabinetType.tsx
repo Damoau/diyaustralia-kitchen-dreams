@@ -485,6 +485,11 @@ export default function EditCabinetType() {
       toast.error("Please enter a cabinet name first");
       return;
     }
+    
+    if (!cabinetType.category) {
+      toast.error("Please select a category first");
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -695,7 +700,7 @@ export default function EditCabinetType() {
                       variant="outline"
                       size="sm"
                       onClick={handleGenerateContent}
-                      disabled={isLoading}
+                      disabled={isLoading || !cabinetType.name || !cabinetType.category}
                       className="gap-2"
                     >
                       <Sparkles className="h-4 w-4" />
