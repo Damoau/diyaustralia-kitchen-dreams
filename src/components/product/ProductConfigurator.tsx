@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import PricingCalculator from '@/lib/pricingCalculator';
 
 interface CabinetType {
   id: string;
@@ -25,6 +26,9 @@ interface CabinetType {
   door_count: number;
   drawer_count: number;
   product_image_url?: string;
+  material_rate_per_sqm?: number;
+  door_rate_per_sqm?: number;
+  door_qty?: number;
 }
 
 interface CabinetPart {
@@ -261,28 +265,45 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   const calculateTotalPrice = () => {
     if (!selectedCabinetType) return 0;
 
-    let totalPrice = 0;
-    const doorArea = calculateDoorArea();
-
-    // Add door style cost
     const doorStyle = doorStyles.find(ds => ds.id === selectedDoorStyle);
-    if (doorStyle && doorArea > 0) {
-      totalPrice += doorStyle.base_rate_per_sqm * doorArea;
-    }
-
-    // Add color surcharge
     const color = colors.find(c => c.id === selectedColor);
-    if (color && doorArea > 0) {
-      totalPrice += color.surcharge_rate_per_sqm * doorArea;
-    }
-
-    // Add finish cost
     const finish = finishes.find(f => f.id === selectedFinish);
-    if (finish && doorArea > 0) {
-      totalPrice += finish.rate_per_sqm * doorArea;
-    }
 
-    return totalPrice * quantity;
+    const cabinetTypeWithParts = {
+      ...selectedCabinetType,
+      cabinet_parts: cabinetParts
+    };
+
+    const rates = {
+      materialRate: selectedCabinetType.material_rate_per_sqm || 85,
+      doorRate: doorStyle?.base_rate_per_sqm || selectedCabinetType.door_rate_per_sqm || 120,
+      colorSurcharge: color?.surcharge_rate_per_sqm || 0,
+      finishSurcharge: finish?.rate_per_sqm || 0,
+    };
+
+    // Calculate door area for surcharges
+    const doorCount = Math.max(selectedCabinetType.door_qty || selectedCabinetType.door_count || 1, 1);
+    const doorArea = (dimensions.width / 1000) * (dimensions.height / 1000) * doorCount;
+    rates.colorSurcharge *= doorArea * quantity;
+    rates.finishSurcharge *= doorArea * quantity;
+
+    console.log('ProductConfigurator pricing calculation:', {
+      cabinetType: selectedCabinetType.name,
+      dimensions,
+      quantity,
+      rates,
+      cabinetParts: cabinetParts.length
+    });
+
+    const pricing = PricingCalculator.calculateCabinetPrice(
+      cabinetTypeWithParts,
+      dimensions,
+      quantity,
+      rates
+    );
+
+    console.log('Calculated pricing:', pricing);
+    return pricing.totalPrice;
   };
 
   const calculateDoorArea = () => {
