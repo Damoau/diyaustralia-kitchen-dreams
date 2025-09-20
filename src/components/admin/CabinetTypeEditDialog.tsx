@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataTable } from '@/components/admin/shared/DataTable';
-import { Plus, Trash2, Edit, Package, Settings, Wrench, X, Upload, Image as ImageIcon } from 'lucide-react';
+import { Plus, Trash2, Edit, Package, Settings, Wrench, X, Upload, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 interface CabinetType {
@@ -49,6 +49,11 @@ interface CabinetType {
   qty_right_back?: number;
   qty_left_side?: number;
   qty_right_side?: number;
+  // SEO fields
+  meta_title?: string;
+  meta_description?: string;
+  meta_keywords?: string;
+  url_slug?: string;
 }
 
 interface CabinetPart {
@@ -265,6 +270,11 @@ const defaultCabinetType: CabinetType = {
   qty_right_back: 0,
   qty_left_side: 0,
   qty_right_side: 0,
+  // SEO defaults
+  meta_title: '',
+  meta_description: '',
+  meta_keywords: '',
+  url_slug: '',
 };
 
 interface PartFormProps {
@@ -394,6 +404,7 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
   const [showPartForm, setShowPartForm] = useState(false);
   const [editingHardware, setEditingHardware] = useState<CabinetHardwareRequirement | null>(null);
   const [showHardwareForm, setShowHardwareForm] = useState(false);
+  const [isGeneratingContent, setIsGeneratingContent] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch cabinet parts for this cabinet type
@@ -722,6 +733,53 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
     }
   };
 
+  const generateAIContent = async () => {
+    if (!formData.name || !formData.category) {
+      toast.error('Please enter cabinet name and category first');
+      return;
+    }
+
+    setIsGeneratingContent(true);
+    try {
+      const response = await fetch('/api/ai-content-generator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          category: formData.category,
+          subcategory: formData.subcategory,
+          cabinet_style: formData.cabinet_style,
+          dimensions: {
+            width: formData.default_width_mm,
+            height: formData.default_height_mm,
+            depth: formData.default_depth_mm
+          }
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to generate content');
+      
+      const data = await response.json();
+      
+      setFormData(prev => ({
+        ...prev,
+        meta_title: data.meta_title,
+        meta_description: data.meta_description,
+        meta_keywords: data.meta_keywords,
+        url_slug: data.url_slug,
+        short_description: data.short_description,
+        long_description: data.long_description
+      }));
+
+      toast.success('AI content generated successfully!');
+    } catch (error) {
+      toast.error('Failed to generate AI content');
+      console.error(error);
+    } finally {
+      setIsGeneratingContent(false);
+    }
+  };
+
   const handleInputChange = (field: keyof CabinetType, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -847,26 +905,26 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-        <DialogHeader className="px-6 py-4 border-b">
-          <div className="flex items-center justify-between">
-            <div>
-              <DialogTitle>
-                {cabinetType ? 'Edit Cabinet Type' : 'Add Cabinet Type'}
-              </DialogTitle>
-              <DialogDescription>
-                Configure cabinet specifications, parts, and hardware requirements
-              </DialogDescription>
+        <DialogContent className="max-w-6xl max-h-[95vh] p-0 flex flex-col">
+          <DialogHeader className="px-6 py-4 border-b flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle>
+                  {cabinetType ? 'Edit Cabinet Type' : 'Add Cabinet Type'}
+                </DialogTitle>
+                <DialogDescription>
+                  Configure cabinet specifications, parts, and hardware requirements
+                </DialogDescription>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onOpenChange(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onOpenChange(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </DialogHeader>
+          </DialogHeader>
 
         <Tabs defaultValue="basic" className="flex-1 flex flex-col">
           <div className="px-6 py-2 border-b">
@@ -890,16 +948,27 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
             </TabsList>
           </div>
 
-          <ScrollArea className="flex-1 px-6">
-            <TabsContent value="basic" className="py-4 space-y-8">
+          <ScrollArea className="flex-1">
+            <TabsContent value="basic" className="p-6 space-y-8 m-0">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Package className="h-5 w-5" />
-                    Basic Information
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Package className="h-5 w-5" />
+                      Basic Information
+                    </CardTitle>
+                    <Button
+                      variant="outline"
+                      onClick={generateAIContent}
+                      disabled={isGeneratingContent || !formData.name || !formData.category}
+                      className="flex items-center gap-2"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      {isGeneratingContent ? 'Generating...' : 'Generate SEO & Descriptions'}
+                    </Button>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="name">Name *</Label>
@@ -926,212 +995,257 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                     </div>
                   </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="subcategory">Subcategory</Label>
-                    <Input
-                      id="subcategory"
-                      value={formData.subcategory || ''}
-                      onChange={(e) => handleInputChange('subcategory', e.target.value)}
-                      placeholder="e.g., Standard, Corner"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="cabinet_style">Cabinet Style</Label>
-                    <Select value={formData.cabinet_style || 'standard'} onValueChange={(value) => handleInputChange('cabinet_style', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select cabinet style" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="standard">Standard Cabinet</SelectItem>
-                        <SelectItem value="corner">Corner Cabinet</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="active"
-                    checked={formData.active}
-                    onCheckedChange={(checked) => handleInputChange('active', checked)}
-                  />
-                  <Label htmlFor="active">Active</Label>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="default_width_mm">Default Width (mm)</Label>
-                    <Input
-                      id="default_width_mm"
-                      type="number"
-                      value={formData.default_width_mm}
-                      onChange={(e) => handleInputChange('default_width_mm', parseInt(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="default_height_mm">Default Height (mm)</Label>
-                    <Input
-                      id="default_height_mm"
-                      type="number"
-                      value={formData.default_height_mm}
-                      onChange={(e) => handleInputChange('default_height_mm', parseInt(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="default_depth_mm">Default Depth (mm)</Label>
-                    <Input
-                      id="default_depth_mm"
-                      type="number"
-                      value={formData.default_depth_mm}
-                      onChange={(e) => handleInputChange('default_depth_mm', parseInt(e.target.value))}
-                    />
-                  </div>
-                </div>
-
-                {/* Corner Cabinet Specific Fields */}
-                {formData.cabinet_style === 'corner' && (
-                  <>
-                    <Separator />
-                    <div className="space-y-4">
-                      <Label className="text-base font-semibold">Corner Cabinet Configuration</Label>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="left_side_width_mm">Left Side Width (mm)</Label>
-                          <Input
-                            id="left_side_width_mm"
-                            type="number"
-                            value={formData.left_side_width_mm || 600}
-                            onChange={(e) => handleInputChange('left_side_width_mm', parseInt(e.target.value))}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="right_side_width_mm">Right Side Width (mm)</Label>
-                          <Input
-                            id="right_side_width_mm"
-                            type="number"
-                            value={formData.right_side_width_mm || 600}
-                            onChange={(e) => handleInputChange('right_side_width_mm', parseInt(e.target.value))}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="left_side_depth_mm">Left Side Depth (mm)</Label>
-                          <Input
-                            id="left_side_depth_mm"
-                            type="number"
-                            value={formData.left_side_depth_mm || 560}
-                            onChange={(e) => handleInputChange('left_side_depth_mm', parseInt(e.target.value))}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="right_side_depth_mm">Right Side Depth (mm)</Label>
-                          <Input
-                            id="right_side_depth_mm"
-                            type="number"
-                            value={formData.right_side_depth_mm || 560}
-                            onChange={(e) => handleInputChange('right_side_depth_mm', parseInt(e.target.value))}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-4 gap-4">
-                        <div>
-                          <Label htmlFor="qty_left_side">Left Side Qty</Label>
-                          <Input
-                            id="qty_left_side"
-                            type="number"
-                            min="0"
-                            value={formData.qty_left_side || 0}
-                            onChange={(e) => handleInputChange('qty_left_side', parseInt(e.target.value))}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="qty_right_side">Right Side Qty</Label>
-                          <Input
-                            id="qty_right_side"
-                            type="number"
-                            min="0"
-                            value={formData.qty_right_side || 0}
-                            onChange={(e) => handleInputChange('qty_right_side', parseInt(e.target.value))}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="qty_left_back">Left Back Qty</Label>
-                          <Input
-                            id="qty_left_back"
-                            type="number"
-                            min="0"
-                            value={formData.qty_left_back || 0}
-                            onChange={(e) => handleInputChange('qty_left_back', parseInt(e.target.value))}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="qty_right_back">Right Back Qty</Label>
-                          <Input
-                            id="qty_right_back"
-                            type="number"
-                            min="0"
-                            value={formData.qty_right_back || 0}
-                            onChange={(e) => handleInputChange('qty_right_back', parseInt(e.target.value))}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="door_count">Door Count</Label>
+                      <Label htmlFor="subcategory">Subcategory</Label>
                       <Input
-                        id="door_count"
-                        type="number"
-                        min="0"
-                        value={formData.door_count}
-                        onChange={(e) => handleInputChange('door_count', parseInt(e.target.value))}
+                        id="subcategory"
+                        value={formData.subcategory || ''}
+                        onChange={(e) => handleInputChange('subcategory', e.target.value)}
+                        placeholder="e.g., Standard, Corner"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="drawer_count">Drawer Count</Label>
+                      <Label htmlFor="cabinet_style">Cabinet Style</Label>
+                      <Select value={formData.cabinet_style || 'standard'} onValueChange={(value) => handleInputChange('cabinet_style', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select cabinet style" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="standard">Standard Cabinet</SelectItem>
+                          <SelectItem value="corner">Corner Cabinet</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="active"
+                      checked={formData.active}
+                      onCheckedChange={(checked) => handleInputChange('active', checked)}
+                    />
+                    <Label htmlFor="active">Active</Label>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="default_width_mm">Default Width (mm)</Label>
                       <Input
-                        id="drawer_count"
+                        id="default_width_mm"
                         type="number"
-                        min="0"
-                        value={formData.drawer_count}
-                        onChange={(e) => handleInputChange('drawer_count', parseInt(e.target.value))}
+                        value={formData.default_width_mm}
+                        onChange={(e) => handleInputChange('default_width_mm', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="default_height_mm">Default Height (mm)</Label>
+                      <Input
+                        id="default_height_mm"
+                        type="number"
+                        value={formData.default_height_mm}
+                        onChange={(e) => handleInputChange('default_height_mm', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="default_depth_mm">Default Depth (mm)</Label>
+                      <Input
+                        id="default_depth_mm"
+                        type="number"
+                        value={formData.default_depth_mm}
+                        onChange={(e) => handleInputChange('default_depth_mm', parseInt(e.target.value))}
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <Label htmlFor="short_description">Short Description</Label>
-                    <Input
-                      id="short_description"
-                      value={formData.short_description || ''}
-                      onChange={(e) => handleInputChange('short_description', e.target.value)}
-                      placeholder="Brief description for listings"
-                    />
+                  {/* Corner Cabinet Specific Fields */}
+                  {formData.cabinet_style === 'corner' && (
+                    <>
+                      <Separator />
+                      <div className="space-y-4">
+                        <Label className="text-base font-semibold">Corner Cabinet Configuration</Label>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="left_side_width_mm">Left Side Width (mm)</Label>
+                            <Input
+                              id="left_side_width_mm"
+                              type="number"
+                              value={formData.left_side_width_mm || 600}
+                              onChange={(e) => handleInputChange('left_side_width_mm', parseInt(e.target.value))}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="right_side_width_mm">Right Side Width (mm)</Label>
+                            <Input
+                              id="right_side_width_mm"
+                              type="number"
+                              value={formData.right_side_width_mm || 600}
+                              onChange={(e) => handleInputChange('right_side_width_mm', parseInt(e.target.value))}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="left_side_depth_mm">Left Side Depth (mm)</Label>
+                            <Input
+                              id="left_side_depth_mm"
+                              type="number"
+                              value={formData.left_side_depth_mm || 560}
+                              onChange={(e) => handleInputChange('left_side_depth_mm', parseInt(e.target.value))}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="right_side_depth_mm">Right Side Depth (mm)</Label>
+                            <Input
+                              id="right_side_depth_mm"
+                              type="number"
+                              value={formData.right_side_depth_mm || 560}
+                              onChange={(e) => handleInputChange('right_side_depth_mm', parseInt(e.target.value))}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-4 gap-4">
+                          <div>
+                            <Label htmlFor="qty_left_side">Left Side Qty</Label>
+                            <Input
+                              id="qty_left_side"
+                              type="number"
+                              min="0"
+                              value={formData.qty_left_side || 0}
+                              onChange={(e) => handleInputChange('qty_left_side', parseInt(e.target.value))}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="qty_right_side">Right Side Qty</Label>
+                            <Input
+                              id="qty_right_side"
+                              type="number"
+                              min="0"
+                              value={formData.qty_right_side || 0}
+                              onChange={(e) => handleInputChange('qty_right_side', parseInt(e.target.value))}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="qty_left_back">Left Back Qty</Label>
+                            <Input
+                              id="qty_left_back"
+                              type="number"
+                              min="0"
+                              value={formData.qty_left_back || 0}
+                              onChange={(e) => handleInputChange('qty_left_back', parseInt(e.target.value))}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="qty_right_back">Right Back Qty</Label>
+                            <Input
+                              id="qty_right_back"
+                              type="number"
+                              min="0"
+                              value={formData.qty_right_back || 0}
+                              onChange={(e) => handleInputChange('qty_right_back', parseInt(e.target.value))}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  <Separator />
+                  
+                  {/* SEO Section */}
+                  <div className="space-y-4">
+                    <Label className="text-base font-semibold">SEO & Marketing</Label>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="meta_title">Meta Title</Label>
+                        <div className="relative">
+                          <Input
+                            id="meta_title"
+                            value={formData.meta_title || ''}
+                            onChange={(e) => handleInputChange('meta_title', e.target.value)}
+                            placeholder="SEO title (under 60 characters)"
+                            maxLength={60}
+                          />
+                          <span className="absolute right-2 top-2 text-xs text-muted-foreground">
+                            {(formData.meta_title || '').length}/60
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="url_slug">URL Slug</Label>
+                        <Input
+                          id="url_slug"
+                          value={formData.url_slug || ''}
+                          onChange={(e) => handleInputChange('url_slug', e.target.value)}
+                          placeholder="kitchen-cabinet-base-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="meta_description">Meta Description</Label>
+                      <div className="relative">
+                        <Textarea
+                          id="meta_description"
+                          value={formData.meta_description || ''}
+                          onChange={(e) => handleInputChange('meta_description', e.target.value)}
+                          placeholder="SEO description (150-160 characters)"
+                          rows={3}
+                          maxLength={160}
+                        />
+                        <span className="absolute right-2 bottom-2 text-xs text-muted-foreground">
+                          {(formData.meta_description || '').length}/160
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="meta_keywords">Meta Keywords</Label>
+                      <Input
+                        id="meta_keywords"
+                        value={formData.meta_keywords || ''}
+                        onChange={(e) => handleInputChange('meta_keywords', e.target.value)}
+                        placeholder="kitchen cabinets, flat pack, DIY, Australia"
+                      />
+                    </div>
                   </div>
 
-                  <div>
-                    <Label htmlFor="long_description">Long Description</Label>
-                    <Textarea
-                      id="long_description"
-                      value={formData.long_description || ''}
-                      onChange={(e) => handleInputChange('long_description', e.target.value)}
-                      placeholder="Detailed description for product pages"
-                      rows={3}
-                    />
+                  <Separator />
+
+                  {/* Descriptions Section */}
+                  <div className="space-y-4">
+                    <Label className="text-base font-semibold">Product Descriptions</Label>
+                    
+                    <div>
+                      <Label htmlFor="short_description">Short Description</Label>
+                      <Input
+                        id="short_description"
+                        value={formData.short_description || ''}
+                        onChange={(e) => handleInputChange('short_description', e.target.value)}
+                        placeholder="Brief description for product listings"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="long_description">Long Description</Label>
+                      <Textarea
+                        id="long_description"
+                        value={formData.long_description || ''}
+                        onChange={(e) => handleInputChange('long_description', e.target.value)}
+                        placeholder="Detailed product description for product pages"
+                        rows={5}
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="doors" className="py-4 space-y-8">
+            <TabsContent value="doors" className="p-6 space-y-8 m-0">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -1226,7 +1340,7 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
               </Card>
             </TabsContent>
 
-            <TabsContent value="parts" className="py-4 space-y-8">
+            <TabsContent value="parts" className="p-6 space-y-8 m-0">
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -1281,7 +1395,7 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
               </Card>
             </TabsContent>
 
-            <TabsContent value="hardware" className="py-4 space-y-8">
+            <TabsContent value="hardware" className="p-6 space-y-8 m-0">
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -1344,7 +1458,7 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
           </ScrollArea>
         </Tabs>
 
-        <div className="border-t px-6 py-4 bg-background">
+        <div className="border-t px-6 py-4 bg-background flex-shrink-0">
           <div className="flex items-center justify-end gap-2">
             <Button
               variant="outline"
