@@ -547,7 +547,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           <div className="space-y-6">
             {selectedCabinetType && (
               <>
-                {/* Cabinet Parts Breakdown */}
+                 {/* Cabinet Parts Breakdown */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Parts Breakdown</CardTitle>
@@ -556,18 +556,54 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                     <div className="space-y-2">
                       {cabinetParts.map((part) => {
                         const partDimensions = calculatePartDimensions(part);
+                        
+                        // Calculate individual part cost using the same logic as PricingCalculator
+                        const rates = {
+                          materialRate: selectedCabinetType.material_rate_per_sqm || 85,
+                          doorRate: selectedDoorStyle ? doorStyles.find(ds => ds.id === selectedDoorStyle)?.base_rate_per_sqm || 120 : 120,
+                          colorSurcharge: selectedColor ? colors.find(c => c.id === selectedColor)?.surcharge_rate_per_sqm || 0 : 0,
+                          finishSurcharge: selectedFinish ? finishes.find(f => f.id === selectedFinish)?.rate_per_sqm || 0 : 0,
+                        };
+
+                        const variables = {
+                          width: dimensions.width,
+                          height: dimensions.height,
+                          depth: dimensions.depth,
+                          qty: quantity,
+                          mat_rate_per_sqm: rates.materialRate,
+                          door_cost: rates.doorRate,
+                          color_cost: rates.colorSurcharge,
+                          finish_cost: rates.finishSurcharge,
+                        };
+
+                        // Use PricingCalculator to evaluate the formula
+                        let partUnitCost = 0;
+                        try {
+                          partUnitCost = PricingCalculator.evaluateFormula(part.width_formula || '', variables as any);
+                        } catch (error) {
+                          console.error('Error calculating part cost:', error);
+                        }
+                        
+                        const partTotalCost = partUnitCost * (part.quantity || 1);
+
                         return (
-                          <div key={part.id} className="flex justify-between items-center text-sm">
+                          <div key={part.id} className="flex justify-between items-center text-sm border-b pb-2">
                             <div className="flex items-center gap-2">
-                              <span>{part.part_name}</span>
+                              <span className="font-medium">{part.part_name}</span>
                               {part.is_door && <Badge variant="secondary">Door</Badge>}
                               {part.is_hardware && <Badge variant="outline">Hardware</Badge>}
                             </div>
                             <div className="text-right">
-                              <div>Qty: {part.quantity}</div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">Qty: {part.quantity}</span>
+                                <span className="font-medium">${partTotalCost.toFixed(2)}</span>
+                              </div>
                               {(part.width_formula || part.height_formula) && (
                                 <div className="text-xs text-muted-foreground">
                                   {Math.round(partDimensions.width)}×{Math.round(partDimensions.height)}mm
+                                  {partUnitCost > 0 && (
+                                    <span className="ml-2">${partUnitCost.toFixed(2)} × {part.quantity}</span>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -578,7 +614,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                   </CardContent>
                 </Card>
 
-                {/* Hardware Requirements */}
+                 {/* Hardware Requirements */}
                 {hardwareRequirements.length > 0 && (
                   <Card>
                     <CardHeader>
@@ -586,19 +622,51 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
-                        {hardwareRequirements.map((req) => (
-                          <div key={req.id} className="flex justify-between items-center text-sm">
-                            <div>
-                              <div>{req.hardware_type.name}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {req.hardware_type.category}
+                        {hardwareRequirements.map((req) => {
+                          // Calculate hardware cost
+                          let units = 0;
+                          switch (req.unit_scope?.toLowerCase()) {
+                            case 'cabinet':
+                            case 'custom':
+                              units = req.units_per_scope * quantity;
+                              break;
+                            case 'door':
+                              const doorCount = Math.max(selectedCabinetType.door_qty || selectedCabinetType.door_count || 1, 1);
+                              units = req.units_per_scope * doorCount * quantity;
+                              break;
+                            case 'drawer':
+                              const drawerCount = selectedCabinetType.drawer_count || 0;
+                              units = req.units_per_scope * drawerCount * quantity;
+                              break;
+                            default:
+                              units = req.units_per_scope * quantity;
+                          }
+                          
+                          const costPerUnit = 5.50; // Default hardware cost
+                          const totalCost = units * costPerUnit;
+
+                          return (
+                            <div key={req.id} className="flex justify-between items-center text-sm border-b pb-2">
+                              <div>
+                                <div className="font-medium">{req.hardware_type.name}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {req.hardware_type.category}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-muted-foreground">
+                                    {req.units_per_scope} per {req.unit_scope}
+                                  </span>
+                                  <span className="font-medium">${totalCost.toFixed(2)}</span>
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  ${costPerUnit.toFixed(2)} × {units} units
+                                </div>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <div>{req.units_per_scope} per {req.unit_scope}</div>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </CardContent>
                   </Card>
