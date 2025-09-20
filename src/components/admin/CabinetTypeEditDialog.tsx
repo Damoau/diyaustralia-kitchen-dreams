@@ -1300,7 +1300,7 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                                 />
                               )}
                               <div 
-                                className="relative border-2 border-dashed border-muted-foreground rounded-lg p-4 hover:border-primary transition-colors"
+                                className="relative border-2 border-dashed border-muted-foreground rounded-lg p-2 hover:border-primary transition-colors min-h-[60px]"
                                 onDragOver={(e) => {
                                   e.preventDefault();
                                   e.currentTarget.classList.add('border-primary', 'bg-primary/5');
