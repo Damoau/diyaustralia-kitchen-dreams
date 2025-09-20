@@ -15,15 +15,14 @@ serve(async (req) => {
   }
 
   try {
-    const { name, category, subcategory, cabinet_style, dimensions } = await req.json();
+    const { cabinetName, category, subcategory, description } = await req.json();
 
     const prompt = `Generate SEO and marketing content for a kitchen cabinet product with these details:
     
-Name: ${name}
-Category: ${category}
+Name: ${cabinetName}
+Category: ${category || 'N/A'}
 Subcategory: ${subcategory || 'N/A'}
-Style: ${cabinet_style || 'standard'}
-Dimensions: ${dimensions.width}mm W x ${dimensions.height}mm H x ${dimensions.depth}mm D
+Description: ${description || 'N/A'}
 
 MANDATORY CONTENT REQUIREMENTS:
 
@@ -85,16 +84,24 @@ Format response as JSON with keys: meta_title, meta_description, meta_keywords, 
     try {
       // Remove markdown code blocks if present
       let cleanContent = generatedContent.trim();
+      
+      // Handle different markdown formats
       if (cleanContent.startsWith('```json')) {
-        cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+        cleanContent = cleanContent.replace(/^```json\s*\n?/, '').replace(/\n?\s*```\s*$/, '');
       } else if (cleanContent.startsWith('```')) {
-        cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+        cleanContent = cleanContent.replace(/^```\s*\n?/, '').replace(/\n?\s*```\s*$/, '');
       }
       
+      // Additional cleanup for any remaining formatting
+      cleanContent = cleanContent.trim();
+      
+      console.log('Cleaned content for parsing:', cleanContent);
       contentData = JSON.parse(cleanContent);
     } catch (parseError) {
-      console.error('Failed to parse AI response:', generatedContent);
-      throw new Error('Invalid AI response format');
+      console.error('Failed to parse AI response. Original:', generatedContent);
+      console.error('Cleaned content:', cleanContent || 'undefined');
+      console.error('Parse error:', parseError);
+      throw new Error(`Invalid AI response format: ${parseError.message}`);
     }
 
     return new Response(JSON.stringify(contentData), {

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function EditCabinetType() {
   const { id } = useParams();
@@ -55,11 +56,42 @@ export default function EditCabinetType() {
   };
 
   const handleGenerateContent = async () => {
+    if (!cabinetType.name) {
+      toast.error("Please enter a cabinet name first");
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      // Add AI content generation logic here
-      toast.success("SEO content generated successfully");
+      const { data, error } = await supabase.functions.invoke('ai-content-generator', {
+        body: {
+          cabinetName: cabinetType.name,
+          category: cabinetType.category,
+          subcategory: cabinetType.subcategory,
+          description: cabinetType.description
+        }
+      });
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+
+      if (data) {
+        setCabinetType(prev => ({
+          ...prev,
+          seo_title: data.meta_title || '',
+          seo_description: data.meta_description || '',
+          seo_keywords: data.meta_keywords || '',
+          description: data.short_description || prev.description,
+        }));
+        toast.success("SEO content generated successfully");
+      }
     } catch (error) {
-      toast.error("Failed to generate content");
+      console.error('Generate content error:', error);
+      toast.error("Failed to generate content: " + (error.message || 'Unknown error'));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -132,10 +164,11 @@ export default function EditCabinetType() {
                       variant="outline"
                       size="sm"
                       onClick={handleGenerateContent}
+                      disabled={isLoading}
                       className="gap-2"
                     >
                       <Sparkles className="h-4 w-4" />
-                      Generate SEO & Descriptions
+                      {isLoading ? "Generating..." : "Generate SEO & Descriptions"}
                     </Button>
                   </div>
                 </CardHeader>
