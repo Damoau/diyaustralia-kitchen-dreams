@@ -517,6 +517,7 @@ export default function EditCabinetType() {
           meta_description: data.meta_description || '',
           meta_keywords: data.meta_keywords || '',
           url_slug: data.url_slug || '',
+          description: data.short_description || cabinetType.description,
           short_description: data.short_description || cabinetType.short_description,
           long_description: data.long_description || cabinetType.long_description,
         };
