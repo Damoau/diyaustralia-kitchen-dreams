@@ -503,14 +503,19 @@ export default function EditCabinetType() {
       }
 
       if (data) {
-        setCabinetType(prev => ({
-          ...prev,
+        const updatedCabinetType = {
+          ...cabinetType,
           seo_title: data.meta_title || '',
           seo_description: data.meta_description || '',
           seo_keywords: data.meta_keywords || '',
-          description: data.short_description || prev.description,
-        }));
-        toast.success("SEO content generated successfully");
+          description: data.short_description || cabinetType.description,
+        };
+        
+        setCabinetType(updatedCabinetType);
+        
+        // Auto-save the generated content
+        await saveCabinetType.mutateAsync(updatedCabinetType);
+        toast.success("SEO content generated and saved successfully");
       }
     } catch (error) {
       console.error('Generate content error:', error);
