@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataTable } from '@/components/admin/shared/DataTable';
 import { Plus, Trash2, Edit, Package, Settings, Wrench, X } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -703,141 +704,158 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
           </div>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-6">
-          <div className="py-4 space-y-8">
-            {/* Basic Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Basic Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="name">Name *</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      placeholder="e.g., Base Cabinet 2-Door"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="category">Category *</Label>
-                    <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="base">Base Cabinets</SelectItem>
-                        <SelectItem value="wall">Wall Cabinets</SelectItem>
-                        <SelectItem value="tall">Tall Cabinets</SelectItem>
-                        <SelectItem value="specialty">Specialty</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+        <Tabs defaultValue="basic" className="flex-1 flex flex-col">
+          <div className="px-6 py-2 border-b">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="basic" className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                Basic Information
+              </TabsTrigger>
+              <TabsTrigger value="parts" disabled={!cabinetType?.id} className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Parts & Formulas
+              </TabsTrigger>
+              <TabsTrigger value="hardware" disabled={!cabinetType?.id} className="flex items-center gap-2">
+                <Wrench className="h-4 w-4" />
+                Hardware Requirements
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="subcategory">Subcategory</Label>
-                    <Input
-                      id="subcategory"
-                      value={formData.subcategory || ''}
-                      onChange={(e) => handleInputChange('subcategory', e.target.value)}
-                      placeholder="e.g., Standard, Corner"
-                    />
+          <ScrollArea className="flex-1 px-6">
+            <TabsContent value="basic" className="py-4 space-y-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-5 w-5" />
+                    Basic Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="name">Name *</Label>
+                      <Input
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => handleInputChange('name', e.target.value)}
+                        placeholder="e.g., Base Cabinet 2-Door"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="category">Category *</Label>
+                      <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="base">Base Cabinets</SelectItem>
+                          <SelectItem value="wall">Wall Cabinets</SelectItem>
+                          <SelectItem value="tall">Tall Cabinets</SelectItem>
+                          <SelectItem value="specialty">Specialty</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="active"
-                      checked={formData.active}
-                      onCheckedChange={(checked) => handleInputChange('active', checked)}
-                    />
-                    <Label htmlFor="active">Active</Label>
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="default_width_mm">Default Width (mm)</Label>
-                    <Input
-                      id="default_width_mm"
-                      type="number"
-                      value={formData.default_width_mm}
-                      onChange={(e) => handleInputChange('default_width_mm', parseInt(e.target.value))}
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="subcategory">Subcategory</Label>
+                      <Input
+                        id="subcategory"
+                        value={formData.subcategory || ''}
+                        onChange={(e) => handleInputChange('subcategory', e.target.value)}
+                        placeholder="e.g., Standard, Corner"
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="active"
+                        checked={formData.active}
+                        onCheckedChange={(checked) => handleInputChange('active', checked)}
+                      />
+                      <Label htmlFor="active">Active</Label>
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="default_height_mm">Default Height (mm)</Label>
-                    <Input
-                      id="default_height_mm"
-                      type="number"
-                      value={formData.default_height_mm}
-                      onChange={(e) => handleInputChange('default_height_mm', parseInt(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="default_depth_mm">Default Depth (mm)</Label>
-                    <Input
-                      id="default_depth_mm"
-                      type="number"
-                      value={formData.default_depth_mm}
-                      onChange={(e) => handleInputChange('default_depth_mm', parseInt(e.target.value))}
-                    />
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="default_width_mm">Default Width (mm)</Label>
+                      <Input
+                        id="default_width_mm"
+                        type="number"
+                        value={formData.default_width_mm}
+                        onChange={(e) => handleInputChange('default_width_mm', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="default_height_mm">Default Height (mm)</Label>
+                      <Input
+                        id="default_height_mm"
+                        type="number"
+                        value={formData.default_height_mm}
+                        onChange={(e) => handleInputChange('default_height_mm', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="default_depth_mm">Default Depth (mm)</Label>
+                      <Input
+                        id="default_depth_mm"
+                        type="number"
+                        value={formData.default_depth_mm}
+                        onChange={(e) => handleInputChange('default_depth_mm', parseInt(e.target.value))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="door_count">Door Count</Label>
+                      <Input
+                        id="door_count"
+                        type="number"
+                        min="0"
+                        value={formData.door_count}
+                        onChange={(e) => handleInputChange('door_count', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="drawer_count">Drawer Count</Label>
+                      <Input
+                        id="drawer_count"
+                        type="number"
+                        min="0"
+                        value={formData.drawer_count}
+                        onChange={(e) => handleInputChange('drawer_count', parseInt(e.target.value))}
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <Label htmlFor="door_count">Door Count</Label>
+                    <Label htmlFor="short_description">Short Description</Label>
                     <Input
-                      id="door_count"
-                      type="number"
-                      min="0"
-                      value={formData.door_count}
-                      onChange={(e) => handleInputChange('door_count', parseInt(e.target.value))}
+                      id="short_description"
+                      value={formData.short_description || ''}
+                      onChange={(e) => handleInputChange('short_description', e.target.value)}
+                      placeholder="Brief description for listings"
                     />
                   </div>
+
                   <div>
-                    <Label htmlFor="drawer_count">Drawer Count</Label>
-                    <Input
-                      id="drawer_count"
-                      type="number"
-                      min="0"
-                      value={formData.drawer_count}
-                      onChange={(e) => handleInputChange('drawer_count', parseInt(e.target.value))}
+                    <Label htmlFor="long_description">Long Description</Label>
+                    <Textarea
+                      id="long_description"
+                      value={formData.long_description || ''}
+                      onChange={(e) => handleInputChange('long_description', e.target.value)}
+                      placeholder="Detailed description for product pages"
+                      rows={3}
                     />
                   </div>
-                </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-                <div>
-                  <Label htmlFor="short_description">Short Description</Label>
-                  <Input
-                    id="short_description"
-                    value={formData.short_description || ''}
-                    onChange={(e) => handleInputChange('short_description', e.target.value)}
-                    placeholder="Brief description for listings"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="long_description">Long Description</Label>
-                  <Textarea
-                    id="long_description"
-                    value={formData.long_description || ''}
-                    onChange={(e) => handleInputChange('long_description', e.target.value)}
-                    placeholder="Detailed description for product pages"
-                    rows={3}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Parts & Formulas - Only show for existing cabinet types */}
-            {cabinetType?.id && (
+            <TabsContent value="parts" className="py-4 space-y-8">
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -890,10 +908,9 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                   />
                 </CardContent>
               </Card>
-            )}
+            </TabsContent>
 
-            {/* Hardware Requirements - Only show for existing cabinet types */}
-            {cabinetType?.id && (
+            <TabsContent value="hardware" className="py-4 space-y-8">
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -952,9 +969,9 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                   />
                 </CardContent>
               </Card>
-            )}
-          </div>
-        </ScrollArea>
+            </TabsContent>
+          </ScrollArea>
+        </Tabs>
 
         <div className="border-t px-6 py-4 bg-background">
           <div className="flex items-center justify-end gap-2">
