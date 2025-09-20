@@ -122,6 +122,11 @@ export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ cabi
     addPartMutation.mutate(newPart);
   };
 
+  // Handle cabinet style change and update parent
+  const handleCabinetStyleChange = (style: string) => {
+    onCabinetStyleChange(style);
+  };
+
   if (cabinetId === 'new') {
     return (
       <Card>
@@ -155,7 +160,7 @@ export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ cabi
             <div className="flex items-center gap-4">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="cabinet_style" className="text-sm font-medium">Cabinet Style</Label>
-                <Select value={cabinetStyle || 'standard'} onValueChange={onCabinetStyleChange}>
+                <Select value={cabinetStyle || 'standard'} onValueChange={handleCabinetStyleChange}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Select style" />
                   </SelectTrigger>

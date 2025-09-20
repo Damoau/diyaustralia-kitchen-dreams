@@ -934,10 +934,14 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
 
         <Tabs defaultValue="basic" className="flex-1 flex flex-col">
           <div className="px-6 py-2 border-b">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="basic" className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
                 Basic Information
+              </TabsTrigger>
+              <TabsTrigger value="sizes" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Size Ranges
               </TabsTrigger>
               <TabsTrigger value="doors" disabled={!cabinetType?.id} className="flex items-center gap-2">
                 <Wrench className="h-4 w-4" />
@@ -1022,34 +1026,36 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                     <Label htmlFor="active">Active</Label>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="default_width_mm">Default Width (mm)</Label>
+                      <Label htmlFor="door_count">Door Count</Label>
                       <Input
-                        id="default_width_mm"
+                        id="door_count"
                         type="number"
-                        value={formData.default_width_mm}
-                        onChange={(e) => handleInputChange('default_width_mm', parseInt(e.target.value))}
+                        min="0"
+                        value={formData.door_count}
+                        onChange={(e) => handleInputChange('door_count', parseInt(e.target.value))}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="default_height_mm">Default Height (mm)</Label>
+                      <Label htmlFor="drawer_count">Drawer Count</Label>
                       <Input
-                        id="default_height_mm"
+                        id="drawer_count"
                         type="number"
-                        value={formData.default_height_mm}
-                        onChange={(e) => handleInputChange('default_height_mm', parseInt(e.target.value))}
+                        min="0"
+                        value={formData.drawer_count}
+                        onChange={(e) => handleInputChange('drawer_count', parseInt(e.target.value))}
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="default_depth_mm">Default Depth (mm)</Label>
-                      <Input
-                        id="default_depth_mm"
-                        type="number"
-                        value={formData.default_depth_mm}
-                        onChange={(e) => handleInputChange('default_depth_mm', parseInt(e.target.value))}
-                      />
-                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="is_featured"
+                      checked={formData.is_featured || false}
+                      onCheckedChange={(checked) => handleInputChange('is_featured', checked)}
+                    />
+                    <Label htmlFor="is_featured">Featured Product</Label>
                   </div>
 
                   {/* Corner Cabinet Specific Fields */}
@@ -1239,6 +1245,144 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
               </Card>
             </TabsContent>
 
+            <TabsContent value="sizes" className="p-6 space-y-8 m-0">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Size Ranges & Defaults
+                  </CardTitle>
+                  <CardDescription>
+                    Configure default dimensions and size ranges for this cabinet type
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <Label className="text-base font-semibold">Default Dimensions</Label>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="default_width_mm">Default Width (mm)</Label>
+                        <Input
+                          id="default_width_mm"
+                          type="number"
+                          value={formData.default_width_mm}
+                          onChange={(e) => handleInputChange('default_width_mm', parseInt(e.target.value))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="default_height_mm">Default Height (mm)</Label>
+                        <Input
+                          id="default_height_mm"
+                          type="number"
+                          value={formData.default_height_mm}
+                          onChange={(e) => handleInputChange('default_height_mm', parseInt(e.target.value))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="default_depth_mm">Default Depth (mm)</Label>
+                        <Input
+                          id="default_depth_mm"
+                          type="number"
+                          value={formData.default_depth_mm}
+                          onChange={(e) => handleInputChange('default_depth_mm', parseInt(e.target.value))}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <Label className="text-base font-semibold">Size Ranges</Label>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <Label className="text-sm font-medium">Width Range (mm)</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label htmlFor="min_width_mm" className="text-xs">Minimum</Label>
+                            <Input
+                              id="min_width_mm"
+                              type="number"
+                              value={formData.min_width_mm || 100}
+                              onChange={(e) => handleInputChange('min_width_mm', parseInt(e.target.value))}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="max_width_mm" className="text-xs">Maximum</Label>
+                            <Input
+                              id="max_width_mm"
+                              type="number"
+                              value={formData.max_width_mm || 1200}
+                              onChange={(e) => handleInputChange('max_width_mm', parseInt(e.target.value))}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <Label className="text-sm font-medium">Height Range (mm)</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label htmlFor="min_height_mm" className="text-xs">Minimum</Label>
+                            <Input
+                              id="min_height_mm"
+                              type="number"
+                              value={formData.min_height_mm || 200}
+                              onChange={(e) => handleInputChange('min_height_mm', parseInt(e.target.value))}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="max_height_mm" className="text-xs">Maximum</Label>
+                            <Input
+                              id="max_height_mm"
+                              type="number"
+                              value={formData.max_height_mm || 1000}
+                              onChange={(e) => handleInputChange('max_height_mm', parseInt(e.target.value))}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <Label className="text-sm font-medium">Depth Range (mm)</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label htmlFor="min_depth_mm" className="text-xs">Minimum</Label>
+                            <Input
+                              id="min_depth_mm"
+                              type="number"
+                              value={formData.min_depth_mm || 200}
+                              onChange={(e) => handleInputChange('min_depth_mm', parseInt(e.target.value))}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="max_depth_mm" className="text-xs">Maximum</Label>
+                            <Input
+                              id="max_depth_mm"
+                              type="number"
+                              value={formData.max_depth_mm || 800}
+                              onChange={(e) => handleInputChange('max_depth_mm', parseInt(e.target.value))}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <Label className="text-sm font-medium">Display Order</Label>
+                        <Input
+                          id="display_order"
+                          type="number"
+                          value={formData.display_order || 0}
+                          onChange={(e) => handleInputChange('display_order', parseInt(e.target.value))}
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="doors" className="p-6 space-y-8 m-0">
               <Card>
                 <CardHeader>
@@ -1288,8 +1432,8 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                                   className="w-12 h-12 object-cover rounded border"
                                 />
                               )}
-                              <div 
-                                className="relative border-2 border-dashed border-muted-foreground rounded-lg p-2 hover:border-primary transition-colors min-h-[60px]"
+                               <div 
+                                className="relative border-2 border-dashed border-muted-foreground rounded-lg p-2 hover:border-primary transition-colors min-h-[30px]"
                                 onDragOver={(e) => {
                                   e.preventDefault();
                                   e.currentTarget.classList.add('border-primary', 'bg-primary/5');
