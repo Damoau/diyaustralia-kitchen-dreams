@@ -906,56 +906,6 @@ export default function EditCabinetType() {
                             />
                           </div>
                         </div>
-
-                        <Separator />
-
-                        {/* Corner Cabinet Quantities */}
-                        <div className="space-y-4">
-                          <Label className="text-base font-semibold">Corner Cabinet Part Quantities</Label>
-                          
-                          <div className="grid grid-cols-4 gap-4">
-                            <div>
-                              <Label htmlFor="qty_left_side">Left Side Qty</Label>
-                              <Input
-                                id="qty_left_side"
-                                type="number"
-                                min="0"
-                                value={cabinetType.qty_left_side || 0}
-                                onChange={(e) => handleInputChange('qty_left_side', parseInt(e.target.value))}
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="qty_right_side">Right Side Qty</Label>
-                              <Input
-                                id="qty_right_side"
-                                type="number"
-                                min="0"
-                                value={cabinetType.qty_right_side || 0}
-                                onChange={(e) => handleInputChange('qty_right_side', parseInt(e.target.value))}
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="qty_left_back">Left Back Qty</Label>
-                              <Input
-                                id="qty_left_back"
-                                type="number"
-                                min="0"
-                                value={cabinetType.qty_left_back || 0}
-                                onChange={(e) => handleInputChange('qty_left_back', parseInt(e.target.value))}
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="qty_right_back">Right Back Qty</Label>
-                              <Input
-                                id="qty_right_back"
-                                type="number"
-                                min="0"
-                                value={cabinetType.qty_right_back || 0}
-                                onChange={(e) => handleInputChange('qty_right_back', parseInt(e.target.value))}
-                              />
-                            </div>
-                          </div>
-                        </div>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1070,11 +1020,264 @@ export default function EditCabinetType() {
                     )}
                   </div>
 
-                  <div className="border-t pt-6">
-                    <h4 className="font-medium mb-4">Size Ranges</h4>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      (50mm increments will be generated)
-                    </p>
+                  <Separator />
+
+                  {/* Size Ranges - Different for Corner vs Standard */}
+                  <div className="space-y-4">
+                    <Label className="text-base font-semibold">Size Ranges (50mm increments will be generated)</Label>
+                    {cabinetType.cabinet_style === 'corner' ? (
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <Label className="text-sm font-medium">Left Width Range (mm)</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label htmlFor="min_left_width" className="text-xs">Minimum</Label>
+                              <Input
+                                id="min_left_width"
+                                type="number"
+                                step="50"
+                                value={cabinetType.min_width_mm || 300}
+                                onChange={(e) => handleInputChange('min_width_mm', parseInt(e.target.value))}
+                                placeholder="300"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="max_left_width" className="text-xs">Maximum</Label>
+                              <Input
+                                id="max_left_width"
+                                type="number"
+                                step="50"
+                                value={cabinetType.max_width_mm || 800}
+                                onChange={(e) => handleInputChange('max_width_mm', parseInt(e.target.value))}
+                                placeholder="800"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Available left widths: {cabinetType.min_width_mm || 300}mm to {cabinetType.max_width_mm || 800}mm in 50mm steps
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <Label className="text-sm font-medium">Right Width Range (mm)</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label htmlFor="min_right_width" className="text-xs">Minimum</Label>
+                              <Input
+                                id="min_right_width"
+                                type="number"
+                                step="50"
+                                value={cabinetType.min_width_mm || 300}
+                                onChange={(e) => handleInputChange('min_width_mm', parseInt(e.target.value))}
+                                placeholder="300"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="max_right_width" className="text-xs">Maximum</Label>
+                              <Input
+                                id="max_right_width"
+                                type="number"
+                                step="50"
+                                value={cabinetType.max_width_mm || 800}
+                                onChange={(e) => handleInputChange('max_width_mm', parseInt(e.target.value))}
+                                placeholder="800"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Available right widths: {cabinetType.min_width_mm || 300}mm to {cabinetType.max_width_mm || 800}mm in 50mm steps
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <Label className="text-sm font-medium">Height Range (mm)</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label htmlFor="min_height_mm" className="text-xs">Minimum</Label>
+                              <Input
+                                id="min_height_mm"
+                                type="number"
+                                step="50"
+                                value={cabinetType.min_height_mm || 200}
+                                onChange={(e) => handleInputChange('min_height_mm', parseInt(e.target.value))}
+                                placeholder="200"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="max_height_mm" className="text-xs">Maximum</Label>
+                              <Input
+                                id="max_height_mm"
+                                type="number"
+                                step="50"
+                                value={cabinetType.max_height_mm || 1000}
+                                onChange={(e) => handleInputChange('max_height_mm', parseInt(e.target.value))}
+                                placeholder="1000"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Available heights: {cabinetType.min_height_mm || 200}mm to {cabinetType.max_height_mm || 1000}mm in 50mm steps
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <Label className="text-sm font-medium">Left Depth Range (mm)</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label htmlFor="min_left_depth" className="text-xs">Minimum</Label>
+                              <Input
+                                id="min_left_depth"
+                                type="number"
+                                step="50"
+                                value={cabinetType.min_depth_mm || 200}
+                                onChange={(e) => handleInputChange('min_depth_mm', parseInt(e.target.value))}
+                                placeholder="200"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="max_left_depth" className="text-xs">Maximum</Label>
+                              <Input
+                                id="max_left_depth"
+                                type="number"
+                                step="50"
+                                value={cabinetType.max_depth_mm || 800}
+                                onChange={(e) => handleInputChange('max_depth_mm', parseInt(e.target.value))}
+                                placeholder="800"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Available left depths: {cabinetType.min_depth_mm || 200}mm to {cabinetType.max_depth_mm || 800}mm in 50mm steps
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <Label className="text-sm font-medium">Right Depth Range (mm)</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label htmlFor="min_right_depth" className="text-xs">Minimum</Label>
+                              <Input
+                                id="min_right_depth"
+                                type="number"
+                                step="50"
+                                value={cabinetType.min_depth_mm || 200}
+                                onChange={(e) => handleInputChange('min_depth_mm', parseInt(e.target.value))}
+                                placeholder="200"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="max_right_depth" className="text-xs">Maximum</Label>
+                              <Input
+                                id="max_right_depth"
+                                type="number"
+                                step="50"
+                                value={cabinetType.max_depth_mm || 800}
+                                onChange={(e) => handleInputChange('max_depth_mm', parseInt(e.target.value))}
+                                placeholder="800"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Available right depths: {cabinetType.min_depth_mm || 200}mm to {cabinetType.max_depth_mm || 800}mm in 50mm steps
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-4">
+                          <Label className="text-sm font-medium">Width Range (mm)</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label htmlFor="min_width_mm" className="text-xs">Minimum</Label>
+                              <Input
+                                id="min_width_mm"
+                                type="number"
+                                step="50"
+                                value={cabinetType.min_width_mm || 300}
+                                onChange={(e) => handleInputChange('min_width_mm', parseInt(e.target.value))}
+                                placeholder="300"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="max_width_mm" className="text-xs">Maximum</Label>
+                              <Input
+                                id="max_width_mm"
+                                type="number"
+                                step="50"
+                                value={cabinetType.max_width_mm || 1200}
+                                onChange={(e) => handleInputChange('max_width_mm', parseInt(e.target.value))}
+                                placeholder="1200"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Available widths: {cabinetType.min_width_mm || 300}mm to {cabinetType.max_width_mm || 1200}mm in 50mm steps
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <Label className="text-sm font-medium">Height Range (mm)</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label htmlFor="min_height_mm" className="text-xs">Minimum</Label>
+                              <Input
+                                id="min_height_mm"
+                                type="number"
+                                step="50"
+                                value={cabinetType.min_height_mm || 200}
+                                onChange={(e) => handleInputChange('min_height_mm', parseInt(e.target.value))}
+                                placeholder="200"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="max_height_mm" className="text-xs">Maximum</Label>
+                              <Input
+                                id="max_height_mm"
+                                type="number"
+                                step="50"
+                                value={cabinetType.max_height_mm || 1000}
+                                onChange={(e) => handleInputChange('max_height_mm', parseInt(e.target.value))}
+                                placeholder="1000"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Available heights: {cabinetType.min_height_mm || 200}mm to {cabinetType.max_height_mm || 1000}mm in 50mm steps
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <Label className="text-sm font-medium">Depth Range (mm)</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label htmlFor="min_depth_mm" className="text-xs">Minimum</Label>
+                              <Input
+                                id="min_depth_mm"
+                                type="number"
+                                step="50"
+                                value={cabinetType.min_depth_mm || 200}
+                                onChange={(e) => handleInputChange('min_depth_mm', parseInt(e.target.value))}
+                                placeholder="200"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="max_depth_mm" className="text-xs">Maximum</Label>
+                              <Input
+                                id="max_depth_mm"
+                                type="number"
+                                step="50"
+                                value={cabinetType.max_depth_mm || 800}
+                                onChange={(e) => handleInputChange('max_depth_mm', parseInt(e.target.value))}
+                                placeholder="800"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Available depths: {cabinetType.min_depth_mm || 200}mm to {cabinetType.max_depth_mm || 800}mm in 50mm steps
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -1205,11 +1408,69 @@ export default function EditCabinetType() {
             </TabsContent>
 
             <TabsContent value="parts" className="space-y-6 m-0">
-              <CabinetComponentsTab 
-                cabinetId={id || 'new'} 
-                cabinetStyle={cabinetType.cabinet_style || 'standard'}
-                onCabinetStyleChange={(style) => handleInputChange('cabinet_style', style)}
-              />
+              <div className="space-y-6">
+                <CabinetComponentsTab 
+                  cabinetId={id || 'new'} 
+                  cabinetStyle={cabinetType.cabinet_style || 'standard'}
+                  onCabinetStyleChange={(style) => handleInputChange('cabinet_style', style)}
+                />
+                
+                {/* Corner Cabinet Part Quantities - Only show for corner cabinets */}
+                {cabinetType.cabinet_style === 'corner' && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Corner Cabinet Part Quantities</CardTitle>
+                      <CardDescription>
+                        Define the quantity of parts specific to corner cabinets
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-4 gap-4">
+                        <div>
+                          <Label htmlFor="qty_left_side">Left Side Qty</Label>
+                          <Input
+                            id="qty_left_side"
+                            type="number"
+                            min="0"
+                            value={cabinetType.qty_left_side || 0}
+                            onChange={(e) => handleInputChange('qty_left_side', parseInt(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="qty_right_side">Right Side Qty</Label>
+                          <Input
+                            id="qty_right_side"
+                            type="number"
+                            min="0"
+                            value={cabinetType.qty_right_side || 0}
+                            onChange={(e) => handleInputChange('qty_right_side', parseInt(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="qty_left_back">Left Back Qty</Label>
+                          <Input
+                            id="qty_left_back"
+                            type="number"
+                            min="0"
+                            value={cabinetType.qty_left_back || 0}
+                            onChange={(e) => handleInputChange('qty_left_back', parseInt(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="qty_right_back">Right Back Qty</Label>
+                          <Input
+                            id="qty_right_back"
+                            type="number"
+                            min="0"
+                            value={cabinetType.qty_right_back || 0}
+                            onChange={(e) => handleInputChange('qty_right_back', parseInt(e.target.value))}
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             </TabsContent>
 
             <TabsContent value="hardware" className="space-y-6 m-0">
