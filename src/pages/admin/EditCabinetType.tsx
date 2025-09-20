@@ -742,25 +742,6 @@ export default function EditCabinetType() {
                       <Label htmlFor="active">Active</Label>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="door_count">Door Count</Label>
-                      <Input
-                        id="door_count"
-                        type="number"
-                        value={cabinetType.door_count}
-                        onChange={(e) => handleInputChange('door_count', parseInt(e.target.value) || 0)}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="drawer_count">Drawer Count</Label>
-                      <Input
-                        id="drawer_count"
-                        type="number"
-                        value={cabinetType.drawer_count}
-                        onChange={(e) => handleInputChange('drawer_count', parseInt(e.target.value) || 0)}
-                      />
-                    </div>
                   </div>
 
                   <div className="flex items-center space-x-2">
@@ -1188,102 +1169,57 @@ export default function EditCabinetType() {
                           </div>
                         </div>
                       </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="space-y-4">
-                          <Label className="text-sm font-medium">Width Range (mm)</Label>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <Label htmlFor="min_width_mm" className="text-xs">Minimum</Label>
-                              <Input
-                                id="min_width_mm"
-                                type="number"
-                                step="50"
-                                value={cabinetType.min_width_mm || 300}
-                                onChange={(e) => handleInputChange('min_width_mm', parseInt(e.target.value))}
-                                placeholder="300"
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="max_width_mm" className="text-xs">Maximum</Label>
-                              <Input
-                                id="max_width_mm"
-                                type="number"
-                                step="50"
-                                value={cabinetType.max_width_mm || 1200}
-                                onChange={(e) => handleInputChange('max_width_mm', parseInt(e.target.value))}
-                                placeholder="1200"
-                              />
-                            </div>
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Available widths: {cabinetType.min_width_mm || 300}mm to {cabinetType.max_width_mm || 1200}mm in 50mm steps
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          <Label className="text-sm font-medium">Height Range (mm)</Label>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <Label htmlFor="min_height_mm" className="text-xs">Minimum</Label>
-                              <Input
-                                id="min_height_mm"
-                                type="number"
-                                step="50"
-                                value={cabinetType.min_height_mm || 200}
-                                onChange={(e) => handleInputChange('min_height_mm', parseInt(e.target.value))}
-                                placeholder="200"
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="max_height_mm" className="text-xs">Maximum</Label>
-                              <Input
-                                id="max_height_mm"
-                                type="number"
-                                step="50"
-                                value={cabinetType.max_height_mm || 1000}
-                                onChange={(e) => handleInputChange('max_height_mm', parseInt(e.target.value))}
-                                placeholder="1000"
-                              />
-                            </div>
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Available heights: {cabinetType.min_height_mm || 200}mm to {cabinetType.max_height_mm || 1000}mm in 50mm steps
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          <Label className="text-sm font-medium">Depth Range (mm)</Label>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <Label htmlFor="min_depth_mm" className="text-xs">Minimum</Label>
-                              <Input
-                                id="min_depth_mm"
-                                type="number"
-                                step="50"
-                                value={cabinetType.min_depth_mm || 200}
-                                onChange={(e) => handleInputChange('min_depth_mm', parseInt(e.target.value))}
-                                placeholder="200"
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="max_depth_mm" className="text-xs">Maximum</Label>
-                              <Input
-                                id="max_depth_mm"
-                                type="number"
-                                step="50"
-                                value={cabinetType.max_depth_mm || 800}
-                                onChange={(e) => handleInputChange('max_depth_mm', parseInt(e.target.value))}
-                                placeholder="800"
-                              />
-                            </div>
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Available depths: {cabinetType.min_depth_mm || 200}mm to {cabinetType.max_depth_mm || 800}mm in 50mm steps
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                     ) : (
+                       <div className="space-y-4">
+                         <div className="flex items-center justify-between">
+                           <Label className="text-sm font-medium">Width Range (mm)</Label>
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             onClick={() => {
+                               const minWidth = cabinetType.min_width_mm || 100;
+                               const maxWidth = cabinetType.max_width_mm || 1200;
+                               const generated = [];
+                               for (let width = minWidth; width <= maxWidth; width += 50) {
+                                 generated.push(width);
+                               }
+                               toast.success(`Generated ${generated.length} width options: ${generated.join(', ')}mm`);
+                             }}
+                             className="gap-2"
+                           >
+                             <Sparkles className="h-4 w-4" />
+                             Generate Sizes
+                           </Button>
+                         </div>
+                         <div className="grid grid-cols-2 gap-2">
+                           <div>
+                             <Label htmlFor="min_width_mm" className="text-xs">Minimum</Label>
+                             <Input
+                               id="min_width_mm"
+                               type="number"
+                               step="50"
+                               value={cabinetType.min_width_mm || 100}
+                               onChange={(e) => handleInputChange('min_width_mm', parseInt(e.target.value))}
+                               placeholder="100"
+                             />
+                           </div>
+                           <div>
+                             <Label htmlFor="max_width_mm" className="text-xs">Maximum</Label>
+                             <Input
+                               id="max_width_mm"
+                               type="number"
+                               step="50"
+                               value={cabinetType.max_width_mm || 1200}
+                               onChange={(e) => handleInputChange('max_width_mm', parseInt(e.target.value))}
+                               placeholder="1200"
+                             />
+                           </div>
+                         </div>
+                         <div className="text-xs text-muted-foreground">
+                           Available widths: {cabinetType.min_width_mm || 100}mm to {cabinetType.max_width_mm || 1200}mm in 50mm steps
+                         </div>
+                       </div>
+                     )}
                   </div>
                 </CardContent>
               </Card>
