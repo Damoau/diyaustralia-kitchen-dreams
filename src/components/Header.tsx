@@ -87,14 +87,6 @@ const Header = () => {
                 Kitchen Styles
               </Link>
               <Link 
-                to="/get-quote"
-                className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
-                  location.pathname === '/get-quote' ? 'text-foreground' : 'text-foreground/60'
-                }`}
-              >
-                Get Quote
-              </Link>
-              <Link 
                 to="/manufacturing"
                 className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
                   location.pathname === '/manufacturing' ? 'text-foreground' : 'text-foreground/60'
@@ -127,6 +119,14 @@ const Header = () => {
                 {totalItems}
               </span>
             )}
+          </Button>
+          
+          <Button 
+            size="sm" 
+            className="hidden sm:flex bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={() => navigate('/get-quote')}
+          >
+            Get Quote
           </Button>
           
           {isAuthenticated ? (
@@ -232,12 +232,6 @@ const Header = () => {
                         className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
                       >
                         Kitchen Styles
-                      </Link>
-                      <Link
-                        to="/get-quote"
-                        className="flex items-center py-2 px-3 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
-                      >
-                        Get Quote
                       </Link>
                        <Link
                          to="/manufacturing"
