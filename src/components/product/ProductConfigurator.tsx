@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import PricingCalculator from '@/lib/pricingCalculator';
 import { StyleColorFinishSelector } from './StyleColorFinishSelector';
+import { Ruler, Palette, Settings, FileText, ShoppingCart } from 'lucide-react';
 
 interface CabinetType {
   id: string;
@@ -403,7 +404,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         <div className="relative">
           {/* Mobile Sticky Price Bar - Top */}
           {selectedCabinetType && (
-            <div className="lg:hidden sticky top-0 bg-primary text-primary-foreground px-4 py-3 z-50 flex items-center justify-between">
+            <div className="lg:hidden sticky top-0 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground px-4 py-3 z-50 flex items-center justify-between shadow-lg">
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-base truncate">
                   {selectedCabinetType.name}
@@ -413,7 +414,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                 <div className="text-lg font-bold">
                   ${calculateTotalPrice().toFixed(2)}
                 </div>
-                <Badge variant="secondary" className="text-xs px-2 py-1">
+                <Badge variant="secondary" className="text-xs px-2 py-1 bg-white/20 text-white">
                   {quantity} item{quantity !== 1 ? 's' : ''}
                 </Badge>
               </div>
@@ -422,14 +423,14 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
           {/* Desktop Floating Price Box - Top Right */}
           {selectedCabinetType && (
-            <div className="hidden lg:block absolute top-4 right-4 z-10">
-              <Card className="shadow-xl border-2 bg-primary text-primary-foreground">
-                <CardContent className="p-3 text-center min-w-[180px]">
-                  <div className="text-xl font-bold mb-1">
+            <div className="hidden lg:block absolute top-6 right-6 z-10">
+              <Card className="shadow-2xl border-0 bg-gradient-to-br from-primary to-primary/90 text-primary-foreground">
+                <CardContent className="p-4 text-center min-w-[200px]">
+                  <div className="text-2xl font-bold mb-1">
                     ${calculateTotalPrice().toFixed(2)}
                   </div>
-                  <div className="text-xs opacity-90 mb-2">Total Price</div>
-                  <Badge variant="secondary" className="text-xs px-2 py-1">
+                  <div className="text-xs opacity-90 mb-3">Total Price</div>
+                  <Badge variant="secondary" className="text-xs px-3 py-1 bg-white/20 text-white">
                     {quantity} item{quantity !== 1 ? 's' : ''}
                   </Badge>
                 </CardContent>
@@ -438,12 +439,12 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           )}
 
           {/* Header */}
-          <div className="px-4 py-3 border-b">
+          <div className="px-6 py-4 border-b bg-gradient-to-r from-background to-secondary/5">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-lg">
+              <DialogTitle className="flex items-center gap-3 text-xl">
                 {selectedCabinetType?.name || 'Configure Product'}
                 {selectedCabinetType && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs font-medium">
                     {selectedCabinetType.category}
                   </Badge>
                 )}
@@ -452,13 +453,13 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           </div>
 
           {/* Main Content */}
-          <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-4">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
               {/* Left Column - Image */}
               <div className="lg:col-span-2">
                 {selectedCabinetType && (
-                  <div className="lg:sticky lg:top-4">
-                    <Card className="overflow-hidden">
+                  <div className="lg:sticky lg:top-6">
+                    <Card className="overflow-hidden shadow-lg border-0 bg-gradient-to-br from-background to-secondary/5">
                       <CardContent className="p-0">
                         <div className="aspect-[4/3] relative">
                           {selectedCabinetType.product_image_url ? (
@@ -470,27 +471,27 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                           ) : (
                             <div className="w-full h-full bg-gradient-to-br from-secondary/30 to-secondary/10 flex items-center justify-center">
                               <div className="text-center">
-                                <div className="w-12 h-12 mx-auto mb-2 bg-secondary/30 rounded-full flex items-center justify-center">
-                                  <span className="text-xl">📐</span>
+                                <div className="w-16 h-16 mx-auto mb-3 bg-primary/10 rounded-2xl flex items-center justify-center">
+                                  <Settings className="w-8 h-8 text-primary" />
                                 </div>
-                                <span className="text-muted-foreground text-sm">Product Preview</span>
+                                <span className="text-muted-foreground font-medium">Product Preview</span>
                               </div>
                             </div>
                           )}
                           
-                          {/* Compact overlay */}
-                          <div className="absolute bottom-0 left-0 right-0 bg-black/80 text-white p-2">
-                            <div className="text-xs">
+                          {/* Enhanced overlay */}
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent text-white p-4">
+                            <div className="text-sm font-medium">
                               {dimensions.width} × {dimensions.height} × {dimensions.depth}mm
                               {selectedDoorStyle && colors.find(c => c.id === selectedColor) && (
-                                <div className="flex items-center gap-1 mt-1">
+                                <div className="flex items-center gap-2 mt-2">
                                   {colors.find(c => c.id === selectedColor)?.hex_code && (
                                     <div 
-                                      className="w-2 h-2 rounded-full border border-white/50"
+                                      className="w-3 h-3 rounded-full border-2 border-white/80 shadow-sm"
                                       style={{ backgroundColor: colors.find(c => c.id === selectedColor)?.hex_code }}
                                     />
                                   )}
-                                  <span className="truncate">{doorStyles.find(s => s.id === selectedDoorStyle)?.name}</span>
+                                  <span className="truncate text-sm">{doorStyles.find(s => s.id === selectedDoorStyle)?.name}</span>
                                 </div>
                               )}
                             </div>
@@ -503,57 +504,58 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
               </div>
 
               {/* Right Column - Configuration */}
-              <div className="lg:col-span-3 space-y-3">
+              <div className="lg:col-span-3 space-y-4">
                 {selectedCabinetType && (
                   <>
                     {/* Dimensions */}
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base flex items-center gap-1">
-                          📏 Dimensions (mm)
+                    <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2 font-semibold">
+                          <Ruler className="w-5 h-5 text-primary" />
+                          Dimensions (mm)
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="pt-0">
-                        <div className="grid grid-cols-3 gap-3">
-                          <div className="space-y-1">
-                            <Label htmlFor="width" className="text-xs">Width</Label>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="width" className="text-sm font-medium">Width</Label>
                             <Input
                               id="width"
                               type="number"
                               value={dimensions.width}
                               onChange={(e) => handleDimensionChange('width', parseInt(e.target.value) || 0)}
                               onBlur={() => handleDimensionBlur('width')}
-                              className="text-center font-mono h-8 text-sm"
+                              className="text-center font-mono h-10 text-base font-semibold border-2 focus:border-primary/50"
                             />
-                            <div className="text-xs text-muted-foreground text-center">
+                            <div className="text-xs text-muted-foreground text-center font-medium">
                               {selectedCabinetType.min_width_mm}-{selectedCabinetType.max_width_mm}
                             </div>
                           </div>
-                          <div className="space-y-1">
-                            <Label htmlFor="height" className="text-xs">Height</Label>
+                          <div className="space-y-2">
+                            <Label htmlFor="height" className="text-sm font-medium">Height</Label>
                             <Input
                               id="height"
                               type="number"
                               value={dimensions.height}
                               onChange={(e) => handleDimensionChange('height', parseInt(e.target.value) || 0)}
                               onBlur={() => handleDimensionBlur('height')}
-                              className="text-center font-mono h-8 text-sm"
+                              className="text-center font-mono h-10 text-base font-semibold border-2 focus:border-primary/50"
                             />
-                            <div className="text-xs text-muted-foreground text-center">
+                            <div className="text-xs text-muted-foreground text-center font-medium">
                               {selectedCabinetType.min_height_mm}-{selectedCabinetType.max_height_mm}
                             </div>
                           </div>
-                          <div className="space-y-1">
-                            <Label htmlFor="depth" className="text-xs">Depth</Label>
+                          <div className="space-y-2">
+                            <Label htmlFor="depth" className="text-sm font-medium">Depth</Label>
                             <Input
                               id="depth"
                               type="number"
                               value={dimensions.depth}
                               onChange={(e) => handleDimensionChange('depth', parseInt(e.target.value) || 0)}
                               onBlur={() => handleDimensionBlur('depth')}
-                              className="text-center font-mono h-8 text-sm"
+                              className="text-center font-mono h-10 text-base font-semibold border-2 focus:border-primary/50"
                             />
-                            <div className="text-xs text-muted-foreground text-center">
+                            <div className="text-xs text-muted-foreground text-center font-medium">
                               {selectedCabinetType.min_depth_mm}-{selectedCabinetType.max_depth_mm}
                             </div>
                           </div>
@@ -562,23 +564,24 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                     </Card>
 
                     {/* Door Style, Color & Finish Selector */}
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base flex items-center gap-1">
-                          🎨 Door Style, Colour & Finish
+                    <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2 font-semibold">
+                          <Palette className="w-5 h-5 text-primary" />
+                          Door Style, Colour & Finish
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="pt-0">
                         <div 
                           onClick={() => setStyleColorFinishSelectorOpen(true)}
-                          className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all min-h-[120px] flex items-center justify-center"
+                          className="border-2 border-dashed border-muted-foreground/30 rounded-xl p-6 cursor-pointer hover:border-primary/60 hover:bg-primary/5 transition-all duration-200 min-h-[140px] flex items-center justify-center group"
                         >
                           {selectedDoorStyle && selectedColor && selectedFinish ? (
                             <div className="w-full">
-                              <div className="flex items-center gap-4 mb-3">
+                              <div className="flex items-center gap-6 mb-4">
                                 {/* Door Style Image Box */}
                                 <div className="flex-1">
-                                  <div className="aspect-square rounded-lg overflow-hidden border bg-muted">
+                                  <div className="aspect-square rounded-xl overflow-hidden border-2 bg-muted shadow-sm">
                                     {getSelectedDoorStyle()?.image_url ? (
                                       <img 
                                         src={getSelectedDoorStyle()?.image_url} 
@@ -586,8 +589,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                                         className="w-full h-full object-cover"
                                       />
                                     ) : (
-                                      <div className="w-full h-full flex items-center justify-center">
-                                        <span className="text-2xl">🚪</span>
+                                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary/20 to-secondary/5">
+                                        <Settings className="w-8 h-8 text-muted-foreground" />
                                       </div>
                                     )}
                                   </div>
@@ -596,7 +599,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                                 {/* Color Square Box */}
                                 <div className="flex-1">
                                   <div 
-                                    className="aspect-square rounded-lg border-2 border-border shadow-sm"
+                                    className="aspect-square rounded-xl border-2 border-border shadow-lg"
                                     style={{ backgroundColor: getSelectedColor()?.hex_code || '#f3f4f6' }}
                                   />
                                 </div>
@@ -604,20 +607,20 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                               
                               {/* Single line with all selections */}
                               <div className="text-center">
-                                <p className="text-sm font-medium leading-tight">
+                                <p className="text-base font-semibold leading-tight mb-1">
                                   {getSelectedDoorStyle()?.name} | {getSelectedColor()?.name} | {getSelectedFinish()?.name}
                                 </p>
-                                <p className="text-xs text-muted-foreground mt-1">
+                                <p className="text-sm text-muted-foreground">
                                   Click to change selection
                                 </p>
                               </div>
                             </div>
                           ) : (
                             <div className="text-center">
-                              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
-                                <span className="text-2xl">🎨</span>
+                              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-primary/20 transition-colors">
+                                <Palette className="w-8 h-8 text-primary" />
                               </div>
-                              <p className="font-medium mb-1">Select Door Style, Colour & Finish</p>
+                              <p className="font-semibold text-lg mb-2">Select Door Style, Colour & Finish</p>
                               <p className="text-sm text-muted-foreground">Click to customize your cabinet</p>
                             </div>
                           )}
@@ -626,17 +629,18 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                     </Card>
 
                     {/* Hardware & Quantity */}
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base flex items-center gap-1">
-                          🔧 Options
+                    <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2 font-semibold">
+                          <Settings className="w-5 h-5 text-primary" />
+                          Options
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="pt-0 space-y-3">
+                      <CardContent className="pt-0 space-y-4">
                         <div>
-                          <Label className="text-xs">Hardware Brand</Label>
+                          <Label className="text-sm font-medium mb-2 block">Hardware Brand</Label>
                           <Select>
-                            <SelectTrigger className="h-8">
+                            <SelectTrigger className="h-10 border-2 focus:border-primary/50">
                               <SelectValue placeholder="Select brand" />
                             </SelectTrigger>
                             <SelectContent>
@@ -647,51 +651,55 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                           </Select>
                         </div>
                         <div>
-                          <Label className="text-xs">Quantity</Label>
+                          <Label className="text-sm font-medium mb-2 block">Quantity</Label>
                           <Input
                             type="number"
                             value={quantity}
                             onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                             min={1}
-                            className="text-center font-mono h-8"
+                            className="text-center font-mono h-10 text-base font-semibold border-2 focus:border-primary/50"
                           />
                         </div>
                       </CardContent>
                     </Card>
 
                     {/* Notes - Compact */}
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base flex items-center gap-1">
-                          📝 Notes
+                    <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2 font-semibold">
+                          <FileText className="w-5 h-5 text-primary" />
+                          Notes
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="pt-0">
                         <Textarea
                           placeholder="Special requirements or notes..."
-                          className="min-h-[60px] resize-none text-sm"
+                          className="min-h-[80px] resize-none text-sm border-2 focus:border-primary/50"
                         />
                       </CardContent>
                     </Card>
 
-                    {/* Add to Cart - Compact */}
+                    {/* Add to Cart - Enhanced */}
                     <Button 
                       onClick={handleAddToCart} 
                       disabled={loading || !selectedDoorStyle || !selectedColor || !selectedFinish}
-                      className="w-full h-10 font-semibold"
+                      className="w-full h-12 font-semibold text-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-200"
                       size="default"
                     >
                       {loading ? (
                         <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                          Adding...
+                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          Adding to Cart...
                         </div>
                       ) : (
-                        `Add to Cart - $${calculateTotalPrice().toFixed(2)}`
+                        <div className="flex items-center gap-2">
+                          <ShoppingCart className="w-5 h-5" />
+                          Add to Cart - ${calculateTotalPrice().toFixed(2)}
+                        </div>
                       )}
                     </Button>
                     {(!selectedDoorStyle || !selectedColor || !selectedFinish) && (
-                      <div className="text-xs text-muted-foreground text-center -mt-2">
+                      <div className="text-sm text-muted-foreground text-center -mt-2 font-medium">
                         Complete all selections to continue
                       </div>
                     )}
