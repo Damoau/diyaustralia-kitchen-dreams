@@ -604,7 +604,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                               
                               {/* Single line with all selections */}
                               <div className="text-center">
-                                <p className="text-sm font-medium truncate">
+                                <p className="text-sm font-medium leading-tight">
                                   {getSelectedDoorStyle()?.name} | {getSelectedColor()?.name} | {getSelectedFinish()?.name}
                                 </p>
                                 <p className="text-xs text-muted-foreground mt-1">
