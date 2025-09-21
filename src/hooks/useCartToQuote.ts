@@ -15,6 +15,8 @@ export const useCartToQuote = () => {
   ) => {
     setIsLoading(true);
     try {
+      console.log('Converting cart to quote:', { cartId, customerEmail, notes });
+
       const { data, error } = await supabase.functions.invoke('portal-cart-to-quote', {
         body: {
           cart_id: cartId,
@@ -22,6 +24,8 @@ export const useCartToQuote = () => {
           notes: notes
         }
       });
+
+      console.log('Cart to quote response:', { data, error });
 
       if (error) {
         throw error;
