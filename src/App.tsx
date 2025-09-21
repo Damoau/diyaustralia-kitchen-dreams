@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ErrorBoundary } from "@/lib/errorBoundary";
 import { Suspense, lazy } from "react";
 import { PageLoader } from "@/components/ui/page-loader";
@@ -66,6 +66,8 @@ const App = () => (
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  {/* Redirect old dashboard route to admin */}
+                  <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
             <Route path="/shop-legacy" element={<Shop />} />
             <Route path="/shop" element={<RoomCategories />} />
             <Route path="/shop/:room" element={<RoomCategory />} />
