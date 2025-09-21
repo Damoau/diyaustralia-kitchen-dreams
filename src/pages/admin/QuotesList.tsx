@@ -33,6 +33,28 @@ const QuotesList = () => {
     loadData();
   }, [statusFilter, searchTerm]);
 
+  // Listen for quote creation events and refresh data
+  useEffect(() => {
+    const handleQuoteCreated = () => {
+      console.log('Quote created event received, refreshing data');
+      loadData();
+    };
+
+    window.addEventListener('quoteCreated', handleQuoteCreated);
+    
+    return () => {
+      window.removeEventListener('quoteCreated', handleQuoteCreated);
+    };
+  }, []);
+
+  // Also check for navigation state refresh trigger
+  useEffect(() => {
+    if (location.state?.refresh) {
+      console.log('Navigation state refresh detected');
+      loadData();
+    }
+  }, [location.state]);
+
   // Refresh data when navigating from cart creation
   useEffect(() => {
     if (location.state?.refresh) {

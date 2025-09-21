@@ -92,9 +92,18 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
       
       if (result.success) {
         setIsOpen(false);
+        
+        // Dispatch custom event to notify quotes page to refresh
+        window.dispatchEvent(new CustomEvent('quoteCreated', {
+          detail: { quoteId: result.quoteId, quoteNumber: result.quoteNumber }
+        }));
+        
         toast.success(`Quote ${result.quoteNumber} created for customer`);
-        // Navigate to admin quotes list and trigger refresh
-        navigate('/admin/quotes', { state: { refresh: true } });
+        
+        // Small delay to ensure quote is fully created before navigation
+        setTimeout(() => {
+          navigate('/admin/quotes');
+        }, 500);
       }
       return;
     }
