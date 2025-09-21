@@ -31,6 +31,12 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
   const { convertCartToQuote, isLoading: isConverting } = useCartToQuote();
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
 
+  const handleNavigateToProduct = (item: any) => {
+    const category = item.cabinet_type?.category || 'base';
+    setIsOpen(false); // Close the cart drawer
+    navigate(`/shop/kitchen/${category}?cabinet=${item.cabinet_type_id}`);
+  };
+
   // Debug logging
   console.log('CartDrawer render:', {
     cart: cart,
@@ -159,7 +165,12 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                     )}
                     
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium truncate">{item.cabinet_type?.name || 'Cabinet'}</h4>
+                      <button 
+                        onClick={() => handleNavigateToProduct(item)}
+                        className="font-medium truncate hover:text-primary cursor-pointer text-left"
+                      >
+                        {item.cabinet_type?.name || 'Cabinet'}
+                      </button>
                       <p className="text-sm text-muted-foreground">{item.cabinet_type?.category}</p>
                       <p className="text-xs text-muted-foreground">
                         {item.width_mm} × {item.height_mm} × {item.depth_mm}mm

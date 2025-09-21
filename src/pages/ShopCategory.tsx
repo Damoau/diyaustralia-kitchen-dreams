@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import DynamicHeader from "@/components/DynamicHeader";
 import Footer from "@/components/Footer";
@@ -48,6 +48,7 @@ interface CabinetType {
 
 const CategoryPage = () => {
   const { room, category } = useParams<{ room: string; category: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [cabinetTypes, setCabinetTypes] = useState<CabinetType[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
@@ -136,6 +137,25 @@ const CategoryPage = () => {
 
     loadData();
   }, [room, category, navigate]);
+
+  // Handle auto-opening configurator from URL parameter
+  useEffect(() => {
+    const cabinetId = searchParams.get('cabinet');
+    if (cabinetId && cabinetTypes.length > 0) {
+      const cabinet = cabinetTypes.find(c => c.id === cabinetId);
+      if (cabinet) {
+        setSelectedCabinet(cabinet);
+        setConfiguratorOpen(true);
+        // Remove the parameter from URL without affecting browser history
+        const newSearchParams = new URLSearchParams(searchParams);
+        newSearchParams.delete('cabinet');
+        const newURL = newSearchParams.toString() 
+          ? `/shop/${room}/${category}?${newSearchParams.toString()}` 
+          : `/shop/${room}/${category}`;
+        navigate(newURL, { replace: true });
+      }
+    }
+  }, [searchParams, cabinetTypes, room, category, navigate]);
 
   // Filter cabinet types by active subcategory
   const filteredCabinetTypes = activeSubcategory === "all" 
