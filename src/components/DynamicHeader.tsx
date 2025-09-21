@@ -25,6 +25,7 @@ const DynamicHeader = () => {
   // Load active room categories
   useEffect(() => {
     loadActiveRooms();
+    console.log('DynamicHeader: Loading active rooms...');
     
     // Set up real-time subscription to refresh when categories are updated
     const channel = supabase
@@ -37,6 +38,7 @@ const DynamicHeader = () => {
           table: 'unified_categories'
         },
         () => {
+          console.log('DynamicHeader: Category changed, reloading...');
           loadActiveRooms(); // Refresh when any category changes
         }
       )
@@ -134,7 +136,7 @@ const DynamicHeader = () => {
                     Shop <ChevronDown className="ml-1 h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuContent align="start" className="w-48 bg-background border shadow-md z-50">
                   <DropdownMenuItem asChild>
                     <Link to="/shop" className="w-full">
                       All Categories
