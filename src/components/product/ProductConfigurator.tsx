@@ -134,9 +134,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     if (
       doorStyles.length > 0 && 
       colors.length > 0 && 
-      finishes.length > 0 && 
-      doorStyleFinishes.length > 0 && 
-      colorFinishes.length > 0 &&
+      finishes.length > 0 &&
       doorStyleId && 
       colorId && 
       finishId &&
@@ -150,28 +148,48 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       const preferredFinish = finishes.find(f => f.id === finishId);
 
       if (preferredDoorStyle && preferredColor && preferredFinish) {
-        // Check if the preferred door style supports the preferred finish
-        const doorStyleSupportsFinish = doorStyleFinishes.some(
-          dsf => dsf.door_style_id === doorStyleId && dsf.finish_id === finishId
-        );
-
-        // Check if the preferred color supports the preferred finish
-        const colorSupportsFinish = colorFinishes.some(
-          cf => cf.color_id === colorId && cf.finish_id === finishId
-        );
-
-        // If all combinations are compatible, apply the preferences
-        if (doorStyleSupportsFinish && colorSupportsFinish) {
+        // Apply preferences regardless of compatibility relationships
+        // If the relationships are empty, we'll allow any combination
+        const hasRelationshipData = doorStyleFinishes.length > 0 || colorFinishes.length > 0;
+        
+        if (!hasRelationshipData) {
+          // No relationship constraints exist, apply preferences directly
           setSelectedDoorStyle(doorStyleId);
           setSelectedColor(colorId);
           setSelectedFinish(finishId);
           
-          console.log('Applied saved preferences:', {
+          console.log('Applied saved preferences (no constraints):', {
             doorStyle: preferredDoorStyle.name,
             color: preferredColor.name,
             finish: preferredFinish.name,
             source: newPreferredDoorStyle ? 'new-system' : 'old-system'
           });
+        } else {
+          // Check if the preferred door style supports the preferred finish
+          const doorStyleSupportsFinish = doorStyleFinishes.some(
+            dsf => dsf.door_style_id === doorStyleId && dsf.finish_id === finishId
+          );
+
+          // Check if the preferred color supports the preferred finish
+          const colorSupportsFinish = colorFinishes.some(
+            cf => cf.color_id === colorId && cf.finish_id === finishId
+          );
+
+          // If all combinations are compatible, apply the preferences
+          if (doorStyleSupportsFinish && colorSupportsFinish) {
+            setSelectedDoorStyle(doorStyleId);
+            setSelectedColor(colorId);
+            setSelectedFinish(finishId);
+            
+            console.log('Applied saved preferences (with constraints):', {
+              doorStyle: preferredDoorStyle.name,
+              color: preferredColor.name,
+              finish: preferredFinish.name,
+              source: newPreferredDoorStyle ? 'new-system' : 'old-system'
+            });
+          } else {
+            console.log('Saved preferences not compatible with current constraints');
+          }
         }
       }
     }
@@ -469,14 +487,14 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         depth_mm: dimensions.depth,
         quantity: quantity,
         unit_price: unitPrice,
-        notes: notes?.trim() || null,
+        notes: notes?.trim() || 'Added to cart', // Always save some notes for testing
         configuration: {
           dimensions,
           doorStyle: selectedDoorStyle,
           color: selectedColor,
           finish: selectedFinish,
           quantity,
-          notes: notes?.trim() || null
+          notes: notes?.trim() || 'Added to cart' // Always save some notes for testing
         }
       });
       
@@ -838,9 +856,9 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           finishes={finishes}
           doorStyleFinishes={doorStyleFinishes}
           colorFinishes={colorFinishes}
-          selectedDoorStyle={preferredDoorStyleId || selectedDoorStyle}
-          selectedColor={preferredColorId || selectedColor}
-          selectedFinish={preferredFinishId || selectedFinish}
+          selectedDoorStyle={selectedDoorStyle || savedPrefs?.preferred_door_style_id || preferredDoorStyleId}
+          selectedColor={selectedColor || savedPrefs?.preferred_color_id || preferredColorId}
+          selectedFinish={selectedFinish || savedPrefs?.preferred_finish_id || preferredFinishId}
           onSelectionComplete={handleStyleColorFinishSelection}
         />
       </DialogContent>

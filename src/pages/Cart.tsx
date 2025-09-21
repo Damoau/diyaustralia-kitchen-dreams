@@ -153,7 +153,8 @@ const Cart = () => {
                               )}
                             </div>
                             
-                            {item.notes && (
+                            {/* Check for notes in multiple places */}
+                            {(item.notes || item.configuration?.notes) && (
                               <div className="mt-2">
                                 <Button
                                   variant="ghost"
@@ -170,7 +171,7 @@ const Cart = () => {
                                 </Button>
                                 {expandedNotes.has(item.id) && (
                                   <p className="text-xs text-muted-foreground mt-1 p-2 bg-muted/50 rounded">
-                                    {item.notes}
+                                    {item.notes || item.configuration?.notes}
                                   </p>
                                 )}
                               </div>

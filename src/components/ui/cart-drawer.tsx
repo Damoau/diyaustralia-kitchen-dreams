@@ -178,7 +178,8 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                         )}
                       </div>
                       
-                      {item.notes && (
+                      {/* Check for notes in multiple places */}
+                      {(item.notes || item.configuration?.notes) && (
                         <div className="mt-2">
                           <Button
                             variant="ghost"
@@ -195,7 +196,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                           </Button>
                           {expandedNotes.has(item.id) && (
                             <p className="text-xs text-muted-foreground mt-1 p-2 bg-muted/50 rounded text-wrap break-words">
-                              {item.notes}
+                              {item.notes || item.configuration?.notes}
                             </p>
                           )}
                         </div>
