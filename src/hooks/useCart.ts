@@ -237,6 +237,9 @@ export const useCart = () => {
         .update({ total_amount: updatedCart.total_amount })
         .eq('id', cart.id);
 
+      // Re-fetch cart to ensure data consistency
+      await initializeCart();
+
       toast.success('Added to cart');
     } catch (err: any) {
       console.error('Error adding to cart:', err);
