@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useCartSaveTracking } from "@/hooks/useCartSaveTracking";
 import { ShoppingCart, Package, DollarSign } from "lucide-react";
 
 interface QuoteItem {
@@ -46,6 +47,7 @@ export const QuoteToCartConverter = ({
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isConverting, setIsConverting] = useState(false);
   const { toast } = useToast();
+  const { markAsUnsaved, markAsSaving, markAsSaved, markAsError } = useCartSaveTracking();
 
   // Select all items by default
   useState(() => {
@@ -85,12 +87,16 @@ export const QuoteToCartConverter = ({
     }
 
     setIsConverting(true);
+    markAsSaving(); // Track save status
 
     try {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) {
         throw new Error("User not authenticated");
       }
+
+      // Mark as unsaved when we start modifying the cart
+      markAsUnsaved();
 
       // Get or create user's cart
       let { data: cart, error: cartError } = await supabase
@@ -155,6 +161,9 @@ export const QuoteToCartConverter = ({
 
       if (updateError) throw updateError;
 
+      // Mark as successfully saved
+      markAsSaved();
+
       toast({
         title: "Items Added to Cart",
         description: `${selectedItems.length} items from Quote ${quoteNumber} have been added to your cart.`
@@ -168,6 +177,7 @@ export const QuoteToCartConverter = ({
 
     } catch (error) {
       console.error('Error adding to cart:', error);
+      markAsError(); // Mark save as failed
       toast({
         title: "Error",
         description: "Failed to add items to cart. Please try again.",

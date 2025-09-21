@@ -7,9 +7,13 @@ interface AdminImpersonationContextType {
   impersonatedCustomerEmail: string | null;
   currentQuoteId: string | null;
   sessionToken: string | null;
+  cartHasUnsavedChanges: boolean;
+  saveStatus: 'idle' | 'saving' | 'saved' | 'error';
   startImpersonation: (customerEmail: string, quoteId: string) => Promise<boolean>;
-  endImpersonation: () => Promise<void>;
+  endImpersonation: (force?: boolean) => Promise<boolean>;
   redirectToFrontend: () => void;
+  setSaveStatus: (status: 'idle' | 'saving' | 'saved' | 'error') => void;
+  setCartHasUnsavedChanges: (hasChanges: boolean) => void;
 }
 
 const AdminImpersonationContext = createContext<AdminImpersonationContextType | undefined>(undefined);
@@ -19,6 +23,8 @@ export function AdminImpersonationProvider({ children }: { children: React.React
   const [impersonatedCustomerEmail, setImpersonatedCustomerEmail] = useState<string | null>(null);
   const [currentQuoteId, setCurrentQuoteId] = useState<string | null>(null);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const [cartHasUnsavedChanges, setCartHasUnsavedChanges] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const { toast } = useToast();
 
   // Check for existing impersonation session on mount
@@ -41,6 +47,25 @@ export function AdminImpersonationProvider({ children }: { children: React.React
       }
     }
   }, []);
+
+  // Add beforeunload protection for unsaved changes
+  useEffect(() => {
+    if (!isImpersonating) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (cartHasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes in the customer cart. Are you sure you want to leave?';
+        return 'You have unsaved changes in the customer cart. Are you sure you want to leave?';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isImpersonating, cartHasUnsavedChanges]);
 
   const startImpersonation = async (customerEmail: string, quoteId: string): Promise<boolean> => {
     try {
@@ -96,7 +121,12 @@ export function AdminImpersonationProvider({ children }: { children: React.React
     }
   };
 
-  const endImpersonation = async () => {
+  const endImpersonation = async (force: boolean = false): Promise<boolean> => {
+    // Check for unsaved changes unless force is true
+    if (!force && cartHasUnsavedChanges) {
+      return false; // Let the UI handle the confirmation dialog
+    }
+
     try {
       if (sessionToken) {
         // Mark session as ended
@@ -112,13 +142,18 @@ export function AdminImpersonationProvider({ children }: { children: React.React
       setImpersonatedCustomerEmail(null);
       setCurrentQuoteId(null);
       setSessionToken(null);
+      setCartHasUnsavedChanges(false);
+      setSaveStatus('idle');
 
       toast({
         title: "Impersonation Ended",
         description: "Returned to admin mode",
       });
+
+      return true;
     } catch (error) {
       console.error('Error ending impersonation:', error);
+      return false;
     }
   };
 
@@ -132,9 +167,13 @@ export function AdminImpersonationProvider({ children }: { children: React.React
     impersonatedCustomerEmail,
     currentQuoteId,
     sessionToken,
+    cartHasUnsavedChanges,
+    saveStatus,
     startImpersonation,
     endImpersonation,
     redirectToFrontend,
+    setSaveStatus,
+    setCartHasUnsavedChanges,
   };
 
   return (

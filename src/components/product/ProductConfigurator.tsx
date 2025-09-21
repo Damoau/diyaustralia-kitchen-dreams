@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import PricingCalculator from '@/lib/pricingCalculator';
 import { StyleColorFinishSelector } from './StyleColorFinishSelector';
+import { useCartSaveTracking } from '@/hooks/useCartSaveTracking';
 import { Ruler, Palette, Settings, FileText, ShoppingCart } from 'lucide-react';
 import { CabinetType, CabinetPart, DoorStyle, Color, Finish, DoorStyleFinish, ColorFinish } from '@/types/cabinet';
 
@@ -59,6 +60,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   const [styleColorFinishSelectorOpen, setStyleColorFinishSelectorOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
+  const { markAsUnsaved, markAsSaving, markAsSaved, markAsError } = useCartSaveTracking();
 
   useEffect(() => {
     if (open) {
@@ -356,13 +358,20 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     }
 
     setLoading(true);
+    markAsSaving(); // Track save status
+    
     try {
+      // Mark as unsaved when we start the operation
+      markAsUnsaved();
+      
       // Here you would typically add to cart
       // For now, just show success message
+      markAsSaved(); // Mark as successfully saved
       toast.success('Product configured successfully!');
       onOpenChange(false);
     } catch (error) {
       console.error('Error adding to cart:', error);
+      markAsError(); // Mark save as failed
       toast.error('Failed to add to cart');
     } finally {
       setLoading(false);
