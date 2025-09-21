@@ -13,8 +13,7 @@ const SecurityDashboard = lazy(() => import('@/components/admin/SecurityDashboar
 const RoleManagement = lazy(() => import('@/components/admin/RoleManagement'));
 
 // Create placeholder components for missing pages
-const QuotesList = lazy(() => import('@/pages/admin/QuotesListTest'));
-// const QuotesList = lazy(() => import('@/pages/admin/QuotesList'));
+const QuotesList = lazy(() => import('@/pages/admin/QuotesList'));
 const Assembly = lazy(() => import('@/pages/admin/Assembly'));
 const UnifiedCategoriesManager = lazy(() => import('@/components/admin/UnifiedCategoriesManager'));
 const RoomCategoriesManager = lazy(() => import('@/components/admin/RoomCategoriesManager'));
