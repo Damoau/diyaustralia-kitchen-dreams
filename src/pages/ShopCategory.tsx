@@ -73,11 +73,12 @@ const CategoryPage = () => {
       }
 
       try {
-        // Load room category
+        // Load room category from unified_categories (Level 1)
         const { data: roomData, error: roomError } = await supabase
-          .from('room_categories')
+          .from('unified_categories')
           .select('*')
           .eq('name', room)
+          .eq('level', 1)
           .eq('active', true)
           .single();
 
