@@ -1,11 +1,3 @@
-export interface Brand {
-  id: string;
-  name: string;
-  description?: string;
-  active: boolean;
-  created_at: string;
-}
-
 export interface DoorStyle {
   id: string;
   name: string;
@@ -14,19 +6,17 @@ export interface DoorStyle {
   active: boolean;
   created_at: string;
   image_url?: string;
-  brand_id?: string;
-  brand?: Brand;
 }
 
 export interface Finish {
   id: string;
-  brand_id: string;
+  door_style_id: string;
   name: string;
   finish_type: string;
   rate_per_sqm: number;
   active: boolean;
   created_at: string;
-  brand?: Brand;
+  door_style?: DoorStyle;
 }
 
 export interface Color {

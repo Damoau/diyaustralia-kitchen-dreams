@@ -34,7 +34,7 @@ interface Finish {
   name: string;
   finish_type: string;
   rate_per_sqm: number;
-  brand_id: string;
+  door_style_id: string;
   active: boolean;
 }
 
@@ -87,7 +87,7 @@ const DoorStyles = () => {
     },
   });
 
-  // Fetch finishes with brands
+  // Fetch finishes with door styles
   const { data: finishes, isLoading: loadingFinishes } = useQuery({
     queryKey: ['finishes'],
     queryFn: async () => {
@@ -95,7 +95,7 @@ const DoorStyles = () => {
         .from('finishes')
         .select(`
           *,
-          brands!inner(name)
+          door_styles!inner(name)
         `)
         .order('name');
       if (error) throw error;
@@ -236,7 +236,7 @@ const DoorStyles = () => {
             name: finish.name || '',
             finish_type: finish.finish_type || 'standard',
             rate_per_sqm: finish.rate_per_sqm || 0,
-            brand_id: finish.brand_id || '',
+            door_style_id: finish.door_style_id || '',
             active: finish.active ?? true
           });
         if (error) throw error;
@@ -411,7 +411,7 @@ const DoorStyles = () => {
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <h3 className="font-medium">{finish.name}</h3>
-                    <p className="text-sm text-muted-foreground">{finish.brands?.name}</p>
+                    <p className="text-sm text-muted-foreground">{finish.door_styles?.name}</p>
                     <p className="text-sm text-muted-foreground">+${finish.rate_per_sqm}/sqm</p>
                   </div>
                   <Badge variant={finish.active ? "default" : "secondary"}>
@@ -457,7 +457,7 @@ const DoorStyles = () => {
 
       <FinishEditDialog
         finish={finishDialog.finish}
-        brands={[]}
+        doorStyles={doorStyles || []}
         open={finishDialog.open}
         onOpenChange={(open) => setFinishDialog({ open, finish: null })}
         onSave={(finish) => saveFinishMutation.mutate(finish)}

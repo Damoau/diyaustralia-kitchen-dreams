@@ -12,29 +12,29 @@ interface Finish {
   finish_type: string;
   rate_per_sqm: number;
   active: boolean;
-  brand_id: string;
+  door_style_id: string;
 }
 
-interface Brand {
+interface DoorStyle {
   id: string;
   name: string;
 }
 
 interface FinishEditDialogProps {
   finish: Finish | null;
-  brands: Brand[];
+  doorStyles: DoorStyle[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (finish: Partial<Finish>) => void;
 }
 
-const FinishEditDialog = ({ finish, brands, open, onOpenChange, onSave }: FinishEditDialogProps) => {
+const FinishEditDialog = ({ finish, doorStyles, open, onOpenChange, onSave }: FinishEditDialogProps) => {
   const [formData, setFormData] = useState({
     name: "",
     finish_type: "",
     rate_per_sqm: 0,
     active: true,
-    brand_id: ""
+    door_style_id: ""
   });
 
   useEffect(() => {
@@ -44,7 +44,7 @@ const FinishEditDialog = ({ finish, brands, open, onOpenChange, onSave }: Finish
         finish_type: finish.finish_type,
         rate_per_sqm: finish.rate_per_sqm,
         active: finish.active,
-        brand_id: finish.brand_id
+        door_style_id: finish.door_style_id
       });
     } else {
       setFormData({
@@ -52,7 +52,7 @@ const FinishEditDialog = ({ finish, brands, open, onOpenChange, onSave }: Finish
         finish_type: "",
         rate_per_sqm: 0,
         active: true,
-        brand_id: ""
+        door_style_id: ""
       });
     }
   }, [finish]);
@@ -81,15 +81,15 @@ const FinishEditDialog = ({ finish, brands, open, onOpenChange, onSave }: Finish
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="brand">Brand</Label>
-            <Select value={formData.brand_id} onValueChange={(value) => setFormData({...formData, brand_id: value})}>
+            <Label htmlFor="door_style">Door Style</Label>
+            <Select value={formData.door_style_id} onValueChange={(value) => setFormData({...formData, door_style_id: value})}>
               <SelectTrigger>
-                <SelectValue placeholder="Select brand" />
+                <SelectValue placeholder="Select door style" />
               </SelectTrigger>
               <SelectContent>
-                {brands.map((brand) => (
-                  <SelectItem key={brand.id} value={brand.id}>
-                    {brand.name}
+                {doorStyles.map((doorStyle) => (
+                  <SelectItem key={doorStyle.id} value={doorStyle.id}>
+                    {doorStyle.name}
                   </SelectItem>
                 ))}
               </SelectContent>

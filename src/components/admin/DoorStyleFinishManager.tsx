@@ -6,13 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { DoorStyle, Finish, Brand, DoorStyleFinish } from '@/types/cabinet';
+import { DoorStyle, Finish, DoorStyleFinish } from '@/types/cabinet';
 import { Plus, Save, Trash2, Settings } from 'lucide-react';
 
 export const DoorStyleFinishManager: React.FC = () => {
   const [doorStyles, setDoorStyles] = useState<DoorStyle[]>([]);
   const [finishes, setFinishes] = useState<Finish[]>([]);
-  const [brands, setBrands] = useState<Brand[]>([]);
   const [doorStyleFinishes, setDoorStyleFinishes] = useState<DoorStyleFinish[]>([]);
   const [selectedDoorStyle, setSelectedDoorStyle] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -24,21 +23,18 @@ export const DoorStyleFinishManager: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [doorStylesRes, finishesRes, brandsRes, relationshipsRes] = await Promise.all([
+      const [doorStylesRes, finishesRes, relationshipsRes] = await Promise.all([
         supabase.from('door_styles').select('*').eq('active', true).order('name'),
-        supabase.from('finishes').select('*, brand:brands(*)').eq('active', true).order('name'),
-        supabase.from('brands').select('*').eq('active', true).order('name'),
+        supabase.from('finishes').select('*, door_style:door_styles(*)').eq('active', true).order('name'),
         supabase.from('door_style_finishes').select('*').eq('active', true)
       ]);
 
       if (doorStylesRes.error) throw doorStylesRes.error;
       if (finishesRes.error) throw finishesRes.error;
-      if (brandsRes.error) throw brandsRes.error;
       if (relationshipsRes.error) throw relationshipsRes.error;
 
       setDoorStyles(doorStylesRes.data || []);
       setFinishes(finishesRes.data || []);
-      setBrands(brandsRes.data || []);
       setDoorStyleFinishes(relationshipsRes.data || []);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -95,8 +91,8 @@ export const DoorStyleFinishManager: React.FC = () => {
     );
   };
 
-  const getFinishesByBrand = (brandId: string) => {
-    return finishes.filter(finish => finish.brand_id === brandId);
+  const getFinishesByDoorStyle = (doorStyleId: string) => {
+    return finishes.filter(finish => finish.door_style_id === doorStyleId);
   };
 
   const selectedDoorStyleObj = doorStyles.find(ds => ds.id === selectedDoorStyle);
@@ -122,11 +118,6 @@ export const DoorStyleFinishManager: React.FC = () => {
                 {doorStyles.map((doorStyle) => (
                   <SelectItem key={doorStyle.id} value={doorStyle.id}>
                     {doorStyle.name}
-                    {doorStyle.brand && (
-                      <Badge variant="secondary" className="ml-2">
-                        {doorStyle.brand.name}
-                      </Badge>
-                    )}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -145,22 +136,22 @@ export const DoorStyleFinishManager: React.FC = () => {
                 </Badge>
               </div>
 
-              {/* Group finishes by brand */}
+              {/* Group finishes by door style */}
               <div className="space-y-6">
-                {brands.map((brand) => {
-                  const brandFinishes = getFinishesByBrand(brand.id);
-                  if (brandFinishes.length === 0) return null;
+                {doorStyles.map((doorStyle) => {
+                  const doorStyleFinishes = getFinishesByDoorStyle(doorStyle.id);
+                  if (doorStyleFinishes.length === 0) return null;
 
                   return (
-                    <Card key={brand.id} className="border-l-4 border-l-primary/20">
+                    <Card key={doorStyle.id} className="border-l-4 border-l-primary/20">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-base text-primary">
-                          {brand.name}
+                          {doorStyle.name}
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {brandFinishes.map((finish) => (
+                          {doorStyleFinishes.map((finish) => (
                             <div
                               key={finish.id}
                               className="flex items-center space-x-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"

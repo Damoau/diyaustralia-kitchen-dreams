@@ -267,30 +267,6 @@ export type Database = {
         }
         Relationships: []
       }
-      brands: {
-        Row: {
-          active: boolean
-          created_at: string
-          description: string | null
-          id: string
-          name: string
-        }
-        Insert: {
-          active?: boolean
-          created_at?: string
-          description?: string | null
-          id?: string
-          name: string
-        }
-        Update: {
-          active?: boolean
-          created_at?: string
-          description?: string | null
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
       cabinet_door_styles: {
         Row: {
           active: boolean
@@ -1478,15 +1454,7 @@ export type Database = {
           image_url?: string | null
           name?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "door_styles_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brands"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       email_verifications: {
         Row: {
@@ -1688,8 +1656,8 @@ export type Database = {
       finishes: {
         Row: {
           active: boolean
-          brand_id: string
           created_at: string
+          door_style_id: string | null
           finish_type: string
           id: string
           name: string
@@ -1697,8 +1665,8 @@ export type Database = {
         }
         Insert: {
           active?: boolean
-          brand_id: string
           created_at?: string
+          door_style_id?: string | null
           finish_type: string
           id?: string
           name: string
@@ -1706,8 +1674,8 @@ export type Database = {
         }
         Update: {
           active?: boolean
-          brand_id?: string
           created_at?: string
+          door_style_id?: string | null
           finish_type?: string
           id?: string
           name?: string
@@ -1715,10 +1683,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "finishes_brand_id_fkey"
-            columns: ["brand_id"]
+            foreignKeyName: "finishes_door_style_id_fkey"
+            columns: ["door_style_id"]
             isOneToOne: false
-            referencedRelation: "brands"
+            referencedRelation: "door_styles"
             referencedColumns: ["id"]
           },
         ]
