@@ -155,6 +155,30 @@ export const UnifiedCategoriesManager: React.FC = () => {
     },
   });
 
+  // Toggle visibility mutation
+  const toggleVisibilityMutation = useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      const { error } = await (supabase as any)
+        .from('unified_categories')
+        .update({ active })
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-unified-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-flat-categories'] });
+      toast.success('Category visibility updated successfully');
+    },
+    onError: (error) => {
+      toast.error(`Failed to update category visibility: ${error.message}`);
+    },
+  });
+
+  const toggleCategoryVisibility = (id: string, active: boolean) => {
+    toggleVisibilityMutation.mutate({ id, active });
+  };
+
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -259,6 +283,26 @@ export const UnifiedCategoriesManager: React.FC = () => {
             }`}>
               {category.active ? 'Active' : 'Inactive'}
             </span>
+          </TableCell>
+          <TableCell>
+            <Button
+              variant={category.active ? "outline" : "default"}
+              size="sm"
+              onClick={() => toggleCategoryVisibility(category.id, !category.active)}
+              className={category.active ? "" : "bg-orange-100 text-orange-800 hover:bg-orange-200"}
+            >
+              {category.active ? "Hide" : "Show"}
+            </Button>
+          </TableCell>
+          <TableCell>
+            <Button
+              variant={category.active ? "outline" : "default"}
+              size="sm"
+              onClick={() => toggleCategoryVisibility(category.id, !category.active)}
+              className={category.active ? "" : "bg-orange-100 text-orange-800 hover:bg-orange-200"}
+            >
+              {category.active ? "Hide" : "Show"}
+            </Button>
           </TableCell>
           <TableCell>
             <div className="flex items-center gap-2">

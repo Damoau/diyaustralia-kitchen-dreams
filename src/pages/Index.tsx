@@ -1,4 +1,4 @@
-import Header from "@/components/Header";
+import DynamicHeader from "@/components/DynamicHeader";
 import Hero from "@/components/Hero";
 import Services from "@/components/Services";
 import Gallery from "@/components/Gallery";
@@ -9,16 +9,13 @@ import Footer from "@/components/Footer";
 const Index = () => {
   return (
     <div className="min-h-screen">
-      <Header />
-      <div className="pt-20">
-        <Hero />
-      
+      <DynamicHeader />
+      <Hero />
       <Services />
       <Gallery />
       <About />
       <Contact />
       <Footer />
-      </div>
     </div>
   );
 };

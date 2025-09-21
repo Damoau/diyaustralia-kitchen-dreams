@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import DynamicHeader from "@/components/DynamicHeader";
+import Footer from "@/components/Footer";
 
 interface RoomCategory {
   id: string;
@@ -35,9 +37,10 @@ export default function RoomCategory() {
   const loadRoomCategory = async () => {
     try {
       const { data, error } = await supabase
-        .from('room_categories')
+        .from('unified_categories')
         .select('*')
         .eq('name', room)
+        .eq('level', 1)
         .eq('active', true)
         .single();
 
@@ -50,35 +53,37 @@ export default function RoomCategory() {
 
   const loadCategoryStats = async () => {
     try {
+      // Get room category ID first
+      const { data: roomData, error: roomError } = await supabase
+        .from('unified_categories')
+        .select('id')
+        .eq('name', room)
+        .eq('level', 1)
+        .single();
+
+      if (roomError) throw roomError;
+
+      // Get cabinet types for this room
       const { data, error } = await supabase
         .from('cabinet_types')
         .select('category, room_category_id')
-        .eq('active', true);
+        .eq('active', true)
+        .eq('room_category_id', roomData.id);
 
       if (error) throw error;
 
-      // Get room category ID first
-      const { data: roomData } = await supabase
-        .from('room_categories')
-        .select('id')
-        .eq('name', room)
-        .single();
+      // Count categories
+      const counts = data?.reduce((acc, cabinet) => {
+        acc[cabinet.category] = (acc[cabinet.category] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>) || {};
 
-      if (roomData) {
-        // Filter by room and count categories
-        const roomCabinets = data?.filter(cabinet => cabinet.room_category_id === roomData.id) || [];
-        const counts = roomCabinets.reduce((acc, cabinet) => {
-          acc[cabinet.category] = (acc[cabinet.category] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>);
+      const stats = Object.entries(counts).map(([category, count]) => ({
+        category,
+        count
+      }));
 
-        const stats = Object.entries(counts).map(([category, count]) => ({
-          category,
-          count
-        }));
-
-        setCategoryStats(stats);
-      }
+      setCategoryStats(stats);
     } catch (error) {
       console.error('Error loading category stats:', error);
     } finally {
@@ -114,10 +119,12 @@ export default function RoomCategory() {
   return (
     <>
       <Helmet>
-        <title>Cabinet Shop | Premium Cabinet Solutions</title>
+        <title>{roomCategory?.display_name} | Premium Cabinet Solutions</title>
         <meta name="description" content="Browse our premium cabinet collection by category. Each cabinet is crafted with precision and designed for lasting quality." />
         <meta name="keywords" content="cabinets, kitchen cabinets, base cabinets, top cabinets, pantry cabinets, premium storage" />
       </Helmet>
+
+      <DynamicHeader />
 
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
@@ -137,7 +144,7 @@ export default function RoomCategory() {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem className="text-foreground font-medium">
-                {roomCategory.display_name}
+                {roomCategory?.display_name}
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -184,6 +191,8 @@ export default function RoomCategory() {
           )}
         </div>
       </div>
+
+      <Footer />
     </>
   );
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Header from "@/components/Header";
+import DynamicHeader from "@/components/DynamicHeader";
 import Footer from "@/components/Footer";
 import { ProductConfigurator } from "@/components/product/ProductConfigurator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -154,7 +154,7 @@ const CategoryPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
-        <Header />
+        <DynamicHeader />
         <div className="flex items-center justify-center min-h-[60vh]">
           <LoadingSpinner />
         </div>
@@ -178,7 +178,7 @@ const CategoryPage = () => {
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
-        <Header />
+        <DynamicHeader />
         
         <main className="container mx-auto px-4 py-8">
           {/* Breadcrumbs */}
