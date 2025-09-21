@@ -85,27 +85,27 @@ const CategoryPage = () => {
         if (roomError) throw roomError;
         setRoomCategory(roomData);
 
-        // Load Level 3 subcategories for this room/category combination
-        // First get the Level 2 category IDs
+        // Load Level 3 subcategories for this specific room/category combination
+        // First get the Level 2 category ID that belongs to this room
         const { data: level2Data, error: level2Error } = await supabase
           .from('unified_categories')
           .select('id')
           .eq('level', 2)
           .eq('name', category)
-          .eq('active', true);
+          .eq('parent_id', roomData.id)
+          .eq('active', true)
+          .single();
 
         if (level2Error) {
-          console.error('Error loading level 2 categories:', level2Error);
-        } else if (level2Data && level2Data.length > 0) {
-          const parentIds = level2Data.map(cat => cat.id);
-          
-          // Now get Level 3 subcategories
+          console.error('Error loading level 2 category:', level2Error);
+        } else if (level2Data) {
+          // Now get Level 3 subcategories for this specific room/category
           const { data: subcatsData, error: subcatsError } = await supabase
             .from('unified_categories')
             .select('*')
             .eq('level', 3)
             .eq('active', true)
-            .in('parent_id', parentIds)
+            .eq('parent_id', level2Data.id)
             .order('sort_order', { ascending: true });
 
           if (subcatsError) {
