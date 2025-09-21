@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ShoppingCart, Trash2, Plus, Minus, X } from "lucide-react";
+import { ShoppingCart, Trash2, Plus, Minus, X, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
@@ -26,9 +26,20 @@ interface CartDrawerProps {
 export const CartDrawer = ({ children }: CartDrawerProps) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
   const { cart, updateQuantity, removeFromCart, getItemCount, isLoading } = useCart();
   const { convertCartToQuote, isLoading: isConverting } = useCartToQuote();
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
+
+  const toggleNotes = (itemId: string) => {
+    const newExpanded = new Set(expandedNotes);
+    if (newExpanded.has(itemId)) {
+      newExpanded.delete(itemId);
+    } else {
+      newExpanded.add(itemId);
+    }
+    setExpandedNotes(newExpanded);
+  };
 
   const handleUpdateQuantity = async (id: string, newQuantity: number) => {
     if (newQuantity === 0) {
@@ -155,9 +166,26 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                       </div>
                       
                       {item.notes && (
-                        <p className="text-xs text-muted-foreground mt-1 italic">
-                          Note: {item.notes}
-                        </p>
+                        <div className="mt-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleNotes(item.id)}
+                            className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                          >
+                            Notes
+                            <ChevronDown 
+                              className={`h-3 w-3 transition-transform ${
+                                expandedNotes.has(item.id) ? 'rotate-180' : ''
+                              }`} 
+                            />
+                          </Button>
+                          {expandedNotes.has(item.id) && (
+                            <p className="text-xs text-muted-foreground mt-1 p-2 bg-muted/50 rounded text-wrap break-words">
+                              {item.notes}
+                            </p>
+                          )}
+                        </div>
                       )}
                       
                       <p className="text-sm font-medium mt-1">${item.unit_price.toFixed(2)} each</p>

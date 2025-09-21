@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
+import { ShoppingCart, Trash2, Plus, Minus, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
@@ -24,9 +24,20 @@ interface CartItem {
 
 const Cart = () => {
   const navigate = useNavigate();
+  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
   const { cart, updateQuantity, removeFromCart, getItemCount, isLoading } = useCart();
   const { convertCartToQuote, isLoading: isConverting } = useCartToQuote();
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
+
+  const toggleNotes = (itemId: string) => {
+    const newExpanded = new Set(expandedNotes);
+    if (newExpanded.has(itemId)) {
+      newExpanded.delete(itemId);
+    } else {
+      newExpanded.add(itemId);
+    }
+    setExpandedNotes(newExpanded);
+  };
 
   const handleUpdateQuantity = async (id: string, newQuantity: number) => {
     if (newQuantity === 0) {
@@ -143,9 +154,26 @@ const Cart = () => {
                             </div>
                             
                             {item.notes && (
-                              <p className="text-xs text-muted-foreground mt-1 italic">
-                                Note: {item.notes}
-                              </p>
+                              <div className="mt-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => toggleNotes(item.id)}
+                                  className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                                >
+                                  Notes
+                                  <ChevronDown 
+                                    className={`h-3 w-3 transition-transform ${
+                                      expandedNotes.has(item.id) ? 'rotate-180' : ''
+                                    }`} 
+                                  />
+                                </Button>
+                                {expandedNotes.has(item.id) && (
+                                  <p className="text-xs text-muted-foreground mt-1 p-2 bg-muted/50 rounded">
+                                    {item.notes}
+                                  </p>
+                                )}
+                              </div>
                             )}
                             
                             <p className="font-medium mt-1">${item.unit_price.toFixed(2)} each</p>
