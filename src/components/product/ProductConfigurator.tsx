@@ -15,6 +15,7 @@ import { useCartSaveTracking } from '@/hooks/useCartSaveTracking';
 import { useCart } from '@/hooks/useCart';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { Ruler, Palette, Settings, FileText, ShoppingCart } from 'lucide-react';
+import { useCabinetPreferences } from '@/hooks/useCabinetPreferences';
 import { CabinetType, CabinetPart, DoorStyle, Color, Finish, DoorStyleFinish, ColorFinish } from '@/types/cabinet';
 
 interface HardwareRequirement {
@@ -65,6 +66,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   const [loading, setLoading] = useState(false);
   const { markAsUnsaved, markAsSaving, markAsSaved, markAsError } = useCartSaveTracking();
   const { addToCart } = useCart();
+  const { preferences: savedPrefs, updatePreference } = useCabinetPreferences();
   const { 
     preferences, 
     updateStylePreferences,
@@ -119,45 +121,56 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
   // Apply saved preferences as defaults when data is loaded
   useEffect(() => {
+    // First check new cabinet preferences system
+    const newPreferredDoorStyle = savedPrefs?.preferred_door_style_id;
+    const newPreferredColor = savedPrefs?.preferred_color_id;
+    const newPreferredFinish = savedPrefs?.preferred_finish_id;
+    
+    // Fallback to old preference system
+    const doorStyleId = newPreferredDoorStyle || preferredDoorStyleId;
+    const colorId = newPreferredColor || preferredColorId;
+    const finishId = newPreferredFinish || preferredFinishId;
+
     if (
       doorStyles.length > 0 && 
       colors.length > 0 && 
       finishes.length > 0 && 
       doorStyleFinishes.length > 0 && 
       colorFinishes.length > 0 &&
-      preferredDoorStyleId && 
-      preferredColorId && 
-      preferredFinishId &&
+      doorStyleId && 
+      colorId && 
+      finishId &&
       !selectedDoorStyle && // Only apply if nothing is selected yet
       !selectedColor && 
       !selectedFinish
     ) {
       // Check if preferred door style exists and is active
-      const preferredDoorStyle = doorStyles.find(ds => ds.id === preferredDoorStyleId);
-      const preferredColor = colors.find(c => c.id === preferredColorId);
-      const preferredFinish = finishes.find(f => f.id === preferredFinishId);
+      const preferredDoorStyle = doorStyles.find(ds => ds.id === doorStyleId);
+      const preferredColor = colors.find(c => c.id === colorId);
+      const preferredFinish = finishes.find(f => f.id === finishId);
 
       if (preferredDoorStyle && preferredColor && preferredFinish) {
         // Check if the preferred door style supports the preferred finish
         const doorStyleSupportsFinish = doorStyleFinishes.some(
-          dsf => dsf.door_style_id === preferredDoorStyleId && dsf.finish_id === preferredFinishId
+          dsf => dsf.door_style_id === doorStyleId && dsf.finish_id === finishId
         );
 
         // Check if the preferred color supports the preferred finish
         const colorSupportsFinish = colorFinishes.some(
-          cf => cf.color_id === preferredColorId && cf.finish_id === preferredFinishId
+          cf => cf.color_id === colorId && cf.finish_id === finishId
         );
 
         // If all combinations are compatible, apply the preferences
         if (doorStyleSupportsFinish && colorSupportsFinish) {
-          setSelectedDoorStyle(preferredDoorStyleId);
-          setSelectedColor(preferredColorId);
-          setSelectedFinish(preferredFinishId);
+          setSelectedDoorStyle(doorStyleId);
+          setSelectedColor(colorId);
+          setSelectedFinish(finishId);
           
           console.log('Applied saved preferences:', {
             doorStyle: preferredDoorStyle.name,
             color: preferredColor.name,
-            finish: preferredFinish.name
+            finish: preferredFinish.name,
+            source: newPreferredDoorStyle ? 'new-system' : 'old-system'
           });
         }
       }
@@ -171,6 +184,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     preferredDoorStyleId, 
     preferredColorId, 
     preferredFinishId,
+    savedPrefs,
     selectedDoorStyle,
     selectedColor,
     selectedFinish
@@ -455,14 +469,14 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         depth_mm: dimensions.depth,
         quantity: quantity,
         unit_price: unitPrice,
-        notes: notes || undefined,
+        notes: notes?.trim() || null,
         configuration: {
           dimensions,
           doorStyle: selectedDoorStyle,
           color: selectedColor,
           finish: selectedFinish,
           quantity,
-          notes
+          notes: notes?.trim() || null
         }
       });
       
@@ -484,6 +498,11 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     
     // Save user preferences for future selections
     updateStylePreferences(doorStyleId, colorId, finishId);
+    
+    // Also save to new cabinet preferences system
+    updatePreference('preferred_door_style_id', doorStyleId);
+    updatePreference('preferred_color_id', colorId);
+    updatePreference('preferred_finish_id', finishId);
   };
 
   const getSelectedDoorStyle = () => doorStyles.find(ds => ds.id === selectedDoorStyle);
