@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 interface RoomCategory {
   id: string;
@@ -56,6 +58,8 @@ export default function RoomCategories() {
         <meta name="keywords" content="kitchen cabinets, laundry cabinets, vanity cabinets, wardrobe systems, outdoor kitchen, cabinet collections" />
       </Helmet>
 
+      <Header />
+      
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center mb-12">
@@ -261,6 +265,8 @@ export default function RoomCategories() {
           </div>
         </div>
       </div>
+      
+      <Footer />
     </>
   );
 }
