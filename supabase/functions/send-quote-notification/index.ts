@@ -175,7 +175,8 @@ function generateEmailContent(
   temporaryPassword: string,
   quoteId: string
 ) {
-  const portalUrl = `${Deno.env.get('SITE_URL') || 'https://sydneytrademachines.com.au'}/portal/quotes/${quoteId}`;
+  // Use the correct Lovable project URL
+  const portalUrl = `${Deno.env.get('SITE_URL') || 'https://ebf0769f-8814-47f0-bfb6-515c0f9cba2c.lovableproject.com'}/portal/quotes/${quoteId}`;
   
   let subject = '';
   let html = '';
