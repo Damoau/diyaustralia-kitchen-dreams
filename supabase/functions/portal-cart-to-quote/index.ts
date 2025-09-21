@@ -107,8 +107,7 @@ Deno.serve(async (req) => {
           tax_amount: taxAmount,
           total_amount: totalAmount,
           valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
-          notes: notes || `Quote created from cart items`,
-          created_by: null // Will be set by RLS if admin is creating
+          notes: notes || `Quote created from cart items`
         })
         .select()
         .single();
