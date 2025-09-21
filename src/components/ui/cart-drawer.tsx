@@ -93,8 +93,8 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
       if (result.success) {
         setIsOpen(false);
         toast.success(`Quote ${result.quoteNumber} created for customer`);
-        // Navigate to admin quotes list to see the created quote
-        navigate('/admin/quotes');
+        // Navigate to admin quotes list and trigger refresh
+        navigate('/admin/quotes', { state: { refresh: true } });
       }
       return;
     }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/admin/shared/DataTable';
 import { StatusChip } from '@/components/admin/shared/StatusChip';
@@ -15,6 +16,7 @@ import { QuoteEditor } from '@/components/admin/QuoteEditor';
 import { Edit, CheckCircle, XCircle, Search, FileText } from 'lucide-react';
 
 const QuotesList = () => {
+  const location = useLocation();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [stats, setStats] = useState<QuoteStats>({ total: 0, pending: 0, approved: 0, totalValue: 0 });
   const [searchTerm, setSearchTerm] = useState('');
@@ -31,11 +33,25 @@ const QuotesList = () => {
     loadData();
   }, [statusFilter, searchTerm]);
 
+  // Refresh data when navigating from cart creation
+  useEffect(() => {
+    if (location.state?.refresh) {
+      console.log('Refreshing quotes list after cart conversion');
+      setTimeout(() => {
+        loadData();
+      }, 500); // Small delay to ensure the quote is fully created
+      // Clear the refresh state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
   const loadData = async () => {
+    console.log('Loading quotes data with filters:', { statusFilter, searchTerm });
     const [quotesData, statsData] = await Promise.all([
       getQuotes({ status: statusFilter, search: searchTerm, adminView: true }),
       getQuoteStats()
     ]);
+    console.log('Loaded quotes:', quotesData.length, 'items');
     setQuotes(quotesData);
     setStats(statsData);
   };
