@@ -101,6 +101,7 @@ Deno.serve(async (req) => {
         .from('quotes')
         .insert({
           user_id: userId,
+          customer_email: customer_email,
           quote_number: quoteNumber,
           status: 'draft',
           subtotal: subtotal,
