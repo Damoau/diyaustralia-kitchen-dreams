@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -146,49 +144,70 @@ export default function RoomCategory() {
 
           {/* Hero Section */}
           <div className="mb-12">
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div>
-                <h1 className="text-4xl font-bold text-foreground mb-4">
-                  {roomCategory.display_name}
-                </h1>
-                <p className="text-xl text-muted-foreground leading-relaxed">
-                  {roomCategory.description}
-                </p>
-              </div>
-              {roomCategory.hero_image_url && (
-                <div className="aspect-video rounded-lg overflow-hidden">
+            {/* Two Images Side by Side on Desktop */}
+            <div className="grid md:grid-cols-2 gap-4 mb-8">
+              <div className="aspect-video rounded-lg overflow-hidden">
+                {roomCategory.hero_image_url ? (
                   <img
                     src={roomCategory.hero_image_url}
-                    alt={roomCategory.display_name}
+                    alt={`${roomCategory.display_name} showcase 1`}
                     className="w-full h-full object-cover"
                   />
-                </div>
-              )}
+                ) : (
+                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                    <span className="text-muted-foreground">Image Coming Soon</span>
+                  </div>
+                )}
+              </div>
+              <div className="aspect-video rounded-lg overflow-hidden">
+                <img
+                  src={roomCategory.name === 'kitchen' ? '/src/assets/shadowline-kitchen.jpg' : roomCategory.hero_image_url || ''}
+                  alt={`${roomCategory.display_name} showcase 2`}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.parentElement!.innerHTML = '<div class="w-full h-full bg-muted flex items-center justify-center"><span class="text-muted-foreground">Image Coming Soon</span></div>';
+                  }}
+                />
+              </div>
+            </div>
+            
+            {/* Title and Description */}
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-foreground mb-4">
+                {roomCategory.display_name}
+              </h1>
+              <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
+                {roomCategory.description}
+              </p>
+            </div>
+
+            {/* Main Browse Button */}
+            <div className="text-center mb-8">
+              <Link to={`/shop/${room}`}>
+                <Button size="lg" className="px-12 py-6 text-lg">
+                  Browse {roomCategory.display_name}
+                </Button>
+              </Link>
             </div>
           </div>
 
-          {/* Categories Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categoryStats.map((stat) => (
-              <Card key={stat.category} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>{getCategoryDisplayName(stat.category)}</span>
-                    <Badge variant="secondary">{stat.count} products</Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">
-                    Explore our {getCategoryDisplayName(stat.category).toLowerCase()} collection
-                  </p>
-                  <Link to={`/shop/${room}/${stat.category}`}>
-                    <Button className="w-full">
-                      View {getCategoryDisplayName(stat.category)}
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
+          {/* Category Options */}
+          <div className="max-w-2xl mx-auto">
+            <div className="grid grid-cols-2 gap-4">
+              {categoryStats.map((stat) => (
+                <Link key={stat.category} to={`/shop/${room}/${stat.category}`}>
+                  <Button 
+                    variant="outline" 
+                    size="lg"
+                    className="w-full h-16 text-lg font-medium hover:bg-primary hover:text-primary-foreground transition-colors"
+                  >
+                    {getCategoryDisplayName(stat.category)}
+                  </Button>
+                </Link>
+              ))}
+            </div>
           </div>
 
           {categoryStats.length === 0 && (
