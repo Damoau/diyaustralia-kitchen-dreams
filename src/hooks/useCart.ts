@@ -213,7 +213,7 @@ export const useCart = () => {
 
       if (error) throw error;
 
-      // Format the new item
+      // Update local cart state immediately for better UX
       const formattedItem: CartItem = {
         ...newItem,
         cabinet_type: newItem.cabinet_types,
@@ -222,7 +222,6 @@ export const useCart = () => {
         finish: newItem.finishes
       };
 
-      // Update local cart state
       const updatedCart = {
         ...cart,
         items: [...cart.items, formattedItem],
@@ -231,14 +230,14 @@ export const useCart = () => {
 
       setCart(updatedCart);
 
-      // Update cart total in database
+      // Update cart total in database (real-time subscription will handle the update)
       await supabase
         .from('carts')
-        .update({ total_amount: updatedCart.total_amount })
+        .update({ 
+          total_amount: updatedCart.total_amount,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', cart.id);
-
-      // Re-fetch cart to ensure data consistency
-      await initializeCart();
 
       toast.success('Added to cart');
     } catch (err: any) {
@@ -288,10 +287,13 @@ export const useCart = () => {
 
       setCart(updatedCart);
 
-      // Update cart total in database
+      // Update cart total in database (real-time subscription will handle the update)
       await supabase
         .from('carts')
-        .update({ total_amount: newCartTotal })
+        .update({ 
+          total_amount: newCartTotal,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', cart.id);
 
     } catch (err: any) {
@@ -328,10 +330,13 @@ export const useCart = () => {
 
       setCart(updatedCart);
 
-      // Update cart total in database
+      // Update cart total in database (real-time subscription will handle the update)
       await supabase
         .from('carts')
-        .update({ total_amount: newCartTotal })
+        .update({ 
+          total_amount: newCartTotal,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', cart.id);
 
       toast.success('Item removed from cart');
@@ -393,6 +398,100 @@ export const useCart = () => {
       setCart(null);
     }
   }, [user]);
+
+  // Set up real-time subscriptions for cart changes
+  useEffect(() => {
+    if (!user || !cart) return;
+
+    console.log('Setting up real-time subscriptions for cart:', cart.id);
+
+    // Subscribe to cart_items changes
+    const cartItemsChannel = supabase
+      .channel('cart-items-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'cart_items',
+          filter: `cart_id=eq.${cart.id}`
+        },
+        (payload) => {
+          console.log('Real-time cart item change:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            // Refresh cart to get the new item with all relations
+            initializeCart();
+          } else if (payload.eventType === 'UPDATE') {
+            // Update existing item in local state
+            setCart(currentCart => {
+              if (!currentCart) return null;
+              
+              const updatedItems = currentCart.items.map(item => 
+                item.id === payload.new.id 
+                  ? { ...item, ...payload.new }
+                  : item
+              );
+              
+              const newTotal = updatedItems.reduce((sum, item) => sum + item.total_price, 0);
+              
+              return {
+                ...currentCart,
+                items: updatedItems,
+                total_amount: newTotal
+              };
+            });
+          } else if (payload.eventType === 'DELETE') {
+            // Remove item from local state
+            setCart(currentCart => {
+              if (!currentCart) return null;
+              
+              const updatedItems = currentCart.items.filter(item => item.id !== payload.old.id);
+              const newTotal = updatedItems.reduce((sum, item) => sum + item.total_price, 0);
+              
+              return {
+                ...currentCart,
+                items: updatedItems,
+                total_amount: newTotal
+              };
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    // Subscribe to cart changes (for total amount updates)
+    const cartChannel = supabase
+      .channel('cart-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'carts',
+          filter: `id=eq.${cart.id}`
+        },
+        (payload) => {
+          console.log('Real-time cart change:', payload);
+          setCart(currentCart => {
+            if (!currentCart) return null;
+            return {
+              ...currentCart,
+              total_amount: payload.new.total_amount,
+              updated_at: payload.new.updated_at
+            };
+          });
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscriptions
+    return () => {
+      console.log('Cleaning up cart real-time subscriptions');
+      supabase.removeChannel(cartItemsChannel);
+      supabase.removeChannel(cartChannel);
+    };
+  }, [user, cart?.id]);
 
   return {
     cart,
