@@ -28,8 +28,9 @@ export default function RoomCategories() {
   const loadRoomCategories = async () => {
     try {
       const { data, error } = await supabase
-        .from('room_categories')
+        .from('unified_categories')
         .select('*')
+        .eq('level', 1)
         .eq('active', true)
         .order('sort_order');
 
