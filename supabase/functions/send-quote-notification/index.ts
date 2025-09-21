@@ -98,9 +98,9 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Testing mode: Can only send emails to ${ALLOWED_TEST_EMAIL}. Please use that email address for testing quotes.`);
     }
 
-    // Send email
+    // Send email using Resend's default testing domain
     const { error: emailError } = await resend.emails.send({
-      from: 'DIY Kitchens <damianorwin@gmail.com>',
+      from: 'DIY Kitchens <onboarding@resend.dev>',
       to: [customer_email],
       subject,
       html,
