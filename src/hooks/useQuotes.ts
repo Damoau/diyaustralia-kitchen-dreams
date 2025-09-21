@@ -41,6 +41,7 @@ export interface QuoteItem {
   total_price: number;
   configuration?: any;
   specifications?: any;
+  notes?: string;
 }
 
 export interface QuoteStats {
@@ -125,7 +126,8 @@ export const useQuotes = () => {
           unit_price: item.unit_price || 0,
           total_price: item.total_price || 0,
           configuration: item.configuration,
-          specifications: item.configuration || {}
+          specifications: item.configuration || {},
+          notes: item.notes
         })),
         quote_items: (quote.quote_items || []).map((item: any) => ({
           id: item.id,
@@ -141,7 +143,8 @@ export const useQuotes = () => {
           unit_price: item.unit_price || 0,
           total_price: item.total_price || 0,
           configuration: item.configuration,
-          specifications: item.configuration || {}
+          specifications: item.configuration || {},
+          notes: item.notes
         }))
       }));
 

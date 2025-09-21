@@ -162,7 +162,8 @@ export const QuoteEditor = ({ quote, open, onOpenChange, onQuoteUpdated }: Quote
           quantity: item.quantity,
           unit_price: item.unit_price,
           total_price: item.total_price,
-          configuration: item.configuration
+          configuration: item.configuration,
+          notes: item.notes
         }));
 
         const { error: itemsError } = await supabase
