@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Subcategory {
   id: string;
@@ -217,21 +216,28 @@ const CategoryPage = () => {
             </p>
           </div>
 
-          {/* Subcategory Tabs */}
+          {/* Subcategory Filter Buttons */}
           {subcategories.length > 0 && (
             <div className="mb-8">
-              <Tabs value={activeSubcategory} onValueChange={setActiveSubcategory} className="w-full">
-                <TabsList className="grid w-full grid-cols-auto gap-2 h-auto p-1">
-                  <TabsTrigger value="all" className="px-6 py-2">
-                    All {displayCategory}
-                  </TabsTrigger>
-                  {subcategories.map((subcat) => (
-                    <TabsTrigger key={subcat.id} value={subcat.name} className="px-6 py-2">
-                      {subcat.display_name}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
+              <div className="flex flex-wrap gap-3 justify-center">
+                <Button
+                  variant={activeSubcategory === "all" ? "default" : "outline"}
+                  onClick={() => setActiveSubcategory("all")}
+                  className="px-6 py-2"
+                >
+                  All {displayCategory}
+                </Button>
+                {subcategories.map((subcat) => (
+                  <Button
+                    key={subcat.id}
+                    variant={activeSubcategory === subcat.name ? "default" : "outline"}
+                    onClick={() => setActiveSubcategory(subcat.name)}
+                    className="px-6 py-2"
+                  >
+                    {subcat.display_name}
+                  </Button>
+                ))}
+              </div>
             </div>
           )}
 
