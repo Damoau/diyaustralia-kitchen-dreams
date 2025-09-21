@@ -73,6 +73,18 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     preferredFinishId 
   } = useUserPreferences();
 
+  // Reset selections when configurator opens with a new cabinet
+  useEffect(() => {
+    if (open && cabinetTypeId) {
+      // Clear previous selections to allow preferences to be applied
+      setSelectedDoorStyle('');
+      setSelectedColor('');
+      setSelectedFinish('');
+      setNotes('');
+    }
+  }, [open, cabinetTypeId]);
+
+  // Load data when configurator opens
   useEffect(() => {
     if (open) {
       loadCabinetTypes();
@@ -104,6 +116,65 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       loadHardwareRequirements(selectedCabinetType.id);
     }
   }, [selectedCabinetType]);
+
+  // Apply saved preferences as defaults when data is loaded
+  useEffect(() => {
+    if (
+      doorStyles.length > 0 && 
+      colors.length > 0 && 
+      finishes.length > 0 && 
+      doorStyleFinishes.length > 0 && 
+      colorFinishes.length > 0 &&
+      preferredDoorStyleId && 
+      preferredColorId && 
+      preferredFinishId &&
+      !selectedDoorStyle && // Only apply if nothing is selected yet
+      !selectedColor && 
+      !selectedFinish
+    ) {
+      // Check if preferred door style exists and is active
+      const preferredDoorStyle = doorStyles.find(ds => ds.id === preferredDoorStyleId);
+      const preferredColor = colors.find(c => c.id === preferredColorId);
+      const preferredFinish = finishes.find(f => f.id === preferredFinishId);
+
+      if (preferredDoorStyle && preferredColor && preferredFinish) {
+        // Check if the preferred door style supports the preferred finish
+        const doorStyleSupportsFinish = doorStyleFinishes.some(
+          dsf => dsf.door_style_id === preferredDoorStyleId && dsf.finish_id === preferredFinishId
+        );
+
+        // Check if the preferred color supports the preferred finish
+        const colorSupportsFinish = colorFinishes.some(
+          cf => cf.color_id === preferredColorId && cf.finish_id === preferredFinishId
+        );
+
+        // If all combinations are compatible, apply the preferences
+        if (doorStyleSupportsFinish && colorSupportsFinish) {
+          setSelectedDoorStyle(preferredDoorStyleId);
+          setSelectedColor(preferredColorId);
+          setSelectedFinish(preferredFinishId);
+          
+          console.log('Applied saved preferences:', {
+            doorStyle: preferredDoorStyle.name,
+            color: preferredColor.name,
+            finish: preferredFinish.name
+          });
+        }
+      }
+    }
+  }, [
+    doorStyles, 
+    colors, 
+    finishes, 
+    doorStyleFinishes, 
+    colorFinishes,
+    preferredDoorStyleId, 
+    preferredColorId, 
+    preferredFinishId,
+    selectedDoorStyle,
+    selectedColor,
+    selectedFinish
+  ]);
 
   const loadCabinetTypes = async () => {
     try {
