@@ -291,7 +291,10 @@ export const UnifiedCategoriesManager: React.FC = () => {
   const getParentOptions = () => {
     if (!flatCategories) return [];
     
-    return flatCategories
+    console.log('FormData level:', formData.level);
+    console.log('Flat categories:', flatCategories.length);
+    
+    const parents = flatCategories
       .filter(cat => cat.level < formData.level)
       .filter(cat => cat.level === formData.level - 1) // Only direct parents
       .map(cat => {
@@ -305,6 +308,9 @@ export const UnifiedCategoriesManager: React.FC = () => {
         }
         return cat;
       });
+    
+    console.log('Parent options:', parents);
+    return parents;
   };
 
   return (
