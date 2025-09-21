@@ -92,7 +92,13 @@ const handler = async (req: Request): Promise<Response> => {
       quote_id
     );
 
-    // Send email - using account owner's email for testing until domain is verified
+    // For testing: only allow sending to account owner's email
+    const ALLOWED_TEST_EMAIL = 'damianorwin@gmail.com';
+    if (customer_email !== ALLOWED_TEST_EMAIL) {
+      throw new Error(`Testing mode: Can only send emails to ${ALLOWED_TEST_EMAIL}. Please use that email address for testing quotes.`);
+    }
+
+    // Send email
     const { error: emailError } = await resend.emails.send({
       from: 'DIY Kitchens <damianorwin@gmail.com>',
       to: [customer_email],
