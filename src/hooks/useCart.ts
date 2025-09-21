@@ -150,6 +150,12 @@ export const useCart = () => {
         })) || []
       };
 
+      console.log('Cart initialized:', {
+        cartId: formattedCart.id,
+        itemsCount: formattedCart.items.length,
+        items: formattedCart.items
+      });
+
       setCart(formattedCart);
     } catch (err: any) {
       console.error('Error initializing cart:', err);

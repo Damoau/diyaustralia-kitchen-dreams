@@ -31,6 +31,14 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
   const { convertCartToQuote, isLoading: isConverting } = useCartToQuote();
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
 
+  // Debug logging
+  console.log('CartDrawer render:', {
+    cart: cart,
+    itemsLength: cart?.items?.length,
+    isLoading,
+    getItemCount: getItemCount()
+  });
+
   const toggleNotes = (itemId: string) => {
     const newExpanded = new Set(expandedNotes);
     if (newExpanded.has(itemId)) {
@@ -133,6 +141,11 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
           </div>
         ) : (
           <div className="flex flex-col h-full">
+            {/* Debug info */}
+            <div className="text-xs text-muted-foreground p-2 bg-muted/20 mb-2">
+              Cart items: {cart?.items?.length || 0} | Loading: {isLoading ? 'yes' : 'no'}
+            </div>
+            
             <ScrollArea className="flex-1 pr-6">
               <div className="space-y-4 py-4">
                 {cart.items.map((item) => (
