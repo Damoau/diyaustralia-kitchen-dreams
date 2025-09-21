@@ -25,6 +25,26 @@ const DynamicHeader = () => {
   // Load active room categories
   useEffect(() => {
     loadActiveRooms();
+    
+    // Set up real-time subscription to refresh when categories are updated
+    const channel = supabase
+      .channel('categories_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'unified_categories'
+        },
+        () => {
+          loadActiveRooms(); // Refresh when any category changes
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadActiveRooms = async () => {
@@ -38,6 +58,7 @@ const DynamicHeader = () => {
 
       if (error) throw error;
       setActiveRooms(data || []);
+      console.log('Loaded active rooms:', data);
     } catch (error) {
       console.error('Error loading active rooms:', error);
     }

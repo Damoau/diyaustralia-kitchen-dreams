@@ -254,18 +254,18 @@ export const UnifiedCategoriesManager: React.FC = () => {
   const renderCategoryTree = (cats: Category[], indent: number = 0) => {
     return cats.map((category) => (
       <React.Fragment key={category.id}>
-        <TableRow>
-          <TableCell>
-            <div className="flex items-center" style={{ paddingLeft: `${indent * 20}px` }}>
-              {category.level === 1 && <Folder className="h-4 w-4 mr-2 text-blue-600" />}
-              {category.level === 2 && <FolderOpen className="h-4 w-4 mr-2 text-green-600" />}
-              {category.level === 3 && <Package className="h-4 w-4 mr-2 text-orange-600" />}
-              <span className="font-mono text-sm">{category.name}</span>
+               <TableRow className="h-12">
+          <TableCell className="py-2">
+            <div className="flex items-center" style={{ paddingLeft: `${indent * 16}px` }}>
+              {category.level === 1 && <Folder className="h-3 w-3 mr-1 text-blue-600" />}
+              {category.level === 2 && <FolderOpen className="h-3 w-3 mr-1 text-green-600" />}
+              {category.level === 3 && <Package className="h-3 w-3 mr-1 text-orange-600" />}
+              <span className="font-mono text-xs">{category.name}</span>
             </div>
           </TableCell>
-          <TableCell className="font-medium">{category.display_name}</TableCell>
-          <TableCell>
-            <span className={`px-2 py-1 rounded text-xs ${
+          <TableCell className="font-medium py-2 text-sm">{category.display_name}</TableCell>
+          <TableCell className="py-2">
+            <span className={`px-1.5 py-0.5 rounded text-xs ${
               category.level === 1 ? 'bg-blue-100 text-blue-800' :
               category.level === 2 ? 'bg-green-100 text-green-800' :
               'bg-orange-100 text-orange-800'
@@ -273,10 +273,10 @@ export const UnifiedCategoriesManager: React.FC = () => {
               {LEVEL_NAMES[category.level as keyof typeof LEVEL_NAMES]}
             </span>
           </TableCell>
-          <TableCell className="max-w-xs truncate">{category.description}</TableCell>
-          <TableCell>{category.sort_order}</TableCell>
-          <TableCell>
-            <span className={`px-2 py-1 rounded-full text-xs ${
+          <TableCell className="max-w-xs truncate py-2 text-xs">{category.description}</TableCell>
+          <TableCell className="py-2 text-sm">{category.sort_order}</TableCell>
+          <TableCell className="py-2">
+            <span className={`px-1.5 py-0.5 rounded-full text-xs ${
               category.active 
                 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
                 : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
@@ -284,34 +284,23 @@ export const UnifiedCategoriesManager: React.FC = () => {
               {category.active ? 'Active' : 'Inactive'}
             </span>
           </TableCell>
-          <TableCell>
-            <Button
-              variant={category.active ? "outline" : "default"}
-              size="sm"
-              onClick={() => toggleCategoryVisibility(category.id, !category.active)}
-              className={category.active ? "" : "bg-orange-100 text-orange-800 hover:bg-orange-200"}
-            >
-              {category.active ? "Hide" : "Show"}
-            </Button>
-          </TableCell>
-          <TableCell>
-            <Button
-              variant={category.active ? "outline" : "default"}
-              size="sm"
-              onClick={() => toggleCategoryVisibility(category.id, !category.active)}
-              className={category.active ? "" : "bg-orange-100 text-orange-800 hover:bg-orange-200"}
-            >
-              {category.active ? "Hide" : "Show"}
-            </Button>
-          </TableCell>
-          <TableCell>
-            <div className="flex items-center gap-2">
+          <TableCell className="py-2">
+            <div className="flex items-center gap-1">
+              <Button
+                variant={category.active ? "outline" : "default"}
+                size="sm"
+                onClick={() => toggleCategoryVisibility(category.id, !category.active)}
+                className={`h-7 px-2 text-xs ${category.active ? "" : "bg-orange-100 text-orange-800 hover:bg-orange-200"}`}
+              >
+                {category.active ? "Hide" : "Show"}
+              </Button>
               {category.level < 3 && (
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => handleOpenDialog(undefined, category.level + 1)}
                   title={`Add ${LEVEL_NAMES[(category.level + 1) as keyof typeof LEVEL_NAMES]}`}
+                  className="h-7 w-7 p-0"
                 >
                   <Plus className="h-3 w-3" />
                 </Button>
@@ -320,6 +309,7 @@ export const UnifiedCategoriesManager: React.FC = () => {
                 size="sm"
                 variant="outline"
                 onClick={() => handleOpenDialog(category)}
+                className="h-7 w-7 p-0"
               >
                 <Pencil className="h-3 w-3" />
               </Button>
@@ -328,6 +318,7 @@ export const UnifiedCategoriesManager: React.FC = () => {
                 variant="outline"
                 onClick={() => handleDelete(category.id)}
                 disabled={deleteMutation.isPending}
+                className="h-7 w-7 p-0"
               >
                 <Trash2 className="h-3 w-3" />
               </Button>
