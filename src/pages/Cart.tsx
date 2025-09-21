@@ -10,6 +10,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
 import { useCart } from "@/hooks/useCart";
+import { useCartToQuote } from "@/hooks/useCartToQuote";
+import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
 
 interface CartItem {
   id: string;
@@ -23,6 +25,8 @@ interface CartItem {
 const Cart = () => {
   const navigate = useNavigate();
   const { cart, updateQuantity, removeFromCart, getItemCount, isLoading } = useCart();
+  const { convertCartToQuote, isLoading: isConverting } = useCartToQuote();
+  const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
 
   const handleUpdateQuantity = async (id: string, newQuantity: number) => {
     if (newQuantity === 0) {
@@ -45,11 +49,29 @@ const Cart = () => {
     return getItemCount();
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!cart?.items?.length) {
       toast.error("Your cart is empty");
       return;
     }
+
+    // If in impersonation mode, convert cart to quote directly
+    if (isImpersonating && impersonatedCustomerEmail && cart?.id) {
+      const result = await convertCartToQuote(
+        cart.id,
+        impersonatedCustomerEmail,
+        `Quote created by admin for ${impersonatedCustomerEmail}`
+      );
+      
+      if (result.success) {
+        toast.success(`Quote ${result.quoteNumber} created for customer`);
+        // Navigate to admin quotes list to see the created quote
+        navigate('/admin/quotes');
+      }
+      return;
+    }
+
+    // Regular checkout flow for non-impersonation
     navigate("/get-quote");
   };
 
@@ -201,8 +223,12 @@ const Cart = () => {
                       onClick={handleCheckout}
                       className="w-full"
                       size="lg"
+                      disabled={isLoading || isConverting}
                     >
-                      Request Quote
+                      {isImpersonating 
+                        ? (isConverting ? "Creating Quote..." : "Create Quote for Customer")
+                        : "Request Quote"
+                      }
                     </Button>
                     
                     <Button 
