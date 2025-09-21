@@ -62,14 +62,14 @@ export default function RoomCategories() {
             <h1 className="text-4xl font-bold text-foreground mb-4">
               Cabinet Collections
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
               Discover our comprehensive range of cabinet solutions designed for every space in your home
             </p>
           </div>
 
-          {/* 2-Row Layout: Kitchen and Laundry Collections */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {/* Kitchen Cabinets Row */}
+          {/* All Cabinet Collections in Grid Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            {/* Kitchen Cabinets */}
             <Card className="overflow-hidden">
               <div className="aspect-video bg-muted">
                 <img
@@ -107,7 +107,7 @@ export default function RoomCategories() {
               </CardContent>
             </Card>
 
-            {/* Laundry Cabinets Row */}
+            {/* Laundry Cabinets */}
             <Card className="overflow-hidden">
               <div className="aspect-video bg-muted">
                 <img
@@ -139,6 +139,120 @@ export default function RoomCategories() {
                   <Link to="/shop/laundry/storage">
                     <Button variant="outline" size="sm" className="w-full">
                       Storage
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Vanity Cabinets */}
+            <Card className="overflow-hidden">
+              <div className="aspect-video bg-muted">
+                <img
+                  src="/src/assets/cabinets-detail.jpg"
+                  alt="Vanity Cabinets"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <CardContent className="p-6">
+                <h2 className="text-2xl font-bold text-foreground mb-4 text-center">
+                  Vanity Cabinets
+                </h2>
+                <div className="grid grid-cols-2 gap-3">
+                  <Link to="/shop/vanity/base">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Base
+                    </Button>
+                  </Link>
+                  <Link to="/shop/vanity/wall">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Wall
+                    </Button>
+                  </Link>
+                  <Link to="/shop/vanity/mirrors">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Mirrors
+                    </Button>
+                  </Link>
+                  <Link to="/shop/vanity/storage">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Storage
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Wardrobe Cabinets */}
+            <Card className="overflow-hidden">
+              <div className="aspect-video bg-muted">
+                <img
+                  src="/src/assets/benchtop-detail.jpg"
+                  alt="Wardrobe Cabinets"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <CardContent className="p-6">
+                <h2 className="text-2xl font-bold text-foreground mb-4 text-center">
+                  Wardrobe Cabinets
+                </h2>
+                <div className="grid grid-cols-2 gap-3">
+                  <Link to="/shop/wardrobe/base">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Base
+                    </Button>
+                  </Link>
+                  <Link to="/shop/wardrobe/wall">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Wall
+                    </Button>
+                  </Link>
+                  <Link to="/shop/wardrobe/hanging">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Hanging
+                    </Button>
+                  </Link>
+                  <Link to="/shop/wardrobe/storage">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Storage
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Outdoor Kitchen Cabinets */}
+            <Card className="overflow-hidden">
+              <div className="aspect-video bg-muted">
+                <img
+                  src="/lovable-uploads/8bf7a8e1-3389-40d8-bd11-5ff1d7de50e8.png"
+                  alt="Outdoor Kitchen Cabinets"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <CardContent className="p-6">
+                <h2 className="text-2xl font-bold text-foreground mb-4 text-center">
+                  Outdoor Kitchen
+                </h2>
+                <div className="grid grid-cols-2 gap-3">
+                  <Link to="/shop/outdoor-kitchen/base">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Base
+                    </Button>
+                  </Link>
+                  <Link to="/shop/outdoor-kitchen/wall">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Wall
+                    </Button>
+                  </Link>
+                  <Link to="/shop/outdoor-kitchen/specialty">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Specialty
+                    </Button>
+                  </Link>
+                  <Link to="/shop/outdoor-kitchen/weatherproof">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Weather Resistant
                     </Button>
                   </Link>
                 </div>

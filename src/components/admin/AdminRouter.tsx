@@ -16,6 +16,7 @@ const RoleManagement = lazy(() => import('@/components/admin/RoleManagement'));
 const QuotesList = lazy(() => import('@/pages/admin/QuotesList'));
 const Assembly = lazy(() => import('@/pages/admin/Assembly'));
 const CategoriesManager = lazy(() => import('@/components/admin/CategoriesManager'));
+const RoomCategoriesManager = lazy(() => import('@/components/admin/RoomCategoriesManager'));
 const CabinetManager = lazy(() => import('@/components/admin/CabinetManager'));
 
 const HardwareManager = lazy(() => import('@/components/admin/HardwareManager'));
@@ -50,6 +51,7 @@ export const AdminRouter = () => {
           
         {/* Configuration */}
         <Route path="categories" element={<CategoriesManager />} />
+        <Route path="room-categories" element={<RoomCategoriesManager />} />
         <Route path="cabinets" element={
           <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
             <CabinetManager />

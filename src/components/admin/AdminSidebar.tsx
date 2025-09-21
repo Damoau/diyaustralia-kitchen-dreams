@@ -70,6 +70,7 @@ const navigationItems = [
   {
     group: 'Configuration',
     items: [
+      { title: 'Room Categories', url: 'room-categories', icon: Home },
       { title: 'Categories & Subcategories', url: 'categories', icon: Palette },
       { title: 'Cabinet Management', url: 'cabinets', icon: Package },
       { title: 'Cabinet Configurator', url: 'cabinet-configurator', icon: Settings },
