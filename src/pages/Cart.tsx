@@ -9,6 +9,7 @@ import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
+import { useCart } from "@/hooks/useCart";
 
 interface CartItem {
   id: string;
@@ -21,56 +22,34 @@ interface CartItem {
 
 const Cart = () => {
   const navigate = useNavigate();
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    // Mock data - replace with real cart data
-    {
-      id: "1",
-      name: "Base Cabinet - 600mm",
-      category: "Base Cabinets",
-      quantity: 2,
-      price: 149.99,
-    },
-    {
-      id: "2", 
-      name: "Wall Cabinet - 800mm",
-      category: "Wall Cabinets",
-      quantity: 1,
-      price: 89.99,
-    }
-  ]);
+  const { cart, updateQuantity, removeFromCart, getItemCount, isLoading } = useCart();
 
-  const updateQuantity = (id: string, newQuantity: number) => {
+  const handleUpdateQuantity = async (id: string, newQuantity: number) => {
     if (newQuantity === 0) {
-      removeItem(id);
+      await handleRemoveItem(id);
       return;
     }
     
-    setCartItems(items => 
-      items.map(item => 
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
+    await updateQuantity(id, newQuantity);
   };
 
-  const removeItem = (id: string) => {
-    setCartItems(items => items.filter(item => item.id !== id));
-    toast.success("Item removed from cart");
+  const handleRemoveItem = async (id: string) => {
+    await removeFromCart(id);
   };
 
   const getTotalPrice = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cart?.total_amount || 0;
   };
 
   const getTotalItems = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
+    return getItemCount();
   };
 
   const handleCheckout = () => {
-    if (cartItems.length === 0) {
+    if (!cart?.items?.length) {
       toast.error("Your cart is empty");
       return;
     }
-    // Navigate to checkout or quote request
     navigate("/get-quote");
   };
 
@@ -91,7 +70,7 @@ const Cart = () => {
             <Badge variant="secondary">{getTotalItems()} items</Badge>
           </div>
 
-          {cartItems.length === 0 ? (
+          {!cart?.items?.length ? (
             <Card className="text-center py-12">
               <CardContent>
                 <ShoppingCart className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
@@ -108,14 +87,47 @@ const Cart = () => {
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Cart Items */}
               <div className="lg:col-span-2 space-y-4">
-                {cartItems.map((item) => (
+                {cart.items.map((item) => (
                   <Card key={item.id}>
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-semibold">{item.name}</h3>
-                          <p className="text-sm text-muted-foreground">{item.category}</p>
-                          <p className="font-medium mt-1">${item.price.toFixed(2)} each</p>
+                        <div className="flex items-center space-x-4">
+                          {item.cabinet_type?.product_image_url && (
+                            <img 
+                              src={item.cabinet_type.product_image_url} 
+                              alt={item.cabinet_type.name}
+                              className="w-20 h-20 object-cover rounded"
+                            />
+                          )}
+                          
+                          <div className="flex-1">
+                            <h3 className="font-semibold">{item.cabinet_type?.name || 'Cabinet'}</h3>
+                            <p className="text-sm text-muted-foreground">{item.cabinet_type?.category}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {item.width_mm} × {item.height_mm} × {item.depth_mm}mm
+                            </p>
+                            
+                            {/* Style selections */}
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {item.door_style?.name && (
+                                <span className="block">Door: {item.door_style.name}</span>
+                              )}
+                              {item.color?.name && (
+                                <span className="block">Color: {item.color.name}</span>
+                              )}
+                              {item.finish?.name && (
+                                <span className="block">Finish: {item.finish.name}</span>
+                              )}
+                            </div>
+                            
+                            {item.notes && (
+                              <p className="text-xs text-muted-foreground mt-1 italic">
+                                Note: {item.notes}
+                              </p>
+                            )}
+                            
+                            <p className="font-medium mt-1">${item.unit_price.toFixed(2)} each</p>
+                          </div>
                         </div>
                         
                         <div className="flex items-center gap-3">
@@ -123,7 +135,8 @@ const Cart = () => {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                              disabled={isLoading}
                             >
                               <Minus className="h-3 w-3" />
                             </Button>
@@ -131,7 +144,8 @@ const Cart = () => {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                              disabled={isLoading}
                             >
                               <Plus className="h-3 w-3" />
                             </Button>
@@ -139,15 +153,16 @@ const Cart = () => {
                           
                           <div className="text-right">
                             <p className="font-semibold">
-                              ${(item.price * item.quantity).toFixed(2)}
+                              ${item.total_price.toFixed(2)}
                             </p>
                           </div>
                           
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => removeItem(item.id)}
+                            onClick={() => handleRemoveItem(item.id)}
                             className="text-destructive hover:text-destructive"
+                            disabled={isLoading}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

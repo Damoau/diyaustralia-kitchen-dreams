@@ -12,6 +12,8 @@ import { toast } from 'sonner';
 import PricingCalculator from '@/lib/pricingCalculator';
 import { StyleColorFinishSelector } from './StyleColorFinishSelector';
 import { useCartSaveTracking } from '@/hooks/useCartSaveTracking';
+import { useCart } from '@/hooks/useCart';
+import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { Ruler, Palette, Settings, FileText, ShoppingCart } from 'lucide-react';
 import { CabinetType, CabinetPart, DoorStyle, Color, Finish, DoorStyleFinish, ColorFinish } from '@/types/cabinet';
 
@@ -59,8 +61,17 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   const [quantity, setQuantity] = useState(1);
   const [styleColorFinishSelectorOpen, setStyleColorFinishSelectorOpen] = useState(false);
 
+  const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const { markAsUnsaved, markAsSaving, markAsSaved, markAsError } = useCartSaveTracking();
+  const { addToCart } = useCart();
+  const { 
+    preferences, 
+    updateStylePreferences,
+    preferredDoorStyleId,
+    preferredColorId,
+    preferredFinishId 
+  } = useUserPreferences();
 
   useEffect(() => {
     if (open) {
@@ -353,25 +364,42 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
   const handleAddToCart = async () => {
     if (!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish) {
-      toast.error('Please complete all selections');
+      toast.error('Please complete all selections before adding to cart');
       return;
     }
 
     setLoading(true);
-    markAsSaving(); // Track save status
+    markAsSaving();
     
     try {
-      // Mark as unsaved when we start the operation
-      markAsUnsaved();
+      const unitPrice = calculateTotalPrice();
+
+      await addToCart({
+        cabinet_type_id: selectedCabinetType.id,
+        door_style_id: selectedDoorStyle,
+        color_id: selectedColor,
+        finish_id: selectedFinish,
+        width_mm: dimensions.width,
+        height_mm: dimensions.height,
+        depth_mm: dimensions.depth,
+        quantity: quantity,
+        unit_price: unitPrice,
+        notes: notes || undefined,
+        configuration: {
+          dimensions,
+          doorStyle: selectedDoorStyle,
+          color: selectedColor,
+          finish: selectedFinish,
+          quantity,
+          notes
+        }
+      });
       
-      // Here you would typically add to cart
-      // For now, just show success message
-      markAsSaved(); // Mark as successfully saved
-      toast.success('Product configured successfully!');
+      markAsSaved();
       onOpenChange(false);
     } catch (error) {
       console.error('Error adding to cart:', error);
-      markAsError(); // Mark save as failed
+      markAsError();
       toast.error('Failed to add to cart');
     } finally {
       setLoading(false);
@@ -382,6 +410,9 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     setSelectedDoorStyle(doorStyleId);
     setSelectedColor(colorId);
     setSelectedFinish(finishId);
+    
+    // Save user preferences for future selections
+    updateStylePreferences(doorStyleId, colorId, finishId);
   };
 
   const getSelectedDoorStyle = () => doorStyles.find(ds => ds.id === selectedDoorStyle);
@@ -717,9 +748,9 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           finishes={finishes}
           doorStyleFinishes={doorStyleFinishes}
           colorFinishes={colorFinishes}
-          selectedDoorStyle={selectedDoorStyle}
-          selectedColor={selectedColor}
-          selectedFinish={selectedFinish}
+          selectedDoorStyle={preferredDoorStyleId || selectedDoorStyle}
+          selectedColor={preferredColorId || selectedColor}
+          selectedFinish={preferredFinishId || selectedFinish}
           onSelectionComplete={handleStyleColorFinishSelection}
         />
       </DialogContent>

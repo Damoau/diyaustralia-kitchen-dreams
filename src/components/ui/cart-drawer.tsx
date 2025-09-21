@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ShoppingCart, Trash2, Plus, Minus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useCart } from "@/hooks/useCart";
 
 interface CartItem {
   id: string;
@@ -23,53 +24,31 @@ interface CartDrawerProps {
 export const CartDrawer = ({ children }: CartDrawerProps) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  
-  // Mock cart data - replace with real cart state
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: "1",
-      name: "Base Cabinet - 600mm",
-      category: "Base Cabinets",
-      quantity: 2,
-      price: 149.99,
-    },
-    {
-      id: "2", 
-      name: "Wall Cabinet - 800mm",
-      category: "Wall Cabinets",
-      quantity: 1,
-      price: 89.99,
-    }
-  ]);
+  const { cart, updateQuantity, removeFromCart, getItemCount, isLoading } = useCart();
 
-  const updateQuantity = (id: string, newQuantity: number) => {
+  const handleUpdateQuantity = async (id: string, newQuantity: number) => {
     if (newQuantity === 0) {
-      removeItem(id);
+      await handleRemoveItem(id);
       return;
     }
     
-    setCartItems(items => 
-      items.map(item => 
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
+    await updateQuantity(id, newQuantity);
   };
 
-  const removeItem = (id: string) => {
-    setCartItems(items => items.filter(item => item.id !== id));
-    toast.success("Item removed from cart");
+  const handleRemoveItem = async (id: string) => {
+    await removeFromCart(id);
   };
 
   const getTotalPrice = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cart?.total_amount || 0;
   };
 
   const getTotalItems = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
+    return getItemCount();
   };
 
   const handleCheckout = () => {
-    if (cartItems.length === 0) {
+    if (!cart?.items?.length) {
       toast.error("Your cart is empty");
       return;
     }
@@ -107,7 +86,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
           </SheetTitle>
         </SheetHeader>
 
-        {cartItems.length === 0 ? (
+        {!cart?.items?.length ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">Your cart is empty</h3>
@@ -122,20 +101,52 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
           <div className="flex flex-col h-full">
             <ScrollArea className="flex-1 pr-6">
               <div className="space-y-4 py-4">
-                {cartItems.map((item) => (
+                {cart.items.map((item) => (
                   <div key={item.id} className="flex items-start space-x-4 py-4 border-b last:border-0">
+                    {item.cabinet_type?.product_image_url && (
+                      <img 
+                        src={item.cabinet_type.product_image_url} 
+                        alt={item.cabinet_type.name}
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    )}
+                    
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium truncate">{item.name}</h4>
-                      <p className="text-sm text-muted-foreground">{item.category}</p>
-                      <p className="text-sm font-medium">${item.price.toFixed(2)} each</p>
+                      <h4 className="font-medium truncate">{item.cabinet_type?.name || 'Cabinet'}</h4>
+                      <p className="text-sm text-muted-foreground">{item.cabinet_type?.category}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.width_mm} × {item.height_mm} × {item.depth_mm}mm
+                      </p>
+                      
+                      {/* Style selections */}
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {item.door_style?.name && (
+                          <span className="block">Door: {item.door_style.name}</span>
+                        )}
+                        {item.color?.name && (
+                          <span className="block">Color: {item.color.name}</span>
+                        )}
+                        {item.finish?.name && (
+                          <span className="block">Finish: {item.finish.name}</span>
+                        )}
+                      </div>
+                      
+                      {item.notes && (
+                        <p className="text-xs text-muted-foreground mt-1 italic">
+                          Note: {item.notes}
+                        </p>
+                      )}
+                      
+                      <p className="text-sm font-medium mt-1">${item.unit_price.toFixed(2)} each</p>
                     </div>
                     
                     <div className="flex flex-col items-end space-y-2">
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => handleRemoveItem(item.id)}
                         className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                        disabled={isLoading}
                       >
                         <X className="h-3 w-3" />
                       </Button>
@@ -144,8 +155,9 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                           className="h-6 w-6 p-0"
+                          disabled={isLoading}
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
@@ -153,15 +165,16 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                           className="h-6 w-6 p-0"
+                          disabled={isLoading}
                         >
                           <Plus className="h-3 w-3" />
                         </Button>
                       </div>
                       
                       <p className="text-sm font-semibold">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        ${item.total_price.toFixed(2)}
                       </p>
                     </div>
                   </div>
