@@ -641,7 +641,7 @@ export type Database = {
             foreignKeyName: "cabinet_types_room_category_id_fkey"
             columns: ["room_category_id"]
             isOneToOne: false
-            referencedRelation: "room_categories"
+            referencedRelation: "unified_categories"
             referencedColumns: ["id"]
           },
           {
