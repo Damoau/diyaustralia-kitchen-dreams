@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
-import Header from "@/components/Header";
+import DynamicHeader from "@/components/DynamicHeader";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
 
 interface CartItem {
   id: string;
@@ -74,14 +75,14 @@ const Cart = () => {
   };
 
   return (
-    <>
+    <ImpersonationLayout>
       <Helmet>
         <title>Shopping Cart - DIY Kitchens</title>
         <meta name="description" content="Review your selected kitchen cabinets and hardware before requesting a quote." />
       </Helmet>
 
       <div className="min-h-screen bg-background">
-        <Header />
+        <DynamicHeader />
         
         <main className="container mx-auto px-4 py-8">
           <div className="flex items-center gap-2 mb-6">
@@ -205,7 +206,7 @@ const Cart = () => {
         
         <Footer />
       </div>
-    </>
+    </ImpersonationLayout>
   );
 };
 

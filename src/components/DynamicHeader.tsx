@@ -6,6 +6,7 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
+import { CartDrawer } from "@/components/ui/cart-drawer";
 
 interface RoomCategory {
   id: string;
@@ -180,19 +181,15 @@ const DynamicHeader = () => {
         </nav>
 
         <div className="flex items-center space-x-4">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="relative hidden md:flex"
-            onClick={() => navigate('/cart')}
-          >
-            <ShoppingCart className="h-4 w-4" />
-            {totalItems > 0 && (
-              <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {totalItems}
-              </span>
-            )}
-          </Button>
+          <CartDrawer>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="relative hidden md:flex"
+            >
+              <ShoppingCart className="h-4 w-4" />
+            </Button>
+          </CartDrawer>
           
           <Button 
             size="sm" 
@@ -245,19 +242,15 @@ const DynamicHeader = () => {
 
         {/* Mobile Menu */}
         <div className="flex md:hidden">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="relative mr-2"
-            onClick={() => navigate('/cart')}
-          >
-            <ShoppingCart className="h-4 w-4" />
-            {totalItems > 0 && (
-              <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {totalItems}
-              </span>
-            )}
-          </Button>
+          <CartDrawer>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="relative mr-2"
+            >
+              <ShoppingCart className="h-4 w-4" />
+            </Button>
+          </CartDrawer>
           
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
