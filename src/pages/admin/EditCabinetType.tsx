@@ -23,6 +23,7 @@ interface CabinetType {
   name: string;
   category: string;
   subcategory?: string;
+  room_category_id?: string;
   cabinet_style?: string;
   active: boolean;
   door_count: number;
@@ -104,6 +105,7 @@ const defaultCabinetType: CabinetType = {
   name: "",
   category: "",
   subcategory: "",
+  room_category_id: "",
   cabinet_style: "standard",
   active: true,
   door_count: 0,
@@ -264,6 +266,54 @@ export default function EditCabinetType() {
       
       if (error) throw error;
       return data as DoorStyle[];
+    },
+  });
+
+  // Fetch subcategories from unified categories system based on selected room and category
+  const { data: subcategories, isLoading: loadingSubcategories } = useQuery({
+    queryKey: ['subcategories-unified', cabinetType.room_category_id, cabinetType.category],
+    queryFn: async () => {
+      if (!cabinetType.room_category_id || !cabinetType.category) return [];
+      
+      // First get the Level 2 category ID
+      const { data: level2Data, error: level2Error } = await supabase
+        .from('unified_categories')
+        .select('id')
+        .eq('level', 2)
+        .eq('name', cabinetType.category)
+        .eq('active', true);
+      
+      if (level2Error || !level2Data?.length) return [];
+      
+      // Then get Level 3 subcategories for those Level 2 categories
+      const parentIds = level2Data.map(cat => cat.id);
+      const { data, error } = await supabase
+        .from('unified_categories')
+        .select('*')
+        .eq('level', 3)
+        .eq('active', true)
+        .in('parent_id', parentIds)
+        .order('sort_order');
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!(cabinetType.room_category_id && cabinetType.category),
+  });
+
+  // Fetch room categories from unified categories system
+  const { data: roomCategories, isLoading: loadingRooms } = useQuery({
+    queryKey: ['room-categories-unified'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('unified_categories')
+        .select('*')
+        .eq('level', 1)
+        .eq('active', true)
+        .order('sort_order');
+      
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -762,7 +812,7 @@ export default function EditCabinetType() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="name">Name *</Label>
                       <Input
@@ -771,6 +821,25 @@ export default function EditCabinetType() {
                         onChange={(e) => handleInputChange('name', e.target.value)}
                         placeholder="e.g., 4 door base"
                       />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="room">Room *</Label>
+                      <Select
+                        value={cabinetType.room_category_id || ''}
+                        onValueChange={(value) => handleInputChange('room_category_id', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select room" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {roomCategories?.map((room) => (
+                            <SelectItem key={room.id} value={room.id}>
+                              {room.display_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="space-y-2">
@@ -790,6 +859,9 @@ export default function EditCabinetType() {
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                     <div className="space-y-2">
                       <Label htmlFor="subcategory">Subcategory</Label>
@@ -801,43 +873,18 @@ export default function EditCabinetType() {
                           <SelectValue placeholder="Select subcategory" />
                         </SelectTrigger>
                         <SelectContent>
-                          {cabinetType.category === 'base' && (
-                            <>
-                              <SelectItem value="doors">Doors</SelectItem>
-                              <SelectItem value="drawers">Drawers</SelectItem>
-                              <SelectItem value="bin_cabinets">Bin Cabinets</SelectItem>
-                              <SelectItem value="sink_cabinets">Sink Cabinets</SelectItem>
-                              <SelectItem value="appliance_cabinets">Appliance Cabinets</SelectItem>
-                            </>
-                          )}
-                          {cabinetType.category === 'wall' && (
-                            <>
-                              <SelectItem value="standard">Standard Wall</SelectItem>
-                              <SelectItem value="glass_door">Glass Door</SelectItem>
-                              <SelectItem value="open_shelves">Open Shelves</SelectItem>
-                              <SelectItem value="microwave">Microwave</SelectItem>
-                              <SelectItem value="rangehood">Rangehood</SelectItem>
-                            </>
-                          )}
-                          {cabinetType.category === 'tall' && (
-                            <>
-                              <SelectItem value="pantry">Pantry</SelectItem>
-                              <SelectItem value="broom_cabinet">Broom Cabinet</SelectItem>
-                              <SelectItem value="oven_tower">Oven Tower</SelectItem>
-                              <SelectItem value="fridge_cabinet">Fridge Cabinet</SelectItem>
-                              <SelectItem value="storage_cabinet">Storage Cabinet</SelectItem>
-                            </>
-                          )}
-                          {cabinetType.category === 'corner' && (
-                            <>
-                              <SelectItem value="lazy_susan">Lazy Susan</SelectItem>
-                              <SelectItem value="blind_corner">Blind Corner</SelectItem>
-                              <SelectItem value="magic_corner">Magic Corner</SelectItem>
-                              <SelectItem value="diagonal_corner">Diagonal Corner</SelectItem>
-                            </>
-                          )}
-                          {!cabinetType.category && (
-                            <SelectItem value="none" disabled>Select a category first</SelectItem>
+                          {subcategories && subcategories.length > 0 ? (
+                            subcategories.map((subcat) => (
+                              <SelectItem key={subcat.id} value={subcat.name}>
+                                {subcat.display_name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="none" disabled>
+                              {!cabinetType.room_category_id || !cabinetType.category 
+                                ? "Select room and category first" 
+                                : "No subcategories available"}
+                            </SelectItem>
                           )}
                         </SelectContent>
                       </Select>
