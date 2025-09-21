@@ -35,10 +35,19 @@ interface CabinetType {
   meta_keywords?: string;
 }
 
+interface RoomCategory {
+  id: string;
+  name: string;
+  display_name: string;
+  description?: string;
+  hero_image_url?: string;
+}
+
 const ProductPage = () => {
-  const { category, productSlug } = useParams<{ category: string; productSlug: string }>();
+  const { room, category, productSlug } = useParams<{ room: string; category: string; productSlug: string }>();
   const navigate = useNavigate();
   const [cabinet, setCabinet] = useState<CabinetType | null>(null);
+  const [roomCategory, setRoomCategory] = useState<RoomCategory | null>(null);
   const [loading, setLoading] = useState(true);
   const [configuratorOpen, setConfiguratorOpen] = useState(false);
 
@@ -62,14 +71,24 @@ const ProductPage = () => {
   const dbCategory = categoryMapping[category || ''];
 
   useEffect(() => {
-    const loadCabinet = async () => {
-      if (!dbCategory || !productSlug) {
+    const loadData = async () => {
+      if (!dbCategory || !productSlug || !room) {
         navigate('/shop');
         return;
       }
 
       try {
-        // Try to find by url_slug first, then fallback to name-based slug
+        // Load room category data
+        const { data: roomData, error: roomError } = await supabase
+          .from('room_categories')
+          .select('*')
+          .eq('name', room)
+          .single();
+
+        if (roomError) throw roomError;
+        setRoomCategory(roomData);
+
+        // Try to find cabinet by url_slug first, then fallback to name-based slug
         let { data, error } = await supabase
           .from('cabinet_types')
           .select('*')
@@ -93,21 +112,21 @@ const ProductPage = () => {
         if (error && error.code !== 'PGRST116') throw error;
         
         if (!data) {
-          navigate(`/shop/${category}`);
+          navigate(`/shop/${room}/${category}`);
           return;
         }
 
         setCabinet(data);
       } catch (error) {
-        console.error('Error loading cabinet:', error);
-        navigate(`/shop/${category}`);
+        console.error('Error loading data:', error);
+        navigate(`/shop/${room}/${category}`);
       } finally {
         setLoading(false);
       }
     };
 
-    loadCabinet();
-  }, [category, productSlug, dbCategory, navigate]);
+    loadData();
+  }, [room, category, productSlug, dbCategory, navigate]);
 
   if (loading) {
     return (
@@ -124,9 +143,9 @@ const ProductPage = () => {
     return null; // Will redirect in useEffect
   }
 
-  const pageTitle = cabinet.meta_title || `${cabinet.name} - ${displayCategory} | Your Company`;
-  const pageDescription = cabinet.meta_description || cabinet.long_description || cabinet.short_description || `${cabinet.name} - Premium kitchen cabinet with customizable dimensions and finishes.`;
-  const pageKeywords = cabinet.meta_keywords || `${cabinet.name}, ${displayCategory.toLowerCase()}, kitchen cabinets, custom cabinets`;
+  const pageTitle = cabinet.meta_title || `${cabinet.name} - ${roomCategory?.display_name || 'Cabinet'} ${displayCategory} | Your Company`;
+  const pageDescription = cabinet.meta_description || cabinet.long_description || cabinet.short_description || `${cabinet.name} - Premium ${roomCategory?.display_name?.toLowerCase() || 'kitchen'} cabinet with customizable dimensions and finishes.`;
+  const pageKeywords = cabinet.meta_keywords || `${cabinet.name}, ${displayCategory.toLowerCase()}, ${roomCategory?.display_name?.toLowerCase() || 'kitchen'} cabinets, custom cabinets`;
 
   return (
     <>
@@ -134,7 +153,7 @@ const ProductPage = () => {
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
         <meta name="keywords" content={pageKeywords} />
-        <link rel="canonical" href={`${window.location.origin}/shop/${category}/${productSlug}`} />
+        <link rel="canonical" href={`${window.location.origin}/shop/${room}/${category}/${productSlug}`} />
         
         {/* Structured Data for Product */}
         <script type="application/ld+json">
@@ -170,7 +189,11 @@ const ProductPage = () => {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink href={`/shop/${category}`}>{displayCategory}</BreadcrumbLink>
+                <BreadcrumbLink href={`/shop/${room}`}>{roomCategory?.display_name || room}</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href={`/shop/${room}/${category}`}>{displayCategory}</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -178,6 +201,16 @@ const ProductPage = () => {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
+
+          {/* Room Category Subheading */}
+          {roomCategory && (
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-primary mb-2">{roomCategory.display_name}</h2>
+              {roomCategory.description && (
+                <p className="text-lg text-muted-foreground">{roomCategory.description}</p>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
             {/* Product Image */}
@@ -267,7 +300,7 @@ const ProductPage = () => {
                   variant="outline"
                   size="lg"
                   className="w-full"
-                  onClick={() => navigate(`/shop/${category}`)}
+                  onClick={() => navigate(`/shop/${room}/${category}`)}
                 >
                   Back to {displayCategory}
                 </Button>
