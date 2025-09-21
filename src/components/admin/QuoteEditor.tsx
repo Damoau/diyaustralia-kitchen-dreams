@@ -205,7 +205,9 @@ export const QuoteEditor = ({ quote, open, onOpenChange, onQuoteUpdated }: Quote
 
     setEmailSending(true);
     try {
-      const { error } = await supabase.functions.invoke('send-quote-notification', {
+      console.log('Sending email to:', formData.customer_email);
+      
+      const { data, error } = await supabase.functions.invoke('send-quote-notification', {
         body: {
           quote_id: quote.id,
           customer_email: formData.customer_email,
@@ -214,7 +216,17 @@ export const QuoteEditor = ({ quote, open, onOpenChange, onQuoteUpdated }: Quote
         }
       });
 
-      if (error) throw error;
+      console.log('Email function response:', { data, error });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
+
+      if (data?.error) {
+        console.error('Function returned error:', data.error);
+        throw new Error(data.error);
+      }
 
       // Update quote status to 'sent'
       await supabase
@@ -232,7 +244,7 @@ export const QuoteEditor = ({ quote, open, onOpenChange, onQuoteUpdated }: Quote
       console.error('Error sending email:', error);
       toast({
         title: "Error",
-        description: "Failed to send quote email",
+        description: error.message || "Failed to send quote email",
         variant: "destructive"
       });
     } finally {
