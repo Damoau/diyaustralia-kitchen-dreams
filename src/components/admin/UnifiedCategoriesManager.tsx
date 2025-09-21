@@ -293,7 +293,18 @@ export const UnifiedCategoriesManager: React.FC = () => {
     
     return flatCategories
       .filter(cat => cat.level < formData.level)
-      .filter(cat => cat.level === formData.level - 1); // Only direct parents
+      .filter(cat => cat.level === formData.level - 1) // Only direct parents
+      .map(cat => {
+        // For Level 2 categories, find their parent room name
+        if (cat.level === 2 && cat.parent_id) {
+          const roomParent = flatCategories.find(room => room.id === cat.parent_id);
+          return {
+            ...cat,
+            display_name: roomParent ? `${cat.display_name} (${roomParent.display_name})` : cat.display_name
+          };
+        }
+        return cat;
+      });
   };
 
   return (
