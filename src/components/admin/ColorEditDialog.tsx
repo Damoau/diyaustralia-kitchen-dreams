@@ -36,7 +36,7 @@ const ColorEditDialog = ({ color, open, onOpenChange, onSave }: ColorEditDialogP
     hex_code: "",
     image_url: "",
     active: true,
-    door_style_ids: [] as string[],
+    door_style_id: "",
     surcharge_rate_per_sqm: 0
   });
 
@@ -63,7 +63,7 @@ const ColorEditDialog = ({ color, open, onOpenChange, onSave }: ColorEditDialogP
         hex_code: color.hex_code || "",
         image_url: color.image_url || "",
         active: color.active,
-        door_style_ids: color.door_style_id ? [color.door_style_id] : [],
+        door_style_id: color.door_style_id || "",
         surcharge_rate_per_sqm: color.surcharge_rate_per_sqm
       });
     } else {
@@ -72,19 +72,16 @@ const ColorEditDialog = ({ color, open, onOpenChange, onSave }: ColorEditDialogP
         hex_code: "",
         image_url: "",
         active: true,
-        door_style_ids: [],
+        door_style_id: "",
         surcharge_rate_per_sqm: 0
       });
     }
   }, [color]);
 
   const handleSave = () => {
-    // For now, save with the first selected door style to maintain compatibility
-    // In a full implementation, you'd need to update the backend to handle multiple door styles
     onSave({
       id: color?.id,
-      ...formData,
-      door_style_id: formData.door_style_ids[0] || ""
+      ...formData
     });
   };
 
@@ -105,35 +102,19 @@ const ColorEditDialog = ({ color, open, onOpenChange, onSave }: ColorEditDialogP
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="door_styles">Door Styles (Multiple)</Label>
-            <div className="border rounded-md p-3 max-h-40 overflow-y-auto">
-              {doorStyles.map((doorStyle) => (
-                <div key={doorStyle.id} className="flex items-center space-x-2 py-1">
-                  <input
-                    type="checkbox"
-                    id={`door-style-${doorStyle.id}`}
-                    checked={formData.door_style_ids.includes(doorStyle.id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setFormData({
-                          ...formData,
-                          door_style_ids: [...formData.door_style_ids, doorStyle.id]
-                        });
-                      } else {
-                        setFormData({
-                          ...formData,
-                          door_style_ids: formData.door_style_ids.filter(id => id !== doorStyle.id)
-                        });
-                      }
-                    }}
-                    className="h-4 w-4"
-                  />
-                  <Label htmlFor={`door-style-${doorStyle.id}`} className="text-sm font-normal cursor-pointer">
+            <Label htmlFor="door_style">Door Style</Label>
+            <Select value={formData.door_style_id} onValueChange={(value) => setFormData({...formData, door_style_id: value})}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select door style" />
+              </SelectTrigger>
+              <SelectContent>
+                {doorStyles.map((doorStyle) => (
+                  <SelectItem key={doorStyle.id} value={doorStyle.id}>
                     {doorStyle.name}
-                  </Label>
-                </div>
-              ))}
-            </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="hex_code">Hex Code</Label>
