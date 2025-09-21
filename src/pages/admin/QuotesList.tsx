@@ -11,7 +11,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useQuotes, Quote, QuoteStats } from '@/hooks/useQuotes';
 import { AdminQuoteCreator } from '@/components/admin/AdminQuoteCreator';
-import { Search, FileText, Eye, CheckCircle, XCircle } from 'lucide-react';
+import { QuoteEditor } from '@/components/admin/QuoteEditor';
+import { Edit, CheckCircle, XCircle, Search, FileText } from 'lucide-react';
 
 const QuotesList = () => {
   const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -20,6 +21,7 @@ const QuotesList = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
   const [actionType, setActionType] = useState<'approve' | 'reject' | 'convert' | null>(null);
   const [actionNotes, setActionNotes] = useState('');
 
@@ -63,6 +65,11 @@ const QuotesList = () => {
     setSelectedQuote(quote);
     setActionType(action);
     setDialogOpen(true);
+  };
+
+  const openEditor = (quote: Quote) => {
+    setSelectedQuote(quote);
+    setEditorOpen(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -109,6 +116,9 @@ const QuotesList = () => {
       label: 'Actions',
       render: (value: string, quote: Quote) => (
         <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => openEditor(quote)}>
+            <Edit className="w-4 h-4" />
+          </Button>
           <Button size="sm" variant="outline" onClick={() => openActionDialog(quote, 'approve')}>
             <CheckCircle className="w-4 h-4" />
           </Button>
@@ -267,6 +277,14 @@ const QuotesList = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Quote Editor */}
+      <QuoteEditor
+        quote={selectedQuote}
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+        onQuoteUpdated={loadData}
+      />
     </div>
   );
 };

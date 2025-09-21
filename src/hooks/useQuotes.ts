@@ -6,7 +6,10 @@ export interface Quote {
   id: string;
   quote_number: string;
   user_id: string;
+  customer_email: string;
   total_amount: number;
+  subtotal: number;
+  tax_amount: number;
   status: string;
   valid_until: string;
   created_at: string;
@@ -19,17 +22,25 @@ export interface Quote {
     company?: string;
   };
   items?: QuoteItem[];
+  quote_items?: QuoteItem[];
   version: number;
 }
 
 export interface QuoteItem {
-  id: string;
+  id?: string;
   quote_id: string;
   cabinet_type_id: string;
+  door_style_id?: string;
+  color_id?: string;
+  finish_id?: string;
+  width_mm: number;
+  height_mm: number;
+  depth_mm: number;
   quantity: number;
   unit_price: number;
   total_price: number;
-  specifications: any;
+  configuration?: any;
+  specifications?: any;
 }
 
 export interface QuoteStats {
@@ -84,7 +95,10 @@ export const useQuotes = () => {
         id: quote.id,
         quote_number: quote.quote_number || `QUO-${quote.id.slice(0, 8)}`,
         user_id: quote.user_id,
+        customer_email: quote.customer_email || 'unknown@example.com',
         total_amount: quote.total_amount || 0,
+        subtotal: quote.subtotal || 0,
+        tax_amount: quote.tax_amount || 0,
         status: quote.status || 'draft',
         valid_until: quote.valid_until,
         created_at: quote.created_at,
@@ -92,13 +106,41 @@ export const useQuotes = () => {
         notes: quote.notes,
         version: quote.version_number || 1,
         customer_details: {
-          name: quote.customer_name || 'Customer',
+          name: quote.customer_name || quote.customer_email?.split('@')[0] || 'Customer',
           email: quote.customer_email || 'customer@example.com',
           phone: quote.customer_phone,
           company: quote.customer_company
         },
         items: (quote.quote_items || []).map((item: any) => ({
-          ...item,
+          id: item.id,
+          quote_id: item.quote_id,
+          cabinet_type_id: item.cabinet_type_id,
+          door_style_id: item.door_style_id,
+          color_id: item.color_id,
+          finish_id: item.finish_id,
+          width_mm: item.width_mm || 600,
+          height_mm: item.height_mm || 720,
+          depth_mm: item.depth_mm || 560,
+          quantity: item.quantity || 1,
+          unit_price: item.unit_price || 0,
+          total_price: item.total_price || 0,
+          configuration: item.configuration,
+          specifications: item.configuration || {}
+        })),
+        quote_items: (quote.quote_items || []).map((item: any) => ({
+          id: item.id,
+          quote_id: item.quote_id,
+          cabinet_type_id: item.cabinet_type_id,
+          door_style_id: item.door_style_id,
+          color_id: item.color_id,
+          finish_id: item.finish_id,
+          width_mm: item.width_mm || 600,
+          height_mm: item.height_mm || 720,
+          depth_mm: item.depth_mm || 560,
+          quantity: item.quantity || 1,
+          unit_price: item.unit_price || 0,
+          total_price: item.total_price || 0,
+          configuration: item.configuration,
           specifications: item.configuration || {}
         }))
       }));
