@@ -94,7 +94,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email
     const { error: emailError } = await resend.emails.send({
-      from: 'Sydney Trade Machines <quotes@sydneytrademachines.com.au>',
+      from: 'DIY Kitchens <onboarding@resend.dev>',
       to: [customer_email],
       subject,
       html,
