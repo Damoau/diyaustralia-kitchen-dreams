@@ -129,7 +129,6 @@ Deno.serve(async (req) => {
         quantity: item.quantity,
         unit_price: item.unit_price,
         total_price: item.total_price,
-        notes: item.notes,
         configuration: item.configuration
       }));
 
