@@ -487,14 +487,14 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         depth_mm: dimensions.depth,
         quantity: quantity,
         unit_price: unitPrice,
-        notes: notes?.trim() || 'Added to cart', // Always save some notes for testing
+        notes: notes?.trim() || null,
         configuration: {
           dimensions,
           doorStyle: selectedDoorStyle,
           color: selectedColor,
           finish: selectedFinish,
           quantity,
-          notes: notes?.trim() || 'Added to cart' // Always save some notes for testing
+          notes: notes?.trim() || null
         }
       });
       
@@ -812,6 +812,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                         <Textarea
                           placeholder="Special requirements or notes..."
                           className="min-h-[80px] resize-none text-sm border-2 focus:border-primary/50"
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
                         />
                       </CardContent>
                     </Card>
