@@ -20,6 +20,7 @@ const KitchenStyles = lazy(() => import("./pages/KitchenStyles"));
 const GetQuote = lazy(() => import("./pages/GetQuote"));
 const Manufacturing = lazy(() => import("./pages/Manufacturing"));
 const Auth = lazy(() => import("./pages/Auth"));
+const Cart = lazy(() => import("./pages/Cart"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const PriceList = lazy(() => import("./pages/PriceList"));
 
@@ -74,6 +75,7 @@ const App = () => (
                   <Route path="/get-quote" element={<GetQuote />} />
                   <Route path="/manufacturing" element={<Manufacturing />} />
                   <Route path="/kitchen-styles" element={<KitchenStyles />} />
+                  <Route path="/cart" element={<Cart />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route 
                     path="/portal/*" 
