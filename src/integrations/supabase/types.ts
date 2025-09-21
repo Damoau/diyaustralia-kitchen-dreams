@@ -3665,6 +3665,56 @@ export type Database = {
           },
         ]
       }
+      unified_categories: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          description: string | null
+          display_name: string
+          hero_image_url: string | null
+          id: string
+          level: number
+          name: string
+          parent_id: string | null
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          hero_image_url?: string | null
+          id?: string
+          level: number
+          name: string
+          parent_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          hero_image_url?: string | null
+          id?: string
+          level?: number
+          name?: string
+          parent_id?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unified_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "unified_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
