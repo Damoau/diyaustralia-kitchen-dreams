@@ -67,7 +67,7 @@ export const UnifiedCategoriesManager: React.FC = () => {
   const { data: categories, isLoading } = useQuery({
     queryKey: ['admin-unified-categories'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('unified_categories')
         .select('*')
         .order('level')
@@ -79,11 +79,11 @@ export const UnifiedCategoriesManager: React.FC = () => {
       const categoryMap = new Map<string, Category>();
       const rootCategories: Category[] = [];
       
-      data.forEach(cat => {
+      (data || []).forEach((cat: any) => {
         categoryMap.set(cat.id, { ...cat, children: [] });
       });
       
-      data.forEach(cat => {
+      (data || []).forEach((cat: any) => {
         const category = categoryMap.get(cat.id)!;
         if (cat.parent_id) {
           const parent = categoryMap.get(cat.parent_id);
@@ -103,21 +103,21 @@ export const UnifiedCategoriesManager: React.FC = () => {
   const { data: flatCategories } = useQuery({
     queryKey: ['admin-flat-categories'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('unified_categories')
         .select('*')
         .order('level')
         .order('sort_order');
       
       if (error) throw error;
-      return data as Category[];
+      return (data || []) as Category[];
     },
   });
 
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: CategoryFormData) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('unified_categories')
         .insert([data]);
       
@@ -137,7 +137,7 @@ export const UnifiedCategoriesManager: React.FC = () => {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: CategoryFormData }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('unified_categories')
         .update(data)
         .eq('id', id);
@@ -158,7 +158,7 @@ export const UnifiedCategoriesManager: React.FC = () => {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('unified_categories')
         .delete()
         .eq('id', id);
