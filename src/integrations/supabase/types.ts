@@ -217,6 +217,8 @@ export type Database = {
         Row: {
           action: string
           actor_id: string | null
+          after_data: Json | null
+          before_data: Json | null
           created_at: string
           id: string
           ip_address: unknown | null
@@ -232,6 +234,8 @@ export type Database = {
         Insert: {
           action: string
           actor_id?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
           created_at?: string
           id?: string
           ip_address?: unknown | null
@@ -247,6 +251,8 @@ export type Database = {
         Update: {
           action?: string
           actor_id?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
           created_at?: string
           id?: string
           ip_address?: unknown | null
