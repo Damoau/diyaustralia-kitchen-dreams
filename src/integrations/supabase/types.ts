@@ -224,6 +224,8 @@ export type Database = {
           new_values: Json | null
           old_values: Json | null
           record_id: string | null
+          scope: string | null
+          scope_id: string | null
           table_name: string
           user_agent: string | null
         }
@@ -237,6 +239,8 @@ export type Database = {
           new_values?: Json | null
           old_values?: Json | null
           record_id?: string | null
+          scope?: string | null
+          scope_id?: string | null
           table_name: string
           user_agent?: string | null
         }
@@ -250,6 +254,8 @@ export type Database = {
           new_values?: Json | null
           old_values?: Json | null
           record_id?: string | null
+          scope?: string | null
+          scope_id?: string | null
           table_name?: string
           user_agent?: string | null
         }
