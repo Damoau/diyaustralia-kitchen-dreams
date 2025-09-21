@@ -228,7 +228,7 @@ export type Database = {
           record_id: string | null
           scope: string | null
           scope_id: string | null
-          table_name: string
+          table_name: string | null
           user_agent: string | null
         }
         Insert: {
@@ -245,7 +245,7 @@ export type Database = {
           record_id?: string | null
           scope?: string | null
           scope_id?: string | null
-          table_name: string
+          table_name?: string | null
           user_agent?: string | null
         }
         Update: {
@@ -262,7 +262,7 @@ export type Database = {
           record_id?: string | null
           scope?: string | null
           scope_id?: string | null
-          table_name?: string
+          table_name?: string | null
           user_agent?: string | null
         }
         Relationships: []
