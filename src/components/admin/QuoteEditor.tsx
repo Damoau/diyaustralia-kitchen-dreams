@@ -10,8 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FileAttachments } from './FileAttachments';
+import { QuoteItemEditor } from './QuoteItemEditor';
+import { QuoteItemCard } from './QuoteItemCard';
 import { Quote, QuoteItem } from '@/hooks/useQuotes';
-import { Plus, Trash2, Mail } from 'lucide-react';
+import { Plus, Trash2, Mail, Edit, Image } from 'lucide-react';
 
 interface QuoteEditorProps {
   quote: Quote | null;
@@ -29,6 +31,9 @@ export const QuoteEditor = ({ quote, open, onOpenChange, onQuoteUpdated }: Quote
   const [doorStyles, setDoorStyles] = useState<any[]>([]);
   const [colors, setColors] = useState<any[]>([]);
   const [finishes, setFinishes] = useState<any[]>([]);
+  const [itemEditorOpen, setItemEditorOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<QuoteItem | null>(null);
+  const [editingItemIndex, setEditingItemIndex] = useState<number>(-1);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -54,16 +59,37 @@ export const QuoteEditor = ({ quote, open, onOpenChange, onQuoteUpdated }: Quote
   };
 
   const addItem = () => {
-    setItems([...items, {
-      cabinet_type_id: '',
+    const newItem: QuoteItem = {
+      cabinet_type_id: cabinetTypes[0]?.id || '',
       quote_id: quote?.id || '',
       width_mm: 600,
       height_mm: 720,
       depth_mm: 560,
       quantity: 1,
       unit_price: 0,
-      total_price: 0
-    }]);
+      total_price: 0,
+      notes: ''
+    };
+    
+    setItems([...items, newItem]);
+    
+    // Immediately open editor for new item
+    setEditingItem(newItem);
+    setEditingItemIndex(items.length);
+    setItemEditorOpen(true);
+  };
+
+  const openItemEditor = (index: number) => {
+    setEditingItem(items[index]);
+    setEditingItemIndex(index);
+    setItemEditorOpen(true);
+  };
+
+  const handleItemUpdated = (updatedItem: QuoteItem) => {
+    const newItems = [...items];
+    newItems[editingItemIndex] = updatedItem;
+    setItems(newItems);
+    calculateTotals(newItems);
   };
 
   const updateItem = (index: number, field: string, value: any) => {
@@ -294,83 +320,24 @@ export const QuoteEditor = ({ quote, open, onOpenChange, onQuoteUpdated }: Quote
             </CardHeader>
             <CardContent className="space-y-4">
               {items.map((item, index) => (
-                <div key={index} className="border p-4 rounded-lg space-y-3">
-                  <div className="flex justify-between items-start">
-                    <h4 className="font-medium">Item {index + 1}</h4>
-                    <Button variant="ghost" size="sm" onClick={() => removeItem(index)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <Label>Cabinet Type</Label>
-                      <Select value={item.cabinet_type_id} onValueChange={(value) => updateItem(index, 'cabinet_type_id', value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select cabinet type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {cabinetTypes.map(type => (
-                            <SelectItem key={type.id} value={type.id}>{type.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-2">
-                      <div>
-                        <Label>Width (mm)</Label>
-                        <Input
-                          type="number"
-                          value={item.width_mm}
-                          onChange={(e) => updateItem(index, 'width_mm', parseInt(e.target.value))}
-                        />
-                      </div>
-                      <div>
-                        <Label>Height (mm)</Label>
-                        <Input
-                          type="number"
-                          value={item.height_mm}
-                          onChange={(e) => updateItem(index, 'height_mm', parseInt(e.target.value))}
-                        />
-                      </div>
-                      <div>
-                        <Label>Depth (mm)</Label>
-                        <Input
-                          type="number"
-                          value={item.depth_mm}
-                          onChange={(e) => updateItem(index, 'depth_mm', parseInt(e.target.value))}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2">
-                      <div>
-                        <Label>Quantity</Label>
-                        <Input
-                          type="number"
-                          min="1"
-                          value={item.quantity}
-                          onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value))}
-                        />
-                      </div>
-                      <div>
-                        <Label>Unit Price ($)</Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={item.unit_price}
-                          onChange={(e) => updateItem(index, 'unit_price', parseFloat(e.target.value))}
-                        />
-                      </div>
-                      <div>
-                        <Label>Total ($)</Label>
-                        <div className="text-lg font-bold pt-2">{item.total_price?.toFixed(2) || '0.00'}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <QuoteItemCard
+                  key={index}
+                  item={item}
+                  index={index}
+                  cabinetTypes={cabinetTypes}
+                  doorStyles={doorStyles}
+                  colors={colors}
+                  finishes={finishes}
+                  onEdit={() => openItemEditor(index)}
+                  onRemove={() => removeItem(index)}
+                />
               ))}
+
+              {items.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No items added yet. Click "Add Item" to get started.</p>
+                </div>
+              )}
 
               {/* Totals */}
               <div className="border-t pt-4 space-y-2">
@@ -410,6 +377,14 @@ export const QuoteEditor = ({ quote, open, onOpenChange, onQuoteUpdated }: Quote
             </Button>
           </div>
         </div>
+
+        {/* Quote Item Editor */}
+        <QuoteItemEditor
+          item={editingItem}
+          open={itemEditorOpen}
+          onOpenChange={setItemEditorOpen}
+          onItemUpdated={handleItemUpdated}
+        />
       </DialogContent>
     </Dialog>
   );

@@ -57,12 +57,13 @@ const handler = async (req: Request): Promise<Response> => {
       quoteData = quote;
     }
 
-    // Check if user exists, if not create a temporary password
-    const { data: existingUser } = await supabase.auth.admin.getUserByEmail(customer_email);
+    // Check if user exists by trying to list users with email filter
+    const { data: users } = await supabase.auth.admin.listUsers();
+    const existingUser = users.users?.find(user => user.email === customer_email);
     let isNewUser = false;
     let temporaryPassword = '';
 
-    if (!existingUser.user) {
+    if (!existingUser) {
       isNewUser = true;
       temporaryPassword = generateTemporaryPassword();
       
