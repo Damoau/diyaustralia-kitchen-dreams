@@ -3048,6 +3048,7 @@ export type Database = {
           finish_id: string | null
           height_mm: number
           id: string
+          notes: string | null
           quantity: number
           quote_id: string
           total_price: number
@@ -3064,6 +3065,7 @@ export type Database = {
           finish_id?: string | null
           height_mm: number
           id?: string
+          notes?: string | null
           quantity?: number
           quote_id: string
           total_price: number
@@ -3080,6 +3082,7 @@ export type Database = {
           finish_id?: string | null
           height_mm?: number
           id?: string
+          notes?: string | null
           quantity?: number
           quote_id?: string
           total_price?: number
