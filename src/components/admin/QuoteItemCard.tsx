@@ -26,10 +26,11 @@ export const QuoteItemCard = ({
   onEdit, 
   onRemove 
 }: QuoteItemCardProps) => {
-  const cabinetType = cabinetTypes.find(ct => ct.id === item.cabinet_type_id);
-  const doorStyle = doorStyles.find(ds => ds.id === item.door_style_id);
-  const color = colors.find(c => c.id === item.color_id);
-  const finish = finishes.find(f => f.id === item.finish_id);
+  // Use related data from the item first, then fallback to lookup
+  const cabinetType = item.cabinet_type || cabinetTypes.find(ct => ct.id === item.cabinet_type_id);
+  const doorStyle = item.door_style || doorStyles.find(ds => ds.id === item.door_style_id);
+  const color = item.color || colors.find(c => c.id === item.color_id);
+  const finish = item.finish || finishes.find(f => f.id === item.finish_id);
 
   return (
     <Card className="overflow-hidden">

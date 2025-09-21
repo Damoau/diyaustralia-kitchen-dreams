@@ -130,7 +130,8 @@ Deno.serve(async (req) => {
         quantity: item.quantity,
         unit_price: item.unit_price,
         total_price: item.total_price,
-        configuration: item.configuration
+        configuration: item.configuration,
+        notes: item.notes || item.configuration?.notes || null
       }));
 
       const { error: itemsError } = await supabase
@@ -165,7 +166,12 @@ Deno.serve(async (req) => {
         })
       });
 
-      console.log(`Cart ${cart_id} converted to quote ${newQuote.id} for user ${userId}`);
+      console.log('Cart to quote conversion completed:', {
+        quoteId: newQuote.id,
+        quoteNumber: quoteNumber,
+        totalAmount: totalAmount,
+        itemsCount: cart.cart_items.length
+      });
 
       return new Response(JSON.stringify({ 
         success: true, 

@@ -42,6 +42,26 @@ export interface QuoteItem {
   configuration?: any;
   specifications?: any;
   notes?: string;
+  // Related data loaded from join queries
+  cabinet_type?: {
+    name: string;
+    category: string;
+    product_image_url?: string;
+  };
+  door_style?: {
+    id: string;
+    name: string;
+    image_url?: string;
+  };
+  color?: {
+    id: string;
+    name: string;
+    hex_code?: string;
+  };
+  finish?: {
+    id: string;
+    name: string;
+  };
 }
 
 export interface QuoteStats {
@@ -68,7 +88,22 @@ export const useQuotes = () => {
             *,
             cabinet_types (
               name,
-              category
+              category,
+              product_image_url
+            ),
+            door_styles (
+              id,
+              name,
+              image_url
+            ),
+            colors (
+              id,
+              name,
+              hex_code
+            ),
+            finishes (
+              id,
+              name
             )
           )
         `)
@@ -127,7 +162,12 @@ export const useQuotes = () => {
           total_price: item.total_price || 0,
           configuration: item.configuration,
           specifications: item.configuration || {},
-          notes: item.notes
+          notes: item.notes,
+          // Add references to the related data for proper display
+          cabinet_type: item.cabinet_types,
+          door_style: item.door_styles,
+          color: item.colors,
+          finish: item.finishes
         })),
         quote_items: (quote.quote_items || []).map((item: any) => ({
           id: item.id,
@@ -144,7 +184,12 @@ export const useQuotes = () => {
           total_price: item.total_price || 0,
           configuration: item.configuration,
           specifications: item.configuration || {},
-          notes: item.notes
+          notes: item.notes,
+          // Add references to the related data for proper display
+          cabinet_type: item.cabinet_types,
+          door_style: item.door_styles,
+          color: item.colors,
+          finish: item.finishes
         }))
       }));
 
