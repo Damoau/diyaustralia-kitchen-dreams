@@ -43,7 +43,7 @@ export const useQuotes = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const getQuotes = async (filters?: { status?: string; search?: string }) => {
+  const getQuotes = async (filters?: { status?: string; search?: string; adminView?: boolean }) => {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -62,8 +62,8 @@ export const useQuotes = () => {
         `)
         .order('created_at', { ascending: false });
 
-      // Filter quotes for current user (either by user_id or customer_email if admin created)
-      if (user) {
+      // Only filter by user if not admin view
+      if (user && !filters?.adminView) {
         query = query.or(`user_id.eq.${user.id},customer_email.eq.${user.email}`);
       }
 

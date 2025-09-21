@@ -31,7 +31,7 @@ const QuotesList = () => {
 
   const loadData = async () => {
     const [quotesData, statsData] = await Promise.all([
-      getQuotes({ status: statusFilter, search: searchTerm }),
+      getQuotes({ status: statusFilter, search: searchTerm, adminView: true }),
       getQuoteStats()
     ]);
     setQuotes(quotesData);
