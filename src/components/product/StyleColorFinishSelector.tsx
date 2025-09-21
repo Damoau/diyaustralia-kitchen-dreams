@@ -106,6 +106,11 @@ export const StyleColorFinishSelector: React.FC<StyleColorFinishSelectorProps> =
   const getFilteredFinishes = () => {
     if (!tempDoorStyle) return [];
 
+    // If no relationship tables are populated, show all available finishes
+    if (doorStyleFinishes.length === 0 && colorFinishes.length === 0) {
+      return finishes.filter(finish => finish.active);
+    }
+
     // Get finishes available for the selected door style
     const doorStyleFinishIds = doorStyleFinishes
       .filter(dsf => dsf.door_style_id === tempDoorStyle && dsf.active)
@@ -114,6 +119,11 @@ export const StyleColorFinishSelector: React.FC<StyleColorFinishSelectorProps> =
     let availableFinishes = finishes.filter(finish => 
       doorStyleFinishIds.includes(finish.id) && finish.active
     );
+
+    // If no door style relationships exist, show all finishes
+    if (doorStyleFinishIds.length === 0) {
+      availableFinishes = finishes.filter(finish => finish.active);
+    }
 
     // Further filter by color if both color and door style are selected
     if (tempColor && colorFinishes.length > 0) {
