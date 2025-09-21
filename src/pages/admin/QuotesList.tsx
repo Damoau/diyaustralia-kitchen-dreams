@@ -16,6 +16,7 @@ import { QuoteEditor } from '@/components/admin/QuoteEditor';
 import { Edit, CheckCircle, XCircle, Search, FileText } from 'lucide-react';
 
 const QuotesList = () => {
+  console.log('QuotesList component rendering...');
   const location = useLocation();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [stats, setStats] = useState<QuoteStats>({ total: 0, pending: 0, approved: 0, totalValue: 0 });
@@ -29,7 +30,21 @@ const QuotesList = () => {
 
   const { loading, getQuotes, getQuoteStats, updateQuoteStatus, convertQuoteToOrder } = useQuotes();
 
+  // Add error handling for the entire component
+  const [renderError, setRenderError] = useState<string | null>(null);
+
   useEffect(() => {
+    const handleError = (error: ErrorEvent) => {
+      console.error('Component error:', error);
+      setRenderError(error.message);
+    };
+    
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+
+  useEffect(() => {
+    console.log('QuotesList component mounted');
     loadData();
   }, [statusFilter, searchTerm]);
 
@@ -69,13 +84,20 @@ const QuotesList = () => {
 
   const loadData = async () => {
     console.log('Loading quotes data with filters:', { statusFilter, searchTerm });
-    const [quotesData, statsData] = await Promise.all([
-      getQuotes({ status: statusFilter, search: searchTerm, adminView: true }),
-      getQuoteStats()
-    ]);
-    console.log('Loaded quotes:', quotesData.length, 'items');
-    setQuotes(quotesData);
-    setStats(statsData);
+    try {
+      const [quotesData, statsData] = await Promise.all([
+        getQuotes({ status: statusFilter, search: searchTerm, adminView: true }),
+        getQuoteStats()
+      ]);
+      console.log('Loaded quotes:', quotesData?.length || 0, 'items');
+      console.log('Stats:', statsData);
+      setQuotes(quotesData || []);
+      setStats(statsData || { total: 0, pending: 0, approved: 0, totalValue: 0 });
+    } catch (error) {
+      console.error('Error loading data:', error);
+      setQuotes([]);
+      setStats({ total: 0, pending: 0, approved: 0, totalValue: 0 });
+    }
   };
 
   const handleQuoteAction = async () => {
@@ -173,12 +195,36 @@ const QuotesList = () => {
     }
   ];
 
+  // Add a simple loading/error state to debug
+  if (renderError) {
+    return (
+      <div className="p-8">
+        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+          <h3 className="text-red-800 font-medium">Component Error</h3>
+          <p className="text-red-600 text-sm mt-1">{renderError}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading && quotes.length === 0) {
+    return (
+      <div className="p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading quotes...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Sales Quotes</h1>
           <p className="text-muted-foreground">Manage customer quotes and approvals</p>
+          <p className="text-xs text-gray-500 mt-1">Debug: {quotes.length} quotes loaded</p>
         </div>
         <AdminQuoteCreator onQuoteCreated={loadData} />
       </div>
@@ -247,24 +293,30 @@ const QuotesList = () => {
         </Select>
       </div>
       
-      <DataTable
-        data={quotes}
-        columns={columns}
-        loading={loading}
-        selectable
-        emptyState={
-          <div className="text-center py-8">
-            <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No quotes found</h3>
-            <p className="text-muted-foreground">
-              {searchTerm || statusFilter !== 'all' 
-                ? "Try adjusting your search or filter criteria."
-                : "No quotes have been created yet."
-              }
-            </p>
-          </div>
-        }
-      />
+      {/* Temporarily simplified table for debugging */}
+      <div className="bg-white rounded-lg border">
+        <div className="p-4">
+          <h3 className="font-semibold mb-2">Debug: Quotes Data</h3>
+          <p className="text-sm text-gray-600">Found {quotes.length} quotes</p>
+          <p className="text-sm text-gray-600">Loading: {loading ? 'Yes' : 'No'}</p>
+          
+          {quotes.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {quotes.slice(0, 3).map((quote) => (
+                <div key={quote.id} className="p-2 bg-gray-50 rounded text-sm">
+                  <div>Quote: {quote.quote_number}</div>
+                  <div>Customer: {quote.customer_details?.name || 'No name'}</div>
+                  <div>Amount: ${quote.total_amount}</div>
+                  <div>Status: {quote.status}</div>
+                </div>
+              ))}
+              {quotes.length > 3 && (
+                <p className="text-xs text-gray-500">...and {quotes.length - 3} more</p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Action Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

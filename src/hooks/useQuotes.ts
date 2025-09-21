@@ -76,9 +76,11 @@ export const useQuotes = () => {
   const { toast } = useToast();
 
   const getQuotes = async (filters?: { status?: string; search?: string; adminView?: boolean }) => {
+    console.log('getQuotes called with filters:', filters);
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('User data:', user?.id);
       
       let query = supabase
         .from('quotes')
@@ -108,6 +110,8 @@ export const useQuotes = () => {
           )
         `)
         .order('created_at', { ascending: false });
+      
+      console.log('Initial query built');
 
       // Only filter by user if not admin view
       if (user && !filters?.adminView) {
@@ -123,9 +127,19 @@ export const useQuotes = () => {
       }
 
       const { data, error } = await query;
+      console.log('Query result:', { data: data?.length || 0, error });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Query error:', error);
+        throw error;
+      }
 
+      if (!data) {
+        console.log('No data returned, returning empty array');
+        return [];
+      }
+
+      console.log('Processing', data.length, 'quotes');
       // Format the data for the UI
       const formattedQuotes: Quote[] = data.map(quote => ({
         id: quote.id,
