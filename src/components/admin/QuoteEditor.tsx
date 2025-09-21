@@ -109,12 +109,20 @@ export const QuoteEditor = ({ quote, open, onOpenChange, onQuoteUpdated }: Quote
     const newItems = items.filter((_, i) => i !== index);
     setItems(newItems);
     calculateTotals(newItems);
+    console.log('Item removed, new totals:', { items: newItems.length, subtotal: newItems.reduce((sum, item) => sum + (item.total_price || 0), 0) });
   };
 
   const calculateTotals = (currentItems: QuoteItem[]) => {
     const subtotal = currentItems.reduce((sum, item) => sum + (item.total_price || 0), 0);
     const taxAmount = subtotal * 0.10; // 10% GST
     const totalAmount = subtotal + taxAmount;
+
+    console.log('Calculating totals:', { 
+      itemCount: currentItems.length, 
+      subtotal, 
+      taxAmount, 
+      totalAmount 
+    });
 
     setFormData(prev => ({
       ...prev,
