@@ -17,27 +17,53 @@ interface RoomCategory {
   sort_order: number;
 }
 
+interface CategoryType {
+  id: string;
+  name: string;
+  display_name: string;
+  parent_id: string;
+  sort_order: number;
+}
+
+interface RoomWithTypes {
+  room: RoomCategory;
+  types: CategoryType[];
+}
+
 export default function RoomCategories() {
-  const [roomCategories, setRoomCategories] = useState<RoomCategory[]>([]);
+  const [roomsWithTypes, setRoomsWithTypes] = useState<RoomWithTypes[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadRoomCategories();
+    loadRoomsAndTypes();
   }, []);
 
-  const loadRoomCategories = async () => {
+  const loadRoomsAndTypes = async () => {
     try {
-      const { data, error } = await supabase
+      // Load Level 1 (rooms) and Level 2 (types) categories
+      const { data: allCategories, error } = await supabase
         .from('unified_categories')
         .select('*')
-        .eq('level', 1)
+        .in('level', [1, 2])
         .eq('active', true)
+        .order('level')
         .order('sort_order');
 
       if (error) throw error;
-      setRoomCategories(data || []);
+
+      // Separate rooms and types
+      const rooms = allCategories?.filter(cat => cat.level === 1) || [];
+      const types = allCategories?.filter(cat => cat.level === 2) || [];
+
+      // Build the structure
+      const roomsWithTypesData = rooms.map(room => ({
+        room: room as RoomCategory,
+        types: types.filter(type => type.parent_id === room.id) as CategoryType[]
+      }));
+
+      setRoomsWithTypes(roomsWithTypesData);
     } catch (error) {
-      console.error('Error loading room categories:', error);
+      console.error('Error loading categories:', error);
     } finally {
       setLoading(false);
     }
@@ -72,197 +98,33 @@ export default function RoomCategories() {
             </p>
           </div>
 
-          {/* All Cabinet Collections in Grid Layout */}
+          {/* Dynamic Cabinet Collections */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {/* Kitchen Cabinets */}
-            <Card className="overflow-hidden">
-              <div className="aspect-video bg-muted">
-                <img
-                  src="/src/assets/hero-kitchen.jpg"
-                  alt="Kitchen Cabinets"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <CardContent className="p-6">
-                <h2 className="text-2xl font-bold text-foreground mb-4 text-center">
-                  Kitchen Cabinets
-                </h2>
-                <div className="grid grid-cols-2 gap-3">
-                  <Link to="/shop/kitchen/base">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Base
-                    </Button>
-                  </Link>
-                  <Link to="/shop/kitchen/wall">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Wall
-                    </Button>
-                  </Link>
-                  <Link to="/shop/kitchen/tall">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Pantry
-                    </Button>
-                  </Link>
-                  <Link to="/shop/kitchen/specialty">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Specialty
-                    </Button>
-                  </Link>
+            {roomsWithTypes.map(({ room, types }) => (
+              <Card key={room.id} className="overflow-hidden">
+                <div className="aspect-video bg-muted">
+                  <img
+                    src={room.hero_image_url || "/src/assets/hero-kitchen.jpg"}
+                    alt={room.display_name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Laundry Cabinets */}
-            <Card className="overflow-hidden">
-              <div className="aspect-video bg-muted">
-                <img
-                  src="/src/assets/shadowline-kitchen.jpg"
-                  alt="Laundry Cabinets"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <CardContent className="p-6">
-                <h2 className="text-2xl font-bold text-foreground mb-4 text-center">
-                  Laundry Cabinets
-                </h2>
-                <div className="grid grid-cols-2 gap-3">
-                  <Link to="/shop/laundry/base">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Base
-                    </Button>
-                  </Link>
-                  <Link to="/shop/laundry/wall">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Wall
-                    </Button>
-                  </Link>
-                  <Link to="/shop/laundry/broom">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Broom
-                    </Button>
-                  </Link>
-                  <Link to="/shop/laundry/storage">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Storage
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Vanity Cabinets */}
-            <Card className="overflow-hidden">
-              <div className="aspect-video bg-muted">
-                <img
-                  src="/src/assets/cabinets-detail.jpg"
-                  alt="Vanity Cabinets"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <CardContent className="p-6">
-                <h2 className="text-2xl font-bold text-foreground mb-4 text-center">
-                  Vanity Cabinets
-                </h2>
-                <div className="grid grid-cols-2 gap-3">
-                  <Link to="/shop/vanity/base">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Base
-                    </Button>
-                  </Link>
-                  <Link to="/shop/vanity/wall">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Wall
-                    </Button>
-                  </Link>
-                  <Link to="/shop/vanity/mirrors">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Mirrors
-                    </Button>
-                  </Link>
-                  <Link to="/shop/vanity/storage">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Storage
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Wardrobe Cabinets */}
-            <Card className="overflow-hidden">
-              <div className="aspect-video bg-muted">
-                <img
-                  src="/src/assets/benchtop-detail.jpg"
-                  alt="Wardrobe Cabinets"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <CardContent className="p-6">
-                <h2 className="text-2xl font-bold text-foreground mb-4 text-center">
-                  Wardrobe Cabinets
-                </h2>
-                <div className="grid grid-cols-2 gap-3">
-                  <Link to="/shop/wardrobe/base">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Base
-                    </Button>
-                  </Link>
-                  <Link to="/shop/wardrobe/wall">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Wall
-                    </Button>
-                  </Link>
-                  <Link to="/shop/wardrobe/hanging">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Hanging
-                    </Button>
-                  </Link>
-                  <Link to="/shop/wardrobe/storage">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Storage
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Outdoor Kitchen Cabinets */}
-            <Card className="overflow-hidden">
-              <div className="aspect-video bg-muted">
-                <img
-                  src="/lovable-uploads/8bf7a8e1-3389-40d8-bd11-5ff1d7de50e8.png"
-                  alt="Outdoor Kitchen Cabinets"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <CardContent className="p-6">
-                <h2 className="text-2xl font-bold text-foreground mb-4 text-center">
-                  Outdoor Kitchen
-                </h2>
-                <div className="grid grid-cols-2 gap-3">
-                  <Link to="/shop/outdoor-kitchen/base">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Base
-                    </Button>
-                  </Link>
-                  <Link to="/shop/outdoor-kitchen/wall">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Wall
-                    </Button>
-                  </Link>
-                  <Link to="/shop/outdoor-kitchen/specialty">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Specialty
-                    </Button>
-                  </Link>
-                  <Link to="/shop/outdoor-kitchen/weatherproof">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Weather Resistant
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
+                <CardContent className="p-6">
+                  <h2 className="text-2xl font-bold text-foreground mb-4 text-center">
+                    {room.display_name}
+                  </h2>
+                  <div className="grid grid-cols-2 gap-3">
+                    {types.map(type => (
+                      <Link key={type.id} to={`/shop/${room.name}/${type.name}`}>
+                        <Button variant="outline" size="sm" className="w-full">
+                          {type.display_name}
+                        </Button>
+                      </Link>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </div>

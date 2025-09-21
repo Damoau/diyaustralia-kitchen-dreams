@@ -96,7 +96,15 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     try {
       const { data, error } = await supabase
         .from('cabinet_types')
-        .select('*')
+        .select(`
+          *,
+          room_category:unified_categories!room_category_id(
+            id,
+            name,
+            display_name,
+            level
+          )
+        `)
         .eq('active', true)
         .order('category', { ascending: true })
         .order('name', { ascending: true });
