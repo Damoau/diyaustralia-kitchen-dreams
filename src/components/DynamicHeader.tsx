@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, ShoppingCart, Settings, LogOut, LogIn, ChevronDown } from "lucide-react";
+import { Menu, ShoppingCart, Settings, LogOut, LogIn, ChevronDown, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -208,15 +208,20 @@ const DynamicHeader = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => navigate('/portal')}>
+                  <User className="mr-2 h-4 w-4" />
+                  My Account
+                </DropdownMenuItem>
                 {isAdmin && !isInAdminMode && (
                   <>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => navigate('/admin')}>
                       <Settings className="mr-2 h-4 w-4" />
                       Admin Dashboard
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
                   </>
                 )}
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out
@@ -343,6 +348,14 @@ const DynamicHeader = () => {
                 <div className="flex-shrink-0 mt-6 space-y-4 border-t border-gray-100 pt-6">
                   {isAuthenticated ? (
                     <>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleNavigation('/portal')}
+                        className="w-full justify-start"
+                      >
+                        <User className="mr-2 h-4 w-4" />
+                        My Account
+                      </Button>
                       {isAdmin && !isInAdminMode && (
                         <Button
                           variant="outline"

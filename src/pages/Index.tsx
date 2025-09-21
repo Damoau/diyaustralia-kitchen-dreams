@@ -5,18 +5,21 @@ import Gallery from "@/components/Gallery";
 import About from "@/components/About";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
+import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
-      <DynamicHeader />
-      <Hero />
-      <Services />
-      <Gallery />
-      <About />
-      <Contact />
-      <Footer />
-    </div>
+    <ImpersonationLayout>
+      <div className="min-h-screen">
+        <DynamicHeader />
+        <Hero />
+        <Services />
+        <Gallery />
+        <About />
+        <Contact />
+        <Footer />
+      </div>
+    </ImpersonationLayout>
   );
 };
 

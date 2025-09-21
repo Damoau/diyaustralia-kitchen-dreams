@@ -46,13 +46,26 @@ export const useQuotes = () => {
   const getQuotes = async (filters?: { status?: string; search?: string }) => {
     setLoading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       let query = supabase
         .from('quotes')
         .select(`
           *,
-          quote_items(*)
+          quote_items(
+            *,
+            cabinet_types (
+              name,
+              category
+            )
+          )
         `)
         .order('created_at', { ascending: false });
+
+      // Filter quotes for current user (either by user_id or customer_email if admin created)
+      if (user) {
+        query = query.or(`user_id.eq.${user.id},customer_email.eq.${user.email}`);
+      }
 
       if (filters?.status && filters.status !== 'all') {
         query = query.eq('status', filters.status);

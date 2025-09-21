@@ -4,7 +4,7 @@ export const ImpersonationLayout = ({ children }: { children: React.ReactNode })
   return (
     <>
       <AdminImpersonationBar />
-      <div className="pt-16"> {/* Add padding to account for fixed impersonation bar */}
+      <div className=""> {/* Removed padding since AdminImpersonationBar is now conditionally rendered */}
         {children}
       </div>
     </>

@@ -26,6 +26,9 @@ const PriceList = lazy(() => import("./pages/PriceList"));
 // Admin components
 const AdminRouter = lazy(() => import("./components/admin/AdminRouter"));
 
+// Portal components
+const PortalRouter = lazy(() => import("./pages/PortalRouter"));
+
 // Lazy load ProtectedRoute
 const ProtectedRoute = lazy(() => import("./components/ProtectedRoute"));
 
@@ -72,6 +75,16 @@ const App = () => (
                   <Route path="/manufacturing" element={<Manufacturing />} />
                   <Route path="/kitchen-styles" element={<KitchenStyles />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route 
+                    path="/portal/*" 
+                    element={
+                      <Suspense fallback={<PageLoader />}>
+                        <ProtectedRoute>
+                          <PortalRouter />
+                        </ProtectedRoute>
+                      </Suspense>
+                    } 
+                  />
                   <Route 
                     path="/admin/*" 
                     element={

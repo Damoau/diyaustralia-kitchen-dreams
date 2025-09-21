@@ -111,10 +111,23 @@ export const AdminQuoteCreator = ({ onQuoteCreated }: AdminQuoteCreatorProps) =>
       const validUntil = new Date();
       validUntil.setDate(validUntil.getDate() + validUntilDays);
 
+      // Check if customer exists in auth.users by email
+      const { data: existingUser, error: userError } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('email', customer.email)
+        .single();
+
+      let customerUserId = null;
+      if (!userError && existingUser) {
+        customerUserId = existingUser.user_id;
+      }
+
       // Create the quote
       const { data: quote, error: quoteError } = await supabase
         .from('quotes')
         .insert({
+          user_id: customerUserId, // Link to customer if they have account
           customer_name: customer.name,
           customer_email: customer.email,
           customer_phone: customer.phone || null,
