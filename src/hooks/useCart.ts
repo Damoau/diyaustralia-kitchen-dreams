@@ -56,7 +56,7 @@ export const useCart = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get or create user's active cart
+  // Get or create user's active cart with optimized loading
   const initializeCart = async () => {
     if (!user) return;
     
@@ -64,13 +64,35 @@ export const useCart = () => {
     setError(null);
 
     try {
-      // First try to find existing active cart (get the most recent one)
-      let { data: existingCarts, error: fetchError } = await supabase
+      // Use a single optimized query to get cart with items
+      let { data: existingCart, error: fetchError } = await supabase
         .from('carts')
         .select(`
-          *,
+          id,
+          user_id,
+          session_id,
+          name,
+          total_amount,
+          status,
+          created_at,
+          updated_at,
           cart_items (
-            *,
+            id,
+            cart_id,
+            cabinet_type_id,
+            door_style_id,
+            color_id,
+            finish_id,
+            width_mm,
+            height_mm,
+            depth_mm,
+            quantity,
+            unit_price,
+            total_price,
+            notes,
+            configuration,
+            created_at,
+            updated_at,
             cabinet_types (
               name,
               category,
@@ -92,13 +114,12 @@ export const useCart = () => {
         .eq('user_id', user.id)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
-        .limit(1);
+        .limit(1)
+        .maybeSingle();
 
       if (fetchError) {
         throw fetchError;
       }
-
-      let existingCart = existingCarts?.[0];
 
       // If no active cart exists, create one
       if (!existingCart) {
@@ -111,9 +132,31 @@ export const useCart = () => {
             total_amount: 0
           })
           .select(`
-            *,
+            id,
+            user_id,
+            session_id,
+            name,
+            total_amount,
+            status,
+            created_at,
+            updated_at,
             cart_items (
-              *,
+              id,
+              cart_id,
+              cabinet_type_id,
+              door_style_id,
+              color_id,
+              finish_id,
+              width_mm,
+              height_mm,
+              depth_mm,
+              quantity,
+              unit_price,
+              total_price,
+              notes,
+              configuration,
+              created_at,
+              updated_at,
               cabinet_types (
                 name,
                 category,
@@ -153,7 +196,11 @@ export const useCart = () => {
       console.log('Cart initialized:', {
         cartId: formattedCart.id,
         itemsCount: formattedCart.items.length,
-        items: formattedCart.items
+        items: formattedCart.items.map(item => ({
+          id: item.id,
+          notes: item.notes,
+          hasNotes: !!item.notes
+        }))
       });
 
       setCart(formattedCart);
@@ -197,7 +244,22 @@ export const useCart = () => {
           total_price
         })
         .select(`
-          *,
+          id,
+          cart_id,
+          cabinet_type_id,
+          door_style_id,
+          color_id,
+          finish_id,
+          width_mm,
+          height_mm,
+          depth_mm,
+          quantity,
+          unit_price,
+          total_price,
+          notes,
+          configuration,
+          created_at,
+          updated_at,
           cabinet_types (
             name,
             category,
