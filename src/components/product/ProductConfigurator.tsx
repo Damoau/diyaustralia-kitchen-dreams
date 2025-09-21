@@ -477,6 +477,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     try {
       const unitPrice = calculateTotalPrice();
 
+      console.log('Adding to cart with notes:', notes);
+
       await addToCart({
         cabinet_type_id: selectedCabinetType.id,
         door_style_id: selectedDoorStyle,

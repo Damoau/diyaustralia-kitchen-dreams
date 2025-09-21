@@ -195,9 +195,11 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                             />
                           </Button>
                           {expandedNotes.has(item.id) && (
-                            <p className="text-xs text-muted-foreground mt-1 p-2 bg-muted/50 rounded text-wrap break-words">
-                              {item.notes || item.configuration?.notes}
-                            </p>
+                            <div className="text-xs text-muted-foreground mt-1 p-2 bg-muted/50 rounded">
+                              <p className="whitespace-pre-wrap break-words">
+                                {item.notes || item.configuration?.notes}
+                              </p>
+                            </div>
                           )}
                         </div>
                       )}
