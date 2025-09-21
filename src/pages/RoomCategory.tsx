@@ -114,9 +114,9 @@ export default function RoomCategory() {
   return (
     <>
       <Helmet>
-        <title>{roomCategory.display_name} | Premium Cabinet Solutions</title>
-        <meta name="description" content={`Browse our ${roomCategory.display_name.toLowerCase()} collection. ${roomCategory.description}`} />
-        <meta name="keywords" content={`${roomCategory.name} cabinets, ${roomCategory.name} storage, ${roomCategory.name} organization`} />
+        <title>Cabinet Shop | Premium Cabinet Solutions</title>
+        <meta name="description" content="Browse our premium cabinet collection by category. Each cabinet is crafted with precision and designed for lasting quality." />
+        <meta name="keywords" content="cabinets, kitchen cabinets, base cabinets, top cabinets, pantry cabinets, premium storage" />
       </Helmet>
 
       <div className="min-h-screen bg-background">
@@ -142,55 +142,14 @@ export default function RoomCategory() {
             </BreadcrumbList>
           </Breadcrumb>
 
-          {/* Hero Section */}
-          <div className="mb-12">
-            {/* Two Images Side by Side on Desktop */}
-            <div className="grid md:grid-cols-2 gap-4 mb-8">
-              <div className="aspect-video rounded-lg overflow-hidden">
-                {roomCategory.hero_image_url ? (
-                  <img
-                    src={roomCategory.hero_image_url}
-                    alt={`${roomCategory.display_name} showcase 1`}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-muted flex items-center justify-center">
-                    <span className="text-muted-foreground">Image Coming Soon</span>
-                  </div>
-                )}
-              </div>
-              <div className="aspect-video rounded-lg overflow-hidden">
-                <img
-                  src={roomCategory.name === 'kitchen' ? '/src/assets/shadowline-kitchen.jpg' : roomCategory.hero_image_url || ''}
-                  alt={`${roomCategory.display_name} showcase 2`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                    target.parentElement!.innerHTML = '<div class="w-full h-full bg-muted flex items-center justify-center"><span class="text-muted-foreground">Image Coming Soon</span></div>';
-                  }}
-                />
-              </div>
-            </div>
-            
-            {/* Title and Description */}
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-foreground mb-4">
-                {roomCategory.display_name}
-              </h1>
-              <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-                {roomCategory.description}
-              </p>
-            </div>
-
-            {/* Main Browse Button */}
-            <div className="text-center mb-8">
-              <Link to={`/shop/${room}`}>
-                <Button size="lg" className="px-12 py-6 text-lg">
-                  Browse {roomCategory.display_name}
-                </Button>
-              </Link>
-            </div>
+          {/* Header Section */}
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-foreground mb-4">
+              Cabinet Shop
+            </h1>
+            <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-8">
+              Browse our premium cabinet collection by category. Each cabinet is crafted with precision and designed for lasting quality.
+            </p>
           </div>
 
           {/* Category Options */}
