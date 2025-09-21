@@ -420,8 +420,11 @@ export const useCart = () => {
           console.log('Real-time cart item change:', payload);
           
           if (payload.eventType === 'INSERT') {
-            // Refresh cart to get the new item with all relations
-            initializeCart();
+            // Don't refetch entire cart, the addToCart function already updated the local state
+            // Just ensure we have the latest data by refreshing in background after a delay
+            setTimeout(() => {
+              initializeCart();
+            }, 500);
           } else if (payload.eventType === 'UPDATE') {
             // Update existing item in local state
             setCart(currentCart => {
