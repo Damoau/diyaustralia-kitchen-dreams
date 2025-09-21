@@ -207,10 +207,17 @@ export const UnifiedCategoriesManager: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prepare data for submission, converting empty parent_id to null
+    const submitData = {
+      ...formData,
+      parent_id: formData.parent_id === '' ? null : formData.parent_id,
+      hero_image_url: formData.hero_image_url === '' ? null : formData.hero_image_url
+    };
+    
     if (editingItem) {
-      updateMutation.mutate({ id: editingItem.id, data: formData });
+      updateMutation.mutate({ id: editingItem.id, data: submitData });
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate(submitData);
     }
   };
 
