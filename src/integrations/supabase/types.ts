@@ -973,6 +973,48 @@ export type Database = {
           },
         ]
       }
+      color_door_styles: {
+        Row: {
+          active: boolean
+          color_id: string
+          created_at: string
+          door_style_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          color_id: string
+          created_at?: string
+          door_style_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          color_id?: string
+          created_at?: string
+          door_style_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "color_door_styles_color_id_fkey"
+            columns: ["color_id"]
+            isOneToOne: false
+            referencedRelation: "colors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "color_door_styles_door_style_id_fkey"
+            columns: ["door_style_id"]
+            isOneToOne: false
+            referencedRelation: "door_styles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       color_finishes: {
         Row: {
           active: boolean

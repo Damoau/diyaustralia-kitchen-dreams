@@ -26,7 +26,7 @@ interface ColorEditDialogProps {
   color: Color | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (color: Partial<Color>) => void;
+  onSave: (color: Partial<Color> & { door_style_ids?: string[] }) => void;
 }
 
 const ColorEditDialog = ({ color, open, onOpenChange, onSave }: ColorEditDialogProps) => {
@@ -36,15 +36,18 @@ const ColorEditDialog = ({ color, open, onOpenChange, onSave }: ColorEditDialogP
     hex_code: "",
     image_url: "",
     active: true,
-    door_style_id: "",
+    door_style_ids: [] as string[],
     surcharge_rate_per_sqm: 0
   });
 
   useEffect(() => {
     if (open) {
       fetchDoorStyles();
+      if (color) {
+        fetchColorDoorStyles(color.id);
+      }
     }
-  }, [open]);
+  }, [open, color]);
 
   const fetchDoorStyles = async () => {
     const { data } = await supabase
@@ -56,6 +59,22 @@ const ColorEditDialog = ({ color, open, onOpenChange, onSave }: ColorEditDialogP
     if (data) setDoorStyles(data);
   };
 
+  const fetchColorDoorStyles = async (colorId: string) => {
+    const { data } = await supabase
+      .from('color_door_styles')
+      .select('door_style_id')
+      .eq('color_id', colorId)
+      .eq('active', true);
+    
+    if (data) {
+      const doorStyleIds = data.map(item => item.door_style_id);
+      setFormData(prev => ({
+        ...prev,
+        door_style_ids: doorStyleIds
+      }));
+    }
+  };
+
   useEffect(() => {
     if (color) {
       setFormData({
@@ -63,7 +82,7 @@ const ColorEditDialog = ({ color, open, onOpenChange, onSave }: ColorEditDialogP
         hex_code: color.hex_code || "",
         image_url: color.image_url || "",
         active: color.active,
-        door_style_id: color.door_style_id || "",
+        door_style_ids: [], // Will be loaded from fetchColorDoorStyles
         surcharge_rate_per_sqm: color.surcharge_rate_per_sqm
       });
     } else {
@@ -72,7 +91,7 @@ const ColorEditDialog = ({ color, open, onOpenChange, onSave }: ColorEditDialogP
         hex_code: "",
         image_url: "",
         active: true,
-        door_style_id: "",
+        door_style_ids: [],
         surcharge_rate_per_sqm: 0
       });
     }
@@ -81,7 +100,8 @@ const ColorEditDialog = ({ color, open, onOpenChange, onSave }: ColorEditDialogP
   const handleSave = () => {
     onSave({
       id: color?.id,
-      ...formData
+      ...formData,
+      door_style_ids: formData.door_style_ids
     });
   };
 
@@ -102,19 +122,35 @@ const ColorEditDialog = ({ color, open, onOpenChange, onSave }: ColorEditDialogP
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="door_style">Door Style</Label>
-            <Select value={formData.door_style_id} onValueChange={(value) => setFormData({...formData, door_style_id: value})}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select door style" />
-              </SelectTrigger>
-              <SelectContent>
-                {doorStyles.map((doorStyle) => (
-                  <SelectItem key={doorStyle.id} value={doorStyle.id}>
+            <Label htmlFor="door_styles">Door Styles (Multiple)</Label>
+            <div className="border rounded-md p-3 max-h-40 overflow-y-auto bg-background">
+              {doorStyles.map((doorStyle) => (
+                <div key={doorStyle.id} className="flex items-center space-x-2 py-1">
+                  <input
+                    type="checkbox"
+                    id={`door-style-${doorStyle.id}`}
+                    checked={formData.door_style_ids.includes(doorStyle.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFormData({
+                          ...formData,
+                          door_style_ids: [...formData.door_style_ids, doorStyle.id]
+                        });
+                      } else {
+                        setFormData({
+                          ...formData,
+                          door_style_ids: formData.door_style_ids.filter(id => id !== doorStyle.id)
+                        });
+                      }
+                    }}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor={`door-style-${doorStyle.id}`} className="text-sm font-normal cursor-pointer">
                     {doorStyle.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  </Label>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="hex_code">Hex Code</Label>

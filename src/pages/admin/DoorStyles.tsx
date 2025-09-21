@@ -74,16 +74,21 @@ const DoorStyles = () => {
     },
   });
 
-  // Fetch colors
+  // Fetch colors with their door style relationships
   const { data: colors, isLoading: loadingColors } = useQuery({
     queryKey: ['colors'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('colors')
-        .select('*')
+        .select(`
+          *,
+          color_door_styles(
+            door_styles(name)
+          )
+        `)
         .order('name');
       if (error) throw error;
-      return data as Color[];
+      return data;
     },
   });
 
@@ -170,25 +175,71 @@ const DoorStyles = () => {
 
   // Color mutations
   const saveColorMutation = useMutation({
-    mutationFn: async (color: Partial<Color>) => {
+    mutationFn: async (color: Partial<Color> & { door_style_ids?: string[] }) => {
       if (color.id) {
+        // Update existing color
         const { error } = await supabase
           .from('colors')
-          .update(color)
+          .update({
+            name: color.name,
+            hex_code: color.hex_code,
+            image_url: color.image_url,
+            surcharge_rate_per_sqm: color.surcharge_rate_per_sqm,
+            active: color.active
+          })
           .eq('id', color.id);
         if (error) throw error;
+
+        // Update door style relationships
+        if (color.door_style_ids) {
+          // Delete existing relationships
+          await supabase
+            .from('color_door_styles')
+            .delete()
+            .eq('color_id', color.id);
+
+          // Insert new relationships
+          if (color.door_style_ids.length > 0) {
+            const relationships = color.door_style_ids.map(doorStyleId => ({
+              color_id: color.id,
+              door_style_id: doorStyleId,
+              active: true
+            }));
+            
+            const { error: relationError } = await supabase
+              .from('color_door_styles')
+              .insert(relationships);
+            if (relationError) throw relationError;
+          }
+        }
       } else {
-        const { error } = await supabase
+        // Create new color
+        const { data: newColor, error } = await supabase
           .from('colors')
           .insert({
             name: color.name || '',
             hex_code: color.hex_code || '#000000',
             image_url: color.image_url || '',
-            door_style_id: color.door_style_id || '',
             surcharge_rate_per_sqm: color.surcharge_rate_per_sqm || 0,
             active: color.active ?? true
-          });
+          })
+          .select()
+          .single();
         if (error) throw error;
+
+        // Insert door style relationships
+        if (color.door_style_ids && color.door_style_ids.length > 0) {
+          const relationships = color.door_style_ids.map(doorStyleId => ({
+            color_id: newColor.id,
+            door_style_id: doorStyleId,
+            active: true
+          }));
+          
+          const { error: relationError } = await supabase
+            .from('color_door_styles')
+            .insert(relationships);
+          if (relationError) throw relationError;
+        }
       }
     },
     onSuccess: () => {
@@ -365,10 +416,19 @@ const DoorStyles = () => {
                     className="w-6 h-6 rounded-full border"
                     style={{ backgroundColor: color.hex_code }}
                   />
-                  <div className="flex-1">
-                    <h3 className="font-medium">{color.name}</h3>
-                    <p className="text-sm text-muted-foreground">+${color.surcharge_rate_per_sqm}/sqm</p>
-                  </div>
+                   <div className="flex-1">
+                     <h3 className="font-medium">{color.name}</h3>
+                     <p className="text-sm text-muted-foreground">+${color.surcharge_rate_per_sqm}/sqm</p>
+                     {color.color_door_styles && color.color_door_styles.length > 0 && (
+                       <div className="flex flex-wrap gap-1 mt-1">
+                         {color.color_door_styles.map((cds: any, index: number) => (
+                           <Badge key={index} variant="outline" className="text-xs">
+                             {cds.door_styles?.name}
+                           </Badge>
+                         ))}
+                       </div>
+                     )}
+                   </div>
                   <Badge variant={color.active ? "default" : "secondary"}>
                     {color.active ? "Active" : "Inactive"}
                   </Badge>
