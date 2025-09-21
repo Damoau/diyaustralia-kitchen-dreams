@@ -92,9 +92,9 @@ const handler = async (req: Request): Promise<Response> => {
       quote_id
     );
 
-    // Send email
+    // Send email - using account owner's email for testing until domain is verified
     const { error: emailError } = await resend.emails.send({
-      from: 'DIY Kitchens <onboarding@resend.dev>',
+      from: 'DIY Kitchens <damianorwin@gmail.com>',
       to: [customer_email],
       subject,
       html,
