@@ -10,6 +10,16 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+interface Subcategory {
+  id: string;
+  name: string;
+  display_name: string;
+  description?: string;
+  sort_order: number;
+  active: boolean;
+}
 
 interface CabinetType {
   id: string;
@@ -40,6 +50,8 @@ const CategoryPage = () => {
   const { room, category } = useParams<{ room: string; category: string }>();
   const navigate = useNavigate();
   const [cabinetTypes, setCabinetTypes] = useState<CabinetType[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [activeSubcategory, setActiveSubcategory] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [configuratorOpen, setConfiguratorOpen] = useState(false);
   const [selectedCabinet, setSelectedCabinet] = useState<CabinetType | null>(null);
@@ -73,6 +85,36 @@ const CategoryPage = () => {
         if (roomError) throw roomError;
         setRoomCategory(roomData);
 
+        // Load Level 3 subcategories for this room/category combination
+        // First get the Level 2 category IDs
+        const { data: level2Data, error: level2Error } = await supabase
+          .from('unified_categories')
+          .select('id')
+          .eq('level', 2)
+          .eq('name', category)
+          .eq('active', true);
+
+        if (level2Error) {
+          console.error('Error loading level 2 categories:', level2Error);
+        } else if (level2Data && level2Data.length > 0) {
+          const parentIds = level2Data.map(cat => cat.id);
+          
+          // Now get Level 3 subcategories
+          const { data: subcatsData, error: subcatsError } = await supabase
+            .from('unified_categories')
+            .select('*')
+            .eq('level', 3)
+            .eq('active', true)
+            .in('parent_id', parentIds)
+            .order('sort_order', { ascending: true });
+
+          if (subcatsError) {
+            console.error('Error loading subcategories:', subcatsError);
+          } else {
+            setSubcategories(subcatsData || []);
+          }
+        }
+
         // Load cabinet types for this room and category
         const { data, error } = await supabase
           .from('cabinet_types')
@@ -93,6 +135,11 @@ const CategoryPage = () => {
 
     loadData();
   }, [room, category, navigate]);
+
+  // Filter cabinet types by active subcategory
+  const filteredCabinetTypes = activeSubcategory === "all" 
+    ? cabinetTypes 
+    : cabinetTypes.filter(cabinet => cabinet.subcategory === activeSubcategory);
 
   const handleConfigureProduct = (cabinet: CabinetType) => {
     setSelectedCabinet(cabinet);
@@ -170,15 +217,33 @@ const CategoryPage = () => {
             </p>
           </div>
 
+          {/* Subcategory Tabs */}
+          {subcategories.length > 0 && (
+            <div className="mb-8">
+              <Tabs value={activeSubcategory} onValueChange={setActiveSubcategory} className="w-full">
+                <TabsList className="grid w-full grid-cols-auto gap-2 h-auto p-1">
+                  <TabsTrigger value="all" className="px-6 py-2">
+                    All {displayCategory}
+                  </TabsTrigger>
+                  {subcategories.map((subcat) => (
+                    <TabsTrigger key={subcat.id} value={subcat.name} className="px-6 py-2">
+                      {subcat.display_name}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            </div>
+          )}
+
           {/* Products Grid */}
-          {cabinetTypes.length === 0 ? (
+          {filteredCabinetTypes.length === 0 ? (
             <div className="text-center py-12">
               <h3 className="text-xl font-semibold mb-2">No cabinets available</h3>
               <p className="text-muted-foreground">Check back later for new products.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {cabinetTypes.map((cabinet) => (
+              {filteredCabinetTypes.map((cabinet) => (
                 <Card key={cabinet.id} className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
                   <div className="aspect-square relative overflow-hidden">
                     {cabinet.product_image_url ? (
