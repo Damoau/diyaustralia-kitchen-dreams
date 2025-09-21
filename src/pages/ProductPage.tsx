@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
 import { ProductConfigurator } from "@/components/product/ProductConfigurator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -148,7 +149,7 @@ const ProductPage = () => {
   const pageKeywords = cabinet.meta_keywords || `${cabinet.name}, ${displayCategory.toLowerCase()}, ${roomCategory?.display_name?.toLowerCase() || 'kitchen'} cabinets, custom cabinets`;
 
   return (
-    <>
+    <ImpersonationLayout>
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
@@ -332,7 +333,7 @@ const ProductPage = () => {
           />
         )}
       </div>
-    </>
+    </ImpersonationLayout>
   );
 };
 

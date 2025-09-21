@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import DynamicHeader from "@/components/DynamicHeader";
 import Footer from "@/components/Footer";
+import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
 
 interface RoomCategory {
   id: string;
@@ -78,7 +79,7 @@ export default function RoomCategories() {
   }
 
   return (
-    <>
+    <ImpersonationLayout>
       <Helmet>
         <title>Shop Cabinet Collections | Kitchen, Laundry, Vanity & More</title>
         <meta name="description" content="Browse our complete range of cabinet collections for kitchen, laundry, vanity, wardrobe and outdoor kitchen spaces. Premium quality cabinets for every room." />
@@ -130,6 +131,6 @@ export default function RoomCategories() {
       </div>
       
       <Footer />
-    </>
+    </ImpersonationLayout>
   );
 }

@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import DynamicHeader from "@/components/DynamicHeader";
 import Footer from "@/components/Footer";
+import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
 import { ProductConfigurator } from "@/components/product/ProductConfigurator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -163,7 +164,7 @@ const CategoryPage = () => {
   }
 
   return (
-    <>
+    <ImpersonationLayout>
       <Helmet>
         <title>{displayCategory} {roomCategory?.display_name || ''} | Premium Cabinet Solutions</title>
         <meta 
@@ -341,7 +342,7 @@ const CategoryPage = () => {
           />
         )}
       </div>
-    </>
+    </ImpersonationLayout>
   );
 };
 

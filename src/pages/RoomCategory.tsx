@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import DynamicHeader from "@/components/DynamicHeader";
 import Footer from "@/components/Footer";
+import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
 
 interface RoomCategory {
   id: string;
@@ -117,7 +118,7 @@ export default function RoomCategory() {
   }
 
   return (
-    <>
+    <ImpersonationLayout>
       <Helmet>
         <title>{roomCategory?.display_name} | Premium Cabinet Solutions</title>
         <meta name="description" content="Browse our premium cabinet collection by category. Each cabinet is crafted with precision and designed for lasting quality." />
@@ -193,6 +194,6 @@ export default function RoomCategory() {
       </div>
 
       <Footer />
-    </>
+    </ImpersonationLayout>
   );
 }
