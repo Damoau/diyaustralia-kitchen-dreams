@@ -64,8 +64,8 @@ export const useCart = () => {
     setError(null);
 
     try {
-      // First try to find existing active cart
-      let { data: existingCart, error: fetchError } = await supabase
+      // First try to find existing active cart (get the most recent one)
+      let { data: existingCarts, error: fetchError } = await supabase
         .from('carts')
         .select(`
           *,
@@ -91,11 +91,14 @@ export const useCart = () => {
         `)
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .single();
+        .order('created_at', { ascending: false })
+        .limit(1);
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
+      if (fetchError) {
         throw fetchError;
       }
+
+      let existingCart = existingCarts?.[0];
 
       // If no active cart exists, create one
       if (!existingCart) {
