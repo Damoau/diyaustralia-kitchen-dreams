@@ -12,7 +12,9 @@ const supabase = createClient(
 );
 
 interface RequestChangeRequest {
+  quote_id: string;
   message: string;
+  change_type?: string;  
   file_ids?: string[];
 }
 
@@ -22,10 +24,6 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const pathSegments = url.pathname.split('/');
-    const quoteId = pathSegments[pathSegments.indexOf('quotes') + 1];
-    
     const authHeader = req.headers.get('Authorization');
     
     if (!authHeader) {
@@ -41,7 +39,11 @@ serve(async (req) => {
     }
 
     if (req.method === 'POST') {
-      const { message, file_ids }: RequestChangeRequest = await req.json();
+      const { quote_id, message, file_ids }: RequestChangeRequest = await req.json();
+
+      if (!quote_id) {
+        throw new Error('Quote ID is required');
+      }
 
       if (!message?.trim()) {
         throw new Error('Message is required');
@@ -51,7 +53,7 @@ serve(async (req) => {
       const { data: quote, error: quoteError } = await supabase
         .from('quotes')
         .select('id, status, version_number')
-        .eq('id', quoteId)
+        .eq('id', quote_id)
         .eq('user_id', user.id)
         .single();
 
@@ -67,7 +69,7 @@ serve(async (req) => {
       const { data: versions, error: versionsError } = await supabase
         .from('quote_versions')
         .select('version_number')
-        .eq('quote_id', quoteId)
+        .eq('quote_id', quote_id)
         .order('version_number', { ascending: false })
         .limit(1);
 
@@ -78,7 +80,7 @@ serve(async (req) => {
       const { data: newVersion, error: versionError } = await supabase
         .from('quote_versions')
         .insert({
-          quote_id: quoteId,
+          quote_id: quote_id,
           version_number: newVersionNumber,
           changes_requested: message,
           created_by: user.id,
@@ -109,7 +111,7 @@ serve(async (req) => {
           status: 'revision_requested',
           version_number: newVersionNumber
         })
-        .eq('id', quoteId);
+        .eq('id', quote_id);
 
       if (updateQuoteError) {
         throw updateQuoteError;
@@ -121,9 +123,11 @@ serve(async (req) => {
         .insert({
           user_id: user.id,
           scope: 'quote',
-          scope_id: quoteId,
+          scope_id: quote_id,
           message_text: message,
           message_type: 'change_request',
+          topic: `Quote change request`,
+          extension: 'customer',
           file_ids: file_ids || []
         });
 
@@ -135,7 +139,7 @@ serve(async (req) => {
       await supabase.rpc('log_audit_event', {
         p_actor_id: user.id,
         p_scope: 'quote',
-        p_scope_id: quoteId,
+        p_scope_id: quote_id,
         p_action: 'change_requested',
         p_after_data: JSON.stringify({ 
           version_number: newVersionNumber,
@@ -149,7 +153,7 @@ serve(async (req) => {
         body: {
           event: 'quote.change_requested',
           data: {
-            quote_id: quoteId,
+            quote_id: quote_id,
             user_id: user.id,
             version_number: newVersionNumber,
             message,
