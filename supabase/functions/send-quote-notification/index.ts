@@ -89,14 +89,12 @@ const handler = async (req: Request): Promise<Response> => {
       quoteData.total_amount,
       isNewUser,
       temporaryPassword,
-      quote_id
+      quote_id,
+      customer_email
     );
 
-    // For testing: only allow sending to account owner's email
-    const ALLOWED_TEST_EMAIL = 'damianorwin@gmail.com';
-    if (customer_email !== ALLOWED_TEST_EMAIL) {
-      throw new Error(`Testing mode: Can only send emails to ${ALLOWED_TEST_EMAIL}. Please use that email address for testing quotes.`);
-    }
+    // Production mode: allow sending to any email address
+    console.log(`Sending quote notification to: ${customer_email}`);
 
     // Send email using Resend's default testing domain
     const { error: emailError } = await resend.emails.send({
@@ -173,7 +171,8 @@ function generateEmailContent(
   totalAmount: number,
   isNewUser: boolean,
   temporaryPassword: string,
-  quoteId: string
+  quoteId: string,
+  customerEmail: string
 ) {
   // Use the correct Lovable project URL
   const portalUrl = `https://ebf0769f-8814-47f0-bfb6-515c0f9cba2c.lovableproject.com/portal/quotes/${quoteId}`;
@@ -220,7 +219,7 @@ function generateEmailContent(
                     <h3 style="margin: 0 0 15px; color: #234e52; font-size: 16px;">🔐 Your Customer Portal Access</h3>
                     <p style="margin: 0 0 10px; font-size: 14px; color: #234e52;">We've created a secure portal account for you to view and manage your quotes.</p>
                     <div style="background: white; padding: 15px; border-radius: 4px; margin: 10px 0;">
-                      <p style="margin: 0; font-size: 14px;"><strong>Email:</strong> ${customer_email}</p>
+                      <p style="margin: 0; font-size: 14px;"><strong>Email:</strong> ${customerEmail}</p>
                       <p style="margin: 5px 0 0; font-size: 14px;"><strong>Temporary Password:</strong> <code style="background: #f7fafc; padding: 2px 6px; border-radius: 3px; font-family: monospace;">${temporaryPassword}</code></p>
                     </div>
                     <p style="margin: 10px 0 0; font-size: 12px; color: #2d3748; font-style: italic;">Please change your password after your first login.</p>
