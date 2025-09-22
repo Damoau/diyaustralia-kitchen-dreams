@@ -87,32 +87,12 @@ export const useQuotes = () => {
       }
 
       // Build query - RLS policies will handle access control automatically
+      // Try a simpler query first to avoid RLS issues
       let query = supabase
         .from('quotes')
         .select(`
           *,
-          quote_items(
-            *,
-            cabinet_types (
-              name,
-              category,
-              product_image_url
-            ),
-            door_styles (
-              id,
-              name,
-              image_url
-            ),
-            colors (
-              id,
-              name,
-              hex_code
-            ),
-            finishes (
-              id,
-              name
-            )
-          )
+          quote_items(*)
         `)
         .order('created_at', { ascending: false });
       
