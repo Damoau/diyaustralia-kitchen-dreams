@@ -171,7 +171,7 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Quote Actions */}
-          {quoteDisplay.status === "sent" && (
+          {(quoteDisplay.status === "sent" || quoteDisplay.status === "draft" || quoteDisplay.status === "revision_requested") && (
             <Card>
               <CardHeader>
                 <CardTitle>Quote Actions</CardTitle>
