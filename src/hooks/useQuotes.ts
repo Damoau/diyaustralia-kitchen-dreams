@@ -82,6 +82,11 @@ export const useQuotes = () => {
       const { data: { user } } = await supabase.auth.getUser();
       console.log('User data:', user?.id);
       
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Build query - RLS policies will handle access control automatically
       let query = supabase
         .from('quotes')
         .select(`
@@ -113,11 +118,7 @@ export const useQuotes = () => {
       
       console.log('Initial query built');
 
-      // Only filter by user if not admin view
-      if (user && !filters?.adminView) {
-        query = query.or(`user_id.eq.${user.id},customer_email.eq.${user.email}`);
-      }
-
+      // Apply filters (RLS handles access control)
       if (filters?.status && filters.status !== 'all') {
         query = query.eq('status', filters.status);
       }

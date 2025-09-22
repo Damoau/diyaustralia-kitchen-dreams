@@ -69,7 +69,7 @@ export const QuoteChangeRequestDialog = ({
             file_size: file.size,
             mime_type: file.type,
             storage_url: publicUrl,
-            kind: 'attachment',
+            kind: 'message_attachment',
             visibility: 'private'
           })
           .select()
@@ -136,7 +136,8 @@ export const QuoteChangeRequestDialog = ({
 
     setIsSubmitting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('portal-quote-request-change', {
+      // Send change request
+      const { error } = await supabase.functions.invoke('portal-quote-request-change', {
         body: {
           quote_id: quoteId,
           message: changeRequest.trim(),

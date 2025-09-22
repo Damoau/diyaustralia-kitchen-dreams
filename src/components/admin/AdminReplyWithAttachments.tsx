@@ -65,7 +65,7 @@ export const AdminReplyWithAttachments = ({
             file_size: file.size,
             mime_type: file.type,
             storage_url: publicUrl,
-            kind: 'attachment',
+            kind: 'message_attachment',
             visibility: 'private'
           })
           .select()

@@ -10,7 +10,7 @@ const QuoteDetail = lazy(() => import('@/components/portal/QuoteDetail').then(mo
 const OrdersList = lazy(() => import('@/components/portal/OrdersList').then(module => ({ default: module.OrdersList })));
 const OrderDetail = lazy(() => import('@/components/portal/OrderDetail').then(module => ({ default: module.OrderDetail })));
 const FilesList = lazy(() => import('@/components/portal/FilesList').then(module => ({ default: module.FilesList })));
-const MessagesList = lazy(() => import('@/components/portal/MessagesList').then(module => ({ default: module.MessagesList })));
+const PortalMessages = lazy(() => import('@/pages/portal/PortalMessages').then(module => ({ default: module.PortalMessages })));
 const AddressBook = lazy(() => import('@/components/portal/AddressBook').then(module => ({ default: module.AddressBook })));
 const ProfileSettings = lazy(() => import('@/components/portal/ProfileSettings').then(module => ({ default: module.ProfileSettings })));
 
@@ -28,7 +28,7 @@ export const PortalRouter = () => {
             <Route path="orders" element={<OrdersList />} />
             <Route path="orders/:orderId" element={<OrderDetailWrapper />} />
             <Route path="files" element={<FilesList />} />
-            <Route path="messages" element={<MessagesList />} />
+            <Route path="messages" element={<PortalMessages />} />
             <Route path="addresses" element={<AddressBook />} />
             <Route path="profile" element={<ProfileSettings />} />
           </Routes>

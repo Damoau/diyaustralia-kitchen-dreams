@@ -21,10 +21,21 @@ export const QuotesList = () => {
   }, [statusFilter, searchTerm]);
 
   const loadQuotes = async () => {
-    setLoading(true);
-    const data = await getQuotes({ status: statusFilter, search: searchTerm });
-    setQuotes(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const data = await getQuotes({
+        status: statusFilter,
+        search: searchTerm,
+        adminView: false // Customer view
+      });
+      setQuotes(data);
+    } catch (error) {
+      console.error('Error loading quotes:', error);
+      // Don't show error for empty results, just show empty state
+      setQuotes([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Mock data fallback for demo
@@ -70,10 +81,8 @@ export const QuotesList = () => {
     return <Badge variant={config.variant}>{config.text}</Badge>;
   };
 
-  // Use real quotes if available, otherwise fallback to mock data
-  const displayQuotes = quotes.length > 0 ? quotes : mockQuotes;
-  
-  const filteredQuotes = displayQuotes.filter(quote => {
+  // Use real quotes, no mock data
+  const filteredQuotes = quotes.filter(quote => {
     const searchText = quote.quote_number || quote.id;
     const matchesSearch = searchText.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || quote.status === statusFilter;
@@ -107,7 +116,7 @@ export const QuotesList = () => {
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="pending_approval">Pending Approval</SelectItem>
+            <SelectItem value="revision_requested">Revision Requested</SelectItem>
             <SelectItem value="accepted">Accepted</SelectItem>
             <SelectItem value="expired">Expired</SelectItem>
           </SelectContent>
@@ -120,10 +129,12 @@ export const QuotesList = () => {
           <Card key={quote.id} className="hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">{quote.quote_number || quote.id}</CardTitle>
-                  <p className="text-sm text-muted-foreground">{quote.notes || 'Custom Quote'}</p>
-                </div>
+                  <div className="space-y-1">
+                    <CardTitle className="text-lg">{quote.quote_number}</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      {quote.notes || quote.customer_details?.name || 'Custom Quote'}
+                    </p>
+                  </div>
                 <div className="flex flex-col items-end gap-2">
                   {getStatusBadge(quote.status)}
                   {(quote.version || quote.version_number) > 1 && (
@@ -143,12 +154,12 @@ export const QuotesList = () => {
                 
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="w-4 h-4" />
-                  <span>Valid until {quote.valid_until || quote.validUntil}</span>
+                  <span>Valid until {quote.valid_until}</span>
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <FileText className="w-4 h-4" />
-                  <span>Created {new Date(quote.created_at || quote.createdAt).toLocaleDateString()}</span>
+                  <span>Created {new Date(quote.created_at).toLocaleDateString()}</span>
                 </div>
 
                 <div className="pt-2">
