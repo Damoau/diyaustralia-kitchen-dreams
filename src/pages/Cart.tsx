@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Trash2, Plus, Minus, ChevronDown } from "lucide-react";
+import { ShoppingCart, Trash2, Plus, Minus, ChevronDown, BookmarkIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
@@ -25,7 +25,7 @@ interface CartItem {
 const Cart = () => {
   const navigate = useNavigate();
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
-  const { cart, updateQuantity, removeFromCart, getItemCount, isLoading } = useCart();
+  const { cart, updateQuantity, removeFromCart, saveCart, getItemCount, isLoading } = useCart();
   const { convertCartToQuote, isLoading: isConverting } = useCartToQuote();
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
 
@@ -95,6 +95,15 @@ const Cart = () => {
       console.error('No cart ID available for checkout');
       toast.error("Cart not properly initialized. Please refresh and try again.");
     }
+  };
+
+  const handleSaveCart = async () => {
+    if (!cart?.items?.length) {
+      toast.error("Cannot save an empty cart");
+      return;
+    }
+    
+    await saveCart("Customer saved cart for later review");
   };
 
   return (
@@ -272,6 +281,18 @@ const Cart = () => {
                         : "Proceed to Checkout"
                       }
                     </Button>
+                    
+                    {!isImpersonating && (
+                      <Button 
+                        variant="outline" 
+                        onClick={handleSaveCart}
+                        className="w-full"
+                        disabled={isLoading}
+                      >
+                        <BookmarkIcon className="mr-2 h-4 w-4" />
+                        Save Cart for Later
+                      </Button>
+                    )}
                     
                     <Button 
                       variant="outline" 

@@ -453,6 +453,34 @@ export const useCart = () => {
     }
   };
 
+  // Save cart for later
+  const saveCart = async (reason?: string) => {
+    if (!cart) return;
+
+    setIsLoading(true);
+    try {
+      await supabase
+        .from('carts')
+        .update({
+          status: 'saved',
+          abandon_reason: reason || 'Customer saved cart for later',
+          abandoned_at: new Date().toISOString()
+        })
+        .eq('id', cart.id);
+
+      // Create a new active cart for the user
+      await initializeCart();
+      
+      toast.success('Cart saved! You can continue shopping with a new cart.');
+    } catch (err: any) {
+      console.error('Error saving cart:', err);
+      setError(err.message);
+      toast.error('Failed to save cart');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Get cart item count
   const getItemCount = () => {
     return cart?.items.reduce((sum, item) => sum + item.quantity, 0) || 0;
@@ -572,6 +600,7 @@ export const useCart = () => {
     updateQuantity,
     removeFromCart,
     clearCart,
+    saveCart,
     getItemCount,
     initializeCart
   };
