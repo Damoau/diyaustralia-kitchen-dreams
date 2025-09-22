@@ -44,7 +44,8 @@ export const useCartToQuote = () => {
         success: true,
         quoteId: data.quote_id,
         quoteNumber: data.quote_number,
-        totalAmount: data.total_amount
+        totalAmount: data.total_amount,
+        shouldRefreshCart: true // Signal that cart needs to be refreshed
       };
 
     } catch (error) {

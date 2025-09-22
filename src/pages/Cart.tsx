@@ -25,7 +25,7 @@ interface CartItem {
 const Cart = () => {
   const navigate = useNavigate();
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
-  const { cart, updateQuantity, removeFromCart, saveCart, getItemCount, isLoading } = useCart();
+  const { cart, updateQuantity, removeFromCart, saveCart, getItemCount, isLoading, initializeCart } = useCart();
   const { convertCartToQuote, isLoading: isConverting } = useCartToQuote();
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
 
@@ -76,6 +76,8 @@ const Cart = () => {
       
       if (result.success) {
         toast.success(`Quote ${result.quoteNumber} created for customer`);
+        // Initialize a new cart since the old one was converted to a quote
+        await initializeCart();
         // Navigate to admin quotes list to see the created quote
         navigate('/admin/sales/quotes');
       }

@@ -93,8 +93,16 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
       if (result.success) {
         setIsOpen(false);
         
+      if (result.success) {
+        toast.success(`Quote ${result.quoteNumber} created for customer`);
+        
         // Initialize a new cart since the old one was converted to a quote
         await initializeCart();
+        
+        // Close drawer and navigate
+        setIsOpen(false);
+        navigate('/admin/sales/quotes');
+      }
         
         // Dispatch custom event to notify quotes page to refresh
         window.dispatchEvent(new CustomEvent('quoteCreated', {
