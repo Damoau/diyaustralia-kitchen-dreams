@@ -8,6 +8,7 @@ import { MessageSquare, Upload, X, FileText, Image as ImageIcon } from 'lucide-r
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface QuoteChangeRequestDialogProps {
   quoteId: string;
@@ -33,6 +34,7 @@ export const QuoteChangeRequestDialog = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const { user } = useAuth();
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
@@ -46,7 +48,11 @@ export const QuoteChangeRequestDialog = ({
         const fileName = `${Date.now()}-${file.name}`;
         const { data, error } = await supabase.storage
           .from('documents')
-          .upload(`quote-attachments/${fileName}`, file);
+          .upload(`quote-attachments/${fileName}`, file, {
+            metadata: {
+              owner: user?.id || 'anonymous'
+            }
+          });
 
         if (error) throw error;
 

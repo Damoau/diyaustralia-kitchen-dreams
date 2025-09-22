@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { MessageSquare, Clock, User, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { AdminReplyWithAttachments } from './AdminReplyWithAttachments';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Message {
@@ -29,7 +30,6 @@ interface QuoteMessagesProps {
 export const QuoteMessages = ({ quoteId, quoteNumber }: QuoteMessagesProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
-  const [replyMessage, setReplyMessage] = useState('');
   const [sending, setSending] = useState(false);
   const { toast } = useToast();
 
@@ -72,47 +72,6 @@ export const QuoteMessages = ({ quoteId, quoteNumber }: QuoteMessagesProps) => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const sendReply = async () => {
-    if (!replyMessage.trim()) return;
-
-    setSending(true);
-    try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('Not authenticated');
-
-      const { error } = await supabase
-        .from('messages')
-        .insert({
-          scope: 'quote',
-          scope_id: quoteId,
-          message_text: replyMessage.trim(),
-          message_type: 'admin_reply',
-          user_id: user.user.id,
-          topic: `Reply to quote ${quoteNumber}`,
-          extension: 'admin'
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Reply Sent",
-        description: "Your reply has been sent to the customer."
-      });
-
-      setReplyMessage('');
-      loadMessages(); // Refresh messages
-    } catch (error) {
-      console.error('Error sending reply:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send reply",
-        variant: "destructive"
-      });
-    } finally {
-      setSending(false);
     }
   };
 
@@ -216,25 +175,49 @@ export const QuoteMessages = ({ quoteId, quoteNumber }: QuoteMessagesProps) => {
         <Separator />
 
         {/* Reply Section */}
-        <div className="space-y-3">
-          <h4 className="font-medium">Send Reply</h4>
-          <Textarea
-            placeholder="Type your reply to the customer..."
-            value={replyMessage}
-            onChange={(e) => setReplyMessage(e.target.value)}
-            rows={3}
-          />
-          <div className="flex justify-end">
-            <Button
-              onClick={sendReply}
-              disabled={!replyMessage.trim() || sending}
-              size="sm"
-            >
-              <Send className="w-4 h-4 mr-2" />
-              {sending ? 'Sending...' : 'Send Reply'}
-            </Button>
-          </div>
-        </div>
+        <AdminReplyWithAttachments
+          onSendReply={async (message: string, fileIds: string[]) => {
+            setSending(true);
+            try {
+              const { data: user } = await supabase.auth.getUser();
+              if (!user.user) throw new Error('Not authenticated');
+
+              const { error } = await supabase
+                .from('messages')
+                .insert({
+                  scope: 'quote',
+                  scope_id: quoteId,
+                  message_text: message,
+                  message_type: 'admin_reply',
+                  user_id: user.user.id,
+                  topic: `Reply to quote ${quoteNumber}`,
+                  extension: 'admin',
+                  file_ids: fileIds
+                });
+
+              if (error) throw error;
+
+              toast({
+                title: "Reply Sent",
+                description: "Your reply has been sent to the customer."
+              });
+
+              loadMessages(); // Refresh messages
+            } catch (error) {
+              console.error('Error sending reply:', error);
+              toast({
+                title: "Error",
+                description: "Failed to send reply",
+                variant: "destructive"
+              });
+              throw error;
+            } finally {
+              setSending(false);
+            }
+          }}
+          sending={sending}
+          disabled={loading}
+        />
       </CardContent>
     </Card>
   );

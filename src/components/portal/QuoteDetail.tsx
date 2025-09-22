@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { QuoteToCartConverter } from "@/components/portal/QuoteToCartConverter";
 import { QuoteChangeRequestDialog } from "@/components/portal/QuoteChangeRequestDialog";
+import { CustomerQuoteMessages } from './CustomerQuoteMessages';
 import { 
   FileText, 
   Download, 
@@ -241,11 +242,13 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
                     <span>Total:</span>
                     <span>${quoteDisplay.amount.toLocaleString()}</span>
                   </div>
-                </div>
-              </div>
+                 </div>
+               </div>
             </CardContent>
           </Card>
 
+          {/* Messages & Updates */}
+          <CustomerQuoteMessages quoteId={quoteDisplay.id} />
         </div>
 
         {/* Sidebar */}
