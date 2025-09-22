@@ -27,7 +27,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
-  const { cart, updateQuantity, removeFromCart, getItemCount, isLoading } = useCart();
+  const { cart, updateQuantity, removeFromCart, getItemCount, isLoading, initializeCart } = useCart();
   const { convertCartToQuote, isLoading: isConverting } = useCartToQuote();
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
 
@@ -92,6 +92,9 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
       
       if (result.success) {
         setIsOpen(false);
+        
+        // Initialize a new cart since the old one was converted to a quote
+        await initializeCart();
         
         // Dispatch custom event to notify quotes page to refresh
         window.dispatchEvent(new CustomEvent('quoteCreated', {

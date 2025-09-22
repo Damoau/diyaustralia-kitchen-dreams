@@ -151,6 +151,16 @@ Deno.serve(async (req) => {
         })
         .eq('id', cart_id);
 
+      // Create a new active cart for the user to continue shopping
+      await supabase
+        .from('carts')
+        .insert({
+          user_id: userId,
+          name: 'My Cabinet Quote',
+          status: 'active',
+          total_amount: 0
+        });
+
       // Log audit event
       await supabase.rpc('log_audit_event', {
         p_actor_id: userId,
