@@ -14,7 +14,8 @@ import {
   User, 
   MapPin,
   LogOut,
-  Bell
+  Bell,
+  ShoppingCart
 } from "lucide-react";
 
 export const PortalNavigation = () => {
@@ -26,6 +27,7 @@ export const PortalNavigation = () => {
     { path: "/portal", label: "Dashboard", icon: Home },
     { path: "/portal/quotes", label: "Quotes", icon: FileText },
     { path: "/portal/orders", label: "Orders", icon: ShoppingBag },
+    { path: "/portal/saved-carts", label: "Saved Carts", icon: ShoppingCart },
     { path: "/portal/files", label: "Files", icon: Files },
     { path: "/portal/messages", label: "Messages", icon: MessageSquare, badge: 3 },
     { path: "/portal/profile", label: "Profile", icon: User },

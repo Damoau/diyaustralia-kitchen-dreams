@@ -45,6 +45,8 @@ export interface Cart {
   name: string;
   total_amount: number;
   status: string;
+  abandon_reason?: string;
+  abandoned_at?: string;
   items: CartItem[];
   created_at: string;
   updated_at: string;

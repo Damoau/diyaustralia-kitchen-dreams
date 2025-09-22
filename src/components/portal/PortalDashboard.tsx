@@ -9,17 +9,22 @@ import {
   DollarSign,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  ShoppingCart
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useSavedCarts } from "@/hooks/useSavedCarts";
 
 export const PortalDashboard = () => {
+  const { getSavedCartsCount } = useSavedCarts();
+  
   // Mock data - in real app this would come from API
   const stats = {
     activeQuotes: 2,
     activeOrders: 1, 
     pendingPayments: 1,
-    unreadMessages: 3
+    unreadMessages: 3,
+    savedCarts: getSavedCartsCount()
   };
 
   const recentQuotes = [
@@ -72,7 +77,7 @@ export const PortalDashboard = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Quotes</CardTitle>
@@ -110,6 +115,21 @@ export const PortalDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.unreadMessages}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Saved Carts</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.savedCarts}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              <Link to="/portal/saved-carts" className="hover:underline">
+                View saved carts
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>
