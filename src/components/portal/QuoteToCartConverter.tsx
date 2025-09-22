@@ -23,7 +23,17 @@ interface QuoteItem {
   door_style_id?: string;
   color_id?: string;
   finish_id?: string;
+  notes?: string;
   cabinet_types?: {
+    name: string;
+  };
+  door_styles?: {
+    name: string;
+  };
+  colors?: {
+    name: string;
+  };
+  finishes?: {
     name: string;
   };
 }
@@ -228,21 +238,60 @@ export const QuoteToCartConverter = ({
 
                 <div className="space-y-3">
                   {items.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-3 p-3 border rounded-lg">
+                    <div key={item.id} className="flex items-start space-x-3 p-4 border rounded-lg">
                       <Checkbox
                         checked={selectedItems.includes(item.id)}
                         onCheckedChange={(checked) => handleSelectItem(item.id, !!checked)}
+                        className="mt-1"
                       />
                       
                       <div className="flex-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 mb-2">
                           <Package className="w-4 h-4 text-muted-foreground" />
                           <span className="font-medium">
                             {item.cabinet_types?.name || 'Cabinet'}
                           </span>
                         </div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          Qty: {item.quantity} | {item.width_mm}×{item.height_mm}×{item.depth_mm}mm
+                        
+                        <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground mb-2">
+                          <div>Qty: {item.quantity}</div>
+                          <div>Size: {item.width_mm}×{item.height_mm}×{item.depth_mm}mm</div>
+                        </div>
+
+                        {/* Configuration Details */}
+                        <div className="space-y-1 text-sm">
+                          {item.door_styles?.name && (
+                            <div className="flex gap-2">
+                              <span className="text-muted-foreground">Door Style:</span>
+                              <span className="font-medium">{item.door_styles.name}</span>
+                            </div>
+                          )}
+                          {item.colors?.name && (
+                            <div className="flex gap-2">
+                              <span className="text-muted-foreground">Color:</span>
+                              <span className="font-medium">{item.colors.name}</span>
+                            </div>
+                          )}
+                          {item.finishes?.name && (
+                            <div className="flex gap-2">
+                              <span className="text-muted-foreground">Finish:</span>
+                              <span className="font-medium">{item.finishes.name}</span>
+                            </div>
+                          )}
+                          {item.configuration && Object.keys(item.configuration).length > 0 && (
+                            <div className="flex gap-2">
+                              <span className="text-muted-foreground">Hardware:</span>
+                              <span className="font-medium">
+                                {item.configuration.hardware || 'Standard'}
+                              </span>
+                            </div>
+                          )}
+                          {item.notes && (
+                            <div className="flex gap-2">
+                              <span className="text-muted-foreground">Notes:</span>
+                              <span className="font-medium">{item.notes}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
 

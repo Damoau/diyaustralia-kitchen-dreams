@@ -47,6 +47,15 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
             cabinet_types (
               name,
               category
+            ),
+            door_styles (
+              name
+            ),
+            colors (
+              name
+            ),
+            finishes (
+              name
             )
           )
         `)
