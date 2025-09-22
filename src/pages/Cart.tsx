@@ -83,7 +83,7 @@ const Cart = () => {
     }
 
     // Regular checkout flow for non-impersonation
-    navigate("/get-quote");
+    navigate("/checkout");
   };
 
   return (
@@ -258,7 +258,7 @@ const Cart = () => {
                     >
                       {isImpersonating 
                         ? (isConverting ? "Creating Quote..." : "Create Quote for Customer")
-                        : "Request Quote"
+                        : "Proceed to Checkout"
                       }
                     </Button>
                     
