@@ -5,6 +5,7 @@ import { MessageSquare, Clock, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
+import { FileAttachmentList } from '@/components/ui/file-attachment-list';
 
 interface Message {
   id: string;
@@ -16,6 +17,7 @@ interface Message {
   scope_id: string;
   topic?: string;
   extension?: string;
+  file_ids?: string[];
 }
 
 interface CustomerQuoteMessagesProps {
@@ -44,7 +46,8 @@ export const CustomerQuoteMessages = ({ quoteId, className }: CustomerQuoteMessa
           scope,
           scope_id,
           topic,
-          extension
+          extension,
+          file_ids
         `)
         .eq('scope', 'quote')
         .eq('scope_id', quoteId)
@@ -169,6 +172,9 @@ export const CustomerQuoteMessages = ({ quoteId, className }: CustomerQuoteMessa
                 </div>
               </div>
               <p className="text-sm whitespace-pre-wrap">{message.message_text}</p>
+              {message.file_ids && message.file_ids.length > 0 && (
+                <FileAttachmentList fileIds={message.file_ids} className="mt-3" />
+              )}
             </div>
           ))}
         </div>

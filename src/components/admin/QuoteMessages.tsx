@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { AdminReplyWithAttachments } from './AdminReplyWithAttachments';
 import { formatDistanceToNow } from 'date-fns';
+import { FileAttachmentList } from '@/components/ui/file-attachment-list';
 
 interface Message {
   id: string;
@@ -20,6 +21,7 @@ interface Message {
   scope_id: string;
   topic?: string;
   extension?: string;
+  file_ids?: string[];
 }
 
 interface QuoteMessagesProps {
@@ -50,7 +52,8 @@ export const QuoteMessages = ({ quoteId, quoteNumber }: QuoteMessagesProps) => {
           scope,
           scope_id,
           topic,
-          extension
+          extension,
+          file_ids
         `)
         .eq('scope', 'quote')
         .eq('scope_id', quoteId)
@@ -167,6 +170,9 @@ export const QuoteMessages = ({ quoteId, quoteNumber }: QuoteMessagesProps) => {
                   </div>
                 </div>
                 <p className="text-sm whitespace-pre-wrap">{message.message_text}</p>
+                {message.file_ids && message.file_ids.length > 0 && (
+                  <FileAttachmentList fileIds={message.file_ids} className="mt-3" />
+                )}
               </div>
             ))}
           </div>
