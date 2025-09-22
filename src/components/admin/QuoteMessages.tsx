@@ -17,6 +17,8 @@ interface Message {
   user_id: string;
   scope: string;
   scope_id: string;
+  topic?: string;
+  extension?: string;
 }
 
 interface QuoteMessagesProps {
@@ -46,13 +48,20 @@ export const QuoteMessages = ({ quoteId, quoteNumber }: QuoteMessagesProps) => {
           created_at,
           user_id,
           scope,
-          scope_id
+          scope_id,
+          topic,
+          extension
         `)
         .eq('scope', 'quote')
         .eq('scope_id', quoteId)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error loading messages:', error);
+        throw error;
+      }
+      
+      console.log('Loaded messages:', data);
       setMessages(data || []);
     } catch (error) {
       console.error('Error loading messages:', error);

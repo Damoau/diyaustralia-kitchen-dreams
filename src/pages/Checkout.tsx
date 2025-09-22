@@ -70,7 +70,11 @@ const Checkout = () => {
 
       try {
         const checkout = await startCheckout(cart.id);
-        setCheckoutId(checkout.id);
+        if (checkout && checkout.id) {
+          setCheckoutId(checkout.id);
+        } else {
+          throw new Error('Failed to create checkout session');
+        }
       } catch (error) {
         console.error('Failed to initialize checkout:', error);
         toast.error("Failed to start checkout. Please try again.");

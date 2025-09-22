@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { QuoteToCartConverter } from "@/components/portal/QuoteToCartConverter";
+import { QuoteChangeRequestDialog } from "@/components/portal/QuoteChangeRequestDialog";
 import { 
   FileText, 
   Download, 
@@ -148,38 +149,9 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
     setShowPaymentDialog(false);
   };
 
-  const handleRequestChange = async () => {
-    if (!changeRequest.trim()) return;
-    
-    setIsSubmittingChange(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('portal-quote-request-change', {
-        body: {
-          quote_id: quoteDisplay.id,
-          message: changeRequest.trim(),
-          change_type: 'revision_request'
-        }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Change Request Submitted",
-        description: "Your change request has been sent to our team. We'll review it and get back to you soon.",
-      });
-
-      setChangeRequest("");
-      setIsSubmittingChange(false);
-    } catch (error) {
-      console.error('Error submitting change request:', error);
-      toast({
-        title: "Error",
-        description: "Failed to submit change request. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmittingChange(false);
-    }
+  const handleRequestSubmitted = () => {
+    // Refresh quote data to show updated status/version
+    fetchQuoteData();
   };
 
   return (
@@ -219,39 +191,15 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
                   />
                 </div>
                 
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="w-full">
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Request Changes
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Request Changes</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <Textarea
-                        placeholder="Describe the changes you'd like to request..."
-                        value={changeRequest}
-                        onChange={(e) => setChangeRequest(e.target.value)}
-                        rows={4}
-                      />
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setChangeRequest("")}>
-                          Cancel
-                        </Button>
-                        <Button 
-                          onClick={handleRequestChange} 
-                          disabled={!changeRequest.trim() || isSubmittingChange}
-                        >
-                          <Upload className="w-4 h-4 mr-2" />
-                          {isSubmittingChange ? 'Submitting...' : 'Submit Request'}
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                <QuoteChangeRequestDialog 
+                  quoteId={quoteDisplay.id}
+                  onRequestSubmitted={handleRequestSubmitted}
+                >
+                  <Button variant="outline" className="w-full">
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Request Changes
+                  </Button>
+                </QuoteChangeRequestDialog>
               </CardContent>
             </Card>
           )}

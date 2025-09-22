@@ -2119,32 +2119,38 @@ export type Database = {
       messages: {
         Row: {
           created_at: string
+          extension: string | null
           file_ids: string[] | null
           id: string
           message_text: string
           message_type: string
           scope: string
           scope_id: string
+          topic: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
+          extension?: string | null
           file_ids?: string[] | null
           id?: string
           message_text: string
           message_type?: string
           scope: string
           scope_id: string
+          topic?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
+          extension?: string | null
           file_ids?: string[] | null
           id?: string
           message_text?: string
           message_type?: string
           scope?: string
           scope_id?: string
+          topic?: string | null
           user_id?: string
         }
         Relationships: []
