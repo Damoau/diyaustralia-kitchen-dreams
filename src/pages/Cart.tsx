@@ -82,8 +82,19 @@ const Cart = () => {
       return;
     }
 
+    // Add debugging to see what's happening
+    console.log('Cart data for checkout:', cart);
+    console.log('Cart items:', cart?.items);
+    console.log('Cart total:', cart?.total_amount);
+
     // Regular checkout flow for non-impersonation
-    navigate("/checkout");
+    if (cart?.id) {
+      console.log('Navigating to checkout with cart ID:', cart.id);
+      navigate("/checkout");
+    } else {
+      console.error('No cart ID available for checkout');
+      toast.error("Cart not properly initialized. Please refresh and try again.");
+    }
   };
 
   return (

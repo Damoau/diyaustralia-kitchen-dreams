@@ -62,18 +62,32 @@ const Checkout = () => {
   useEffect(() => {
     // Initialize checkout when component mounts
     const initCheckout = async () => {
+      console.log('Initializing checkout with cart:', cart);
+      
       if (!cart?.id) {
+        console.error('No cart ID found:', cart);
         toast.error("No cart found. Please add items to your cart first.");
         navigate('/cart');
         return;
       }
 
+      if (!cart?.items?.length) {
+        console.error('Cart has no items:', cart.items);
+        toast.error("Your cart is empty. Please add items to continue.");
+        navigate('/cart');
+        return;
+      }
+
       try {
+        console.log('Starting checkout for cart ID:', cart.id);
         const checkout = await startCheckout(cart.id);
+        console.log('Checkout created:', checkout);
+        
         if (checkout && checkout.id) {
           setCheckoutId(checkout.id);
+          console.log('Checkout ID set:', checkout.id);
         } else {
-          throw new Error('Failed to create checkout session');
+          throw new Error('Failed to create checkout session - no checkout ID returned');
         }
       } catch (error) {
         console.error('Failed to initialize checkout:', error);
@@ -82,8 +96,10 @@ const Checkout = () => {
       }
     };
 
-    initCheckout();
-  }, [cart?.id, startCheckout, navigate]);
+    if (cart !== null) { // Only initialize when cart data is loaded (not null)
+      initCheckout();
+    }
+  }, [cart, startCheckout, navigate]);
 
   const handleStepComplete = (stepId: string, data?: any) => {
     console.log(`Step ${stepId} completed with data:`, data);
