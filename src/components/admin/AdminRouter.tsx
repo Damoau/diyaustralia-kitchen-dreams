@@ -41,6 +41,9 @@ export const AdminRouter = () => {
           <Route index element={<Navigate to="overview" replace />} />
           <Route path="overview" element={<AdminOverview />} />
           
+          {/* Redirect old quotes route to correct location */}
+          <Route path="quotes" element={<Navigate to="sales/quotes" replace />} />
+          
           {/* Sales */}
           <Route path="sales/carts" element={<CartsList />} />
           <Route path="sales/quotes" element={<QuotesList />} />

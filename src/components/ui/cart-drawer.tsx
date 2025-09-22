@@ -102,7 +102,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
         
         // Small delay to ensure quote is fully created before navigation
         setTimeout(() => {
-          navigate('/admin/quotes');
+          navigate('/admin/sales/quotes');
         }, 500);
       }
       return;

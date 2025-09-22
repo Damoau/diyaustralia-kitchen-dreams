@@ -77,7 +77,7 @@ const Cart = () => {
       if (result.success) {
         toast.success(`Quote ${result.quoteNumber} created for customer`);
         // Navigate to admin quotes list to see the created quote
-        navigate('/admin/quotes');
+        navigate('/admin/sales/quotes');
       }
       return;
     }
