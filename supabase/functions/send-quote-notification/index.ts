@@ -57,28 +57,36 @@ const handler = async (req: Request): Promise<Response> => {
       quoteData = quote;
     }
 
-    // Check if user exists by trying to list users with email filter
-    const { data: users } = await supabase.auth.admin.listUsers();
-    const existingUser = users.users?.find(user => user.email === customer_email);
+    // Check if user exists more efficiently
     let isNewUser = false;
     let temporaryPassword = '';
 
-    if (!existingUser) {
-      isNewUser = true;
-      temporaryPassword = generateTemporaryPassword();
-      
-      // Create user account
-      const { error: createError } = await supabase.auth.admin.createUser({
-        email: customer_email,
-        password: temporaryPassword,
-        email_confirm: true,
-        user_metadata: { name: customer_name }
-      });
+    // Try to create user - if they exist, it will fail gracefully
+    temporaryPassword = generateTemporaryPassword();
+    
+    const { error: createError } = await supabase.auth.admin.createUser({
+      email: customer_email,
+      password: temporaryPassword,
+      email_confirm: true,
+      user_metadata: { name: customer_name }
+    });
 
-      if (createError) {
+    if (createError) {
+      if (createError.message?.includes('already been registered')) {
+        // User exists, that's fine
+        console.log(`User ${customer_email} already exists`);
+        isNewUser = false;
+        temporaryPassword = ''; // Clear password since user exists
+      } else {
         console.error('Failed to create user:', createError);
         // Continue without user creation - they can still view the quote
+        isNewUser = false;
+        temporaryPassword = '';
       }
+    } else {
+      // User was created successfully
+      isNewUser = true;
+      console.log(`Created new user: ${customer_email}`);
     }
 
     // Generate email content
