@@ -124,7 +124,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email using Resend
     const { error: emailError } = await resend.emails.send({
-      from: 'DIY Kitchens <damianorwin@gmail.com>',
+      from: 'DIY Kitchens <onboarding@resend.dev>',
       to: [customer_email],
       subject,
       html,
