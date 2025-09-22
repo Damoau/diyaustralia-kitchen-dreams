@@ -4042,6 +4042,14 @@ export type Database = {
         Args: { amount_ex_gst: number; tax_rate?: number }
         Returns: number
       }
+      calculate_quote_totals: {
+        Args: { quote_id: string }
+        Returns: {
+          subtotal: number
+          tax_amount: number
+          total_amount: number
+        }[]
+      }
       calculate_shipping_quote: {
         Args: {
           p_from_zone: string
