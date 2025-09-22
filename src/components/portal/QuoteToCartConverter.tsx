@@ -181,6 +181,9 @@ export const QuoteToCartConverter = ({
 
       setOpen(false);
       
+      // Redirect to cart page to allow customer to review and checkout
+      window.location.href = '/cart';
+      
       if (onSuccess) {
         onSuccess();
       }

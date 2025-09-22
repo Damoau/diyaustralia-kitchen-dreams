@@ -30,6 +30,7 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [quote, setQuote] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isSubmittingChange, setIsSubmittingChange] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -147,10 +148,38 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
     setShowPaymentDialog(false);
   };
 
-  const handleRequestChange = () => {
-    // In real app, this would create a new version
-    console.log("Change request:", changeRequest);
-    setChangeRequest("");
+  const handleRequestChange = async () => {
+    if (!changeRequest.trim()) return;
+    
+    setIsSubmittingChange(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('portal-quote-request-change', {
+        body: {
+          quote_id: quoteDisplay.id,
+          message: changeRequest.trim(),
+          change_type: 'revision_request'
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Change Request Submitted",
+        description: "Your change request has been sent to our team. We'll review it and get back to you soon.",
+      });
+
+      setChangeRequest("");
+      setIsSubmittingChange(false);
+    } catch (error) {
+      console.error('Error submitting change request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit change request. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmittingChange(false);
+    }
   };
 
   return (
@@ -212,9 +241,12 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
                         <Button variant="outline" onClick={() => setChangeRequest("")}>
                           Cancel
                         </Button>
-                        <Button onClick={handleRequestChange} disabled={!changeRequest.trim()}>
+                        <Button 
+                          onClick={handleRequestChange} 
+                          disabled={!changeRequest.trim() || isSubmittingChange}
+                        >
                           <Upload className="w-4 h-4 mr-2" />
-                          Submit Request
+                          {isSubmittingChange ? 'Submitting...' : 'Submit Request'}
                         </Button>
                       </div>
                     </div>

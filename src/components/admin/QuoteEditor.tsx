@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { FileAttachments } from './FileAttachments';
 import { QuoteItemEditor } from './QuoteItemEditor';
 import { QuoteItemCard } from './QuoteItemCard';
+import { QuoteMessages } from './QuoteMessages';
 import { Quote, QuoteItem } from '@/hooks/useQuotes';
 import { Plus, Trash2, Mail, Edit, Image } from 'lucide-react';
 
@@ -313,6 +314,12 @@ export const QuoteEditor = ({ quote, open, onOpenChange, onQuoteUpdated }: Quote
               </div>
             </CardContent>
           </Card>
+
+          {/* Messages & Change Requests */}
+          <QuoteMessages 
+            quoteId={quote.id} 
+            quoteNumber={quote.quote_number || 'Unknown'} 
+          />
 
           {/* File Attachments */}
           <Card>
