@@ -13,6 +13,7 @@ import { FileAttachments } from './FileAttachments';
 import { QuoteItemEditor } from './QuoteItemEditor';
 import { QuoteItemCard } from './QuoteItemCard';
 import { QuoteMessages } from './QuoteMessages';
+import { EmailPreviewDialog } from './EmailPreviewDialog';
 import { Quote, QuoteItem } from '@/hooks/useQuotes';
 import { Plus, Trash2, Mail, Edit, Image } from 'lucide-react';
 
@@ -35,6 +36,7 @@ export const QuoteEditor = ({ quote, open, onOpenChange, onQuoteUpdated }: Quote
   const [itemEditorOpen, setItemEditorOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<QuoteItem | null>(null);
   const [editingItemIndex, setEditingItemIndex] = useState<number>(-1);
+  const [isEmailPreviewOpen, setIsEmailPreviewOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -201,7 +203,12 @@ export const QuoteEditor = ({ quote, open, onOpenChange, onQuoteUpdated }: Quote
     }
   };
 
-  const sendQuoteEmail = async () => {
+  const sendQuoteEmail = async (emailData?: {
+    subject: string;
+    content: string;
+    template: string;
+    attachments: Array<{ id: string; name: string; url: string }>;
+  }) => {
     if (!quote?.id || !formData.customer_email) return;
 
     setEmailSending(true);
@@ -213,7 +220,13 @@ export const QuoteEditor = ({ quote, open, onOpenChange, onQuoteUpdated }: Quote
           quote_id: quote.id,
           customer_email: formData.customer_email,
           customer_name: formData.customer_email.split('@')[0],
-          notification_type: 'updated'
+          notification_type: 'updated',
+          ...(emailData && {
+            custom_subject: emailData.subject,
+            custom_content: emailData.content,
+            template_id: emailData.template,
+            attachments: emailData.attachments
+          })
         }
       });
 
@@ -393,11 +406,19 @@ export const QuoteEditor = ({ quote, open, onOpenChange, onQuoteUpdated }: Quote
               </Button>
               <Button 
                 variant="outline" 
-                onClick={sendQuoteEmail} 
+                onClick={() => setIsEmailPreviewOpen(true)}
                 disabled={emailSending || !formData.customer_email}
               >
                 <Mail className="w-4 h-4 mr-2" />
-                {emailSending ? 'Sending...' : 'Send Email'}
+                Preview & Send Email
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => sendQuoteEmail()}
+                disabled={emailSending || !formData.customer_email}
+              >
+                <Mail className="w-4 h-4 mr-2" />
+                {emailSending ? 'Sending...' : 'Quick Send'}
               </Button>
             </div>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
@@ -412,6 +433,18 @@ export const QuoteEditor = ({ quote, open, onOpenChange, onQuoteUpdated }: Quote
           open={itemEditorOpen}
           onOpenChange={setItemEditorOpen}
           onItemUpdated={handleItemUpdated}
+        />
+
+        {/* Email Preview Dialog */}
+        <EmailPreviewDialog
+          open={isEmailPreviewOpen}
+          onOpenChange={setIsEmailPreviewOpen}
+          quote={{
+            ...formData,
+            id: quote.id,
+            total_amount: formData.total_amount || 0
+          }}
+          onSendEmail={sendQuoteEmail}
         />
       </DialogContent>
     </Dialog>

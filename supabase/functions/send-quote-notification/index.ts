@@ -14,6 +14,10 @@ interface NotificationRequest {
   quote_number?: string;
   total_amount?: number;
   notification_type?: 'created' | 'updated' | 'reminder';
+  custom_subject?: string;
+  custom_content?: string;
+  template_id?: string;
+  attachments?: Array<{ id: string; name: string; url: string }>;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -29,7 +33,11 @@ const handler = async (req: Request): Promise<Response> => {
       customer_name, 
       quote_number, 
       total_amount,
-      notification_type = 'created'
+      notification_type = 'created',
+      custom_subject,
+      custom_content,
+      template_id,
+      attachments = []
     }: NotificationRequest = await req.json();
 
     // Initialize Supabase client
@@ -82,28 +90,44 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Generate email content
-    const { subject, html } = generateEmailContent(
-      notification_type,
-      customer_name,
-      quoteData.quote_number,
-      quoteData.total_amount,
-      isNewUser,
-      temporaryPassword,
-      quote_id
-    );
+    const { subject, html } = custom_subject && custom_content 
+      ? { subject: custom_subject, html: custom_content }
+      : generateEmailContent(
+          notification_type,
+          customer_name,
+          quoteData.quote_number,
+          quoteData.total_amount,
+          isNewUser,
+          temporaryPassword,
+          quote_id
+        );
 
-    // For testing: only allow sending to account owner's email
-    const ALLOWED_TEST_EMAIL = 'damianorwin@gmail.com';
-    if (customer_email !== ALLOWED_TEST_EMAIL) {
-      throw new Error(`Testing mode: Can only send emails to ${ALLOWED_TEST_EMAIL}. Please use that email address for testing quotes.`);
-    }
+    // Removed testing mode restriction - emails can now be sent to any customer
 
-    // Send email using Resend's default testing domain
+    // Prepare email attachments
+    const emailAttachments = attachments?.length > 0 
+      ? await Promise.all(attachments.map(async (att) => {
+          try {
+            const response = await fetch(att.url);
+            const buffer = await response.arrayBuffer();
+            return {
+              filename: att.name,
+              content: new Uint8Array(buffer)
+            };
+          } catch (error) {
+            console.error('Failed to fetch attachment:', error);
+            return null;
+          }
+        })).then(results => results.filter(Boolean))
+      : [];
+
+    // Send email using Resend
     const { error: emailError } = await resend.emails.send({
       from: 'DIY Kitchens <onboarding@resend.dev>',
       to: [customer_email],
       subject,
       html,
+      ...(emailAttachments.length > 0 && { attachments: emailAttachments })
     });
 
     if (emailError) {
@@ -118,11 +142,13 @@ const handler = async (req: Request): Promise<Response> => {
         notification_type,
         sent_to: customer_email,
         status: 'sent',
-        template_used: `quote_${notification_type}`,
+        template_used: template_id || `quote_${notification_type}`,
         metadata: {
           quote_number: quoteData.quote_number,
           total_amount: quoteData.total_amount,
-          is_new_user: isNewUser
+          is_new_user: isNewUser,
+          custom_template: !!custom_subject,
+          attachments_count: attachments?.length || 0
         }
       });
 
