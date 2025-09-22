@@ -96,18 +96,25 @@ Deno.serve(async (req) => {
       // Generate quote number
       const { data: quoteNumber } = await supabase.rpc('generate_quote_number');
 
+      // Get customer email - either provided or from cart user lookup
+      let finalCustomerEmail = customer_email;
+      if (!finalCustomerEmail && userId) {
+        const { data: userData } = await supabase.auth.admin.getUserById(userId);
+        finalCustomerEmail = userData.user?.email || 'no-email@example.com';
+      }
+
       // Create quote
       const { data: newQuote, error: quoteError } = await supabase
         .from('quotes')
         .insert({
           user_id: userId,
-          customer_email: customer_email,
+          customer_email: finalCustomerEmail,
           quote_number: quoteNumber,
           status: 'draft',
           subtotal: subtotal,
           tax_amount: taxAmount,
           total_amount: totalAmount,
-          valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+          valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Convert to date string
           notes: notes || `Quote created from cart items`
         })
         .select()
