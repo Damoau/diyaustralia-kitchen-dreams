@@ -83,9 +83,10 @@ const handler = async (req: Request): Promise<Response> => {
         user_metadata: { name: customer_name }
       });
 
-      if (createError) {
+      if (createError && !createError.message.includes('already been registered')) {
         console.error('Failed to create user:', createError);
         // Continue without user creation - they can still view the quote
+        isNewUser = false;
       }
     }
 
@@ -123,7 +124,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email using Resend
     const { error: emailError } = await resend.emails.send({
-      from: 'DIY Kitchens <onboarding@resend.dev>',
+      from: 'DIY Kitchens <damianorwin@gmail.com>',
       to: [customer_email],
       subject,
       html,
