@@ -122,12 +122,13 @@ const handler = async (req: Request): Promise<Response> => {
         })).then(results => results.filter(Boolean))
       : [];
 
-    // Send email using Resend
+    // Send email using Resend (in testing mode, send to verified email)
+    const testRecipient = 'damianorwin@gmail.com'; // Testing mode recipient
     const { error: emailError } = await resend.emails.send({
       from: 'DIY Kitchens <onboarding@resend.dev>',
-      to: [customer_email],
-      subject,
-      html,
+      to: [testRecipient],
+      subject: `[TEST] ${subject} (Originally for: ${customer_email})`,
+      html: html.replace(customer_email, testRecipient), // Update email content for testing
       ...(emailAttachments.length > 0 && { attachments: emailAttachments })
     });
 
