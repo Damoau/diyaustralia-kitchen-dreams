@@ -664,7 +664,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                               value={dimensions.width}
                               onChange={(e) => handleDimensionChange('width', parseInt(e.target.value) || 0)}
                               onBlur={() => handleDimensionBlur('width')}
-                              className="text-center font-mono h-10 text-base font-semibold border-2 focus:border-primary/50"
+                              className="text-center font-mono h-10 dimension-number font-semibold border-2 focus:border-primary/50"
                             />
                             <div className="text-xs text-muted-foreground text-center font-medium">
                               {selectedCabinetType.min_width_mm}-{selectedCabinetType.max_width_mm}
@@ -678,7 +678,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                               value={dimensions.height}
                               onChange={(e) => handleDimensionChange('height', parseInt(e.target.value) || 0)}
                               onBlur={() => handleDimensionBlur('height')}
-                              className="text-center font-mono h-10 text-base font-semibold border-2 focus:border-primary/50"
+                              className="text-center font-mono h-10 dimension-number font-semibold border-2 focus:border-primary/50"
                             />
                             <div className="text-xs text-muted-foreground text-center font-medium">
                               {selectedCabinetType.min_height_mm}-{selectedCabinetType.max_height_mm}
@@ -692,7 +692,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                               value={dimensions.depth}
                               onChange={(e) => handleDimensionChange('depth', parseInt(e.target.value) || 0)}
                               onBlur={() => handleDimensionBlur('depth')}
-                              className="text-center font-mono h-10 text-base font-semibold border-2 focus:border-primary/50"
+                              className="text-center font-mono h-10 dimension-number font-semibold border-2 focus:border-primary/50"
                             />
                             <div className="text-xs text-muted-foreground text-center font-medium">
                               {selectedCabinetType.min_depth_mm}-{selectedCabinetType.max_depth_mm}

@@ -137,6 +137,17 @@ All colors MUST be HSL.
     -moz-user-select: none !important;
     -ms-user-select: none !important;
   }
+
+  /* Custom dimension number sizes */
+  .dimension-number {
+    /* Mobile: 20% bigger than text-base (16px * 1.2 = 19.2px) */
+    font-size: 1.2rem;
+    
+    /* Tablet and desktop: 70% bigger than text-base (16px * 1.7 = 27.2px) */
+    @media (min-width: 768px) {
+      font-size: 1.7rem;
+    }
+  }
 }
 
 /* Carousel scrolling enhancements */
