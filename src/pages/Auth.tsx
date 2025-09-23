@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,14 +16,17 @@ export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  
+  const redirectTo = searchParams.get('redirect') || '/';
 
   useEffect(() => {
     // Check if user is already logged in
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        navigate('/');
+        navigate(decodeURIComponent(redirectTo));
       }
     };
     checkUser();
@@ -92,7 +95,7 @@ export default function Auth() {
         description: "You have successfully signed in.",
       });
 
-      navigate('/');
+      navigate(decodeURIComponent(redirectTo));
     } catch (error: any) {
       setError(error.message);
     } finally {

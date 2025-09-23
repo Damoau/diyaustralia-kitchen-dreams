@@ -22,7 +22,9 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
       if (!isLoading) {
         if (!isAuthenticated) {
           console.log('Redirecting to auth - not authenticated');
-          navigate('/auth', { replace: true });
+          // Preserve the current path to redirect back after login
+          const redirectTo = encodeURIComponent(window.location.pathname + window.location.search);
+          navigate(`/auth?redirect=${redirectTo}`, { replace: true });
         } else if (requireAdmin && roleKnown && !isAdmin) {
           console.log('Redirecting to home - not admin');
           navigate('/', { replace: true });
@@ -61,7 +63,10 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
           </CardHeader>
           <CardContent>
             <Button 
-              onClick={() => navigate('/auth')} 
+              onClick={() => {
+                const redirectTo = encodeURIComponent(window.location.pathname + window.location.search);
+                navigate(`/auth?redirect=${redirectTo}`);
+              }} 
               className="w-full"
             >
               Go to Login
