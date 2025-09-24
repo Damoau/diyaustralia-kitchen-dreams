@@ -9,6 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { UserPlus, Mail } from 'lucide-react';
 
 interface UserInviteDialogProps {
+  open?: boolean;
+  onClose?: () => void;
   onUserInvited?: () => void;
 }
 
@@ -19,12 +21,16 @@ const ROLE_OPTIONS = {
   customer: 'Customer'
 };
 
-export const UserInviteDialog = ({ onUserInvited }: UserInviteDialogProps) => {
+export const UserInviteDialog = ({ open, onClose, onUserInvited }: UserInviteDialogProps) => {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
+
+  // Use external state if provided, otherwise use internal state
+  const dialogOpen = open !== undefined ? open : isOpen;
+  const handleClose = onClose || (() => setIsOpen(false));
 
   const handleInvite = async () => {
     if (!email || !role) {
@@ -76,7 +82,7 @@ export const UserInviteDialog = ({ onUserInvited }: UserInviteDialogProps) => {
       // Reset form
       setEmail('');
       setRole('');
-      setIsOpen(false);
+      handleClose();
       onUserInvited?.();
 
     } catch (error: any) {
@@ -92,13 +98,15 @@ export const UserInviteDialog = ({ onUserInvited }: UserInviteDialogProps) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <UserPlus className="h-4 w-4 mr-2" />
-          Invite User
-        </Button>
-      </DialogTrigger>
+    <Dialog open={dialogOpen} onOpenChange={handleClose}>
+      {open === undefined && (
+        <DialogTrigger asChild>
+          <Button>
+            <UserPlus className="h-4 w-4 mr-2" />
+            Invite User
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -142,7 +150,7 @@ export const UserInviteDialog = ({ onUserInvited }: UserInviteDialogProps) => {
           <div className="flex justify-end space-x-2 pt-4">
             <Button 
               variant="outline" 
-              onClick={() => setIsOpen(false)}
+              onClick={handleClose}
               disabled={isLoading}
             >
               Cancel
