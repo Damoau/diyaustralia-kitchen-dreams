@@ -113,7 +113,7 @@ serve(async (req) => {
     console.log('Reset link generated:', !!resetData?.properties.action_link);
 
     const { error: emailError } = await resend.emails.send({
-      from: 'Cabinet Factory Admin <onboarding@resend.dev>',
+      from: 'DIY Kitchens Admin <admin@diykitchens.com.au>',
       to: [email],
       subject: `You've been invited as ${roleLabels[role]}`,
       html: `
