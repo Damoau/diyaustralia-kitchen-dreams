@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { PageLoader } from '@/components/ui/page-loader';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 
+import { UserRoleProvider } from './UserRoleContext';
+
 // Lazy load admin components for better performance
 const Production = lazy(() => import('@/pages/admin/Production'));
 const CartsList = lazy(() => import('@/pages/admin/CartsList'));
@@ -10,7 +12,7 @@ const AdminOverview = lazy(() => import('@/components/admin/AdminOverview'));
 const AdminOrders = lazy(() => import('@/components/admin/AdminOrders'));
 const AdminShipping = lazy(() => import('@/components/admin/AdminShipping'));
 const SecurityDashboard = lazy(() => import('@/components/admin/SecurityDashboard'));
-const RoleManagement = lazy(() => import('@/components/admin/RoleManagement'));
+const EnhancedRoleManagement = lazy(() => import('@/components/admin/EnhancedRoleManagement'));
 
 // Create placeholder components for missing pages
 const QuotesList = lazy(() => import('@/pages/admin/QuotesList'));
@@ -74,7 +76,11 @@ export const AdminRouter = () => {
           <Route path="pricing" element={<Pricing />} />
           <Route path="discounts" element={<Discounts />} />
           <Route path="users" element={<Users />} />
-          <Route path="roles" element={<RoleManagement />} />
+          <Route path="roles" element={
+            <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+              <EnhancedRoleManagement />
+            </Suspense>
+          } />
           
           {/* Analytics */}
           <Route path="reports" element={<Reports />} />

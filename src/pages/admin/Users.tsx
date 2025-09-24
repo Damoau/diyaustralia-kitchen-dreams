@@ -10,7 +10,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { UserDetailModal } from '@/components/admin/UserDetailModal';
 import { UserActions } from '@/components/admin/UserActions';
 import { UserInviteDialog } from '@/components/admin/UserInviteDialog';
-import { useUsers, UserProfile } from '@/hooks/useUsers';
+import { NavigationTabs } from '@/components/admin/NavigationTabs';
+import { QuickActionBar } from '@/components/admin/QuickActionBar';
+import { useUserRoleContext } from '@/components/admin/UserRoleContext';
+import { UserProfile } from '@/hooks/useUsers';
 import { 
   Users as UsersIcon, 
   UserPlus, 
@@ -19,17 +22,19 @@ import {
   Search,
   Filter,
   Download,
-  MoreHorizontal
+  ArrowRight
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 const Users = () => {
-  const { users, stats, isLoading, error, assignRole, removeRole, updateUserStatus } = useUsers();
+  const { users, stats, isLoading, error, assignRole, removeRole, updateUserStatus } = useUserRoleContext();
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const navigate = useNavigate();
 
   // Filter and search users
   const filteredUsers = useMemo(() => {
@@ -124,8 +129,9 @@ const Users = () => {
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <div className="text-center py-12">
+      <div className="space-y-0">
+        <NavigationTabs />
+        <div className="p-6 text-center py-12">
           <p className="text-destructive">Error loading users: {error}</p>
           <Button onClick={() => window.location.reload()} className="mt-4">
             Retry
@@ -136,189 +142,229 @@ const Users = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">User Management</h1>
-          <p className="text-muted-foreground">Manage user accounts, roles, and permissions</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
-          <Button onClick={() => setShowInviteDialog(true)}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Invite User
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-0">
+      <NavigationTabs />
       
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <UsersIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <div className="text-2xl font-bold">{stats.totalUsers}</div>
-            )}
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active</CardTitle>
-            <Shield className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <div className="text-2xl font-bold">{stats.activeUsers}</div>
-            )}
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Admins</CardTitle>
-            <Shield className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <div className="text-2xl font-bold">{stats.adminUsers}</div>
-            )}
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sales Reps</CardTitle>
-            <UsersIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <div className="text-2xl font-bold">{stats.salesReps}</div>
-            )}
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Customers</CardTitle>
-            <UsersIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <div className="text-2xl font-bold">{stats.customerUsers}</div>
-            )}
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">New This Month</CardTitle>
-            <Mail className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <div className="text-2xl font-bold">{stats.newThisMonth}</div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      <div className="p-6 space-y-6">
+        <QuickActionBar />
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex items-center gap-2">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search users..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-64"
-              />
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Filter by role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="sales_rep">Sales Rep</SelectItem>
-                  <SelectItem value="fulfilment">Fulfilment</SelectItem>
-                  <SelectItem value="customer">Customer</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <div className="ml-auto text-sm text-muted-foreground">
-              Showing {filteredUsers.length} of {users.length} users
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {/* Users Table */}
-      <DataTable
-        data={filteredUsers}
-        columns={columns}
-        selectable
-        loading={isLoading}
-        emptyState={
-          <div className="text-center py-12">
-            <UsersIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium">No users found</h3>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">User Analytics & Management</h1>
             <p className="text-muted-foreground">
-              {searchTerm || roleFilter !== 'all' || statusFilter !== 'all' 
-                ? 'Try adjusting your filters' 
-                : 'No users have been created yet'}
+              Comprehensive user management with detailed analytics and insights
             </p>
           </div>
-        }
-      />
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate('/admin/roles')}
+            >
+              <Shield className="mr-2 h-4 w-4" />
+              Role Management
+              <ArrowRight className="ml-2 h-3 w-3" />
+            </Button>
+            <Button variant="outline" size="sm">
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+            <Button onClick={() => setShowInviteDialog(true)}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Invite User
+            </Button>
+          </div>
+        </div>
+        
+        {/* Enhanced Stats Cards */}
+        <div className="grid gap-4 md:grid-cols-6">
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <UsersIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <div className="text-2xl font-bold">{stats.totalUsers}</div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                +{stats.newThisMonth} this month
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active</CardTitle>
+              <Shield className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <div className="text-2xl font-bold">{stats.activeUsers}</div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                {stats.totalUsers > 0 ? ((stats.activeUsers / stats.totalUsers) * 100).toFixed(1) : 0}% verified
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Admins</CardTitle>
+              <Shield className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <div className="text-2xl font-bold">{stats.adminUsers}</div>
+              )}
+              <p className="text-xs text-muted-foreground">System access</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Sales Reps</CardTitle>
+              <UsersIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <div className="text-2xl font-bold">{stats.salesReps}</div>
+              )}
+              <p className="text-xs text-muted-foreground">Sales team</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Customers</CardTitle>
+              <UsersIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <div className="text-2xl font-bold">{stats.customerUsers}</div>
+              )}
+              <p className="text-xs text-muted-foreground">End users</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">New This Month</CardTitle>
+              <Mail className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <div className="text-2xl font-bold">{stats.newThisMonth}</div>
+              )}
+              <p className="text-xs text-muted-foreground">Recent signups</p>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Modals */}
-      <UserDetailModal
-        user={selectedUser}
-        open={!!selectedUser}
-        onClose={() => setSelectedUser(null)}
-      />
-      
-      <UserInviteDialog
-        open={showInviteDialog}
-        onClose={() => setShowInviteDialog(false)}
-      />
+        {/* Enhanced Filters */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-wrap gap-4 items-center">
+              <div className="flex items-center gap-2">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-64"
+                />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <Select value={roleFilter} onValueChange={setRoleFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Filter by role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Roles</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="sales_rep">Sales Rep</SelectItem>
+                    <SelectItem value="fulfilment">Fulfilment</SelectItem>
+                    <SelectItem value="customer">Customer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <div className="ml-auto text-sm text-muted-foreground">
+                Showing {filteredUsers.length} of {users.length} users
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Users Table */}
+        <DataTable
+          data={filteredUsers}
+          columns={columns}
+          selectable
+          loading={isLoading}
+          emptyState={
+            <div className="text-center py-12">
+              <UsersIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium">No users found</h3>
+              <p className="text-muted-foreground">
+                {searchTerm || roleFilter !== 'all' || statusFilter !== 'all' 
+                  ? 'Try adjusting your filters' 
+                  : 'No users have been created yet'}
+              </p>
+              {(searchTerm || roleFilter !== 'all' || statusFilter !== 'all') && (
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setRoleFilter('all');
+                    setStatusFilter('all');
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+          }
+        />
+
+        {/* Modals */}
+        <UserDetailModal
+          user={selectedUser}
+          open={!!selectedUser}
+          onClose={() => setSelectedUser(null)}
+        />
+        
+        <UserInviteDialog
+          open={showInviteDialog}
+          onClose={() => setShowInviteDialog(false)}
+        />
+      </div>
     </div>
   );
 };
