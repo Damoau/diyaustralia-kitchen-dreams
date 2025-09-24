@@ -31,22 +31,34 @@ const Footer = () => {
             <h4 className="text-xl font-bold mb-6">Quick Links</h4>
             <ul className="space-y-3">
               <li>
-                <a href="#services" className="text-gray-300 hover:text-primary transition-colors">
+                <a href="#services" className="text-gray-300 hover:text-primary transition-colors" onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
+                }}>
                   Our Services
                 </a>
               </li>
               <li>
-                <a href="#gallery" className="text-gray-300 hover:text-primary transition-colors">
+                <a href="#gallery" className="text-gray-300 hover:text-primary transition-colors" onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('gallery')?.scrollIntoView({ behavior: 'smooth' });
+                }}>
                   Gallery
                 </a>
               </li>
               <li>
-                <a href="#about" className="text-gray-300 hover:text-primary transition-colors">
+                <a href="#about" className="text-gray-300 hover:text-primary transition-colors" onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+                }}>
                   About Us
                 </a>
               </li>
               <li>
-                <a href="#contact" className="text-gray-300 hover:text-primary transition-colors">
+                <a href="#contact" className="text-gray-300 hover:text-primary transition-colors" onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+                }}>
                   Contact
                 </a>
               </li>
