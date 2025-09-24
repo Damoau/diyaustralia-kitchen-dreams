@@ -109,7 +109,7 @@ serve(async (req) => {
     };
 
     const { error: emailError } = await resend.emails.send({
-      from: 'Admin <admin@cabinet-factory.com>',
+      from: 'Cabinet Factory Admin <onboarding@resend.dev>',
       to: [email],
       subject: `You've been invited as ${roleLabels[role]}`,
       html: `
