@@ -56,6 +56,14 @@ serve(async (req) => {
       throw new Error(`Failed to fetch users: ${usersError.message}`);
     }
 
+    console.log('Total auth users found:', authUsers.users.length);
+    console.log('Auth users emails:', authUsers.users.map(u => u.email));
+    console.log('Looking for info@diyaustralia.com:', authUsers.users.find(u => u.email === 'info@diyaustralia.com'));
+    
+    // Check if there are any users with deleted_at set
+    console.log('Users with deleted_at:', authUsers.users.filter(u => (u as any).deleted_at));
+    console.log('User creation methods:', authUsers.users.map(u => ({ email: u.email, app_metadata: u.app_metadata })));
+
     // Get all user roles
     const { data: userRoles, error: rolesError } = await supabase
       .from('user_roles')
