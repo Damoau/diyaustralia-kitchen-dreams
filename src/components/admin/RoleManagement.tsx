@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuditLog } from '@/hooks/useAuditLog';
+import { UserInviteDialog } from './UserInviteDialog';
 import { 
   Users, 
   Shield, 
@@ -255,10 +256,15 @@ const RoleManagement = () => {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>User Role Management</CardTitle>
-          <CardDescription>
-            Manage user roles and permissions across the system
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>User Role Management</CardTitle>
+              <CardDescription>
+                Manage user roles and permissions across the system
+              </CardDescription>
+            </div>
+            <UserInviteDialog onUserInvited={loadUsers} />
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
