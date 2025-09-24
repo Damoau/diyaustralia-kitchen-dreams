@@ -58,66 +58,137 @@ export const useCart = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get or create user's active cart with optimized loading
+  // Get or create cart (for both authenticated and guest users)
   const initializeCart = async () => {
-    if (!user) return;
-    
     setIsLoading(true);
     setError(null);
 
+    // Generate or get session ID for guest users
+    const getSessionId = () => {
+      let sessionId = sessionStorage.getItem('cart_session_id');
+      if (!sessionId) {
+        sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        sessionStorage.setItem('cart_session_id', sessionId);
+      }
+      return sessionId;
+    };
+
     try {
-      // Use a single optimized query to get cart with items
-      let { data: existingCart, error: fetchError } = await supabase
-        .from('carts')
-        .select(`
-          id,
-          user_id,
-          session_id,
-          name,
-          total_amount,
-          status,
-          created_at,
-          updated_at,
-          cart_items (
+      let existingCart = null;
+      let fetchError = null;
+
+      if (user) {
+        // Authenticated user - search by user_id
+        const { data, error } = await supabase
+          .from('carts')
+          .select(`
             id,
-            cart_id,
-            cabinet_type_id,
-            door_style_id,
-            color_id,
-            finish_id,
-            width_mm,
-            height_mm,
-            depth_mm,
-            quantity,
-            unit_price,
-            total_price,
-            notes,
-            configuration,
+            user_id,
+            session_id,
+            name,
+            total_amount,
+            status,
             created_at,
             updated_at,
-            cabinet_types (
-              name,
-              category,
-              product_image_url
-            ),
-            door_styles (
-              name,
-              image_url
-            ),
-            colors (
-              name,
-              hex_code
-            ),
-            finishes (
-              name
+            cart_items (
+              id,
+              cart_id,
+              cabinet_type_id,
+              door_style_id,
+              color_id,
+              finish_id,
+              width_mm,
+              height_mm,
+              depth_mm,
+              quantity,
+              unit_price,
+              total_price,
+              notes,
+              configuration,
+              created_at,
+              updated_at,
+              cabinet_types (
+                name,
+                category,
+                product_image_url
+              ),
+              door_styles (
+                name,
+                image_url
+              ),
+              colors (
+                name,
+                hex_code
+              ),
+              finishes (
+                name
+              )
             )
-          )
-        `)
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+          `)
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        existingCart = data;
+        fetchError = error;
+      } else {
+        // Guest user - search by session_id
+        const sessionId = getSessionId();
+        const { data, error } = await supabase
+          .from('carts')
+          .select(`
+            id,
+            user_id,
+            session_id,
+            name,
+            total_amount,
+            status,
+            created_at,
+            updated_at,
+            cart_items (
+              id,
+              cart_id,
+              cabinet_type_id,
+              door_style_id,
+              color_id,
+              finish_id,
+              width_mm,
+              height_mm,
+              depth_mm,
+              quantity,
+              unit_price,
+              total_price,
+              notes,
+              configuration,
+              created_at,
+              updated_at,
+              cabinet_types (
+                name,
+                category,
+                product_image_url
+              ),
+              door_styles (
+                name,
+                image_url
+              ),
+              colors (
+                name,
+                hex_code
+              ),
+              finishes (
+                name
+              )
+            )
+          `)
+          .eq('session_id', sessionId)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        existingCart = data;
+        fetchError = error;
+      }
 
       if (fetchError) {
         throw fetchError;
@@ -125,14 +196,23 @@ export const useCart = () => {
 
       // If no active cart exists, create one
       if (!existingCart) {
+        const cartData = user 
+          ? { 
+              user_id: user.id,
+              name: 'My Cabinet Quote',
+              status: 'active',
+              total_amount: 0
+            }
+          : {
+              session_id: getSessionId(),
+              name: 'My Cabinet Quote', 
+              status: 'active',
+              total_amount: 0
+            };
+
         const { data: newCart, error: createError } = await supabase
           .from('carts')
-          .insert({
-            user_id: user.id,
-            name: 'My Cabinet Quote',
-            status: 'active',
-            total_amount: 0
-          })
+          .insert(cartData)
           .select(`
             id,
             user_id,
@@ -230,8 +310,12 @@ export const useCart = () => {
     configuration?: any;
   }) => {
     if (!cart) {
-      toast.error('Cart not initialized');
-      return;
+      // Try to initialize cart first
+      await initializeCart();
+      if (!cart) {
+        toast.error('Unable to initialize cart. Please try again.');
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -488,13 +572,9 @@ export const useCart = () => {
     return cart?.items.reduce((sum, item) => sum + item.quantity, 0) || 0;
   };
 
-  // Initialize cart when user changes
+  // Initialize cart when component mounts (for both auth and guest users)
   useEffect(() => {
-    if (user) {
-      initializeCart();
-    } else {
-      setCart(null);
-    }
+    initializeCart();
   }, [user]);
 
   // Set up real-time subscriptions for cart changes

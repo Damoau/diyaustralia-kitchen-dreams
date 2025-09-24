@@ -37,10 +37,10 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
     navigate(`/shop/kitchen/${category}?cabinet=${item.cabinet_type_id}`);
   };
 
-  // Debug logging
+  // Debug logging - remove or reduce in production
   console.log('CartDrawer render:', {
-    cart: cart,
-    itemsLength: cart?.items?.length,
+    hasCart: !!cart,
+    itemsCount: cart?.items?.length || 0,
     isLoading,
     getItemCount: getItemCount()
   });
@@ -91,27 +91,18 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
       );
       
       if (result.success) {
-        setIsOpen(false);
-        
-      if (result.success) {
         toast.success(`Quote ${result.quoteNumber} created for customer`);
         
         // Initialize a new cart since the old one was converted to a quote
         await initializeCart();
-        
-        // Close drawer and navigate
-        setIsOpen(false);
-        navigate('/admin/sales/quotes');
-      }
         
         // Dispatch custom event to notify quotes page to refresh
         window.dispatchEvent(new CustomEvent('quoteCreated', {
           detail: { quoteId: result.quoteId, quoteNumber: result.quoteNumber }
         }));
         
-        toast.success(`Quote ${result.quoteNumber} created for customer`);
-        
-        // Small delay to ensure quote is fully created before navigation
+        // Close drawer and navigate to quotes page
+        setIsOpen(false);
         setTimeout(() => {
           navigate('/admin/sales/quotes');
         }, 500);
@@ -167,11 +158,6 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
           </div>
         ) : (
           <div className="flex flex-col h-full">
-            {/* Debug info */}
-            <div className="text-xs text-muted-foreground p-2 bg-muted/20 mb-2">
-              Cart items: {cart?.items?.length || 0} | Loading: {isLoading ? 'yes' : 'no'}
-            </div>
-            
             <ScrollArea className="flex-1 pr-6">
               <div className="space-y-4 py-4">
                 {cart.items.map((item) => (
