@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuditLog } from '@/hooks/useAuditLog';
 import { UserInviteDialog } from './UserInviteDialog';
+import { InviteAdminButton } from './InviteAdminButton';
 import { 
   Users, 
   Shield, 
@@ -263,7 +264,10 @@ const RoleManagement = () => {
                 Manage user roles and permissions across the system
               </CardDescription>
             </div>
-            <UserInviteDialog onUserInvited={loadUsers} />
+            <div className="flex gap-2">
+              <InviteAdminButton />
+              <UserInviteDialog onUserInvited={loadUsers} />
+            </div>
           </div>
         </CardHeader>
         <CardContent>
