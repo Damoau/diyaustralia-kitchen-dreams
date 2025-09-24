@@ -95,6 +95,7 @@ const RoleManagement = () => {
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [assigningRoles, setAssigningRoles] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
   const { logEvent } = useAuditLog();
 
@@ -168,6 +169,8 @@ const RoleManagement = () => {
 
   const assignRole = async (userId: string, role: 'admin' | 'sales_rep' | 'fulfilment' | 'customer') => {
     try {
+      setAssigningRoles(prev => ({ ...prev, [userId]: true }));
+      
       const { error } = await supabase
         .from('user_roles')
         .insert({ user_id: userId, role });
@@ -186,6 +189,7 @@ const RoleManagement = () => {
         description: `${ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS]?.label || role} role assigned successfully`
       });
 
+      // Real-time will handle the update, but we can also refresh manually
       loadUsers();
     } catch (error) {
       console.error('Error assigning role:', error);
@@ -194,16 +198,17 @@ const RoleManagement = () => {
         description: 'Failed to assign role',
         variant: 'destructive'
       });
+    } finally {
+      setAssigningRoles(prev => ({ ...prev, [userId]: false }));
     }
   };
 
-  const removeRole = async (userId: string, roleToRemove: string) => {
+  const removeRole = async (userId: string, roleId: string, roleToRemove: string) => {
     try {
       const { error } = await supabase
         .from('user_roles')
         .delete()
-        .eq('user_id', userId)
-        .eq('role', roleToRemove as any);
+        .eq('id', roleId);
 
       if (error) throw error;
 
@@ -340,13 +345,21 @@ const RoleManagement = () => {
                       {user.roles.map((userRole) => {
                         const roleConfig = ROLE_PERMISSIONS[userRole.role as keyof typeof ROLE_PERMISSIONS];
                         return (
-                          <Badge 
-                            key={userRole.id}
-                            className={roleConfig.color}
-                            variant="secondary"
-                          >
-                            {roleConfig.label}
-                          </Badge>
+                          <div key={userRole.id} className="flex items-center">
+                            <Badge 
+                              className={`${roleConfig.color} pr-1`}
+                              variant="secondary"
+                            >
+                              <span>{roleConfig.label}</span>
+                              <button
+                                onClick={() => removeRole(user.id, userRole.id, userRole.role)}
+                                className="ml-1 hover:bg-black/10 rounded-full p-0.5 transition-colors"
+                                title={`Remove ${roleConfig.label} role`}
+                              >
+                                <UserX className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          </div>
                         );
                       })}
                       {user.roles.length === 0 && (
@@ -364,20 +377,37 @@ const RoleManagement = () => {
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <Select onValueChange={(role) => assignRole(user.id, role as 'admin' | 'sales_rep' | 'fulfilment' | 'customer')}>
+                  <Select 
+                    key={`${user.id}-${user.roles.length}`} // Force re-render when roles change
+                    onValueChange={(role) => assignRole(user.id, role as 'admin' | 'sales_rep' | 'fulfilment' | 'customer')}
+                    disabled={assigningRoles[user.id]}
+                  >
                     <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Assign role" />
+                      <SelectValue placeholder={
+                        assigningRoles[user.id] ? "Assigning..." : "Assign role"
+                      } />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.entries(ROLE_PERMISSIONS).map(([role, config]) => (
-                        <SelectItem 
-                          key={role} 
-                          value={role}
-                          disabled={user.roles.some(r => r.role === role)}
-                        >
-                          {config.label}
-                        </SelectItem>
-                      ))}
+                      {Object.entries(ROLE_PERMISSIONS).map(([role, config]) => {
+                        const isDisabled = user.roles.some(r => r.role === role);
+                        return (
+                          <SelectItem 
+                            key={role} 
+                            value={role}
+                            disabled={isDisabled}
+                            className={isDisabled ? 'opacity-50 cursor-not-allowed' : ''}
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <span>{config.label}</span>
+                              {isDisabled && (
+                                <Badge variant="outline" className="ml-2 text-xs">
+                                  Assigned
+                                </Badge>
+                              )}
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   
