@@ -8,9 +8,9 @@ import { Suspense, lazy } from "react";
 import { PageLoader } from "@/components/ui/page-loader";
 import { AdminImpersonationProvider } from "@/contexts/AdminImpersonationContext";
 import { HelmetProvider } from "react-helmet-async";
+import Index from "./pages/Index";
 
 // Lazy load route components for code splitting
-const Index = lazy(() => import("./pages/Index"));
 const Shop = lazy(() => import("./pages/Shop"));
 const RoomCategories = lazy(() => import("./pages/RoomCategories"));
 const RoomCategory = lazy(() => import("./pages/RoomCategory"));
