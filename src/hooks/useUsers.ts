@@ -166,6 +166,30 @@ export const useUsers = () => {
     }
   }, [fetchUsers, toast]);
 
+  const deleteUser = useCallback(async (email: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('admin-delete-user', {
+        body: { email }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `User ${email} deleted successfully`
+      });
+
+      fetchUsers();
+    } catch (err: any) {
+      console.error('Error deleting user:', err);
+      toast({
+        title: "Error",
+        description: err.message || "Failed to delete user",
+        variant: "destructive"
+      });
+    }
+  }, [fetchUsers, toast]);
+
   const updateUserStatus = useCallback(async (userId: string, action: 'activate' | 'deactivate') => {
     try {
       // This would typically involve calling a Supabase admin function
@@ -218,6 +242,7 @@ export const useUsers = () => {
     fetchUsers,
     assignRole,
     removeRole,
-    updateUserStatus
+    updateUserStatus,
+    deleteUser
   };
 };

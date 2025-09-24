@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { UserDetailModal } from '@/components/admin/UserDetailModal';
 import { UserActions } from '@/components/admin/UserActions';
 import { UserInviteDialog } from '@/components/admin/UserInviteDialog';
+import { BulkUserActions } from '@/components/admin/BulkUserActions';
 import { NavigationTabs } from '@/components/admin/NavigationTabs';
 import { QuickActionBar } from '@/components/admin/QuickActionBar';
 import { useUserRoleContext } from '@/components/admin/UserRoleContext';
@@ -169,6 +170,7 @@ const Users = () => {
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
+            <BulkUserActions />
             <Button onClick={() => setShowInviteDialog(true)}>
               <UserPlus className="mr-2 h-4 w-4" />
               Invite User

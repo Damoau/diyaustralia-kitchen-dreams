@@ -10,6 +10,7 @@ interface UserRoleContextType {
   assignRole: (userId: string, role: string) => Promise<void>;
   removeRole: (userId: string, role: string) => Promise<void>;
   updateUserStatus: (userId: string, action: 'activate' | 'deactivate') => Promise<void>;
+  deleteUser: (email: string) => Promise<void>;
 }
 
 const UserRoleContext = createContext<UserRoleContextType | undefined>(undefined);
