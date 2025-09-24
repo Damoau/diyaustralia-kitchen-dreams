@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { UserProfile } from '@/hooks/useUsers';
+import { useUserRoleContext } from './UserRoleContext';
 import { 
   MoreHorizontal, 
   Eye, 
@@ -18,7 +20,8 @@ import {
   Shield, 
   UserMinus,
   UserCheck,
-  UserX
+  UserX,
+  Trash2
 } from 'lucide-react';
 
 interface UserActionsProps {
@@ -47,6 +50,13 @@ export const UserActions = ({
 }: UserActionsProps) => {
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [isAssigning, setIsAssigning] = useState(false);
+  const { deleteUser } = useUserRoleContext();
+
+  const handleDeleteUser = async () => {
+    await deleteUser(user.email);
+  };
+
+  const canDelete = user.email !== 'damianorwin@gmail.com'; // Protect main admin
 
   const handleAssignRole = async () => {
     if (!selectedRole) return;
@@ -156,6 +166,38 @@ export const UserActions = ({
               <UserCheck className="mr-2 h-4 w-4" />
               Activate
             </DropdownMenuItem>
+          )}
+          
+          {canDelete && (
+            <>
+              <DropdownMenuSeparator />
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    <Trash2 className="mr-2 h-4 w-4 text-red-500" />
+                    <span className="text-red-500">Delete User</span>
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete User</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to permanently delete <strong>{user.email}</strong>? 
+                      This action cannot be undone and will remove all associated data.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleDeleteUser}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Delete User
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </>
           )}
         </DropdownMenuContent>
       </DropdownMenu>
