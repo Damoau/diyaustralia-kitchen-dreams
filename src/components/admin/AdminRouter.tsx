@@ -37,63 +37,65 @@ const TestingPlaceholder = lazy(() => import('@/components/admin/TestingPlacehol
 
 export const AdminRouter = () => {
   return (
-    <AdminLayout>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route index element={<Navigate to="overview" replace />} />
-          <Route path="overview" element={<AdminOverview />} />
-          
-          {/* Redirect old quotes route to correct location */}
-          <Route path="quotes" element={<Navigate to="sales/quotes" replace />} />
-          
-          {/* Sales */}
-          <Route path="sales/carts" element={<CartsList />} />
-          <Route path="sales/quotes" element={<QuotesList />} />
-          
-          {/* Operations */}
-          <Route path="orders" element={<AdminOrders />} />
-          <Route path="production" element={<Production />} />
-          <Route path="shipping" element={<AdminShipping />} />
-          <Route path="assembly" element={<Assembly />} />
-          
-        {/* Configuration */}
-        <Route path="categories" element={<UnifiedCategoriesManager />} />
-        <Route path="room-categories" element={<RoomCategoriesManager />} />
-        <Route path="cabinets" element={
-          <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
-            <CabinetManager />
-          </Suspense>
-        } />
-        <Route path="cabinets/:id" element={<EditCabinetType />} />
-        <Route path="door-styles" element={<DoorStyles />} />
-          <Route path="hardware-manager" element={
+    <UserRoleProvider>
+      <AdminLayout>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route index element={<Navigate to="overview" replace />} />
+            <Route path="overview" element={<AdminOverview />} />
+            
+            {/* Redirect old quotes route to correct location */}
+            <Route path="quotes" element={<Navigate to="sales/quotes" replace />} />
+            
+            {/* Sales */}
+            <Route path="sales/carts" element={<CartsList />} />
+            <Route path="sales/quotes" element={<QuotesList />} />
+            
+            {/* Operations */}
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="production" element={<Production />} />
+            <Route path="shipping" element={<AdminShipping />} />
+            <Route path="assembly" element={<Assembly />} />
+            
+          {/* Configuration */}
+          <Route path="categories" element={<UnifiedCategoriesManager />} />
+          <Route path="room-categories" element={<RoomCategoriesManager />} />
+          <Route path="cabinets" element={
             <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
-              <HardwareManager />
+              <CabinetManager />
             </Suspense>
           } />
-          <Route path="materials" element={<Pricing />} />
-          <Route path="configuration-migration" element={<ConfigurationMigrationPlaceholder />} />
-          <Route path="pricing" element={<Pricing />} />
-          <Route path="discounts" element={<Discounts />} />
-          <Route path="users" element={<Users />} />
-          <Route path="roles" element={
-            <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
-              <EnhancedRoleManagement />
-            </Suspense>
-          } />
-          
-          {/* Analytics */}
-          <Route path="reports" element={<Reports />} />
-          <Route path="exports" element={<Exports />} />
-          
-          {/* System */}
-          <Route path="security" element={<SecurityDashboard />} />
-          <Route path="testing" element={<TestingPlaceholder />} />
-          <Route path="notifications" element={<Notifications />} />
-          <Route path="settings" element={<Settings />} />
-        </Routes>
-      </Suspense>
-    </AdminLayout>
+          <Route path="cabinets/:id" element={<EditCabinetType />} />
+          <Route path="door-styles" element={<DoorStyles />} />
+            <Route path="hardware-manager" element={
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+                <HardwareManager />
+              </Suspense>
+            } />
+            <Route path="materials" element={<Pricing />} />
+            <Route path="configuration-migration" element={<ConfigurationMigrationPlaceholder />} />
+            <Route path="pricing" element={<Pricing />} />
+            <Route path="discounts" element={<Discounts />} />
+            <Route path="users" element={<Users />} />
+            <Route path="roles" element={
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+                <EnhancedRoleManagement />
+              </Suspense>
+            } />
+            
+            {/* Analytics */}
+            <Route path="reports" element={<Reports />} />
+            <Route path="exports" element={<Exports />} />
+            
+            {/* System */}
+            <Route path="security" element={<SecurityDashboard />} />
+            <Route path="testing" element={<TestingPlaceholder />} />
+            <Route path="notifications" element={<Notifications />} />
+            <Route path="settings" element={<Settings />} />
+          </Routes>
+        </Suspense>
+      </AdminLayout>
+    </UserRoleProvider>
   );
 };
 
