@@ -111,6 +111,7 @@ serve(async (req) => {
     console.log('Attempting to send email to:', email);
     console.log('Using Resend API key exists:', !!Deno.env.get('RESEND_API_KEY'));
     console.log('Reset link generated:', !!resetData?.properties.action_link);
+    console.log('Using verified domain: admin@diykitchens.com.au');
 
     const { error: emailError } = await resend.emails.send({
       from: 'DIY Kitchens Admin <admin@diykitchens.com.au>',
