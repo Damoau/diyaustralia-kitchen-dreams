@@ -108,6 +108,10 @@ serve(async (req) => {
       customer: 'Customer'
     };
 
+    console.log('Attempting to send email to:', email);
+    console.log('Using Resend API key exists:', !!Deno.env.get('RESEND_API_KEY'));
+    console.log('Reset link generated:', !!resetData?.properties.action_link);
+
     const { error: emailError } = await resend.emails.send({
       from: 'Cabinet Factory Admin <onboarding@resend.dev>',
       to: [email],
@@ -145,8 +149,10 @@ serve(async (req) => {
     });
 
     if (emailError) {
-      console.error('Failed to send invitation email:', emailError);
-      // Don't fail the entire operation if email fails
+      console.error('RESEND EMAIL ERROR:', JSON.stringify(emailError, null, 2));
+      // Don't fail the entire operation if email fails, but log it clearly
+    } else {
+      console.log('Email sent successfully to:', email);
     }
 
     // Log the action
