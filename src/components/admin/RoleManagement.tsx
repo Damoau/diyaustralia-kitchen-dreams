@@ -32,6 +32,9 @@ interface UserRole {
 interface UserProfile {
   id: string;
   email: string;
+  email_confirmed_at?: string;
+  created_at?: string;
+  last_sign_in_at?: string;
   roles: UserRole[];
 }
 
@@ -97,40 +100,54 @@ const RoleManagement = () => {
 
   useEffect(() => {
     loadUsers();
+
+    // Set up real-time subscription for user_roles changes
+    const channel = supabase
+      .channel('user-roles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_roles'
+        },
+        (payload) => {
+          console.log('User roles changed:', payload);
+          // Reload users when roles change
+          loadUsers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadUsers = async () => {
     try {
       setLoading(true);
       
-      // Get all user roles
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('*');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
 
-      if (rolesError) throw rolesError;
-
-      // Group roles by user_id and fetch user emails
-      const userRolesMap: Record<string, UserRole[]> = {};
-      rolesData?.forEach(role => {
-        // Only include roles that match our interface
-        if (['admin', 'sales_rep', 'fulfilment', 'customer'].includes(role.role)) {
-          if (!userRolesMap[role.user_id]) {
-            userRolesMap[role.user_id] = [];
-          }
-          userRolesMap[role.user_id].push(role as UserRole);
-        }
+      const response = await fetch(`https://nqxsfmnvdfdfvndrodvs.supabase.co/functions/v1/admin-get-users`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
-      // Get user emails from auth.users (this would need a server function in real implementation)
-      // For now, we'll use mock data
-      const userProfiles: UserProfile[] = Object.entries(userRolesMap).map(([userId, roles]) => ({
-        id: userId,
-        email: `user-${userId.slice(0, 8)}@example.com`, // Mock email
-        roles
-      }));
+      const result = await response.json();
 
-      setUsers(userProfiles);
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch users');
+      }
+
+      setUsers(result.users || []);
     } catch (error) {
       console.error('Error loading users:', error);
       toast({
@@ -307,7 +324,18 @@ const RoleManagement = () => {
               >
                 <div className="flex items-center space-x-4">
                   <div className="space-y-1">
-                    <p className="font-medium">{user.email}</p>
+                    <div className="flex items-center space-x-2">
+                      <p className="font-medium">{user.email}</p>
+                      {user.email_confirmed_at ? (
+                        <Badge variant="outline" className="text-green-600 border-green-200">
+                          Verified
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-orange-600 border-orange-200">
+                          Unverified
+                        </Badge>
+                      )}
+                    </div>
                     <div className="flex flex-wrap gap-2">
                       {user.roles.map((userRole) => {
                         const roleConfig = ROLE_PERMISSIONS[userRole.role as keyof typeof ROLE_PERMISSIONS];
@@ -327,6 +355,11 @@ const RoleManagement = () => {
                         </Badge>
                       )}
                     </div>
+                    {user.last_sign_in_at && (
+                      <p className="text-xs text-muted-foreground">
+                        Last sign in: {new Date(user.last_sign_in_at).toLocaleDateString()}
+                      </p>
+                    )}
                   </div>
                 </div>
                 
