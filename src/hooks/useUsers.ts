@@ -46,7 +46,8 @@ export const useUsers = () => {
     try {
       setIsLoading(true);
       setError(null);
-
+      
+      console.log('Fetching users...');
       const { data, error } = await supabase.functions.invoke('admin-get-users');
 
       if (error) throw error;
@@ -84,6 +85,7 @@ export const useUsers = () => {
       );
 
       setUsers(usersWithStats);
+      console.log('Users loaded:', usersWithStats.length);
 
       // Calculate stats
       const now = new Date();
@@ -168,18 +170,21 @@ export const useUsers = () => {
 
   const deleteUser = useCallback(async (email: string) => {
     try {
-      const { error } = await supabase.functions.invoke('admin-delete-user', {
+      console.log('Deleting user:', email);
+      const { data, error } = await supabase.functions.invoke('admin-delete-user', {
         body: { email }
       });
 
       if (error) throw error;
 
+      console.log('User deleted successfully:', data);
       toast({
         title: "Success",
         description: `User ${email} deleted successfully`
       });
 
-      fetchUsers();
+      // Refresh immediately after deletion
+      setTimeout(() => fetchUsers(), 500);
     } catch (err: any) {
       console.error('Error deleting user:', err);
       toast({
@@ -212,9 +217,11 @@ export const useUsers = () => {
     fetchUsers();
   }, [fetchUsers]);
 
-  // Set up real-time subscription for user_roles changes
+  // Set up real-time subscriptions for user changes
   useEffect(() => {
-    const channel = supabase
+    console.log('Setting up user real-time subscriptions');
+    
+    const userRolesChannel = supabase
       .channel('user-roles-changes')
       .on(
         'postgres_changes',
@@ -223,14 +230,29 @@ export const useUsers = () => {
           schema: 'public',
           table: 'user_roles'
         },
-        () => {
+        (payload) => {
+          console.log('User roles changed:', payload);
           fetchUsers();
         }
       )
       .subscribe();
 
+    // Also listen to auth state changes for new user signups
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      if (event === 'SIGNED_IN' && session?.user) {
+        // Delay to ensure user is fully created
+        setTimeout(() => {
+          console.log('Refreshing users after auth event');
+          fetchUsers();
+        }, 1000);
+      }
+    });
+
     return () => {
-      supabase.removeChannel(channel);
+      console.log('Cleaning up user real-time subscriptions');
+      supabase.removeChannel(userRolesChannel);
+      subscription.unsubscribe();
     };
   }, [fetchUsers]);
 
