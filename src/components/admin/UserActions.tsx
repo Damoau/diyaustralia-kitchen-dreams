@@ -21,8 +21,11 @@ import {
   UserMinus,
   UserCheck,
   UserX,
-  Trash2
+  Trash2,
+  Mail
 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UserActionsProps {
   user: UserProfile;
@@ -50,13 +53,63 @@ export const UserActions = ({
 }: UserActionsProps) => {
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [isAssigning, setIsAssigning] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const { deleteUser } = useUserRoleContext();
+  const { toast } = useToast();
 
   const handleDeleteUser = async () => {
     await deleteUser(user.email);
   };
 
   const canDelete = user.email !== 'damianorwin@gmail.com'; // Protect main admin
+
+  const handleResendInvitation = async () => {
+    setIsResending(true);
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+
+      // Determine role for resend (use first role or default to customer)
+      const userRole = user.roles.length > 0 ? user.roles[0].role : 'customer';
+
+      const response = await fetch(`https://nqxsfmnvdfdfvndrodvs.supabase.co/functions/v1/admin-invite-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ 
+          email: user.email, 
+          role: userRole,
+          resend: true 
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to resend invitation');
+      }
+
+      toast({
+        title: 'Success',
+        description: `Invitation resent to ${user.email}`,
+      });
+
+    } catch (error: any) {
+      console.error('Error resending invitation:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to resend invitation',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const handleAssignRole = async () => {
     if (!selectedRole) return;
@@ -152,6 +205,14 @@ export const UserActions = ({
           <DropdownMenuItem onClick={() => onViewDetails(user)}>
             <Eye className="mr-2 h-4 w-4" />
             View Details
+          </DropdownMenuItem>
+          
+          <DropdownMenuItem 
+            onClick={handleResendInvitation}
+            disabled={isResending}
+          >
+            <Mail className="mr-2 h-4 w-4" />
+            {isResending ? 'Resending...' : 'Resend Invitation'}
           </DropdownMenuItem>
           
           <DropdownMenuSeparator />
