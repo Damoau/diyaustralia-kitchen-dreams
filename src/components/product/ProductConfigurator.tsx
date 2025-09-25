@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import PricingCalculator from '@/lib/pricingCalculator';
 import { StyleColorFinishSelector } from './StyleColorFinishSelector';
-import PackagingModal from './PackagingModal';
+// Removed PackagingModal import
 import { useCartPersistence } from '@/hooks/useCartPersistence';
 import { useCartSaveTracking } from '@/hooks/useCartSaveTracking';
 import { useCart } from '@/hooks/useCart';
@@ -78,7 +78,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   } = useUserPreferences();
   
   // New state for packaging modal
-  const [packagingModalOpen, setPackagingModalOpen] = useState(false);
+  // Removed packaging modal state
   const { addToCart: addToCartPersistence } = useCartPersistence();
 
   // Reset selections when configurator opens with a new cabinet
@@ -501,17 +501,39 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     }
   };
 
-  const handlePackagingClick = () => {
+  const handleAddToCart = () => {
     if (!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish) {
-      toast.error('Please complete all selections before proceeding to packaging');
+      toast.error('Please complete all selections before adding to cart');
       return;
     }
-    setPackagingModalOpen(true);
-  };
 
-  const handlePackagingAddToCart = (cartItem: any) => {
-    // Use the cart persistence hook for better user experience
+    const totalPrice = calculateTotalPrice();
+    const weightInfo = calculateWeightInfo();
+
+    const cartItem = {
+      cabinet_type_id: selectedCabinetType.id,
+      door_style_id: selectedDoorStyle,
+      color_id: selectedColor,
+      finish_id: selectedFinish,
+      width_mm: dimensions.width,
+      height_mm: dimensions.height,
+      depth_mm: dimensions.depth,
+      quantity: quantity,
+      unit_price: totalPrice,
+      total_price: totalPrice * quantity,
+      configuration: {
+        style: selectedDoorStyle,
+        color: selectedColor,
+        finish: selectedFinish,
+        customDimensions: dimensions,
+        quantity: quantity,
+        weight: weightInfo
+      }
+    };
+
+    // Add item directly to cart without packaging modal
     addToCartPersistence(cartItem);
+    toast.success(`Added ${quantity} × ${selectedCabinetType.name} to cart`);
     onOpenChange(false);
   };
 
@@ -825,31 +847,21 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                     </Card>
 
                     {/* Packaging & Add to Cart - Enhanced */}
-                    <div className="space-y-3">
-                      <Button 
-                        onClick={handlePackagingClick} 
-                        disabled={loading || !selectedDoorStyle || !selectedColor || !selectedFinish}
-                        className="w-full h-12 font-semibold text-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-200"
-                        size="default"
-                      >
-                        {loading ? (
-                          <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                            Loading...
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <ShoppingCart className="w-5 h-5" />
-                            Packaging & Checkout - ${calculateTotalPrice().toFixed(2)}
-                          </div>
-                        )}
-                      </Button>
-                      {(!selectedDoorStyle || !selectedColor || !selectedFinish) && (
-                        <div className="text-sm text-muted-foreground text-center -mt-2 font-medium">
-                          Complete all selections to continue
-                        </div>
-                      )}
-                    </div>
+                     <div className="space-y-3">
+                       <Button
+                         onClick={handleAddToCart}
+                         className="w-full"
+                         size="lg"
+                         disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish}
+                       >
+                         Add to Cart - ${(calculateTotalPrice() * quantity).toFixed(2)}
+                       </Button>
+                       {(!selectedDoorStyle || !selectedColor || !selectedFinish) && (
+                         <div className="text-sm text-muted-foreground text-center -mt-2 font-medium">
+                           Complete all selections to add to cart
+                         </div>
+                       )}
+                     </div>
                   </>
                 )}
               </div>
