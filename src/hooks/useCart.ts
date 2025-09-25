@@ -58,28 +58,27 @@ export const useCart = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get or create cart (for both authenticated and guest users)
+  // Generate or get session ID for guest users
+  const getSessionId = () => {
+    let sessionId = sessionStorage.getItem('cart_session_id');
+    if (!sessionId) {
+      sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      sessionStorage.setItem('cart_session_id', sessionId);
+    }
+    return sessionId;
+  };
+
+  // Get or create cart (for both authenticated and guest users) with consolidation logic
   const initializeCart = async () => {
     setIsLoading(true);
     setError(null);
 
-    // Generate or get session ID for guest users
-    const getSessionId = () => {
-      let sessionId = sessionStorage.getItem('cart_session_id');
-      if (!sessionId) {
-        sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        sessionStorage.setItem('cart_session_id', sessionId);
-      }
-      return sessionId;
-    };
-
     try {
       let existingCart = null;
-      let fetchError = null;
 
       if (user) {
-        // Authenticated user - search by user_id
-        const { data, error } = await supabase
+        // Authenticated user - first check for user cart, then handle session cart consolidation
+        const { data: userCart, error: userError } = await supabase
           .from('carts')
           .select(`
             id,
@@ -130,8 +129,186 @@ export const useCart = () => {
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
-        existingCart = data;
-        fetchError = error;
+
+        if (userError) throw userError;
+
+        // Check for session-based cart that needs consolidation
+        const sessionId = getSessionId();
+        const { data: sessionCart, error: sessionError } = await supabase
+          .from('carts')
+          .select(`
+            id,
+            user_id,
+            session_id,
+            name,
+            total_amount,
+            status,
+            created_at,
+            updated_at,
+            cart_items (
+              id,
+              cart_id,
+              cabinet_type_id,
+              door_style_id,
+              color_id,
+              finish_id,
+              width_mm,
+              height_mm,
+              depth_mm,
+              quantity,
+              unit_price,
+              total_price,
+              notes,
+              configuration,
+              created_at,
+              updated_at,
+              cabinet_types (
+                name,
+                category,
+                product_image_url
+              ),
+              door_styles (
+                name,
+                image_url
+              ),
+              colors (
+                name,
+                hex_code
+              ),
+              finishes (
+                name
+              )
+            )
+          `)
+          .eq('session_id', sessionId)
+          .eq('status', 'active')
+          .is('user_id', null)
+          .limit(1)
+          .maybeSingle();
+
+        if (sessionError) console.error('Session cart fetch error:', sessionError);
+
+        // Consolidate carts if both exist
+        if (userCart && sessionCart && sessionCart.cart_items?.length > 0) {
+          console.log('Consolidating session cart into user cart');
+          
+          // Move session cart items to user cart
+          const { error: moveError } = await supabase
+            .from('cart_items')
+            .update({ cart_id: userCart.id })
+            .eq('cart_id', sessionCart.id);
+
+          if (moveError) {
+            console.error('Error moving cart items:', moveError);
+          } else {
+            // Deactivate the session cart
+            await supabase
+              .from('carts')
+              .update({ status: 'consolidated' })
+              .eq('id', sessionCart.id);
+
+            // Recalculate user cart total
+            const { data: updatedItems } = await supabase
+              .from('cart_items')
+              .select('total_price')
+              .eq('cart_id', userCart.id);
+
+            const newTotal = updatedItems?.reduce((sum, item) => sum + item.total_price, 0) || 0;
+            
+            await supabase
+              .from('carts')
+              .update({ total_amount: newTotal })
+              .eq('id', userCart.id);
+
+            console.log('Cart consolidation completed - session cart merged into user cart');
+          }
+        } else if (!userCart && sessionCart) {
+          // Convert session cart to user cart
+          console.log('Converting session cart to user cart');
+          
+          const { error: convertError } = await supabase
+            .from('carts')
+            .update({ 
+              user_id: user.id,
+              session_id: null,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', sessionCart.id);
+
+          if (convertError) {
+            console.error('Error converting session cart:', convertError);
+          } else {
+            existingCart = { ...sessionCart, user_id: user.id, session_id: null };
+            console.log('Session cart converted to user cart');
+          }
+        }
+
+        // Get final user cart state
+        if (!existingCart) {
+          const { data: finalCart, error: finalError } = await supabase
+            .from('carts')
+            .select(`
+              id,
+              user_id,
+              session_id,
+              name,
+              total_amount,
+              status,
+              created_at,
+              updated_at,
+              cart_items (
+                id,
+                cart_id,
+                cabinet_type_id,
+                door_style_id,
+                color_id,
+                finish_id,
+                width_mm,
+                height_mm,
+                depth_mm,
+                quantity,
+                unit_price,
+                total_price,
+                notes,
+                configuration,
+                created_at,
+                updated_at,
+                cabinet_types (
+                  name,
+                  category,
+                  product_image_url
+                ),
+                door_styles (
+                  name,
+                  image_url
+                ),
+                colors (
+                  name,
+                  hex_code
+                ),
+                finishes (
+                  name
+                )
+              )
+            `)
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (finalError) throw finalError;
+          existingCart = finalCart;
+        }
+
+        // Deactivate any other active session carts to prevent conflicts
+        await supabase
+          .from('carts')
+          .update({ status: 'abandoned' })
+          .eq('session_id', sessionId)
+          .eq('status', 'active')
+          .is('user_id', null);
+
       } else {
         // Guest user - search by session_id
         const sessionId = getSessionId();
@@ -186,12 +363,9 @@ export const useCart = () => {
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
+          
+        if (error) throw error;
         existingCart = data;
-        fetchError = error;
-      }
-
-      if (fetchError) {
-        throw fetchError;
       }
 
       // If no active cart exists, create one
@@ -286,6 +460,7 @@ export const useCart = () => {
       });
 
       setCart(formattedCart);
+
     } catch (err: any) {
       console.error('Error initializing cart:', err);
       setError(err.message);
@@ -367,7 +542,7 @@ export const useCart = () => {
 
       if (error) throw error;
 
-      // Update local cart state immediately for better UX
+      // Format the new item
       const formattedItem: CartItem = {
         ...newItem,
         cabinet_type: newItem.cabinet_types,
@@ -376,10 +551,14 @@ export const useCart = () => {
         finish: newItem.finishes
       };
 
+      // Update local cart state immediately for better UX
+      const updatedItems = [...cart.items, formattedItem];
+      const newCartTotal = updatedItems.reduce((sum, i) => sum + i.total_price, 0);
+      
       const updatedCart = {
         ...cart,
-        items: [...cart.items, formattedItem],
-        total_amount: cart.total_amount + total_price
+        items: updatedItems,
+        total_amount: newCartTotal
       };
 
       setCart(updatedCart);
@@ -388,12 +567,12 @@ export const useCart = () => {
       await supabase
         .from('carts')
         .update({ 
-          total_amount: updatedCart.total_amount,
+          total_amount: newCartTotal,
           updated_at: new Date().toISOString()
         })
         .eq('id', cart.id);
 
-      toast.success('Added to cart');
+      toast.success('Item added to cart');
     } catch (err: any) {
       console.error('Error adding to cart:', err);
       setError(err.message);
@@ -441,7 +620,7 @@ export const useCart = () => {
 
       setCart(updatedCart);
 
-      // Update cart total in database (real-time subscription will handle the update)
+      // Update cart total in database
       await supabase
         .from('carts')
         .update({ 
@@ -484,7 +663,7 @@ export const useCart = () => {
 
       setCart(updatedCart);
 
-      // Update cart total in database (real-time subscription will handle the update)
+      // Update cart total in database
       await supabase
         .from('carts')
         .update({ 
@@ -519,10 +698,12 @@ export const useCart = () => {
       // Update cart total
       await supabase
         .from('carts')
-        .update({ total_amount: 0 })
+        .update({ 
+          total_amount: 0,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', cart.id);
 
-      // Update local state
       setCart({
         ...cart,
         items: [],
@@ -554,10 +735,7 @@ export const useCart = () => {
         })
         .eq('id', cart.id);
 
-      // Create a new active cart for the user
-      await initializeCart();
-      
-      toast.success('Cart saved! You can continue shopping with a new cart.');
+      toast.success('Cart saved successfully');
     } catch (err: any) {
       console.error('Error saving cart:', err);
       setError(err.message);
@@ -567,112 +745,15 @@ export const useCart = () => {
     }
   };
 
-  // Get cart item count
+  // Get total item count
   const getItemCount = () => {
-    return cart?.items.reduce((sum, item) => sum + item.quantity, 0) || 0;
+    return cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
   };
 
-  // Initialize cart when component mounts (for both auth and guest users)
+  // Initialize cart when component mounts or user changes
   useEffect(() => {
     initializeCart();
-  }, [user]);
-
-  // Set up real-time subscriptions for cart changes
-  useEffect(() => {
-    if (!user || !cart) return;
-
-    console.log('Setting up real-time subscriptions for cart:', cart.id);
-
-    // Subscribe to cart_items changes
-    const cartItemsChannel = supabase
-      .channel('cart-items-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'cart_items',
-          filter: `cart_id=eq.${cart.id}`
-        },
-        (payload) => {
-          console.log('Real-time cart item change:', payload);
-          
-          if (payload.eventType === 'INSERT') {
-            // Don't refetch entire cart, the addToCart function already updated the local state
-            // Just ensure we have the latest data by refreshing in background after a delay
-            setTimeout(() => {
-              initializeCart();
-            }, 500);
-          } else if (payload.eventType === 'UPDATE') {
-            // Update existing item in local state
-            setCart(currentCart => {
-              if (!currentCart) return null;
-              
-              const updatedItems = currentCart.items.map(item => 
-                item.id === payload.new.id 
-                  ? { ...item, ...payload.new }
-                  : item
-              );
-              
-              const newTotal = updatedItems.reduce((sum, item) => sum + item.total_price, 0);
-              
-              return {
-                ...currentCart,
-                items: updatedItems,
-                total_amount: newTotal
-              };
-            });
-          } else if (payload.eventType === 'DELETE') {
-            // Remove item from local state
-            setCart(currentCart => {
-              if (!currentCart) return null;
-              
-              const updatedItems = currentCart.items.filter(item => item.id !== payload.old.id);
-              const newTotal = updatedItems.reduce((sum, item) => sum + item.total_price, 0);
-              
-              return {
-                ...currentCart,
-                items: updatedItems,
-                total_amount: newTotal
-              };
-            });
-          }
-        }
-      )
-      .subscribe();
-
-    // Subscribe to cart changes (for total amount updates)
-    const cartChannel = supabase
-      .channel('cart-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'carts',
-          filter: `id=eq.${cart.id}`
-        },
-        (payload) => {
-          console.log('Real-time cart change:', payload);
-          setCart(currentCart => {
-            if (!currentCart) return null;
-            return {
-              ...currentCart,
-              total_amount: payload.new.total_amount,
-              updated_at: payload.new.updated_at
-            };
-          });
-        }
-      )
-      .subscribe();
-
-    // Cleanup subscriptions
-    return () => {
-      console.log('Cleaning up cart real-time subscriptions');
-      supabase.removeChannel(cartItemsChannel);
-      supabase.removeChannel(cartChannel);
-    };
-  }, [user, cart?.id]);
+  }, [user?.id]);
 
   return {
     cart,
