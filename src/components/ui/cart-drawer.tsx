@@ -193,6 +193,14 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                         {item.finish?.name && (
                           <span className="block">Finish: {item.finish.name}</span>
                         )}
+                        {item.configuration?.assembly?.enabled && (
+                          <span className="block text-primary">
+                            Assembly: {item.configuration.assembly.type === 'carcass_only' 
+                              ? 'Carcass Only' 
+                              : 'Complete Assembly'
+                            } (+${item.configuration.assembly.price?.toFixed(2)})
+                          </span>
+                        )}
                       </div>
                       
                       {/* Check for notes in multiple places */}

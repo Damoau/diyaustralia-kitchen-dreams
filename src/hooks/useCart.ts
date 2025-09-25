@@ -484,23 +484,43 @@ export const useCart = () => {
     notes?: string;
     configuration?: any;
   }) => {
-    if (!cart) {
-      // Try to initialize cart first
-      await initializeCart();
-      if (!cart) {
-        toast.error('Unable to initialize cart. Please try again.');
-        return;
-      }
-    }
-
     setIsLoading(true);
+    
     try {
+      let currentCart = cart;
+      
+      if (!currentCart) {
+        console.log('No cart found, initializing...');
+        // Try to initialize cart first
+        await initializeCart();
+        
+        // Check if cart was initialized in state - use a small delay to allow state update
+        await new Promise(resolve => setTimeout(resolve, 50));
+        
+        // Re-fetch cart state after initialization
+        currentCart = cart;
+        
+        if (!currentCart) {
+          console.error('Cart initialization failed');
+          toast.error('Unable to initialize cart. Please try again.');
+          return;
+        }
+      }
+
       const total_price = item.unit_price * item.quantity;
+      
+      console.log('Adding item to cart:', {
+        cartId: currentCart.id,
+        item: {
+          ...item,
+          total_price
+        }
+      });
 
       const { data: newItem, error } = await supabase
         .from('cart_items')
         .insert({
-          cart_id: cart.id,
+          cart_id: currentCart.id,
           ...item,
           total_price
         })
@@ -552,11 +572,11 @@ export const useCart = () => {
       };
 
       // Update local cart state immediately for better UX
-      const updatedItems = [...cart.items, formattedItem];
+      const updatedItems = [...currentCart.items, formattedItem];
       const newCartTotal = updatedItems.reduce((sum, i) => sum + i.total_price, 0);
       
       const updatedCart = {
-        ...cart,
+        ...currentCart,
         items: updatedItems,
         total_amount: newCartTotal
       };
@@ -570,7 +590,7 @@ export const useCart = () => {
           total_amount: newCartTotal,
           updated_at: new Date().toISOString()
         })
-        .eq('id', cart.id);
+        .eq('id', currentCart.id);
 
       toast.success('Item added to cart');
     } catch (err: any) {
