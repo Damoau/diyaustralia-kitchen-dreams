@@ -38,7 +38,6 @@ const Pricing = lazy(() => import('@/pages/admin/Pricing'));
 const DoorStyles = lazy(() => import('@/pages/admin/DoorStyles'));
 const ConfigurationMigrationPlaceholder = lazy(() => import('@/components/admin/ConfigurationMigrationPlaceholder'));
 const TestingPlaceholder = lazy(() => import('@/components/admin/TestingPlaceholder'));
-const ShippingSettings = lazy(() => import('@/components/admin/ShippingSettings'));
 
 export const AdminRouter = () => {
   return (
@@ -60,8 +59,6 @@ export const AdminRouter = () => {
             <Route path="orders" element={<AdminOrders />} />
             <Route path="production" element={<Production />} />
             <Route path="shipping" element={<AdminShipping />} />
-            <Route path="assembly" element={<Assembly />} />
-            
           {/* Configuration */}
           <Route path="categories" element={<UnifiedCategoriesManager />} />
           <Route path="room-categories" element={<RoomCategoriesManager />} />
@@ -100,7 +97,6 @@ export const AdminRouter = () => {
             <Route path="testing" element={<TestingPlaceholder />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="settings" element={<Settings />} />
-            <Route path="shipping-settings" element={<ShippingSettings />} />
           </Routes>
         </Suspense>
       </AdminLayout>

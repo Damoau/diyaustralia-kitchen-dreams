@@ -45,7 +45,7 @@ const AdminShipping = () => {
     loading 
   } = useShipping();
   
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('shipping');
   const [stats, setStats] = useState<ShippingStats>({
     totalShipments: 0,
     pendingShipments: 0,
@@ -120,98 +120,97 @@ const AdminShipping = () => {
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="shipping">Shipping Overview</TabsTrigger>
           <TabsTrigger value="carriers">Carriers & Rates</TabsTrigger>
-          <TabsTrigger value="zones">Zones & Postcodes</TabsTrigger>
+          <TabsTrigger value="zones">Zones & Assembly</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Overview Dashboard */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <StatCard 
-              title="Total Shipments"
-              value={stats.totalShipments}
-              icon={Package}
-              description="This month"
-              trend={12}
-            />
-            <StatCard 
-              title="Pending Shipments"
-              value={stats.pendingShipments}
-              icon={Clock}
-              description="Awaiting dispatch"
-            />
-            <StatCard 
-              title="Delivered Today"
-              value={stats.deliveredToday}
-              icon={Truck}
-              description="Successful deliveries"
-            />
-            <StatCard 
-              title="Active Exceptions"
-              value={stats.activeExceptions}
-              icon={AlertTriangle}
-              description="Require attention"
-            />
-            <StatCard 
-              title="Shipping Revenue"
-              value={`$${stats.totalRevenue.toLocaleString()}`}
-              icon={DollarSign}
-              description="This month"
-              trend={8}
-            />
-            <StatCard 
-              title="Avg Delivery Time"
-              value={`${stats.avgDeliveryTime} days`}
-              icon={MapPin}
-              description="Customer satisfaction"
-              trend={-5}
-            />
-          </div>
+          <TabsContent value="shipping" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <StatCard 
+                title="Total Shipments"
+                value="156"
+                icon={Package}
+                description="This month"
+                trend={12}
+              />
+              <StatCard 
+                title="Pending Shipments"
+                value="23"
+                icon={Clock}
+                description="Awaiting dispatch"
+              />
+              <StatCard 
+                title="Delivered Today"
+                value="8"
+                icon={Truck}
+                description="Successful deliveries"
+              />
+              <StatCard 
+                title="Active Exceptions"
+                value="2"
+                icon={AlertTriangle}
+                description="Require attention"
+              />
+            </div>
 
-          {/* Recent Activity */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Shipping Activity</CardTitle>
-              <CardDescription>Latest shipments and updates</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <Package className="h-8 w-8 text-blue-500" />
-                    <div>
-                      <p className="font-medium">Shipment SHP-001234 dispatched</p>
-                      <p className="text-sm text-muted-foreground">Order ORD-20240919-0001 • StarTrack Express</p>
+            {/* Shipping Zones & Postcodes */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Postcode Zones
+                </CardTitle>
+                <CardDescription>
+                  Manage delivery zones and assembly availability by postcode
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <Card className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-medium">Postcode: 3000</h3>
+                        <p className="text-sm text-muted-foreground">VIC • Zone: MEL_METRO</p>
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          <Badge variant="secondary" className="text-xs">Metro</Badge>
+                          <Badge variant="default" className="text-xs">Assembly</Badge>
+                          <Badge variant="outline" className="text-xs">Delivery</Badge>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <Badge>Dispatched</Badge>
-                </div>
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <Truck className="h-8 w-8 text-green-500" />
-                    <div>
-                      <p className="font-medium">Delivery completed</p>
-                      <p className="text-sm text-muted-foreground">Order ORD-20240918-0045 • Australia Post</p>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-medium">Postcode: 4000</h3>
+                        <p className="text-sm text-muted-foreground">QLD • Zone: BNE_METRO</p>
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          <Badge variant="secondary" className="text-xs">Metro</Badge>
+                          <Badge variant="default" className="text-xs">Assembly</Badge>
+                          <Badge variant="outline" className="text-xs">Delivery</Badge>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <Badge variant="secondary">Delivered</Badge>
-                </div>
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <AlertTriangle className="h-8 w-8 text-orange-500" />
-                    <div>
-                      <p className="font-medium">Exception reported</p>
-                      <p className="text-sm text-muted-foreground">Order ORD-20240917-0078 • Delivery attempt failed</p>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-medium">Postcode: 2000</h3>
+                        <p className="text-sm text-muted-foreground">NSW • Zone: SYD_METRO</p>
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          <Badge variant="secondary" className="text-xs">Metro</Badge>
+                          <Badge variant="default" className="text-xs">Assembly</Badge>
+                          <Badge variant="outline" className="text-xs">Delivery</Badge>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <Badge variant="destructive">Exception</Badge>
+                  </Card>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
         <TabsContent value="carriers" className="space-y-6">
           <CarrierManagementComponent />
