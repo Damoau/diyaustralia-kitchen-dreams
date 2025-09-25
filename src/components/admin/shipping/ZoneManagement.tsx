@@ -10,7 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useShipping } from '@/hooks/useShipping';
-import { MapPin, Plus, Upload, Download, Edit } from 'lucide-react';
+import { MapPin, Plus, Upload, Download, Edit, Compass } from 'lucide-react';
+import RadiusAssemblyManager from './RadiusAssemblyManager';
 
 interface PostcodeZone {
   id: string;
@@ -152,6 +153,8 @@ const ZoneManagement = () => {
 
   const stats = getZoneStats();
 
+  const [activeView, setActiveView] = useState<'zones' | 'radius'>('zones');
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -161,6 +164,20 @@ const ZoneManagement = () => {
           <p className="text-muted-foreground">Manage delivery zones and postcode mappings</p>
         </div>
         <div className="flex space-x-2">
+          <Button 
+            variant={activeView === 'zones' ? 'default' : 'outline'}
+            onClick={() => setActiveView('zones')}
+          >
+            <MapPin className="w-4 h-4 mr-2" />
+            Zone Management
+          </Button>
+          <Button 
+            variant={activeView === 'radius' ? 'default' : 'outline'}
+            onClick={() => setActiveView('radius')}
+          >
+            <Compass className="w-4 h-4 mr-2" />
+            Radius Assembly
+          </Button>
           <Button variant="outline">
             <Upload className="w-4 h-4 mr-2" />
             Import CSV
@@ -172,8 +189,12 @@ const ZoneManagement = () => {
         </div>
       </div>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      {activeView === 'radius' ? (
+        <RadiusAssemblyManager />
+      ) : (
+        <>
+          {/* Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -420,6 +441,8 @@ const ZoneManagement = () => {
           </div>
         </DialogContent>
       </Dialog>
+        </>
+      )}
     </div>
   );
 };
