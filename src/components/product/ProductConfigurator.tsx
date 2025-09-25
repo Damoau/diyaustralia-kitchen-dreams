@@ -98,7 +98,9 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     updateStylePreferences,
     preferredDoorStyleId,
     preferredColorId,
-    preferredFinishId 
+    preferredFinishId,
+    preferredAssemblyType,
+    updatePreferences
   } = useUserPreferences();
   
   // Mock postcode lookup - this would connect to your postcode zones table
@@ -122,6 +124,19 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   });
   
   
+  // Handle assembly type change with preference persistence
+  const handleAssemblyTypeChange = (type: 'carcass_only' | 'with_doors') => {
+    setAssemblyType(type);
+    updatePreferences({ preferredAssemblyType: type });
+  };
+
+  // Initialize with saved preferences when component loads
+  useEffect(() => {
+    if (preferredAssemblyType && preferredAssemblyType !== assemblyType) {
+      setAssemblyType(preferredAssemblyType);
+    }
+  }, [preferredAssemblyType]);
+
   // Calculate assembly estimate when postcode changes
   useEffect(() => {
     if (postcodeData) {
@@ -954,50 +969,103 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                             </p>
                           )}
                           
-                          {/* Assembly Service Details */}
-                          {assemblyEstimate && (
-                            <div className="mt-3 space-y-2">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <Calculator className="h-3 w-3" />
-                                  <Label htmlFor="assembly-toggle" className="text-xs font-medium">
-                                    Assembly Service
-                                  </Label>
-                                </div>
-                                <Switch
-                                  id="assembly-toggle"
-                                  checked={assemblyEnabled}
-                                  onCheckedChange={setAssemblyEnabled}
-                                  disabled={!assemblyEstimate.eligible}
-                                />
-                              </div>
+                           {/* Assembly Service Details */}
+                           {assemblyEstimate && (
+                             <div className="mt-3 space-y-2">
+                               <div className="flex items-center justify-between">
+                                 <div className="flex items-center gap-2">
+                                   <Calculator className="h-3 w-3" />
+                                   <Label htmlFor="assembly-toggle" className="text-xs font-medium">
+                                     Assembly Service
+                                   </Label>
+                                 </div>
+                                 <Switch
+                                   id="assembly-toggle"
+                                   checked={assemblyEnabled}
+                                   onCheckedChange={setAssemblyEnabled}
+                                   disabled={!assemblyEstimate.eligible}
+                                 />
+                               </div>
 
-                              {assemblyEstimate.eligible ? (
-                                <div className="space-y-1">
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-xs text-muted-foreground">Professional assembly</span>
-                                    <Badge variant={assemblyEnabled ? "default" : "secondary"} className="text-xs">
-                                      ${assemblyType === 'carcass_only' ? assemblyEstimate.carcass_only_price?.toFixed(2) : assemblyEstimate.with_doors_price?.toFixed(2)}
-                                    </Badge>
-                                  </div>
-                                  
-                                  {assemblyEnabled && (
-                                    <div className="text-xs text-muted-foreground space-y-1">
-                                      <p>Lead time: {assemblyEstimate.lead_time_days} days</p>
-                                      <div className="space-y-0.5">
-                                        <p className="font-medium">Includes:</p>
-                                        {assemblyEstimate.includes?.map((item, index) => (
-                                          <p key={index} className="ml-2">• {item}</p>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-2 text-amber-600">
-                                  <AlertCircle className="h-3 w-3" />
-                                  <span className="text-xs">Assembly not available in this area</span>
-                                </div>
+                               {assemblyEstimate.eligible ? (
+                                 <div className="space-y-3">
+                                   {/* Assembly Type Selection */}
+                                   {assemblyEnabled && (
+                                     <div className="space-y-2">
+                                       <Label className="text-xs font-medium">Assembly Type</Label>
+                                       <div className="space-y-2">
+                                          <div 
+                                            className={`cursor-pointer p-3 rounded-lg border transition-all ${
+                                              assemblyType === 'carcass_only' 
+                                                ? 'border-primary bg-primary/5 ring-1 ring-primary/20' 
+                                                : 'border-border hover:border-primary/30'
+                                            }`}
+                                            onClick={() => handleAssemblyTypeChange('carcass_only')}
+                                          >
+                                           <div className="flex items-center justify-between">
+                                             <div className="flex items-center gap-2">
+                                               <div className={`w-3 h-3 rounded-full border-2 ${
+                                                 assemblyType === 'carcass_only' 
+                                                   ? 'border-primary bg-primary' 
+                                                   : 'border-muted-foreground'
+                                               }`} />
+                                               <div>
+                                                 <p className="text-xs font-medium">Carcass Only Assembly</p>
+                                                 <p className="text-xs text-muted-foreground">Pre-assembled with drawer runners</p>
+                                               </div>
+                                             </div>
+                                             <Badge variant="outline" className="text-xs">
+                                               ${assemblyEstimate.carcass_only_price?.toFixed(2)}
+                                             </Badge>
+                                           </div>
+                                         </div>
+                                         
+                                         <div 
+                                           className={`cursor-pointer p-3 rounded-lg border transition-all ${
+                                             assemblyType === 'with_doors' 
+                                               ? 'border-primary bg-primary/5 ring-1 ring-primary/20' 
+                                               : 'border-border hover:border-primary/30'
+                                           }`}
+                                           onClick={() => handleAssemblyTypeChange('with_doors')}
+                                         >
+                                           <div className="flex items-center justify-between">
+                                             <div className="flex items-center gap-2">
+                                               <div className={`w-3 h-3 rounded-full border-2 ${
+                                                 assemblyType === 'with_doors' 
+                                                   ? 'border-primary bg-primary' 
+                                                   : 'border-muted-foreground'
+                                               }`} />
+                                               <div>
+                                                 <p className="text-xs font-medium">Complete Assembly</p>
+                                                 <p className="text-xs text-muted-foreground">Fully assembled with doors fitted</p>
+                                               </div>
+                                             </div>
+                                             <Badge variant="outline" className="text-xs">
+                                               ${assemblyEstimate.with_doors_price?.toFixed(2)}
+                                             </Badge>
+                                           </div>
+                                         </div>
+                                       </div>
+                                     </div>
+                                   )}
+                                   
+                                   {assemblyEnabled && (
+                                     <div className="text-xs text-muted-foreground space-y-1 p-2 bg-muted/30 rounded">
+                                       <p>Lead time: {assemblyEstimate.lead_time_days} days</p>
+                                       <div className="space-y-0.5">
+                                         <p className="font-medium">Includes:</p>
+                                         {assemblyEstimate.includes?.map((item, index) => (
+                                           <p key={index} className="ml-2">• {item}</p>
+                                         ))}
+                                       </div>
+                                     </div>
+                                   )}
+                                 </div>
+                               ) : (
+                                 <div className="flex items-center gap-2 text-amber-600">
+                                   <AlertCircle className="h-3 w-3" />
+                                   <span className="text-xs">Assembly not available in this area</span>
+                                 </div>
                               )}
                             </div>
                           )}

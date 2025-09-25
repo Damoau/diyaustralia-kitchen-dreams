@@ -6,6 +6,7 @@ interface UserPreferences {
   preferredDoorStyleId?: string;
   preferredColorId?: string;
   preferredFinishId?: string;
+  preferredAssemblyType?: 'carcass_only' | 'with_doors';
 }
 
 const PREFERENCES_KEY = 'cabinet_user_preferences';
@@ -39,6 +40,15 @@ export const useUserPreferences = () => {
         } else {
           setPreferences({});
         }
+        
+        // Load assembly preference from localStorage for all users
+        const assemblyPref = localStorage.getItem('cabinet_assembly_preference');
+        if (assemblyPref) {
+          setPreferences(prev => ({
+            ...prev,
+            preferredAssemblyType: assemblyPref as 'carcass_only' | 'with_doors'
+          }));
+        }
       } else {
         // Load from localStorage for anonymous users
         const stored = localStorage.getItem(PREFERENCES_KEY);
@@ -46,6 +56,15 @@ export const useUserPreferences = () => {
           const parsed = JSON.parse(stored);
           const key = 'anonymous';
           setPreferences(parsed[key] || {});
+        }
+        
+        // Load assembly preference from localStorage for all users
+        const assemblyPref = localStorage.getItem('cabinet_assembly_preference');
+        if (assemblyPref) {
+          setPreferences(prev => ({
+            ...prev,
+            preferredAssemblyType: assemblyPref as 'carcass_only' | 'with_doors'
+          }));
         }
       }
     } catch (error) {
@@ -83,6 +102,11 @@ export const useUserPreferences = () => {
         localStorage.setItem(PREFERENCES_KEY, JSON.stringify(allPreferences));
       }
 
+      // Save assembly preference to localStorage for all users
+      if (newPreferences.preferredAssemblyType) {
+        localStorage.setItem('cabinet_assembly_preference', newPreferences.preferredAssemblyType);
+      }
+
       // Update local state
       setPreferences(prev => ({ ...prev, ...newPreferences }));
     } catch (error) {
@@ -91,8 +115,14 @@ export const useUserPreferences = () => {
   };
 
   // Update individual preference
-  const updatePreference = (key: keyof UserPreferences, value: string) => {
+  const updatePreference = (key: keyof UserPreferences, value: string | 'carcass_only' | 'with_doors') => {
     const newPreferences = { ...preferences, [key]: value };
+    savePreferences(newPreferences);
+  };
+
+  // Update multiple preferences at once
+  const updatePreferences = (updates: Partial<UserPreferences>) => {
+    const newPreferences = { ...preferences, ...updates };
     savePreferences(newPreferences);
   };
 
@@ -146,11 +176,13 @@ export const useUserPreferences = () => {
     preferences,
     isLoading,
     updatePreference,
+    updatePreferences,
     updateStylePreferences,
     clearPreferences,
     // Convenience getters
     preferredDoorStyleId: preferences.preferredDoorStyleId,
     preferredColorId: preferences.preferredColorId,
-    preferredFinishId: preferences.preferredFinishId
+    preferredFinishId: preferences.preferredFinishId,
+    preferredAssemblyType: preferences.preferredAssemblyType
   };
 };
