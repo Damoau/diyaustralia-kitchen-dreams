@@ -19,7 +19,11 @@ const QuotesList = lazy(() => import('@/pages/admin/QuotesList'));
 const Assembly = lazy(() => import('@/pages/admin/Assembly'));
 const UnifiedCategoriesManager = lazy(() => import('@/components/admin/UnifiedCategoriesManager'));
 const RoomCategoriesManager = lazy(() => import('@/components/admin/RoomCategoriesManager'));
-const CabinetManager = lazy(() => import('@/components/admin/CabinetManager'));
+// Lazy loaded admin components  
+const LazyOrderManagement = lazy(() => import('../../pages/admin/OrderManagement'));
+const LazyProductionManagement = lazy(() => import('../../pages/admin/ProductionManagement')); 
+const LazyAdminAnalytics = lazy(() => import('../../pages/admin/AdminAnalytics'));
+const CabinetManager = lazy(() => import('./CabinetManager'));
 
 const HardwareManager = lazy(() => import('@/components/admin/HardwareManager'));
 const Discounts = lazy(() => import('@/pages/admin/Discounts'));
@@ -78,6 +82,9 @@ export const AdminRouter = () => {
             <Route path="pricing" element={<Pricing />} />
             <Route path="discounts" element={<Discounts />} />
             <Route path="users" element={<Users />} />
+            <Route path="order-management" element={<Suspense fallback={<PageLoader />}><LazyOrderManagement /></Suspense>} />
+            <Route path="production-management" element={<Suspense fallback={<PageLoader />}><LazyProductionManagement /></Suspense>} />
+            <Route path="analytics" element={<Suspense fallback={<PageLoader />}><LazyAdminAnalytics /></Suspense>} />
             <Route path="roles" element={
               <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
                 <EnhancedRoleManagement />
