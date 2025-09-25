@@ -1523,6 +1523,10 @@ export default function EditCabinetType() {
                   cabinetId={id || 'new'} 
                   cabinetStyle={cabinetType.cabinet_style || 'standard'}
                   onCabinetStyleChange={(style) => handleInputChange('cabinet_style', style)}
+                  assemblyAvailable={cabinetType.assembly_available !== false}
+                  assemblyCarassOnlyPrice={cabinetType.assembly_carcass_only_price || 0}
+                  assemblyWithDoorsPrice={cabinetType.assembly_with_doors_price || 0}
+                  onAssemblyChange={handleInputChange}
                 />
               </div>
             </TabsContent>
@@ -1667,47 +1671,6 @@ export default function EditCabinetType() {
                       </div>
                     </div>
 
-                    <div className="space-y-4 border-t pt-4">
-                      <h4 className="text-sm font-semibold text-muted-foreground">Assembly Options</h4>
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          id="assembly_available"
-                          checked={cabinetType.assembly_available !== false}
-                          onCheckedChange={(checked) => handleInputChange('assembly_available', checked)}
-                        />
-                        <Label htmlFor="assembly_available">Assembly available for this cabinet</Label>
-                      </div>
-                      
-                      {cabinetType.assembly_available !== false && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="assembly_carcass_only_price">Carcass Only Assembly ($)</Label>
-                            <Input
-                              id="assembly_carcass_only_price"
-                              type="number"
-                              step="0.01"
-                              value={cabinetType.assembly_carcass_only_price || ''}
-                              onChange={(e) => handleInputChange('assembly_carcass_only_price', parseFloat(e.target.value) || 0)}
-                              placeholder="Price for carcass assembly with drawer runners"
-                            />
-                            <p className="text-xs text-muted-foreground">Carcass assembly with drawer runners fitted if applicable</p>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="assembly_with_doors_price">Complete Assembly ($)</Label>
-                            <Input
-                              id="assembly_with_doors_price"
-                              type="number"
-                              step="0.01"
-                              value={cabinetType.assembly_with_doors_price || ''}
-                              onChange={(e) => handleInputChange('assembly_with_doors_price', parseFloat(e.target.value) || 0)}
-                              placeholder="Price for complete assembly with doors fitted"
-                            />
-                            <p className="text-xs text-muted-foreground">Carcass assembled and doors fitted</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
 
                     {cabinetType.price_calculation_method === 'formula' && (
                       <div className="space-y-2">

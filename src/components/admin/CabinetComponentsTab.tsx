@@ -32,6 +32,10 @@ interface CabinetComponentsTabProps {
   cabinetId: string;
   cabinetStyle: string;
   onCabinetStyleChange: (style: string) => void;
+  assemblyAvailable?: boolean;
+  assemblyCarassOnlyPrice?: number;
+  assemblyWithDoorsPrice?: number;
+  onAssemblyChange?: (field: string, value: boolean | number) => void;
 }
 
 // Default parts for different cabinet styles
@@ -133,7 +137,15 @@ const getDefaultParts = (style: string): Omit<CabinetPart, 'id'>[] => {
   }
 };
 
-export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ cabinetId, cabinetStyle, onCabinetStyleChange }) => {
+export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({ 
+  cabinetId, 
+  cabinetStyle, 
+  onCabinetStyleChange,
+  assemblyAvailable = true,
+  assemblyCarassOnlyPrice = 0,
+  assemblyWithDoorsPrice = 0,
+  onAssemblyChange
+}) => {
   const [isAddingPart, setIsAddingPart] = useState(false);
   const [editingPart, setEditingPart] = useState<CabinetPart | null>(null);
   const [newPart, setNewPart] = useState({
