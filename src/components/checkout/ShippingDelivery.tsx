@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Truck, MapPin, Home, Building, Clock, Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { EnhancedShippingCalculator } from './EnhancedShippingCalculator';
+import { useCart } from '@/hooks/useCart';
 
 interface ShippingAddress {
   firstName: string;
@@ -41,6 +43,7 @@ interface ShippingDeliveryProps {
 }
 
 export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: ShippingDeliveryProps) => {
+  const { cart } = useCart();
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     firstName: customerData?.customer_first_name || '',
     lastName: customerData?.customer_last_name || '',
@@ -60,6 +63,7 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [calculatedShippingCost, setCalculatedShippingCost] = useState<number>(0);
 
   // Default delivery options (would typically come from API)
   const baseDeliveryOptions: DeliveryOption[] = [
@@ -176,11 +180,28 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleShippingCalculated = (cost: number, method: string) => {
+    setCalculatedShippingCost(cost);
+    // Auto-select the calculated shipping option if it matches our available options
+    const matchingOption = deliveryOptions.find(opt => 
+      opt.name.toLowerCase().includes(method.toLowerCase())
+    );
+    if (matchingOption) {
+      setSelectedDelivery(matchingOption.id);
+    }
+  };
+
   const calculateDeliveryTotal = () => {
     const selectedOption = deliveryOptions.find(opt => opt.id === selectedDelivery);
     if (!selectedOption) return 0;
     
     let total = selectedOption.price;
+    
+    // Use calculated shipping cost if available and higher
+    if (calculatedShippingCost > 0) {
+      total = Math.max(total, calculatedShippingCost);
+    }
+    
     if (addAssembly && selectedOption.assemblyAvailable && selectedOption.assemblyPrice) {
       total += selectedOption.assemblyPrice;
     }
@@ -335,6 +356,31 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
               />
             </div>
           </div>
+
+          {/* Material Sheet Optimization and Shipping Calculator */}
+          {cart?.items && cart.items.length > 0 && (
+            <div className="space-y-4 mb-6">
+              <h3 className="text-lg font-medium flex items-center space-x-2">
+                <Truck className="h-4 w-4" />
+                <span>Shipping Calculator & Material Optimization</span>
+              </h3>
+              
+              <EnhancedShippingCalculator
+                items={cart.items.map(item => ({
+                  id: item.id,
+                  cabinetTypeId: item.cabinet_type_id,
+                  width_mm: item.width_mm,
+                  height_mm: item.height_mm,
+                  depth_mm: item.depth_mm,
+                  doorStyleId: item.door_style_id,
+                  quantity: item.quantity,
+                  name: item.cabinet_type?.name || 'Cabinet'
+                }))}
+                onShippingCalculated={handleShippingCalculated}
+                enableMaterialOptimization={true}
+              />
+            </div>
+          )}
 
           {/* Delivery Options */}
           {postcodeChecked && deliveryOptions.length > 0 && (

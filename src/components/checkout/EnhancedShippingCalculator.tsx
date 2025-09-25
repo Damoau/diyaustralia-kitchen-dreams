@@ -4,9 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, Truck, Package, MapPin, Weight } from 'lucide-react';
+import { Loader2, Truck, Package, MapPin, Weight, Layers } from 'lucide-react';
 import { usePostcodeServices } from '@/hooks/usePostcodeServices';
 import { useWeightCalculation } from '@/hooks/useWeightCalculation';
+import { MaterialSheetOptimizer } from './MaterialSheetOptimizer';
 
 interface ShippingItem {
   id: string;
@@ -22,12 +23,14 @@ interface ShippingItem {
 interface EnhancedShippingCalculatorProps {
   items: ShippingItem[];
   onShippingCalculated?: (shippingCost: number, method: string) => void;
+  enableMaterialOptimization?: boolean;
   className?: string;
 }
 
 export const EnhancedShippingCalculator: React.FC<EnhancedShippingCalculatorProps> = ({
   items,
   onShippingCalculated,
+  enableMaterialOptimization = false,
   className = '',
 }) => {
   const [fromPostcode, setFromPostcode] = useState('2000'); // Default warehouse
@@ -36,6 +39,8 @@ export const EnhancedShippingCalculator: React.FC<EnhancedShippingCalculatorProp
   const [shippingQuote, setShippingQuote] = useState<any>(null);
   const [totalWeight, setTotalWeight] = useState(0);
   const [totalPackages, setTotalPackages] = useState<any[]>([]);
+  const [optimizedPackages, setOptimizedPackages] = useState<any[]>([]);
+  const [useOptimizedPackaging, setUseOptimizedPackaging] = useState(false);
 
   const { checkPostcodeServices, getShippingQuote, loading: servicesLoading } = usePostcodeServices();
   const { calculateWeight, loading: weightLoading } = useWeightCalculation();
@@ -81,22 +86,33 @@ export const EnhancedShippingCalculator: React.FC<EnhancedShippingCalculatorProp
     calculateAllWeights();
   }, [items, calculateWeight]);
 
+  const handleOptimizationComplete = (packages: any[]) => {
+    setOptimizedPackages(packages);
+    if (packages.length > 0) {
+      setUseOptimizedPackaging(true);
+    }
+  };
+
   const handleCalculateShipping = async () => {
-    if (!toPostcode || totalPackages.length === 0) return;
+    const packagesToUse = useOptimizedPackaging ? optimizedPackages : totalPackages;
+    if (!toPostcode || packagesToUse.length === 0) return;
 
     // Check destination services
     const services = await checkPostcodeServices(toPostcode);
     if (!services) return;
 
+    // Calculate total weight from packages
+    const packageWeight = packagesToUse.reduce((sum, pkg) => sum + pkg.weight_kg, 0);
+
     // Get shipping quote
     const quote = await getShippingQuote(
       fromPostcode,
       toPostcode,
-      totalPackages,
+      packagesToUse,
       {
         residential: selectedMethod === 'home',
-        tailLift: totalWeight > 100, // Auto tail lift for heavy items
-        twoMan: totalWeight > 150, // Auto two-man delivery for very heavy items
+        tailLift: packageWeight > 100, // Auto tail lift for heavy items
+        twoMan: packageWeight > 150, // Auto two-man delivery for very heavy items
       }
     );
 
@@ -125,6 +141,23 @@ export const EnhancedShippingCalculator: React.FC<EnhancedShippingCalculatorProp
 
   return (
     <div className={`space-y-4 ${className}`}>
+      {/* Material Sheet Optimization */}
+      {enableMaterialOptimization && items.length > 0 && (
+        <MaterialSheetOptimizer
+          items={items.map(item => ({
+            id: item.id,
+            cabinetTypeId: item.cabinetTypeId,
+            width_mm: item.width_mm,
+            height_mm: item.height_mm,
+            depth_mm: item.depth_mm,
+            doorStyleId: item.doorStyleId,
+            quantity: item.quantity,
+            name: item.name
+          }))}
+          onOptimizationComplete={handleOptimizationComplete}
+        />
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -136,12 +169,35 @@ export const EnhancedShippingCalculator: React.FC<EnhancedShippingCalculatorProp
           {/* Weight Summary */}
           <div className="flex items-center gap-4 p-3 bg-muted rounded-md">
             <Weight className="h-5 w-5 text-muted-foreground" />
-            <div>
-              <p className="font-medium">Total Weight: {totalWeight.toFixed(1)} kg</p>
-              <p className="text-sm text-muted-foreground">
-                {totalPackages.length} package{totalPackages.length !== 1 ? 's' : ''}
-              </p>
+            <div className="flex-1">
+              {(() => {
+                const packagesToShow = useOptimizedPackaging ? optimizedPackages : totalPackages;
+                const displayWeight = useOptimizedPackaging 
+                  ? packagesToShow.reduce((sum, pkg) => sum + pkg.weight_kg, 0)
+                  : totalWeight;
+                return (
+                  <>
+                    <p className="font-medium">Total Weight: {displayWeight.toFixed(1)} kg</p>
+                    <p className="text-sm text-muted-foreground">
+                      {packagesToShow.length} package{packagesToShow.length !== 1 ? 's' : ''}
+                      {useOptimizedPackaging && (
+                        <span className="ml-2 text-primary">• Optimized for 2400×1200 sheets</span>
+                      )}
+                    </p>
+                  </>
+                );
+              })()}
             </div>
+            {enableMaterialOptimization && optimizedPackages.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setUseOptimizedPackaging(!useOptimizedPackaging)}
+              >
+                <Layers className="h-4 w-4 mr-2" />
+                {useOptimizedPackaging ? 'Standard' : 'Optimize'}
+              </Button>
+            )}
           </div>
 
           {/* Postcode Input */}
@@ -157,7 +213,7 @@ export const EnhancedShippingCalculator: React.FC<EnhancedShippingCalculatorProp
               />
               <Button
                 onClick={handleCalculateShipping}
-                disabled={isLoading || !toPostcode || totalPackages.length === 0}
+                disabled={isLoading || !toPostcode || (useOptimizedPackaging ? optimizedPackages.length === 0 : totalPackages.length === 0)}
               >
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Calculate'}
               </Button>
@@ -248,24 +304,35 @@ export const EnhancedShippingCalculator: React.FC<EnhancedShippingCalculatorProp
           )}
 
           {/* Package Details */}
-          {totalPackages.length > 0 && (
-            <details className="space-y-2">
-              <summary className="text-sm font-medium cursor-pointer">
-                Package Details ({totalPackages.length} items)
-              </summary>
-              <div className="space-y-2 pl-4">
-                {totalPackages.map((pkg, index) => (
-                  <div key={index} className="text-xs p-2 bg-muted rounded text-muted-foreground">
-                    <div className="font-medium">{pkg.item_name} (x{pkg.quantity})</div>
-                    <div>
-                      {pkg.weight_kg.toFixed(1)}kg • {pkg.cubic_m.toFixed(3)}m³ • 
-                      {pkg.length_mm}×{pkg.width_mm}×{pkg.height_mm}mm
+          {(() => {
+            const packagesToShow = useOptimizedPackaging ? optimizedPackages : totalPackages;
+            return packagesToShow.length > 0 ? (
+              <details className="space-y-2">
+                <summary className="text-sm font-medium cursor-pointer">
+                  Package Details ({packagesToShow.length} items)
+                  {useOptimizedPackaging && <span className="text-primary ml-2">• Material Optimized</span>}
+                </summary>
+                <div className="space-y-2 pl-4">
+                  {packagesToShow.map((pkg, index) => (
+                    <div key={index} className="text-xs p-2 bg-muted rounded text-muted-foreground">
+                      <div className="font-medium">
+                        {useOptimizedPackaging 
+                          ? `Sheet #${pkg.contents?.sheet_number || index + 1} (${pkg.contents?.parts_count || 0} parts)`
+                          : `${pkg.item_name} (x${pkg.quantity})`}
+                      </div>
+                      <div>
+                        {pkg.weight_kg.toFixed(1)}kg • {pkg.cubic_m?.toFixed(3)}m³ • 
+                        {pkg.length_mm}×{pkg.width_mm}×{pkg.height_mm}mm
+                        {useOptimizedPackaging && pkg.contents?.efficiency && (
+                          <span className="ml-2 text-primary">• {pkg.contents.efficiency.toFixed(1)}% efficient</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </details>
-          )}
+                  ))}
+                </div>
+              </details>
+            ) : null;
+          })()}
         </CardContent>
       </Card>
     </div>
