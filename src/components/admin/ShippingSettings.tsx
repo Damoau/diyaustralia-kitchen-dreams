@@ -16,7 +16,15 @@ interface MaterialType {
   name: string;
   description?: string;
   density_kg_per_m3: number;
+  weight_per_sqm: number;
+  thickness_mm: number;
   active: boolean;
+}
+
+interface GlobalMaterialSettings {
+  default_weight_multiplier: number;
+  thickness_adjustment_factor: number;
+  updated_at: string;
 }
 
 interface PostcodeZone {
@@ -39,9 +47,9 @@ interface ShippingDepot {
 }
 
 const mockMaterialTypes: MaterialType[] = [
-  { id: '1', name: 'MDF', description: 'Medium Density Fibreboard', density_kg_per_m3: 600, active: true },
-  { id: '2', name: 'Plywood', description: 'Marine grade plywood', density_kg_per_m3: 500, active: true },
-  { id: '3', name: 'Particle Board', description: 'Standard particle board', density_kg_per_m3: 650, active: true }
+  { id: '1', name: 'MDF', description: 'Medium Density Fibreboard', density_kg_per_m3: 600, weight_per_sqm: 12.5, thickness_mm: 18, active: true },
+  { id: '2', name: 'Plywood', description: 'Marine grade plywood', density_kg_per_m3: 500, weight_per_sqm: 9.8, thickness_mm: 18, active: true },
+  { id: '3', name: 'Particle Board', description: 'Standard particle board', density_kg_per_m3: 650, weight_per_sqm: 14.2, thickness_mm: 16, active: true }
 ];
 
 const mockPostcodeZones: PostcodeZone[] = [
@@ -73,6 +81,15 @@ const ShippingSettings = () => {
     depot: null
   });
 
+  const [globalSettings, setGlobalSettings] = useState({
+    default_weight_multiplier: 1.2,
+    thickness_adjustment_factor: 0.95
+  });
+
+  const handleSaveGlobalSettings = () => {
+    toast.success('Global material settings saved successfully (demo mode)');
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -84,6 +101,58 @@ const ShippingSettings = () => {
           </p>
         </div>
       </div>
+
+      {/* Global Material Settings */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Materials Settings</CardTitle>
+            <p className="text-sm text-muted-foreground">Configure global material rates for cabinet pricing formulas</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Refresh
+            </Button>
+            <Button onClick={handleSaveGlobalSettings}>
+              Save Settings
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="weightMultiplier">Default Weight Multiplier</Label>
+              <Input
+                id="weightMultiplier"
+                type="number"
+                step="0.01"
+                value={globalSettings.default_weight_multiplier}
+                onChange={(e) => setGlobalSettings({
+                  ...globalSettings,
+                  default_weight_multiplier: parseFloat(e.target.value) || 1.0
+                })}
+                placeholder="1.20"
+              />
+              <p className="text-xs text-muted-foreground">Applied to base material weight calculations</p>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="thicknessAdjustment">Thickness Adjustment Factor</Label>
+              <Input
+                id="thicknessAdjustment"
+                type="number"
+                step="0.01"
+                value={globalSettings.thickness_adjustment_factor}
+                onChange={(e) => setGlobalSettings({
+                  ...globalSettings,
+                  thickness_adjustment_factor: parseFloat(e.target.value) || 1.0
+                })}
+                placeholder="0.95"
+              />
+              <p className="text-xs text-muted-foreground">Weight adjustment based on material thickness</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Material Types Section */}
       <Card>
@@ -104,7 +173,8 @@ const ShippingSettings = () => {
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <h3 className="font-medium">{material.name}</h3>
-                    <p className="text-sm text-muted-foreground">{material.density_kg_per_m3} kg/m³</p>
+                    <p className="text-sm text-muted-foreground">{material.weight_per_sqm} kg/m² • {material.thickness_mm}mm</p>
+                    <p className="text-xs text-muted-foreground">Density: {material.density_kg_per_m3} kg/m³</p>
                     {material.description && (
                       <p className="text-xs text-muted-foreground mt-1">{material.description}</p>
                     )}
@@ -249,6 +319,8 @@ const MaterialTypeDialog = ({ open, material, onOpenChange, onSave }: {
     name: "",
     description: "",
     density_kg_per_m3: 0,
+    weight_per_sqm: 0,
+    thickness_mm: 18,
     active: true
   });
 
@@ -258,6 +330,8 @@ const MaterialTypeDialog = ({ open, material, onOpenChange, onSave }: {
         name: material.name,
         description: material.description || "",
         density_kg_per_m3: material.density_kg_per_m3,
+        weight_per_sqm: material.weight_per_sqm,
+        thickness_mm: material.thickness_mm,
         active: material.active
       });
     } else {
@@ -265,6 +339,8 @@ const MaterialTypeDialog = ({ open, material, onOpenChange, onSave }: {
         name: "",
         description: "",
         density_kg_per_m3: 0,
+        weight_per_sqm: 0,
+        thickness_mm: 18,
         active: true
       });
     }
@@ -311,6 +387,30 @@ const MaterialTypeDialog = ({ open, material, onOpenChange, onSave }: {
               onChange={(e) => setFormData({...formData, density_kg_per_m3: parseFloat(e.target.value) || 0})}
               placeholder="0.00"
             />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="weightPsm">Weight per SQM (kg)</Label>
+              <Input
+                id="weightPsm"
+                type="number"
+                step="0.01"
+                value={formData.weight_per_sqm}
+                onChange={(e) => setFormData({...formData, weight_per_sqm: parseFloat(e.target.value) || 0})}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="thickness">Thickness (mm)</Label>
+              <Input
+                id="thickness"
+                type="number"
+                step="1"
+                value={formData.thickness_mm}
+                onChange={(e) => setFormData({...formData, thickness_mm: parseInt(e.target.value) || 18})}
+                placeholder="18"
+              />
+            </div>
           </div>
           <div className="flex items-center space-x-2">
             <Switch
