@@ -14,6 +14,8 @@ interface DoorStyle {
   base_rate_per_sqm: number;
   active: boolean;
   image_url?: string;
+  door_thickness_mm?: number;
+  sm_weight_per_sqm?: number;
 }
 
 interface DoorStyleEditDialogProps {
@@ -29,7 +31,9 @@ const DoorStyleEditDialog = ({ doorStyle, open, onOpenChange, onSave }: DoorStyl
     description: "",
     base_rate_per_sqm: 0,
     active: true,
-    image_url: ""
+    image_url: "",
+    door_thickness_mm: 18,
+    sm_weight_per_sqm: 0
   });
 
   useEffect(() => {
@@ -39,7 +43,9 @@ const DoorStyleEditDialog = ({ doorStyle, open, onOpenChange, onSave }: DoorStyl
         description: doorStyle.description || "",
         base_rate_per_sqm: doorStyle.base_rate_per_sqm,
         active: doorStyle.active,
-        image_url: doorStyle.image_url || ""
+        image_url: doorStyle.image_url || "",
+        door_thickness_mm: doorStyle.door_thickness_mm || 18,
+        sm_weight_per_sqm: doorStyle.sm_weight_per_sqm || 0
       });
     } else {
       setFormData({
@@ -47,7 +53,9 @@ const DoorStyleEditDialog = ({ doorStyle, open, onOpenChange, onSave }: DoorStyl
         description: "",
         base_rate_per_sqm: 0,
         active: true,
-        image_url: ""
+        image_url: "",
+        door_thickness_mm: 18,
+        sm_weight_per_sqm: 0
       });
     }
   }, [doorStyle]);
@@ -95,6 +103,30 @@ const DoorStyleEditDialog = ({ doorStyle, open, onOpenChange, onSave }: DoorStyl
               onChange={(e) => setFormData({...formData, base_rate_per_sqm: parseFloat(e.target.value) || 0})}
               placeholder="0.00"
             />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="thickness">Door Thickness (mm)</Label>
+              <Input
+                id="thickness"
+                type="number"
+                step="1"
+                value={formData.door_thickness_mm}
+                onChange={(e) => setFormData({...formData, door_thickness_mm: parseInt(e.target.value) || 18})}
+                placeholder="18"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="smWeight">SM Weight per SQM (kg)</Label>
+              <Input
+                id="smWeight"
+                type="number"
+                step="0.01"
+                value={formData.sm_weight_per_sqm}
+                onChange={(e) => setFormData({...formData, sm_weight_per_sqm: parseFloat(e.target.value) || 0})}
+                placeholder="0.00"
+              />
+            </div>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="image">Door Style Image</Label>

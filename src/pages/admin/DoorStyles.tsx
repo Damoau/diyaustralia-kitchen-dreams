@@ -17,6 +17,8 @@ interface DoorStyle {
   description: string;
   base_rate_per_sqm: number;
   active: boolean;
+  door_thickness_mm?: number;
+  sm_weight_per_sqm?: number;
 }
 
 interface Color {
@@ -139,7 +141,9 @@ const DoorStyles = () => {
             name: doorStyle.name || '',
             description: doorStyle.description || '',
             base_rate_per_sqm: doorStyle.base_rate_per_sqm || 0,
-            active: doorStyle.active ?? true
+            active: doorStyle.active ?? true,
+            door_thickness_mm: doorStyle.door_thickness_mm || 18,
+            sm_weight_per_sqm: doorStyle.sm_weight_per_sqm || 0
           });
         if (error) throw error;
       }
@@ -368,6 +372,9 @@ const DoorStyles = () => {
                   <div>
                     <h3 className="font-medium">{doorStyle.name}</h3>
                     <p className="text-sm text-muted-foreground">${doorStyle.base_rate_per_sqm}/sqm</p>
+                    <p className="text-xs text-muted-foreground">
+                      {doorStyle.door_thickness_mm || 18}mm thick • {doorStyle.sm_weight_per_sqm || 0}kg/sqm
+                    </p>
                   </div>
                   <Badge variant={doorStyle.active ? "default" : "secondary"}>
                     {doorStyle.active ? "Active" : "Inactive"}
