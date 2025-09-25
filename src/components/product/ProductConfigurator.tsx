@@ -420,7 +420,36 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     );
 
     console.log('Calculated pricing:', calculatedPricing);
-    return { price: calculatedPricing.totalPrice, weight: calculatedPricing.weight };
+    return calculatedPricing.totalPrice;
+  };
+
+  const calculateWeightInfo = () => {
+    if (!selectedCabinetType || !dimensions.width || !dimensions.height || !dimensions.depth) {
+      return null;
+    }
+
+    const doorStyle = doorStyles.find(ds => ds.id === selectedDoorStyle);
+    
+    const cabinetTypeWithParts = {
+      ...selectedCabinetType,
+      cabinet_parts: cabinetParts
+    };
+
+    const calculatedPricing = PricingCalculator.calculateCabinetPrice(
+      cabinetTypeWithParts,
+      dimensions,
+      quantity,
+      {
+        materialRate: (selectedCabinetType as any).material_rate_per_sqm || 85,
+        doorRate: doorStyle?.base_rate_per_sqm || (selectedCabinetType as any).door_rate_per_sqm || 120,
+        colorSurcharge: 0,
+        finishSurcharge: 0,
+      },
+      hardwareRequirements,
+      doorStyle
+    );
+
+    return calculatedPricing.weight;
   };
 
   const calculateDoorArea = () => {
