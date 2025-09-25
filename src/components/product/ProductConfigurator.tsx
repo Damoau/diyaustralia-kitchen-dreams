@@ -77,9 +77,6 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     preferredFinishId 
   } = useUserPreferences();
   
-  // New state for packaging modal
-  // Removed packaging modal state
-  const { addToCart: addToCartPersistence } = useCartPersistence();
 
   // Reset selections when configurator opens with a new cabinet
   useEffect(() => {
@@ -519,8 +516,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       height_mm: dimensions.height,
       depth_mm: dimensions.depth,
       quantity: quantity,
-      unit_price: totalPrice,
-      total_price: totalPrice * quantity,
+      unit_price: totalPrice / quantity,
+      notes: notes || undefined,
       configuration: {
         style: selectedDoorStyle,
         color: selectedColor,
@@ -531,8 +528,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       }
     };
 
-    // Add item directly to cart without packaging modal
-    addToCartPersistence(cartItem);
+    // Add item directly to cart
+    addToCart(cartItem);
     toast.success(`Added ${quantity} × ${selectedCabinetType.name} to cart`);
     onOpenChange(false);
   };
@@ -884,30 +881,6 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           onSelectionComplete={handleStyleColorFinishSelection}
         />
 
-        {/* Packaging Modal */}
-        <PackagingModal
-          open={packagingModalOpen}
-          onOpenChange={setPackagingModalOpen}
-          cabinetType={selectedCabinetType ? {
-            id: selectedCabinetType.id,
-            name: selectedCabinetType.name,
-            width_mm: dimensions.width,
-            height_mm: dimensions.height,
-            depth_mm: dimensions.depth
-          } : null}
-          selectedOptions={{
-            doorStyleId: selectedDoorStyle || undefined,
-            colorId: selectedColor || undefined,
-            finishId: selectedFinish || undefined
-          }}
-          onOptionsChange={(options) => {
-            // Update selections if needed
-            if (options.doorStyleId) setSelectedDoorStyle(options.doorStyleId);
-            if (options.colorId) setSelectedColor(options.colorId);
-            if (options.finishId) setSelectedFinish(options.finishId);
-          }}
-          onAddToCart={handlePackagingAddToCart}
-        />
       </DialogContent>
     </Dialog>
   );
