@@ -6,7 +6,7 @@ interface UserPreferences {
   preferredDoorStyleId?: string;
   preferredColorId?: string;
   preferredFinishId?: string;
-  preferredAssemblyType?: 'carcass_only' | 'with_doors';
+  preferredAssemblyType?: 'carcass_only' | 'with_doors' | null;
 }
 
 const PREFERENCES_KEY = 'cabinet_user_preferences';
@@ -43,7 +43,7 @@ export const useUserPreferences = () => {
         
         // Load assembly preference from localStorage for all users
         const assemblyPref = localStorage.getItem('cabinet_assembly_preference');
-        if (assemblyPref) {
+        if (assemblyPref && assemblyPref !== 'null') {
           setPreferences(prev => ({
             ...prev,
             preferredAssemblyType: assemblyPref as 'carcass_only' | 'with_doors'
@@ -60,7 +60,7 @@ export const useUserPreferences = () => {
         
         // Load assembly preference from localStorage for all users
         const assemblyPref = localStorage.getItem('cabinet_assembly_preference');
-        if (assemblyPref) {
+        if (assemblyPref && assemblyPref !== 'null') {
           setPreferences(prev => ({
             ...prev,
             preferredAssemblyType: assemblyPref as 'carcass_only' | 'with_doors'
@@ -105,6 +105,8 @@ export const useUserPreferences = () => {
       // Save assembly preference to localStorage for all users
       if (newPreferences.preferredAssemblyType) {
         localStorage.setItem('cabinet_assembly_preference', newPreferences.preferredAssemblyType);
+      } else if (newPreferences.preferredAssemblyType === null) {
+        localStorage.removeItem('cabinet_assembly_preference');
       }
 
       // Update local state
@@ -115,7 +117,7 @@ export const useUserPreferences = () => {
   };
 
   // Update individual preference
-  const updatePreference = (key: keyof UserPreferences, value: string | 'carcass_only' | 'with_doors') => {
+  const updatePreference = (key: keyof UserPreferences, value: string | 'carcass_only' | 'with_doors' | null) => {
     const newPreferences = { ...preferences, [key]: value };
     savePreferences(newPreferences);
   };
