@@ -80,18 +80,18 @@ const CabinetManager: React.FC = () => {
   const { data: cabinetTypes, isLoading: loadingTypes } = useQuery({
     queryKey: ['admin-cabinet-types'],
     queryFn: async () => {
+      console.log('Fetching cabinet types...');
       const { data, error } = await supabase
         .from('cabinet_types')
-        .select(`
-          *,
-          room_categories (
-            name
-          )
-        `)
+        .select('*')
         .order('category', { ascending: true })
         .order('display_order', { ascending: true });
       
-      if (error) throw error;
+      console.log('Cabinet types query result:', { data, error });
+      if (error) {
+        console.error('Cabinet types query error:', error);
+        throw error;
+      }
       return data as any[];
     },
   });
