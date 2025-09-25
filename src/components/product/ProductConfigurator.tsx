@@ -415,11 +415,12 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       dimensions,
       quantity,
       rates,
-      hardwareRequirements
+      hardwareRequirements,
+      doorStyles.find(ds => ds.id === selectedDoorStyle)
     );
 
     console.log('Calculated pricing:', calculatedPricing);
-    return calculatedPricing.totalPrice;
+    return { price: calculatedPricing.totalPrice, weight: calculatedPricing.weight };
   };
 
   const calculateDoorArea = () => {

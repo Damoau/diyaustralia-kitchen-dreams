@@ -97,6 +97,87 @@ export class PricingCalculator {
       return 0;
     }
   }
+
+  // Calculate weight for cabinet configuration
+  static calculateCabinetWeight(
+    cabinetType: any,
+    dimensions: { width: number; height: number; depth: number },
+    quantity: number,
+    doorStyle?: any
+  ): { totalWeight: number; breakdown: { carcass: number; doors: number; hardware: number } } {
+    let carcassWeight = 0;
+    let doorWeight = 0;
+    let hardwareWeight = 0;
+
+    if (cabinetType.cabinet_parts) {
+      for (const part of cabinetType.cabinet_parts) {
+        // Calculate part dimensions using formula
+        const partWidth = this.evaluateFormula(part.width_formula || '0', {
+          width: dimensions.width,
+          height: dimensions.height,
+          depth: dimensions.depth,
+          left_width: dimensions.width,
+          right_width: dimensions.width,
+          left_depth: dimensions.depth,
+          right_depth: dimensions.depth,
+          qty: quantity,
+          mat_rate_per_sqm: 50,
+          door_cost: 100,
+          color_cost: 0,
+          finish_cost: 0,
+        });
+        
+        const partHeight = this.evaluateFormula(part.height_formula || '0', {
+          width: dimensions.width,
+          height: dimensions.height,
+          depth: dimensions.depth,
+          left_width: dimensions.width,
+          right_width: dimensions.width,
+          left_depth: dimensions.depth,
+          right_depth: dimensions.depth,
+          qty: quantity,
+          mat_rate_per_sqm: 50,
+          door_cost: 100,
+          color_cost: 0,
+          finish_cost: 0,
+        });
+
+        if (part.is_door && doorStyle) {
+          // Calculate door weight using door style specifications
+          const doorAreaM2 = (partWidth / 1000) * (partHeight / 1000);
+          const doorDensity = doorStyle.material_density_kg_per_sqm || 12.0;
+          const doorWeightFactor = doorStyle.weight_factor || 1.0;
+          const partQuantity = part.quantity || 1;
+          
+          doorWeight += doorAreaM2 * doorDensity * doorWeightFactor * partQuantity;
+        } else if (part.is_hardware) {
+          // Hardware weight estimation
+          const baseHardwareWeight = 2.5; // kg
+          const sizeMultiplier = (dimensions.width * dimensions.height) / (600 * 720);
+          hardwareWeight += baseHardwareWeight * sizeMultiplier * (part.quantity || 1);
+        } else {
+          // Carcass parts weight calculation
+          const partAreaM2 = (partWidth / 1000) * (partHeight / 1000);
+          const density = part.material_density_kg_per_sqm || 12.0;
+          const weightMultiplier = part.weight_multiplier || 1.0;
+          const partQuantity = part.quantity || 1;
+          
+          carcassWeight += partAreaM2 * density * weightMultiplier * partQuantity;
+        }
+      }
+    }
+
+    const totalWeight = (carcassWeight + doorWeight + hardwareWeight) * quantity;
+
+    return {
+      totalWeight,
+      breakdown: {
+        carcass: carcassWeight * quantity,
+        doors: doorWeight * quantity,
+        hardware: hardwareWeight * quantity,
+      },
+    };
+  }
   
   static calculateCabinetPrice(
     cabinetType: any,
@@ -108,7 +189,8 @@ export class PricingCalculator {
       colorSurcharge?: number;
       finishSurcharge?: number;
     } = {},
-    hardwareRequirements: HardwareRequirement[] = []
+    hardwareRequirements: HardwareRequirement[] = [],
+    doorStyle?: any
   ): { 
     totalPrice: number; 
     breakdown: { 
@@ -116,7 +198,8 @@ export class PricingCalculator {
       doors: number; 
       hardware: number; 
       surcharges: number; 
-    } 
+    };
+    weight: { totalWeight: number; breakdown: { carcass: number; doors: number; hardware: number } };
   } {
     const variables: PricingVariables = {
       width: dimensions.width,
@@ -220,6 +303,9 @@ export class PricingCalculator {
     
     const totalPrice = carcassPrice + doorPrice + hardwarePrice + surcharges;
     
+    // Calculate weight information
+    const weightInfo = this.calculateCabinetWeight(cabinetType, dimensions, quantity, doorStyle);
+    
     return {
       totalPrice: Math.round(totalPrice * 100) / 100, // Round to 2 decimal places
       breakdown: {
@@ -227,7 +313,8 @@ export class PricingCalculator {
         doors: Math.round(doorPrice * 100) / 100,
         hardware: Math.round(hardwarePrice * 100) / 100,
         surcharges: Math.round(surcharges * 100) / 100,
-      }
+      },
+      weight: weightInfo,
     };
   }
 }

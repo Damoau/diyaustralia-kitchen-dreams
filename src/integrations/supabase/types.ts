@@ -420,8 +420,11 @@ export type Database = {
           id: string
           is_door: boolean
           is_hardware: boolean
+          material_density_kg_per_sqm: number | null
+          material_thickness_mm: number | null
           part_name: string
           quantity: number
+          weight_multiplier: number | null
           width_formula: string | null
         }
         Insert: {
@@ -431,8 +434,11 @@ export type Database = {
           id?: string
           is_door?: boolean
           is_hardware?: boolean
+          material_density_kg_per_sqm?: number | null
+          material_thickness_mm?: number | null
           part_name: string
           quantity?: number
+          weight_multiplier?: number | null
           width_formula?: string | null
         }
         Update: {
@@ -442,8 +448,11 @@ export type Database = {
           id?: string
           is_door?: boolean
           is_hardware?: boolean
+          material_density_kg_per_sqm?: number | null
+          material_thickness_mm?: number | null
           part_name?: string
           quantity?: number
+          weight_multiplier?: number | null
           width_formula?: string | null
         }
         Relationships: [
@@ -1474,7 +1483,10 @@ export type Database = {
           description: string | null
           id: string
           image_url: string | null
+          material_density_kg_per_sqm: number | null
           name: string
+          thickness_mm: number | null
+          weight_factor: number | null
         }
         Insert: {
           active?: boolean
@@ -1484,7 +1496,10 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          material_density_kg_per_sqm?: number | null
           name: string
+          thickness_mm?: number | null
+          weight_factor?: number | null
         }
         Update: {
           active?: boolean
@@ -1494,7 +1509,10 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          material_density_kg_per_sqm?: number | null
           name?: string
+          thickness_mm?: number | null
+          weight_factor?: number | null
         }
         Relationships: []
       }
@@ -2115,6 +2133,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      material_specifications: {
+        Row: {
+          active: boolean
+          cost_per_sqm: number
+          created_at: string
+          density_kg_per_cubic_m: number
+          id: string
+          material_type: string
+          standard_thickness_mm: number
+          updated_at: string
+          weight_factor: number
+        }
+        Insert: {
+          active?: boolean
+          cost_per_sqm?: number
+          created_at?: string
+          density_kg_per_cubic_m?: number
+          id?: string
+          material_type: string
+          standard_thickness_mm?: number
+          updated_at?: string
+          weight_factor?: number
+        }
+        Update: {
+          active?: boolean
+          cost_per_sqm?: number
+          created_at?: string
+          density_kg_per_cubic_m?: number
+          id?: string
+          material_type?: string
+          standard_thickness_mm?: number
+          updated_at?: string
+          weight_factor?: number
+        }
+        Relationships: []
       }
       messages: {
         Row: {
@@ -2784,8 +2838,11 @@ export type Database = {
       postcode_zones: {
         Row: {
           assembly_eligible: boolean
+          assembly_price_per_cabinet: number | null
           created_at: string
           delivery_eligible: boolean
+          depot_delivery_available: boolean | null
+          home_delivery_available: boolean | null
           id: string
           lead_time_days: number
           metro: boolean
@@ -2797,8 +2854,11 @@ export type Database = {
         }
         Insert: {
           assembly_eligible?: boolean
+          assembly_price_per_cabinet?: number | null
           created_at?: string
           delivery_eligible?: boolean
+          depot_delivery_available?: boolean | null
+          home_delivery_available?: boolean | null
           id?: string
           lead_time_days?: number
           metro?: boolean
@@ -2810,8 +2870,11 @@ export type Database = {
         }
         Update: {
           assembly_eligible?: boolean
+          assembly_price_per_cabinet?: number | null
           created_at?: string
           delivery_eligible?: boolean
+          depot_delivery_available?: boolean | null
+          home_delivery_available?: boolean | null
           id?: string
           lead_time_days?: number
           metro?: boolean
