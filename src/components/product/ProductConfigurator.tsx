@@ -822,6 +822,17 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                             className="text-center font-mono h-10 text-base font-semibold border-2 focus:border-primary/50"
                           />
                         </div>
+                        <div>
+                          <Label className="text-sm font-medium mb-2 block">Postcode for Assembly</Label>
+                          <Input
+                            type="text"
+                            placeholder="Enter postcode"
+                            className="h-10 border-2 focus:border-primary/50"
+                          />
+                          <div className="mt-2 text-sm text-muted-foreground">
+                            Assembly service: $120.00
+                          </div>
+                        </div>
                       </CardContent>
                     </Card>
 
