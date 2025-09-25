@@ -95,6 +95,7 @@ const navigationItems = [
       { title: 'Testing', url: 'testing', icon: TestTube },
       { title: 'Notifications', url: 'notifications', icon: Bell },
       { title: 'Settings', url: 'settings', icon: Settings },
+      { title: 'Shipping & Assembly', url: 'shipping-settings', icon: Truck },
     ]
   },
 ];
