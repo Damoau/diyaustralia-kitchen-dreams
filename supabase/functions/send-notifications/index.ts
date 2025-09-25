@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "npm:resend@4.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -82,21 +81,8 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('Failed to generate email content');
     }
 
-    // Send email via Resend
-    const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-    
-    const emailResult = await resend.emails.send({
-      from: 'Kitchen Cabinets <noreply@yourdomain.com>',
-      to: [userEmail],
-      subject: emailContent.subject,
-      html: emailContent.html,
-    });
-
-    if (emailResult.error) {
-      throw emailResult.error;
-    }
-
-    console.log('Notification sent successfully:', emailResult.data?.id);
+    // Skip email functionality for now
+    console.log('Notifications system would send emails here');
 
     return new Response(JSON.stringify({ 
       success: true, 

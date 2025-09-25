@@ -110,16 +110,28 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     queryFn: async () => {
       if (!postcode || postcode.length !== 4) return null;
       
-      // Mock postcode data - replace with actual Supabase query
-      const mockData: Record<string, any> = {
-        '3000': { postcode: '3000', state: 'VIC', zone: 'MEL_METRO', metro: true, assembly_eligible: true, assembly_price_per_cabinet: 150 },
-        '3001': { postcode: '3001', state: 'VIC', zone: 'MEL_METRO', metro: true, assembly_eligible: true, assembly_price_per_cabinet: 150 },
-        '4000': { postcode: '4000', state: 'QLD', zone: 'BNE_METRO', metro: true, assembly_eligible: true, assembly_price_per_cabinet: 165 },
-        '2000': { postcode: '2000', state: 'NSW', zone: 'SYD_METRO', metro: true, assembly_eligible: true, assembly_price_per_cabinet: 175 },
-        '6000': { postcode: '6000', state: 'WA', zone: 'PER_METRO', metro: true, assembly_eligible: false, assembly_price_per_cabinet: 0 },
-      };
-      
-      return mockData[postcode] || null;
+      try {
+        const { data, error } = await supabase.functions.invoke('check-assembly-eligibility', {
+          body: { postcode }
+        });
+
+        if (error) {
+          console.error('Assembly eligibility check failed:', error);
+          return null;
+        }
+
+        return {
+          postcode: data.postcode,
+          state: data.state,
+          zone: data.zone,
+          metro: data.metro,
+          assembly_eligible: data.eligible,
+          assembly_price_per_cabinet: data.eligible ? 150 : 0
+        };
+      } catch (error) {
+        console.error('Error checking assembly eligibility:', error);
+        return null;
+      }
     },
     enabled: postcode.length === 4,
   });

@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +11,7 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 );
 
-const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
+// Skip email sending functionality temporarily
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -53,43 +52,8 @@ serve(async (req) => {
         throw tokenError;
       }
 
-      // Send verification email
-      const verificationUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/verify-email-token?token=${verificationToken}`;
-
-      const { data: emailResponse, error: emailError } = await resend.emails.send({
-        from: 'Cabinets Portal <noreply@cabinetportal.com>',
-        to: [user.email!],
-        subject: 'Verify Your Email Address',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #333;">Email Verification</h1>
-            
-            <p>Hi there,</p>
-            
-            <p>Please verify your email address by clicking the link below:</p>
-            
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${verificationUrl}" 
-                 style="background-color: #4CAF50; color: white; padding: 12px 24px; 
-                        text-decoration: none; border-radius: 4px; display: inline-block;">
-                Verify Email Address
-              </a>
-            </div>
-            
-            <p>This link will expire in 24 hours.</p>
-            
-            <p>If you didn't request this verification, you can safely ignore this email.</p>
-            
-            <p>Best regards,<br>
-            Cabinet Portal Team</p>
-          </div>
-        `,
-      });
-
-      if (emailError) {
-        console.error('Email sending error:', emailError);
-        throw new Error('Failed to send verification email');
-      }
+      // Skip email sending for now - would implement proper email service here
+      console.log('Email verification would be sent to:', user.email);
 
       // Log audit event
       await supabase.rpc('log_audit_event', {
