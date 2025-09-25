@@ -468,6 +468,9 @@ export type Database = {
       cabinet_types: {
         Row: {
           active: boolean
+          assembly_available: boolean | null
+          assembly_carcass_only_price: number | null
+          assembly_with_doors_price: number | null
           backs_qty: number | null
           base_price: number | null
           bottoms_qty: number | null
@@ -519,6 +522,9 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          assembly_available?: boolean | null
+          assembly_carcass_only_price?: number | null
+          assembly_with_doors_price?: number | null
           backs_qty?: number | null
           base_price?: number | null
           bottoms_qty?: number | null
@@ -570,6 +576,9 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          assembly_available?: boolean | null
+          assembly_carcass_only_price?: number | null
+          assembly_with_doors_price?: number | null
           backs_qty?: number | null
           base_price?: number | null
           bottoms_qty?: number | null

@@ -30,7 +30,8 @@ const postcodeSchema = z.string()
 
 interface AssemblyEstimate {
   eligible: boolean;
-  price?: number;
+  carcass_only_price?: number;
+  with_doors_price?: number;
   lead_time_days?: number;
   includes?: string[];
 }
@@ -86,6 +87,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   const [postcode, setPostcode] = useState("");
   const [postcodeError, setPostcodeError] = useState("");
   const [assemblyEnabled, setAssemblyEnabled] = useState(false);
+  const [assemblyType, setAssemblyType] = useState<'carcass_only' | 'with_doors'>('carcass_only');
   const [assemblyEstimate, setAssemblyEstimate] = useState<AssemblyEstimate | null>(null);
   
   const { markAsUnsaved, markAsSaving, markAsSaved, markAsError } = useCartSaveTracking();
@@ -123,9 +125,16 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   // Calculate assembly estimate when postcode changes
   useEffect(() => {
     if (postcodeData) {
+      // Get cabinet-specific assembly pricing
+      const cabinetAssemblyData = selectedCabinetType?.assembly_available ? {
+        carcass_only_price: selectedCabinetType.assembly_carcass_only_price || 0,
+        with_doors_price: selectedCabinetType.assembly_with_doors_price || 0
+      } : null;
+      
       setAssemblyEstimate({
-        eligible: postcodeData.assembly_eligible,
-        price: postcodeData.assembly_eligible ? postcodeData.assembly_price_per_cabinet : undefined,
+        eligible: postcodeData.assembly_eligible && selectedCabinetType?.assembly_available,
+        carcass_only_price: cabinetAssemblyData?.carcass_only_price,
+        with_doors_price: cabinetAssemblyData?.with_doors_price,
         lead_time_days: postcodeData.assembly_eligible ? 8 : undefined,
         includes: postcodeData.assembly_eligible ? [
           'Professional installation',
@@ -505,7 +514,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     console.log('Calculated pricing:', calculatedPricing);
     
     // Add assembly cost if enabled
-    const assemblyPrice = assemblyEnabled && assemblyEstimate?.price ? assemblyEstimate.price : 0;
+    const assemblyPrice = assemblyEnabled && assemblyEstimate ? 
+      (assemblyType === 'carcass_only' ? assemblyEstimate.carcass_only_price || 0 : assemblyEstimate.with_doors_price || 0) : 0;
     const finalPrice = calculatedPricing.totalPrice + assemblyPrice;
     
     return finalPrice;
@@ -620,7 +630,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         assembly: assemblyEnabled ? {
           postcode: postcode,
           enabled: true,
-          price: assemblyEstimate?.price,
+          type: assemblyType,
+          price: assemblyType === 'carcass_only' ? assemblyEstimate?.carcass_only_price : assemblyEstimate?.with_doors_price,
           lead_time_days: assemblyEstimate?.lead_time_days,
           includes: assemblyEstimate?.includes
         } : {
@@ -966,7 +977,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                                   <div className="flex justify-between items-center">
                                     <span className="text-xs text-muted-foreground">Professional assembly</span>
                                     <Badge variant={assemblyEnabled ? "default" : "secondary"} className="text-xs">
-                                      ${assemblyEstimate.price?.toFixed(2)}
+                                      ${assemblyType === 'carcass_only' ? assemblyEstimate.carcass_only_price?.toFixed(2) : assemblyEstimate.with_doors_price?.toFixed(2)}
                                     </Badge>
                                   </div>
                                   

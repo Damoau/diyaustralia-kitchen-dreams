@@ -73,6 +73,10 @@ export interface CabinetType {
   short_description?: string;
   long_description?: string;
   display_order: number;
+  // Assembly fields
+  assembly_available?: boolean;
+  assembly_carcass_only_price?: number;
+  assembly_with_doors_price?: number;
 }
 
 
