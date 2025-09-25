@@ -140,8 +140,14 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
   // Initialize with saved preferences when component loads
   useEffect(() => {
-    if (preferredAssemblyType && preferredAssemblyType !== assemblyType) {
-      setAssemblyType(preferredAssemblyType);
+    if (preferredAssemblyType) {
+      if (preferredAssemblyType === 'carcass_only' || preferredAssemblyType === 'with_doors') {
+        setAssemblyEnabled(true);
+        setAssemblyType(preferredAssemblyType);
+      }
+    } else if (preferredAssemblyType === null) {
+      // Explicitly set to flat pack if null is saved
+      setAssemblyEnabled(false);
     }
   }, [preferredAssemblyType]);
 
