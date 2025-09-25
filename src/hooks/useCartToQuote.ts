@@ -8,6 +8,35 @@ export const useCartToQuote = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Function to clear cart after successful quote conversion
+  const clearCartAfterQuoteConversion = async (cartId: string) => {
+    try {
+      const { error } = await supabase
+        .from('carts')
+        .update({ 
+          status: 'converted_to_quote',
+          total_amount: 0,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', cartId);
+
+      if (error) throw error;
+
+      // Also clear all cart items
+      const { error: itemsError } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('cart_id', cartId);
+
+      if (itemsError) throw itemsError;
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error clearing cart after quote conversion:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
   const convertCartToQuote = async (
     cartId: string, 
     customerEmail?: string,
@@ -40,12 +69,16 @@ export const useCartToQuote = () => {
         description: `Cart converted to quote ${data.quote_number}`,
       });
 
+      // Clear cart state to prevent confusion between quote and cart modes
+      const clearCartResponse = await clearCartAfterQuoteConversion(cartId);
+      
       return {
         success: true,
         quoteId: data.quote_id,
         quoteNumber: data.quote_number,
         totalAmount: data.total_amount,
-        shouldRefreshCart: true // Signal that cart needs to be refreshed
+        shouldRefreshCart: true, // Signal that cart needs to be refreshed
+        cartCleared: clearCartResponse.success
       };
 
     } catch (error) {
