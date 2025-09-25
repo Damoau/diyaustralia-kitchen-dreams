@@ -87,6 +87,9 @@ export const useUserPreferences = () => {
             preferred_door_style_id: newPreferences.preferredDoorStyleId,
             preferred_color_id: newPreferences.preferredColorId,
             preferred_finish_id: newPreferences.preferredFinishId
+          }, {
+            onConflict: 'user_id',
+            ignoreDuplicates: false
           });
 
         if (error) {
