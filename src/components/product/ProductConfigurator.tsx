@@ -7,18 +7,33 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import { z } from 'zod';
 import PricingCalculator from '@/lib/pricingCalculator';
 import { StyleColorFinishSelector } from './StyleColorFinishSelector';
-// Removed PackagingModal import
 import { useCartPersistence } from '@/hooks/useCartPersistence';
 import { useCartSaveTracking } from '@/hooks/useCartSaveTracking';
 import { useCart } from '@/hooks/useCart';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { Ruler, Palette, Settings, FileText, ShoppingCart } from 'lucide-react';
+import { Ruler, Palette, Settings, FileText, ShoppingCart, MapPin, AlertCircle, Calculator } from 'lucide-react';
 import { useCabinetPreferences } from '@/hooks/useCabinetPreferences';
 import { CabinetType, CabinetPart, DoorStyle, Color, Finish, DoorStyleFinish, ColorFinish } from '@/types/cabinet';
+
+// Input validation schema  
+const postcodeSchema = z.string()
+  .trim()
+  .regex(/^\d{4}$/, "Postcode must be 4 digits")
+  .length(4, "Postcode must be exactly 4 digits");
+
+interface AssemblyEstimate {
+  eligible: boolean;
+  price?: number;
+  lead_time_days?: number;
+  includes?: string[];
+}
 
 interface HardwareRequirement {
   id: string;
@@ -66,6 +81,13 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Assembly postcode state
+  const [postcode, setPostcode] = useState("");
+  const [postcodeError, setPostcodeError] = useState("");
+  const [assemblyEnabled, setAssemblyEnabled] = useState(false);
+  const [assemblyEstimate, setAssemblyEstimate] = useState<AssemblyEstimate | null>(null);
+  
   const { markAsUnsaved, markAsSaving, markAsSaved, markAsError } = useCartSaveTracking();
   const { addToCart } = useCart();
   const { preferences: savedPrefs, updatePreference } = useCabinetPreferences();
@@ -77,6 +99,65 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     preferredFinishId 
   } = useUserPreferences();
   
+  // Mock postcode lookup - this would connect to your postcode zones table
+  const { data: postcodeData } = useQuery({
+    queryKey: ['postcode-lookup', postcode],
+    queryFn: async () => {
+      if (!postcode || postcode.length !== 4) return null;
+      
+      // Mock postcode data - replace with actual Supabase query
+      const mockData: Record<string, any> = {
+        '3000': { postcode: '3000', state: 'VIC', zone: 'MEL_METRO', metro: true, assembly_eligible: true, assembly_price_per_cabinet: 150 },
+        '3001': { postcode: '3001', state: 'VIC', zone: 'MEL_METRO', metro: true, assembly_eligible: true, assembly_price_per_cabinet: 150 },
+        '4000': { postcode: '4000', state: 'QLD', zone: 'BNE_METRO', metro: true, assembly_eligible: true, assembly_price_per_cabinet: 165 },
+        '2000': { postcode: '2000', state: 'NSW', zone: 'SYD_METRO', metro: true, assembly_eligible: true, assembly_price_per_cabinet: 175 },
+        '6000': { postcode: '6000', state: 'WA', zone: 'PER_METRO', metro: true, assembly_eligible: false, assembly_price_per_cabinet: 0 },
+      };
+      
+      return mockData[postcode] || null;
+    },
+    enabled: postcode.length === 4,
+  });
+  
+  
+  // Calculate assembly estimate when postcode changes
+  useEffect(() => {
+    if (postcodeData) {
+      setAssemblyEstimate({
+        eligible: postcodeData.assembly_eligible,
+        price: postcodeData.assembly_eligible ? postcodeData.assembly_price_per_cabinet : undefined,
+        lead_time_days: postcodeData.assembly_eligible ? 8 : undefined,
+        includes: postcodeData.assembly_eligible ? [
+          'Professional installation',
+          'Hardware attachment', 
+          'Adjustment and alignment',
+          '12-month warranty'
+        ] : undefined
+      });
+    }
+  }, [postcodeData]);
+
+  // Handle postcode input with validation
+  const handlePostcodeChange = (value: string) => {
+    setPostcode(value);
+    setPostcodeError("");
+    
+    // Clear assembly estimate while typing
+    if (value.length !== 4) {
+      setAssemblyEstimate(null);
+    }
+
+    // Validate postcode format
+    if (value.length === 4) {
+      try {
+        postcodeSchema.parse(value);
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          setPostcodeError(error.errors[0].message);
+        }
+      }
+    }
+  };
 
   // Reset selections when configurator opens with a new cabinet
   useEffect(() => {
@@ -86,6 +167,11 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       setSelectedColor('');
       setSelectedFinish('');
       setNotes('');
+      // Reset assembly state when opening configurator
+      setPostcode('');
+      setPostcodeError('');
+      setAssemblyEnabled(false);
+      setAssemblyEstimate(null);
     }
   }, [open, cabinetTypeId]);
 
@@ -417,7 +503,12 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     );
 
     console.log('Calculated pricing:', calculatedPricing);
-    return calculatedPricing.totalPrice;
+    
+    // Add assembly cost if enabled
+    const assemblyPrice = assemblyEnabled && assemblyEstimate?.price ? assemblyEstimate.price : 0;
+    const finalPrice = calculatedPricing.totalPrice + assemblyPrice;
+    
+    return finalPrice;
   };
 
   const calculateWeightInfo = () => {
@@ -516,15 +607,25 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       height_mm: dimensions.height,
       depth_mm: dimensions.depth,
       quantity: quantity,
-      unit_price: totalPrice / quantity,
-      notes: notes || undefined,
+      unit_price: totalPrice,
+      notes: notes.trim() || undefined,
       configuration: {
         style: selectedDoorStyle,
         color: selectedColor,
         finish: selectedFinish,
         customDimensions: dimensions,
+        weight: weightInfo,
         quantity: quantity,
-        weight: weightInfo
+        // Include assembly information in configuration
+        assembly: assemblyEnabled ? {
+          postcode: postcode,
+          enabled: true,
+          price: assemblyEstimate?.price,
+          lead_time_days: assemblyEstimate?.lead_time_days,
+          includes: assemblyEstimate?.includes
+        } : {
+          enabled: false
+        }
       }
     };
 
@@ -823,15 +924,79 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                           />
                         </div>
                         <div>
-                          <Label className="text-sm font-medium mb-2 block">Postcode for Assembly</Label>
+                          <Label className="text-sm font-medium mb-2 block flex items-center gap-2">
+                            <MapPin className="h-3 w-3" />
+                            Postcode for Assembly
+                          </Label>
                           <Input
                             type="text"
-                            placeholder="Enter postcode"
-                            className="h-10 border-2 focus:border-primary/50"
+                            value={postcode}
+                            onChange={(e) => handlePostcodeChange(e.target.value)}
+                            placeholder="e.g., 3000"
+                            maxLength={4}
+                            className={`h-10 border-2 focus:border-primary/50 ${postcodeError ? "border-destructive" : ""}`}
                           />
-                          <div className="mt-2 text-sm text-muted-foreground">
-                            Assembly service: $120.00
-                          </div>
+                          {postcodeError && (
+                            <p className="text-xs text-destructive flex items-center gap-1 mt-1">
+                              <AlertCircle className="h-3 w-3" />
+                              {postcodeError}
+                            </p>
+                          )}
+                          
+                          {/* Assembly Service Details */}
+                          {assemblyEstimate && (
+                            <div className="mt-3 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Calculator className="h-3 w-3" />
+                                  <Label htmlFor="assembly-toggle" className="text-xs font-medium">
+                                    Assembly Service
+                                  </Label>
+                                </div>
+                                <Switch
+                                  id="assembly-toggle"
+                                  checked={assemblyEnabled}
+                                  onCheckedChange={setAssemblyEnabled}
+                                  disabled={!assemblyEstimate.eligible}
+                                />
+                              </div>
+
+                              {assemblyEstimate.eligible ? (
+                                <div className="space-y-1">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-xs text-muted-foreground">Professional assembly</span>
+                                    <Badge variant={assemblyEnabled ? "default" : "secondary"} className="text-xs">
+                                      ${assemblyEstimate.price?.toFixed(2)}
+                                    </Badge>
+                                  </div>
+                                  
+                                  {assemblyEnabled && (
+                                    <div className="text-xs text-muted-foreground space-y-1">
+                                      <p>Lead time: {assemblyEstimate.lead_time_days} days</p>
+                                      <div className="space-y-0.5">
+                                        <p className="font-medium">Includes:</p>
+                                        {assemblyEstimate.includes?.map((item, index) => (
+                                          <p key={index} className="ml-2">• {item}</p>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2 text-amber-600">
+                                  <AlertCircle className="h-3 w-3" />
+                                  <span className="text-xs">Assembly not available in this area</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Loading/Checking Assembly */}
+                          {postcode.length === 4 && !assemblyEstimate && !postcodeError && (
+                            <div className="mt-2 text-xs text-muted-foreground text-center py-2">
+                              Checking assembly availability...
+                            </div>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
