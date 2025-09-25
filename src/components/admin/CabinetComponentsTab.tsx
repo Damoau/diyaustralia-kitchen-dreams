@@ -622,6 +622,59 @@ export const CabinetComponentsTab: React.FC<CabinetComponentsTabProps> = ({
         </Dialog>
       )}
 
+      {/* Assembly Options Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wrench className="h-5 w-5" />
+            Assembly Options
+          </CardTitle>
+          <CardDescription>
+            Configure assembly services available for this cabinet type
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="assembly_available"
+              checked={assemblyAvailable}
+              onCheckedChange={(checked) => onAssemblyChange?.('assembly_available', checked)}
+            />
+            <Label htmlFor="assembly_available">Assembly available for this cabinet</Label>
+          </div>
+          
+          {assemblyAvailable && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="assembly_carcass_only_price">Carcass Only Assembly ($)</Label>
+                <Input
+                  id="assembly_carcass_only_price"
+                  type="number"
+                  step="0.01"
+                  value={assemblyCarassOnlyPrice || ''}
+                  onChange={(e) => onAssemblyChange?.('assembly_carcass_only_price', parseFloat(e.target.value) || 0)}
+                  placeholder="Price for carcass assembly with drawer runners"
+                />
+                <p className="text-xs text-muted-foreground">Carcass assembly with drawer runners fitted if applicable</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="assembly_with_doors_price">Complete Assembly ($)</Label>
+                <Input
+                  id="assembly_with_doors_price"
+                  type="number"
+                  step="0.01"
+                  value={assemblyWithDoorsPrice || ''}
+                  onChange={(e) => onAssemblyChange?.('assembly_with_doors_price', parseFloat(e.target.value) || 0)}
+                  placeholder="Price for complete assembly with doors fitted"
+                />
+                <p className="text-xs text-muted-foreground">Carcass assembled and doors fitted</p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
     </div>
   );
 };

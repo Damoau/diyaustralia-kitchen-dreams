@@ -2154,6 +2154,7 @@ export type Database = {
           standard_thickness_mm: number
           updated_at: string
           weight_factor: number
+          weight_per_sqm: number | null
         }
         Insert: {
           active?: boolean
@@ -2165,6 +2166,7 @@ export type Database = {
           standard_thickness_mm?: number
           updated_at?: string
           weight_factor?: number
+          weight_per_sqm?: number | null
         }
         Update: {
           active?: boolean
@@ -2176,6 +2178,7 @@ export type Database = {
           standard_thickness_mm?: number
           updated_at?: string
           weight_factor?: number
+          weight_per_sqm?: number | null
         }
         Relationships: []
       }
