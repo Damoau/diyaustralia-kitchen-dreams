@@ -11,6 +11,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import PricingCalculator from '@/lib/pricingCalculator';
 import { StyleColorFinishSelector } from './StyleColorFinishSelector';
+import PackagingModal from './PackagingModal';
+import { useCartPersistence } from '@/hooks/useCartPersistence';
 import { useCartSaveTracking } from '@/hooks/useCartSaveTracking';
 import { useCart } from '@/hooks/useCart';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
@@ -74,6 +76,10 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     preferredColorId,
     preferredFinishId 
   } = useUserPreferences();
+  
+  // New state for packaging modal
+  const [packagingModalOpen, setPackagingModalOpen] = useState(false);
+  const { addToCart: addToCartPersistence } = useCartPersistence();
 
   // Reset selections when configurator opens with a new cabinet
   useEffect(() => {
@@ -465,50 +471,18 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     }
   };
 
-  const handleAddToCart = async () => {
+  const handlePackagingClick = () => {
     if (!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish) {
-      toast.error('Please complete all selections before adding to cart');
+      toast.error('Please complete all selections before proceeding to packaging');
       return;
     }
+    setPackagingModalOpen(true);
+  };
 
-    setLoading(true);
-    markAsSaving();
-    
-    try {
-      const unitPrice = calculateTotalPrice();
-
-      console.log('Adding to cart with notes:', notes);
-
-      await addToCart({
-        cabinet_type_id: selectedCabinetType.id,
-        door_style_id: selectedDoorStyle,
-        color_id: selectedColor,
-        finish_id: selectedFinish,
-        width_mm: dimensions.width,
-        height_mm: dimensions.height,
-        depth_mm: dimensions.depth,
-        quantity: quantity,
-        unit_price: unitPrice,
-        notes: notes?.trim() || null,
-        configuration: {
-          dimensions,
-          doorStyle: selectedDoorStyle,
-          color: selectedColor,
-          finish: selectedFinish,
-          quantity,
-          notes: notes?.trim() || null
-        }
-      });
-      
-      markAsSaved();
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-      markAsError();
-      toast.error('Failed to add to cart');
-    } finally {
-      setLoading(false);
-    }
+  const handlePackagingAddToCart = (cartItem: any) => {
+    // Use the cart persistence hook for better user experience
+    addToCartPersistence(cartItem);
+    onOpenChange(false);
   };
 
   const handleStyleColorFinishSelection = (doorStyleId: string, colorId: string, finishId: string) => {
@@ -820,30 +794,32 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                       </CardContent>
                     </Card>
 
-                    {/* Add to Cart - Enhanced */}
-                    <Button 
-                      onClick={handleAddToCart} 
-                      disabled={loading || !selectedDoorStyle || !selectedColor || !selectedFinish}
-                      className="w-full h-12 font-semibold text-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-200"
-                      size="default"
-                    >
-                      {loading ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                          Adding to Cart...
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <ShoppingCart className="w-5 h-5" />
-                          Add to Cart - ${calculateTotalPrice().toFixed(2)}
+                    {/* Packaging & Add to Cart - Enhanced */}
+                    <div className="space-y-3">
+                      <Button 
+                        onClick={handlePackagingClick} 
+                        disabled={loading || !selectedDoorStyle || !selectedColor || !selectedFinish}
+                        className="w-full h-12 font-semibold text-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-200"
+                        size="default"
+                      >
+                        {loading ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            Loading...
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <ShoppingCart className="w-5 h-5" />
+                            Packaging & Checkout - ${calculateTotalPrice().toFixed(2)}
+                          </div>
+                        )}
+                      </Button>
+                      {(!selectedDoorStyle || !selectedColor || !selectedFinish) && (
+                        <div className="text-sm text-muted-foreground text-center -mt-2 font-medium">
+                          Complete all selections to continue
                         </div>
                       )}
-                    </Button>
-                    {(!selectedDoorStyle || !selectedColor || !selectedFinish) && (
-                      <div className="text-sm text-muted-foreground text-center -mt-2 font-medium">
-                        Complete all selections to continue
-                      </div>
-                    )}
+                    </div>
                   </>
                 )}
               </div>
@@ -864,6 +840,31 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           selectedColor={selectedColor || savedPrefs?.preferred_color_id || preferredColorId}
           selectedFinish={selectedFinish || savedPrefs?.preferred_finish_id || preferredFinishId}
           onSelectionComplete={handleStyleColorFinishSelection}
+        />
+
+        {/* Packaging Modal */}
+        <PackagingModal
+          open={packagingModalOpen}
+          onOpenChange={setPackagingModalOpen}
+          cabinetType={selectedCabinetType ? {
+            id: selectedCabinetType.id,
+            name: selectedCabinetType.name,
+            width_mm: dimensions.width,
+            height_mm: dimensions.height,
+            depth_mm: dimensions.depth
+          } : null}
+          selectedOptions={{
+            doorStyleId: selectedDoorStyle || undefined,
+            colorId: selectedColor || undefined,
+            finishId: selectedFinish || undefined
+          }}
+          onOptionsChange={(options) => {
+            // Update selections if needed
+            if (options.doorStyleId) setSelectedDoorStyle(options.doorStyleId);
+            if (options.colorId) setSelectedColor(options.colorId);
+            if (options.finishId) setSelectedFinish(options.finishId);
+          }}
+          onAddToCart={handlePackagingAddToCart}
         />
       </DialogContent>
     </Dialog>

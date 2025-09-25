@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { CartDrawer } from "@/components/ui/cart-drawer";
+import { CartDrawer } from '@/components/ui/cart-drawer';
 
 const Header = () => {
   const { isAuthenticated, isAdmin, user, signOut } = useAuth();
