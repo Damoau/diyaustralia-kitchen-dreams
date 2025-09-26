@@ -141,7 +141,7 @@ serve(async (req) => {
           updates.assembly_carcass_surcharge_pct = defaultSurcharge.carcass_surcharge_pct
           updates.assembly_doors_surcharge_pct = defaultSurcharge.doors_surcharge_pct
           updates.assignment_method = 'radius'
-          updates.assigned_from_zone_id = center.zone_id || null
+          updates.assigned_from_zone_id = zone_id || null
         } else {
           // Clear surcharges for postcodes outside radius
           updates.assembly_carcass_surcharge_pct = 0

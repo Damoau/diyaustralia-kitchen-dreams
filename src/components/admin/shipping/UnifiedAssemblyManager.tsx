@@ -210,6 +210,28 @@ const UnifiedAssemblyManager = () => {
 
   useEffect(() => {
     loadData();
+
+    // Set up real-time subscription for postcode_zones
+    const subscription = supabase
+      .channel('postcode-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'postcode_zones'
+        },
+        (payload) => {
+          console.log('Postcode data changed:', payload);
+          // Reload data when changes occur
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const loadData = async () => {
@@ -361,12 +383,15 @@ const UnifiedAssemblyManager = () => {
 
       if (error) throw error;
 
+      console.log('Radius calculation completed:', data);
+
       toast({
         title: "Success",
         description: `Applied radius assignment to ${data.stats.within_radius} postcodes`,
       });
 
-      loadData();
+      // Force reload data to show immediate changes
+      await loadData();
     } catch (error) {
       console.error('Error applying radius:', error);
       throw error;
