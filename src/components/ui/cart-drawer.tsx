@@ -318,14 +318,14 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                   </Button>
                 ) : (
                   <>
-                    <Button 
-                      onClick={handleRequestQuote}
-                      className="w-full"
-                      size="lg"
-                      disabled={isLoading || isConverting}
-                    >
-                      {isConverting ? "Creating Quote..." : "Request Quote"}
-                    </Button>
+                        <Button 
+                          onClick={handleRequestQuote}
+                          className="w-full"
+                          size="lg"
+                          disabled={isLoading || isConverting}
+                        >
+                          {isConverting ? "Saving Quote..." : "Save Quote"}
+                        </Button>
                     
                     <Button 
                       variant="outline" 
