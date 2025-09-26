@@ -1132,10 +1132,15 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                                             ? 'border-primary bg-primary' 
                                             : 'border-muted-foreground'
                                         }`} />
-                                        <div>
-                                          <p className="text-xs font-medium">Flat Pack</p>
-                                          <p className="text-xs text-muted-foreground">Self-assembly required</p>
-                                        </div>
+                                         <div>
+                                           <p className="text-xs font-medium">Flat Pack</p>
+                                           <p className="text-xs text-muted-foreground">
+                                             {assemblyEstimate?.eligible === false 
+                                               ? "Flat-pack only in your postcode. We provide detailed plans, labeled parts, and pre-drilled panels for easy on-site assembly."
+                                               : "Self-assembly required"
+                                             }
+                                           </p>
+                                         </div>
                                       </div>
                                       <Badge variant="outline" className="text-xs">
                                         $0.00
