@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface NavigationState {
   currentPath: string;
@@ -13,6 +13,7 @@ interface NavigationContextType {
   goBack: () => void;
   setCustomBreadcrumbs: (breadcrumbs: Array<{ path: string; label: string }>) => void;
   isInWorkflow: (workflowPaths: string[]) => boolean;
+  navigateWithDebug: (path: string) => void;
 }
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
@@ -23,6 +24,7 @@ interface NavigationProviderProps {
 
 export const NavigationProvider = ({ children }: NavigationProviderProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [navigationState, setNavigationState] = useState<NavigationState>({
     currentPath: location.pathname,
     previousPath: '',
@@ -32,6 +34,7 @@ export const NavigationProvider = ({ children }: NavigationProviderProps) => {
   const [customBreadcrumbs, setCustomBreadcrumbs] = useState<Array<{ path: string; label: string }>>([]);
 
   useEffect(() => {
+    console.log('Navigation Debug: Route changing from', navigationState.currentPath, 'to', location.pathname);
     setNavigationState(prev => ({
       ...prev,
       previousPath: prev.currentPath,
@@ -42,8 +45,14 @@ export const NavigationProvider = ({ children }: NavigationProviderProps) => {
 
   const goBack = () => {
     if (navigationState.canGoBack && navigationState.previousPath) {
+      console.log('Navigation Debug: Going back to', navigationState.previousPath);
       window.history.back();
     }
+  };
+
+  const navigateWithDebug = (path: string) => {
+    console.log('Navigation Debug: Navigating to', path, 'from', location.pathname);
+    navigate(path);
   };
 
   const isInWorkflow = (workflowPaths: string[]) => {
@@ -54,7 +63,8 @@ export const NavigationProvider = ({ children }: NavigationProviderProps) => {
     navigationState,
     goBack,
     setCustomBreadcrumbs,
-    isInWorkflow
+    isInWorkflow,
+    navigateWithDebug
   };
 
   return (

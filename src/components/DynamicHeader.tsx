@@ -78,6 +78,7 @@ const DynamicHeader = () => {
   };
 
   const handleNavigation = (path: string) => {
+    console.log('DynamicHeader: Navigating to', path, 'from', location.pathname);
     navigate(path);
     setSheetOpen(false);
   };
@@ -88,13 +89,13 @@ const DynamicHeader = () => {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between">
         <div className="flex items-center space-x-4">
-          <div 
+          <Link 
+            to="/" 
             className="flex items-center space-x-2 cursor-pointer"
-            onClick={() => navigate('/')}
           >
             <div className="w-8 h-8 bg-gradient-to-br from-primary to-blue-dark rounded-lg"></div>
             <span className="text-xl font-bold text-foreground">DIY Kitchens</span>
-          </div>
+          </Link>
         </div>
 
         {/* Desktop Navigation */}
@@ -260,10 +261,12 @@ const DynamicHeader = () => {
             </SheetTrigger>
             <SheetContent side="right" className="w-80 bg-white flex flex-col">
               <div className="flex flex-col h-full">
-                <div className="flex items-center space-x-3 mb-6 pt-4 flex-shrink-0">
-                  <div className="w-8 h-8 bg-gradient-to-br from-primary to-blue-dark rounded-lg"></div>
-                  <span className="text-xl font-bold text-foreground">DIY Kitchens</span>
-                </div>
+                  <div className="flex items-center space-x-3 mb-6 pt-4 flex-shrink-0">
+                    <Link to="/" className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-gradient-to-br from-primary to-blue-dark rounded-lg"></div>
+                      <span className="text-xl font-bold text-foreground">DIY Kitchens</span>
+                    </Link>
+                  </div>
                 
                 <div className="flex-1 overflow-y-auto overscroll-contain pb-4">
                   <nav className="flex flex-col space-y-4">

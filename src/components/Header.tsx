@@ -30,6 +30,7 @@ const Header = () => {
   };
 
   const handleNavigation = (path: string) => {
+    console.log('Header: Navigating to', path, 'from', location.pathname);
     navigate(path);
     setSheetOpen(false);
   };
@@ -40,13 +41,13 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between">
         <div className="flex items-center space-x-4">
-          <div 
+          <Link 
+            to="/" 
             className="flex items-center space-x-2 cursor-pointer"
-            onClick={() => navigate('/')}
           >
             <div className="w-8 h-8 bg-gradient-to-br from-primary to-blue-dark rounded-lg"></div>
             <span className="text-xl font-bold text-foreground">DIY Kitchens</span>
-          </div>
+          </Link>
         </div>
 
         {/* Desktop Navigation */}

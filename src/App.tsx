@@ -7,6 +7,7 @@ import { ErrorBoundary } from "@/lib/errorBoundary";
 import { Suspense, lazy } from "react";
 import { PageLoader } from "@/components/ui/page-loader";
 import { AdminImpersonationProvider } from "@/contexts/AdminImpersonationContext";
+import { NavigationProvider } from "@/components/navigation/NavigationContext";
 import { HelmetProvider } from "react-helmet-async";
 import Index from "./pages/Index";
 
@@ -60,10 +61,11 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AdminImpersonationProvider>
-          <HelmetProvider>
-            <Toaster />
-            <Sonner />
-              <BrowserRouter>
+          <NavigationProvider>
+            <HelmetProvider>
+              <Toaster />
+              <Sonner />
+                <BrowserRouter>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
@@ -105,7 +107,8 @@ const App = () => (
                 </Routes>
               </Suspense>
             </BrowserRouter>
-          </HelmetProvider>
+            </HelmetProvider>
+          </NavigationProvider>
         </AdminImpersonationProvider>
       </TooltipProvider>
     </QueryClientProvider>
