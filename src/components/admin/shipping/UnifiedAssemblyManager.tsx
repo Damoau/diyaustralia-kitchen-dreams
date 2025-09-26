@@ -95,14 +95,36 @@ const UnifiedAssemblyManager = () => {
     const map = useRef<mapboxgl.Map | null>(null);
     const marker = useRef<mapboxgl.Marker | null>(null);
     const circle = useRef<any>(null);
+    const [mapboxToken, setMapboxToken] = useState('');
 
     useEffect(() => {
-      if (!mapContainer.current) return;
+      const loadMapboxToken = async () => {
+        try {
+          // Check if Mapbox service is available via geocoding function
+          const response = await supabase.functions.invoke('geocode-postcode', {
+            body: { postcode: '3000' } // Test postcode
+          });
+          
+          if (response.error) {
+            console.error('Mapbox service not available:', response.error);
+            setMapboxToken('unavailable');
+          } else {
+            setMapboxToken('available');
+          }
+        } catch (error) {
+          console.error('Mapbox service not available:', error);
+          setMapboxToken('unavailable');
+        }
+      };
 
-      // Get Mapbox token from environment or show input
-      const mapboxToken = 'pk.eyJ1IjoiYWRtaW5zaGlwcGluZyIsImEiOiJjbHFudGt5bnUwaHZvMmpuemtnMXhqc2NwIn0.temp'; // You'll need to add the real token
+      loadMapboxToken();
+    }, []);
 
-      mapboxgl.accessToken = mapboxToken;
+    useEffect(() => {
+      if (!mapContainer.current || mapboxToken !== 'available') return;
+
+      // Use a placeholder token since the real token is in Edge Functions
+      mapboxgl.accessToken = 'pk.placeholder';
       
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
@@ -206,6 +228,33 @@ const UnifiedAssemblyManager = () => {
 
       circle.current = true;
     };
+
+    if (mapboxToken === 'unavailable') {
+      return (
+        <div className="w-full h-64 rounded-lg border-2 border-dashed border-muted-foreground/50 flex items-center justify-center">
+          <div className="text-center p-4">
+            <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              Mapbox service not available
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Please configure MAPBOX_PUBLIC_TOKEN in Edge Function Secrets
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    if (mapboxToken !== 'available') {
+      return (
+        <div className="w-full h-64 rounded-lg border border-muted flex items-center justify-center">
+          <div className="text-center">
+            <RefreshCw className="w-6 h-6 mx-auto mb-2 animate-spin text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Checking map service availability...</p>
+          </div>
+        </div>
+      );
+    }
 
     return <div ref={mapContainer} className="w-full h-64 rounded-lg" />;
   };
