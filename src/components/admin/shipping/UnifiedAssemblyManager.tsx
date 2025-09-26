@@ -84,179 +84,113 @@ const UnifiedAssemblyManager = () => {
     doors_surcharge_pct: 20
   });
 
-  // Map component for zone creation
-  const MapComponent = ({ latitude, longitude, radius, onLocationChange }: {
+  // Map component for zone creation (simplified to coordinate inputs since Mapbox token is in Edge Functions)
+  const CoordinateInput = ({ latitude, longitude, radius, onLocationChange }: {
     latitude: number;
     longitude: number;
     radius: number;
     onLocationChange: (lat: number, lng: number) => void;
   }) => {
-    const mapContainer = useRef<HTMLDivElement>(null);
-    const map = useRef<mapboxgl.Map | null>(null);
-    const marker = useRef<mapboxgl.Marker | null>(null);
-    const circle = useRef<any>(null);
-    const [mapboxToken, setMapboxToken] = useState('');
+    const [geocodeAddress, setGeocodeAddress] = useState('');
+    const [isGeocoding, setIsGeocoding] = useState(false);
 
-    useEffect(() => {
-      const loadMapboxToken = async () => {
-        try {
-          // Check if Mapbox service is available via geocoding function
-          const response = await supabase.functions.invoke('geocode-postcode', {
-            body: { postcode: '3000' } // Test postcode
+    const handleGeocodeAddress = async () => {
+      if (!geocodeAddress.trim()) return;
+
+      setIsGeocoding(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('geocode-postcode', {
+          body: { postcode: geocodeAddress }
+        });
+
+        if (error) throw error;
+
+        if (data.latitude && data.longitude) {
+          onLocationChange(data.latitude, data.longitude);
+          toast({
+            title: "Address Geocoded",
+            description: `Found coordinates: ${data.latitude.toFixed(6)}, ${data.longitude.toFixed(6)}`,
           });
-          
-          if (response.error) {
-            console.error('Mapbox service not available:', response.error);
-            setMapboxToken('unavailable');
-          } else {
-            setMapboxToken('available');
-          }
-        } catch (error) {
-          console.error('Mapbox service not available:', error);
-          setMapboxToken('unavailable');
         }
-      };
-
-      loadMapboxToken();
-    }, []);
-
-    useEffect(() => {
-      if (!mapContainer.current || mapboxToken !== 'available') return;
-
-      // Use a placeholder token since the real token is in Edge Functions
-      mapboxgl.accessToken = 'pk.placeholder';
-      
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [longitude, latitude],
-        zoom: 8
-      });
-
-      // Add navigation controls
-      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-      // Create draggable marker
-      marker.current = new mapboxgl.Marker({ draggable: true })
-        .setLngLat([longitude, latitude])
-        .addTo(map.current);
-
-      // Handle marker drag
-      marker.current.on('dragend', () => {
-        const lngLat = marker.current!.getLngLat();
-        onLocationChange(lngLat.lat, lngLat.lng);
-        updateCircle(lngLat.lat, lngLat.lng, radius);
-      });
-
-      // Add radius circle
-      map.current.on('load', () => {
-        updateCircle(latitude, longitude, radius);
-      });
-
-      return () => {
-        map.current?.remove();
-      };
-    }, []);
-
-    useEffect(() => {
-      if (marker.current) {
-        marker.current.setLngLat([longitude, latitude]);
-        updateCircle(latitude, longitude, radius);
+      } catch (error) {
+        console.error('Geocoding error:', error);
+        toast({
+          title: "Geocoding Error",
+          description: "Failed to find coordinates for that address",
+          variant: "destructive"
+        });
+      } finally {
+        setIsGeocoding(false);
       }
-    }, [latitude, longitude, radius]);
-
-    const updateCircle = (lat: number, lng: number, radiusKm: number) => {
-      if (!map.current) return;
-
-      // Remove existing circle
-      if (circle.current) {
-        try {
-          map.current.removeLayer('radius-circle');
-          map.current.removeLayer('radius-circle-stroke');
-          map.current.removeSource('radius-circle');
-        } catch (e) {
-          // Layer might not exist yet
-        }
-      }
-
-      // Create a simple circle approximation
-      const points: number[][] = [];
-      const center = [lng, lat];
-      const steps = 64;
-      
-      for (let i = 0; i < steps; i++) {
-        const angle = (i / steps) * 2 * Math.PI;
-        const dx = (radiusKm / 111.32) * Math.cos(angle); // rough conversion to degrees
-        const dy = (radiusKm / 110.54) * Math.sin(angle);
-        points.push([center[0] + dx, center[1] + dy]);
-      }
-      points.push(points[0]); // close the polygon
-
-      const circleGeoJSON = {
-        "type": "Feature" as const,
-        "properties": {},
-        "geometry": {
-          "type": "Polygon" as const,
-          "coordinates": [points]
-        }
-      };
-
-      map.current.addSource('radius-circle', {
-        type: 'geojson',
-        data: circleGeoJSON as any
-      });
-
-      map.current.addLayer({
-        id: 'radius-circle',
-        type: 'fill',
-        source: 'radius-circle',
-        paint: {
-          'fill-color': '#007cbf',
-          'fill-opacity': 0.2
-        }
-      });
-
-      map.current.addLayer({
-        id: 'radius-circle-stroke',
-        type: 'line',
-        source: 'radius-circle',
-        paint: {
-          'line-color': '#007cbf',
-          'line-width': 2
-        }
-      });
-
-      circle.current = true;
     };
 
-    if (mapboxToken === 'unavailable') {
-      return (
-        <div className="w-full h-64 rounded-lg border-2 border-dashed border-muted-foreground/50 flex items-center justify-center">
-          <div className="text-center p-4">
-            <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-              Mapbox service not available
+    return (
+      <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+        <div className="text-center">
+          <MapPin className="w-8 h-8 mx-auto mb-2 text-primary" />
+          <h4 className="font-medium">Zone Center Location</h4>
+          <p className="text-sm text-muted-foreground">
+            Enter coordinates manually or use geocoding to find them
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Enter address or postcode"
+              value={geocodeAddress}
+              onChange={(e) => setGeocodeAddress(e.target.value)}
+              className="flex-1"
+            />
+            <Button 
+              variant="outline"
+              onClick={handleGeocodeAddress}
+              disabled={isGeocoding || !geocodeAddress.trim()}
+            >
+              {isGeocoding ? (
+                <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+              ) : (
+                <Search className="w-4 h-4 mr-1" />
+              )}
+              Find
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-xs">Latitude</Label>
+              <Input
+                type="number"
+                step="0.000001"
+                value={latitude}
+                onChange={(e) => onLocationChange(parseFloat(e.target.value) || 0, longitude)}
+                className="text-sm"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Longitude</Label>
+              <Input
+                type="number"
+                step="0.000001"
+                value={longitude}
+                onChange={(e) => onLocationChange(latitude, parseFloat(e.target.value) || 0)}
+                className="text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="text-center p-3 bg-background rounded border-2 border-dashed">
+            <Target className="w-6 h-6 mx-auto mb-1 text-muted-foreground" />
+            <p className="text-sm font-medium">
+              Zone Center: {latitude.toFixed(6)}, {longitude.toFixed(6)}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Please configure MAPBOX_PUBLIC_TOKEN in Edge Function Secrets
+            <p className="text-xs text-muted-foreground">
+              Radius: {radius}km coverage area
             </p>
           </div>
         </div>
-      );
-    }
-
-    if (mapboxToken !== 'available') {
-      return (
-        <div className="w-full h-64 rounded-lg border border-muted flex items-center justify-center">
-          <div className="text-center">
-            <RefreshCw className="w-6 h-6 mx-auto mb-2 animate-spin text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Checking map service availability...</p>
-          </div>
-        </div>
-      );
-    }
-
-    return <div ref={mapContainer} className="w-full h-64 rounded-lg" />;
+      </div>
+    );
   };
 
   useEffect(() => {
@@ -844,7 +778,7 @@ const UnifiedAssemblyManager = () => {
               <div className="text-sm text-muted-foreground mb-2">
                 Drag the pin to set the center of your assembly zone. The radius will be shown as a circle.
               </div>
-              <MapComponent
+              <CoordinateInput
                 latitude={newZone.center_latitude}
                 longitude={newZone.center_longitude}
                 radius={newZone.radius_km}
