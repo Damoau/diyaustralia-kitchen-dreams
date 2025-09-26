@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { MapSelector } from '@/components/ui/map-selector';
 import { 
   MapPin, 
   Compass, 
@@ -436,24 +437,15 @@ const RadiusAssemblyManager = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <div className="flex space-x-2">
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({...formData, address: e.target.value})}
-                  placeholder="123 Collins Street, Melbourne VIC"
-                  className="flex-1"
-                />
-                <Button 
-                  variant="outline"
-                  onClick={handleGeocodeAddress}
-                  disabled={loading || mapboxToken !== 'available'}
-                >
-                  <MapPin className="w-4 h-4 mr-1" />
-                  Geocode
-                </Button>
-              </div>
+              <Label>Center Location</Label>
+              <MapSelector
+                onCoordinatesChange={(lat, lng) => {
+                  setGeoData({ latitude: lat, longitude: lng });
+                }}
+                initialLat={geoData.latitude || -33.8688}
+                initialLng={geoData.longitude || 151.2093}
+                height="350px"
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
