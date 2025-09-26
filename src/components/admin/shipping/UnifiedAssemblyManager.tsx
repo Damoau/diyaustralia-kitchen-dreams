@@ -242,6 +242,16 @@ const UnifiedAssemblyManager = () => {
   };
 
   const createAssemblyZone = async () => {
+    // Validate required fields
+    if (!newZone.zone_name.trim()) {
+      toast({
+        title: "Error",
+        description: "Zone name is required",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('assembly_surcharge_zones')
@@ -268,7 +278,7 @@ const UnifiedAssemblyManager = () => {
       console.error('Error creating zone:', error);
       toast({
         title: "Error",
-        description: "Failed to create assembly zone",
+        description: error.message || "Failed to create assembly zone",
         variant: "destructive"
       });
     }
@@ -513,11 +523,12 @@ const UnifiedAssemblyManager = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Zone Name</Label>
+                <Label>Zone Name <span className="text-red-500">*</span></Label>
                 <Input
                   value={newZone.zone_name}
                   onChange={(e) => setNewZone({...newZone, zone_name: e.target.value})}
                   placeholder="Melbourne Assembly Zone"
+                  required
                 />
               </div>
               <div className="space-y-2">
@@ -564,7 +575,10 @@ const UnifiedAssemblyManager = () => {
               </div>
             </div>
             <div className="flex gap-2 pt-4">
-              <Button onClick={createAssemblyZone}>
+              <Button 
+                onClick={createAssemblyZone}
+                disabled={!newZone.zone_name.trim()}
+              >
                 <Save className="w-4 h-4 mr-2" />
                 Create Zone
               </Button>
