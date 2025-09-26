@@ -85,8 +85,8 @@ serve(async (req) => {
 
   try {
     const supabaseClient = createClient(
-      Denv.get('SUPABASE_URL') ?? '',
-      Denv.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     const results = [];
@@ -175,7 +175,7 @@ serve(async (req) => {
         results.push({
           table: rule.table,
           status: 'error',
-          error: tableError.message,
+          error: tableError instanceof Error ? tableError.message : String(tableError),
           deleted_count: 0
         });
       }
@@ -216,7 +216,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: 'Data retention job failed', 
-        details: error.message,
+        details: error instanceof Error ? error.message : String(error),
         timestamp: new Date().toISOString()
       }),
       { 

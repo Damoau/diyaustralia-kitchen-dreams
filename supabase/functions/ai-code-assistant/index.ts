@@ -126,7 +126,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in ai-code-assistant function:', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
       details: 'Failed to analyze code. Check if OpenAI API key is configured.'
     }), {
       status: 500,

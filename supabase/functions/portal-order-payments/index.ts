@@ -40,8 +40,8 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Set auth header for user context
-    supabase.auth.setAuth(authHeader.replace('Bearer ', ''));
+    // Remove auth header setting as it's not supported in newer versions
+    // supabase.auth.setAuth(authHeader.replace('Bearer ', ''));
 
     if (req.method === 'POST') {
       const { schedule_id }: CreatePaymentRequest = await req.json();

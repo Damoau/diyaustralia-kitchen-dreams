@@ -101,7 +101,7 @@ Format response as JSON with keys: meta_title, meta_description, meta_keywords, 
       console.error('Failed to parse AI response. Original:', generatedContent);
       console.error('Cleaned content:', cleanContent || 'undefined');
       console.error('Parse error:', parseError);
-      throw new Error(`Invalid AI response format: ${parseError.message}`);
+      throw new Error(`Invalid AI response format: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
     }
 
     return new Response(JSON.stringify(contentData), {
@@ -109,7 +109,7 @@ Format response as JSON with keys: meta_title, meta_description, meta_keywords, 
     });
   } catch (error) {
     console.error('Error in ai-content-generator function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
