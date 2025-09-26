@@ -588,13 +588,32 @@ const UnifiedAssemblyManager = () => {
               <div className="flex gap-2 pt-4">
                 <Button 
                   onClick={async () => {
-                    await updatePostcodeAssembly(editingPostcode.id, {
-                      assembly_eligible: editingPostcode.assembly_eligible,
-                      assembly_carcass_surcharge_pct: editingPostcode.assembly_carcass_surcharge_pct,
-                      assembly_doors_surcharge_pct: editingPostcode.assembly_doors_surcharge_pct
-                    });
-                    setIsEditingPostcode(false);
-                    setEditingPostcode(null);
+                    try {
+                      await updatePostcodeAssembly(editingPostcode.id, {
+                        assembly_eligible: editingPostcode.assembly_eligible,
+                        assembly_carcass_surcharge_pct: editingPostcode.assembly_carcass_surcharge_pct,
+                        assembly_doors_surcharge_pct: editingPostcode.assembly_doors_surcharge_pct
+                      });
+                      
+                      // Update local state immediately
+                      setPostcodes(prev => prev.map(pc => 
+                        pc.id === editingPostcode.id 
+                          ? { 
+                              ...pc, 
+                              assembly_eligible: editingPostcode.assembly_eligible,
+                              assembly_carcass_surcharge_pct: editingPostcode.assembly_carcass_surcharge_pct,
+                              assembly_doors_surcharge_pct: editingPostcode.assembly_doors_surcharge_pct,
+                              assignment_method: 'manual'
+                            }
+                          : pc
+                      ));
+                      
+                      setIsEditingPostcode(false);
+                      setEditingPostcode(null);
+                    } catch (error) {
+                      // Error handling is already in updatePostcodeAssembly
+                      console.error('Save failed:', error);
+                    }
                   }}
                 >
                   <Save className="w-4 h-4 mr-2" />
