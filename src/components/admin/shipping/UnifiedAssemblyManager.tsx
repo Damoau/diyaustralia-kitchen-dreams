@@ -68,6 +68,10 @@ const UnifiedAssemblyManager = () => {
 
   // New zone form
   const [isCreatingZone, setIsCreatingZone] = useState(false);
+  
+  // Edit postcode dialog
+  const [isEditingPostcode, setIsEditingPostcode] = useState(false);
+  const [editingPostcode, setEditingPostcode] = useState<PostcodeZone | null>(null);
   const [newZone, setNewZone] = useState({
     zone_name: '',
     center_latitude: -37.8136,
@@ -446,8 +450,8 @@ const UnifiedAssemblyManager = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              // Could open a detailed edit dialog here
-                              console.log('Edit postcode', postcode.id);
+                              setEditingPostcode(postcode);
+                              setIsEditingPostcode(true);
                             }}
                           >
                             <Settings className="w-4 h-4" />
@@ -512,6 +516,81 @@ const UnifiedAssemblyManager = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Edit Postcode Dialog */}
+      {isEditingPostcode && editingPostcode && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Edit Postcode Assembly Settings</CardTitle>
+            <CardDescription>
+              Configure assembly settings for {editingPostcode.postcode} - {editingPostcode.suburb}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Assembly Eligible</Label>
+                <Switch
+                  checked={editingPostcode.assembly_eligible}
+                  onCheckedChange={(checked) => 
+                    setEditingPostcode({
+                      ...editingPostcode,
+                      assembly_eligible: checked
+                    })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Carcass Surcharge (%)</Label>
+                <Input
+                  type="number"
+                  value={editingPostcode.assembly_carcass_surcharge_pct}
+                  onChange={(e) => setEditingPostcode({
+                    ...editingPostcode,
+                    assembly_carcass_surcharge_pct: parseInt(e.target.value) || 0
+                  })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Doors Surcharge (%)</Label>
+                <Input
+                  type="number"
+                  value={editingPostcode.assembly_doors_surcharge_pct}
+                  onChange={(e) => setEditingPostcode({
+                    ...editingPostcode,
+                    assembly_doors_surcharge_pct: parseInt(e.target.value) || 0
+                  })}
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 pt-4">
+              <Button 
+                onClick={async () => {
+                  await updatePostcodeAssembly(editingPostcode.id, {
+                    assembly_eligible: editingPostcode.assembly_eligible,
+                    assembly_carcass_surcharge_pct: editingPostcode.assembly_carcass_surcharge_pct,
+                    assembly_doors_surcharge_pct: editingPostcode.assembly_doors_surcharge_pct
+                  });
+                  setIsEditingPostcode(false);
+                  setEditingPostcode(null);
+                }}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Save Changes
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsEditingPostcode(false);
+                  setEditingPostcode(null);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Create Zone Dialog */}
       {isCreatingZone && (
