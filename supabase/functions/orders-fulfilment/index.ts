@@ -172,6 +172,33 @@ const handler = async (req: Request): Promise<Response> => {
           p_after_data: JSON.stringify(shipment)
         });
 
+        // Create assembly job if shipment method is assembly
+        if (shipmentRequest.method === 'assembly') {
+          try {
+            const { data: assemblyJob, error: assemblyError } = await supabase
+              .from('assembly_jobs')
+              .insert({
+                order_id: shipmentRequest.order_id,
+                shipment_id: shipment.id,
+                components_included: 'All cabinet components',
+                hours_estimated: 8, // Default estimate
+                price_ex_gst: 500, // Default assembly price
+                status: 'pending',
+                created_by: user.id
+              })
+              .select()
+              .single();
+
+            if (assemblyError) {
+              console.error('Failed to create assembly job:', assemblyError);
+            } else {
+              console.log('Assembly job created:', assemblyJob.id);
+            }
+          } catch (assemblyJobError) {
+            console.error('Error creating assembly job:', assemblyJobError);
+          }
+        }
+
         // Send notification
         try {
           await supabase.functions.invoke('send-notifications', {

@@ -121,45 +121,31 @@ export const useAssemblyJobs = () => {
     try {
       setLoading(true);
 
-      const insertData = {
-        order_id: jobData.order_id,
-        components_included: jobData.components_included,
-        hours_estimated: jobData.hours_estimated,
-        price_ex_gst: jobData.price_ex_gst,
-        customer_notes: jobData.customer_notes,
-        scheduled_for: jobData.scheduled_for,
-        assigned_team: jobData.assigned_team,
-        status: jobData.status || 'pending',
-      };
-
-      const { data, error } = await supabase
-        .from('assembly_jobs')
-        .insert([insertData])
-        .select(`
-          *,
-          orders!inner (
-            order_number
-          )
-        `)
-        .single();
+      const { data, error } = await supabase.functions.invoke('assembly-jobs-manager', {
+        body: jobData
+      });
 
       if (error) throw error;
 
-      const typedData = {
-        ...data,
-        orders: data.orders ? {
-          order_number: data.orders.order_number,
-          customer_email: 'N/A',
-        } : undefined
-      } as AssemblyJob;
+      if (data?.job) {
+        const typedData = {
+          ...data.job,
+          orders: data.job.orders ? {
+            order_number: data.job.orders.order_number,
+            customer_email: 'N/A',
+          } : undefined
+        } as AssemblyJob;
 
-      setJobs(prev => [typedData, ...prev]);
-      calculateStats([typedData, ...jobs]);
+        setJobs(prev => [typedData, ...prev]);
+        calculateStats([typedData, ...jobs]);
+      }
 
       toast({
         title: "Success",
-        description: "Assembly job created successfully",
+        description: data?.message || "Assembly job created successfully",
       });
+
+      return data?.job;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create assembly job';
       setError(errorMessage);

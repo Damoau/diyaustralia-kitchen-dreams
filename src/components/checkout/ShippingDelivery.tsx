@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { EnhancedShippingCalculator } from './EnhancedShippingCalculator';
 import { useCart } from '@/hooks/useCart';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ShippingAddress {
   firstName: string;
@@ -119,22 +120,52 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
 
     setIsLoading(true);
     try {
-      // Simulate postcode checking logic
-      // In reality, this would call an API to check delivery zones
-      const metropolitanPostcodes = ['2000', '3000', '4000', '5000', '6000', '7000'];
-      const isMetropolitan = metropolitanPostcodes.some(metro => 
-        postcode.startsWith(metro.substring(0, 2))
-      );
+      // Check assembly eligibility using the dedicated edge function
+      const { data: assemblyCheck, error: assemblyError } = await supabase.functions.invoke('check-assembly-eligibility', {
+        body: { postcode }
+      });
 
-      const updatedOptions = baseDeliveryOptions.map(option => ({
-        ...option,
-        availableForPostcode: option.id === 'express' ? isMetropolitan : true,
-      }));
+      if (assemblyError) {
+        console.error('Assembly check error:', assemblyError);
+      }
+
+      // Check delivery zones
+      const { data: postcodeZone } = await supabase
+        .from('postcode_zones')
+        .select('*')
+        .eq('postcode', postcode)
+        .single();
+
+      const isMetropolitan = postcodeZone?.metro || false;
+      const assemblyEligible = assemblyCheck?.eligible || false;
+      const assemblySurcharges = assemblyCheck?.surcharges || { carcass: 0, doors: 0 };
+
+      const updatedOptions = baseDeliveryOptions.map(option => {
+        let updatedOption = {
+          ...option,
+          availableForPostcode: option.id === 'express' ? isMetropolitan : true,
+        };
+
+        // Update assembly availability and pricing based on API response
+        if (option.assemblyAvailable) {
+          updatedOption.assemblyAvailable = assemblyEligible;
+          if (assemblyEligible && option.assemblyPrice) {
+            // Apply surcharges if any
+            const surchargeAmount = (assemblySurcharges.carcass + assemblySurcharges.doors) / 100 * option.assemblyPrice;
+            updatedOption.assemblyPrice = option.assemblyPrice + surchargeAmount;
+          }
+        }
+
+        return updatedOption;
+      });
 
       setDeliveryOptions(updatedOptions);
       setPostcodeChecked(true);
     } catch (error) {
       console.error('Error checking postcode:', error);
+      // Fallback to basic options if API fails
+      setDeliveryOptions(baseDeliveryOptions);
+      setPostcodeChecked(true);
     } finally {
       setIsLoading(false);
     }
