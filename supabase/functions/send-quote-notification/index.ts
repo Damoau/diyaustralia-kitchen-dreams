@@ -96,6 +96,7 @@ const handler = async (req: Request): Promise<Response> => {
       : generateEmailContent(
           notification_type,
           customer_name,
+          customer_email,
           quoteData.quote_number || 'N/A',
           quoteData.total_amount || 0,
           isNewUser,
@@ -198,6 +199,7 @@ function generateTemporaryPassword(): string {
 function generateEmailContent(
   type: string, 
   customerName: string, 
+  customerEmail: string,
   quoteNumber: string, 
   totalAmount: number,
   isNewUser: boolean,
@@ -249,7 +251,7 @@ function generateEmailContent(
                     <h3 style="margin: 0 0 15px; color: #234e52; font-size: 16px;">🔐 Your Customer Portal Access</h3>
                     <p style="margin: 0 0 10px; font-size: 14px; color: #234e52;">We've created a secure portal account for you to view and manage your quotes.</p>
                     <div style="background: white; padding: 15px; border-radius: 4px; margin: 10px 0;">
-                      <p style="margin: 0; font-size: 14px;"><strong>Email:</strong> ${customer_email}</p>
+                      <p style="margin: 0; font-size: 14px;"><strong>Email:</strong> ${customerEmail}</p>
                       <p style="margin: 5px 0 0; font-size: 14px;"><strong>Temporary Password:</strong> <code style="background: #f7fafc; padding: 2px 6px; border-radius: 3px; font-family: monospace;">${temporaryPassword}</code></p>
                     </div>
                     <p style="margin: 10px 0 0; font-size: 12px; color: #2d3748; font-style: italic;">Please change your password after your first login.</p>
