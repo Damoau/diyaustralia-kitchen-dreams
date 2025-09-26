@@ -90,6 +90,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   const [assemblyType, setAssemblyType] = useState<'carcass_only' | 'with_doors'>('carcass_only');
   const [assemblyEstimate, setAssemblyEstimate] = useState<AssemblyEstimate | null>(null);
   const [assemblyEditMode, setAssemblyEditMode] = useState(false);
+  const [hasAssemblySelection, setHasAssemblySelection] = useState(false);
   
   const { markAsUnsaved, markAsSaving, markAsSaved, markAsError } = useCartSaveTracking();
   const { addToCart } = useCart();
@@ -152,6 +153,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       setAssemblyType(type);
       updatePreferences({ preferredAssemblyType: type });
     }
+    setHasAssemblySelection(true); // Mark that a selection has been made
     setAssemblyEditMode(false); // Close edit mode after selection
   };
 
@@ -206,13 +208,14 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     // Clear assembly estimate while typing
     if (value.length !== 4) {
       setAssemblyEstimate(null);
-      // Reset to flat pack when clearing postcode
+      // Reset assembly state when clearing postcode
       setAssemblyEnabled(false);
       setAssemblyEditMode(false);
+      setHasAssemblySelection(false);
     } else {
-      // When a 4-digit postcode is entered, default to flat pack
-      setAssemblyEnabled(false);
-      setAssemblyEditMode(false);
+      // When a 4-digit postcode is entered, show all options for selection
+      setAssemblyEditMode(true);
+      // Don't pre-select any option - let user choose
     }
 
     // Validate postcode format
@@ -1016,10 +1019,10 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                             </p>
                           )}
                           
-                          {/* Assembly Options - Only show when postcode is entered */}
-                          {postcode.length === 4 && (
-                            <div className="mt-3 space-y-2">
-                              {!assemblyEditMode ? (
+                           {/* Assembly Options - Only show when postcode is entered */}
+                           {postcode.length === 4 && (
+                             <div className="mt-3 space-y-2">
+                               {!assemblyEditMode && hasAssemblySelection ? (
                                 // Show selected option with edit button
                                 <div className="p-3 rounded-lg border border-primary bg-primary/5 ring-1 ring-primary/20">
                                   <div className="flex items-center justify-between">
