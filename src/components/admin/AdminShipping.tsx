@@ -26,6 +26,7 @@ import {
 import CarrierManagementComponent from './shipping/CarrierManagement';
 import ZoneManagementComponent from './shipping/ZoneManagement';
 import ShippingAnalyticsComponent from './shipping/ShippingAnalytics';
+import UnifiedAssemblyManager from './shipping/UnifiedAssemblyManager';
 
 interface ShippingStats {
   totalShipments: number;
@@ -217,7 +218,7 @@ const AdminShipping = () => {
         </TabsContent>
 
         <TabsContent value="zones" className="space-y-6">
-          <ZoneManagementComponent />
+          <UnifiedAssemblyManager />
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">

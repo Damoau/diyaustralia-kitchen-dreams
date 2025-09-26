@@ -332,17 +332,13 @@ const RadiusAssemblyManager = () => {
         </Button>
       </div>
 
-      {!mapboxToken && (
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            Geocoding service not available. Please ensure MAPBOX_PUBLIC_TOKEN is configured in Supabase Edge Function Secrets.
-            <p className="text-xs text-muted-foreground mt-1">
-              Get your token from <a href="https://mapbox.com" className="underline" target="_blank" rel="noopener noreferrer">mapbox.com</a> and add it to Supabase Project Settings → Edge Functions → Secrets
-            </p>
-          </AlertDescription>
-        </Alert>
-      )}
+      <Alert>
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          <strong>Notice:</strong> This interface has been superseded by the Unified Assembly Manager. 
+          Please use the "Zones & Assembly" tab in Shipping Management for the consolidated postcode management experience.
+        </AlertDescription>
+      </Alert>
 
       {/* Assembly Centers List */}
       <div className="grid gap-4">

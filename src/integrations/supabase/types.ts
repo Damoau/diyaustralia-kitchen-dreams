@@ -216,6 +216,7 @@ export type Database = {
       assembly_surcharge_zones: {
         Row: {
           active: boolean
+          affected_postcodes_count: number | null
           carcass_surcharge_pct: number
           center_latitude: number
           center_longitude: number
@@ -228,6 +229,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          affected_postcodes_count?: number | null
           carcass_surcharge_pct?: number
           center_latitude: number
           center_longitude: number
@@ -240,6 +242,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          affected_postcodes_count?: number | null
           carcass_surcharge_pct?: number
           center_latitude?: number
           center_longitude?: number
@@ -2894,11 +2897,14 @@ export type Database = {
           assembly_doors_surcharge_pct: number | null
           assembly_eligible: boolean
           assembly_price_per_cabinet: number | null
+          assigned_zone_id: string | null
+          assignment_method: string | null
           created_at: string
           delivery_eligible: boolean
           depot_delivery_available: boolean | null
           home_delivery_available: boolean | null
           id: string
+          last_assignment_date: string | null
           lead_time_days: number
           metro: boolean
           postcode: string
@@ -2914,11 +2920,14 @@ export type Database = {
           assembly_doors_surcharge_pct?: number | null
           assembly_eligible?: boolean
           assembly_price_per_cabinet?: number | null
+          assigned_zone_id?: string | null
+          assignment_method?: string | null
           created_at?: string
           delivery_eligible?: boolean
           depot_delivery_available?: boolean | null
           home_delivery_available?: boolean | null
           id?: string
+          last_assignment_date?: string | null
           lead_time_days?: number
           metro?: boolean
           postcode: string
@@ -2934,11 +2943,14 @@ export type Database = {
           assembly_doors_surcharge_pct?: number | null
           assembly_eligible?: boolean
           assembly_price_per_cabinet?: number | null
+          assigned_zone_id?: string | null
+          assignment_method?: string | null
           created_at?: string
           delivery_eligible?: boolean
           depot_delivery_available?: boolean | null
           home_delivery_available?: boolean | null
           id?: string
+          last_assignment_date?: string | null
           lead_time_days?: number
           metro?: boolean
           postcode?: string
@@ -2947,7 +2959,15 @@ export type Database = {
           updated_at?: string
           zone?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "postcode_zones_assigned_zone_id_fkey"
+            columns: ["assigned_zone_id"]
+            isOneToOne: false
+            referencedRelation: "assembly_surcharge_zones"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       printing_queue: {
         Row: {

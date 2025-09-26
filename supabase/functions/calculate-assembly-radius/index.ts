@@ -130,8 +130,8 @@ serve(async (req) => {
         current_doors_surcharge_pct: zone.assembly_doors_surcharge_pct || 0,
       })
 
-      // If applying changes, update the postcode zone
-      if (apply_changes) {
+      // If applying changes, update the postcode zone with assignment tracking
+      if (apply_changes && surcharge_settings) {
         const updates: any = {
           assembly_eligible: withinRadius
         }
