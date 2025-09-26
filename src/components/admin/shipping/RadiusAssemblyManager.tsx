@@ -37,6 +37,8 @@ interface PostcodeData {
   longitude: number;
   distance_km?: number;
   within_radius?: boolean;
+  current_carcass_surcharge_pct?: number;
+  current_doors_surcharge_pct?: number;
 }
 
 const RadiusAssemblyManager = () => {
@@ -47,6 +49,12 @@ const RadiusAssemblyManager = () => {
   const [loading, setLoading] = useState(false);
   const [mapboxToken, setMapboxToken] = useState('');
   const [affectedPostcodes, setAffectedPostcodes] = useState<PostcodeData[]>([]);
+  const [surchargeSettings, setSurchargeSettings] = useState({
+    carcass_surcharge_pct: 0,
+    doors_surcharge_pct: 0,
+    base_carcass_price: 50.00,
+    base_doors_price: 100.00
+  });
   
   const [formData, setFormData] = useState({
     name: '',
@@ -141,7 +149,8 @@ const RadiusAssemblyManager = () => {
             longitude: center.longitude,
             radius_km: center.radius_km
           },
-          apply_changes: false // Just calculate, don't apply yet
+          apply_changes: false, // Just calculate, don't apply yet
+          surcharge_settings: surchargeSettings
         }
       });
 
@@ -154,7 +163,9 @@ const RadiusAssemblyManager = () => {
         latitude: pc.latitude,
         longitude: pc.longitude,
         distance_km: pc.distance_km,
-        within_radius: pc.within_radius
+        within_radius: pc.within_radius,
+        current_carcass_surcharge_pct: pc.current_carcass_surcharge_pct || 0,
+        current_doors_surcharge_pct: pc.current_doors_surcharge_pct || 0
       }));
 
       setAffectedPostcodes(postcodesWithDistance);
@@ -285,7 +296,8 @@ const RadiusAssemblyManager = () => {
             longitude: selectedCenter.longitude,
             radius_km: selectedCenter.radius_km
           },
-          apply_changes: true // Apply the changes to database
+          apply_changes: true, // Apply the changes to database
+          surcharge_settings: surchargeSettings
         }
       });
 
@@ -293,7 +305,7 @@ const RadiusAssemblyManager = () => {
 
       toast({
         title: "Success",
-        description: `Updated assembly eligibility for postcodes within ${selectedCenter.radius_km}km radius. ${data.stats.within_radius} postcodes now assembly eligible.`,
+        description: `Updated assembly eligibility for postcodes within ${selectedCenter.radius_km}km radius. ${data.stats.within_radius} postcodes now assembly eligible with ${surchargeSettings.carcass_surcharge_pct}% carcass and ${surchargeSettings.doors_surcharge_pct}% doors surcharge.`,
       });
 
       // Refresh the postcode analysis
@@ -497,6 +509,74 @@ const RadiusAssemblyManager = () => {
         </Card>
       )}
 
+      {/* Surcharge Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Assembly Surcharge Settings</CardTitle>
+          <CardDescription>Configure pricing surcharges for postcodes within radius</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="baseCarcassPrice">Base Carcass Price ($)</Label>
+              <Input
+                id="baseCarcassPrice"
+                type="number"
+                step="0.01"
+                value={surchargeSettings.base_carcass_price}
+                onChange={(e) => setSurchargeSettings({
+                  ...surchargeSettings,
+                  base_carcass_price: parseFloat(e.target.value) || 50.00
+                })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="baseDoorsPrice">Base Doors Price ($)</Label>
+              <Input
+                id="baseDoorsPrice"
+                type="number"
+                step="0.01"
+                value={surchargeSettings.base_doors_price}
+                onChange={(e) => setSurchargeSettings({
+                  ...surchargeSettings,
+                  base_doors_price: parseFloat(e.target.value) || 100.00
+                })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="carcassSurcharge">Carcass Surcharge (%)</Label>
+              <Input
+                id="carcassSurcharge"
+                type="number"
+                step="1"
+                min="0"
+                max="100"
+                value={surchargeSettings.carcass_surcharge_pct}
+                onChange={(e) => setSurchargeSettings({
+                  ...surchargeSettings,
+                  carcass_surcharge_pct: parseInt(e.target.value) || 0
+                })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="doorsSurcharge">Doors Surcharge (%)</Label>
+              <Input
+                id="doorsSurcharge"
+                type="number"
+                step="1"
+                min="0"
+                max="100"
+                value={surchargeSettings.doors_surcharge_pct}
+                onChange={(e) => setSurchargeSettings({
+                  ...surchargeSettings,
+                  doors_surcharge_pct: parseInt(e.target.value) || 0
+                })}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Affected Postcodes */}
       {affectedPostcodes.length > 0 && (
         <Card>
@@ -563,6 +643,16 @@ const RadiusAssemblyManager = () => {
                       <div className="text-muted-foreground">
                         {pc.suburb}, {pc.state}
                       </div>
+                      {pc.within_radius && (surchargeSettings.carcass_surcharge_pct > 0 || surchargeSettings.doors_surcharge_pct > 0) && (
+                        <div className="text-xs text-orange-600 mt-1">
+                          Surcharge: {surchargeSettings.carcass_surcharge_pct}% carcass, {surchargeSettings.doors_surcharge_pct}% doors
+                        </div>
+                      )}
+                      {pc.current_carcass_surcharge_pct > 0 || pc.current_doors_surcharge_pct > 0 ? (
+                        <div className="text-xs text-blue-600 mt-1">
+                          Current: {pc.current_carcass_surcharge_pct || 0}% / {pc.current_doors_surcharge_pct || 0}%
+                        </div>
+                      ) : null}
                     </div>
                   ))}
                 </div>

@@ -1,1 +1,10 @@
 project_id = "nqxsfmnvdfdfvndrodvs"
+
+[functions.calculate-assembly-radius]
+verify_jwt = false
+
+[functions.check-assembly-eligibility]
+verify_jwt = false
+
+[functions.geocode-postcode]
+verify_jwt = false
