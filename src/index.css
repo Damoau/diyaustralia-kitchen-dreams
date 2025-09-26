@@ -139,9 +139,10 @@ All colors MUST be HSL.
   /* Ensure dialog content maintains proper modal behavior */
   .mobile-modal-high-z[data-state="open"] {
     position: fixed !important;
-    inset: 0 !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
     z-index: 999999 !important;
-    margin: auto !important;
     width: fit-content !important;
     height: fit-content !important;
     max-width: min(90vw, 1280px) !important;
