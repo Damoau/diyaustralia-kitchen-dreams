@@ -211,18 +211,120 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
               <CardTitle>Quote Items</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {quoteDisplay.items.map((item: any, index: number) => (
-                  <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{item.cabinet_types?.name || 'Cabinet'}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Qty: {item.quantity} | {item.width_mm}×{item.height_mm}×{item.depth_mm}mm
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold">${item.total_price.toLocaleString()}</p>
-                      <p className="text-sm text-muted-foreground">${item.unit_price.toLocaleString()} ea.</p>
+                  <div key={item.id} className="border rounded-lg p-4 bg-card">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 space-y-3">
+                        {/* Main Item Info */}
+                        <div>
+                          <h4 className="font-semibold text-lg">{item.cabinet_types?.name || 'Cabinet'}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Qty: {item.quantity} | Dimensions: {item.width_mm}×{item.height_mm}×{item.depth_mm}mm
+                          </p>
+                        </div>
+
+                        {/* Configuration Details */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {/* Door Style & Finish */}
+                          {(item.door_styles?.name || item.colors?.name || item.finishes?.name) && (
+                            <div className="space-y-2">
+                              <h5 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Style & Finish</h5>
+                              <div className="space-y-1">
+                                {item.door_styles?.name && (
+                                  <p className="text-sm">
+                                    <span className="font-medium">Door:</span> {item.door_styles.name}
+                                  </p>
+                                )}
+                                {item.colors?.name && (
+                                  <p className="text-sm">
+                                    <span className="font-medium">Color:</span> {item.colors.name}
+                                  </p>
+                                )}
+                                {item.finishes?.name && (
+                                  <p className="text-sm">
+                                    <span className="font-medium">Finish:</span> {item.finishes.name}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Assembly Information */}
+                          {item.configuration?.assembly && (
+                            <div className="space-y-2">
+                              <h5 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Assembly</h5>
+                              <div className="space-y-1">
+                                <p className="text-sm">
+                                  <span className="font-medium">Option:</span>{' '}
+                                  {item.configuration.assembly.enabled ? (
+                                    item.configuration.assembly.type === 'carcass_only' 
+                                      ? 'Carcass Assembly' 
+                                      : 'Full Assembly with Doors'
+                                  ) : (
+                                    'Flat Pack'
+                                  )}
+                                </p>
+                                {item.configuration.assembly.enabled && item.configuration.assembly.postcode && (
+                                  <p className="text-sm">
+                                    <span className="font-medium">Postcode:</span> {item.configuration.assembly.postcode}
+                                  </p>
+                                )}
+                                {item.configuration.assembly.enabled && item.configuration.assembly.lead_time_days && (
+                                  <p className="text-sm">
+                                    <span className="font-medium">Lead Time:</span> {item.configuration.assembly.lead_time_days} days
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Additional Configuration */}
+                          {(item.configuration?.weight || item.notes) && (
+                            <div className="space-y-2">
+                              <h5 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Details</h5>
+                              <div className="space-y-1">
+                                {item.configuration?.weight?.totalWeight && (
+                                  <p className="text-sm">
+                                    <span className="font-medium">Weight:</span> {item.configuration.weight.totalWeight.toFixed(1)}kg
+                                  </p>
+                                )}
+                                {item.notes && (
+                                  <p className="text-sm">
+                                    <span className="font-medium">Notes:</span> {item.notes}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Assembly Inclusions */}
+                        {item.configuration?.assembly?.enabled && item.configuration.assembly.includes && (
+                          <div className="mt-3 p-3 bg-muted rounded-md">
+                            <h6 className="text-sm font-medium mb-2">Assembly Service Includes:</h6>
+                            <ul className="text-sm text-muted-foreground space-y-1">
+                              {item.configuration.assembly.includes.map((inclusion: string, idx: number) => (
+                                <li key={idx} className="flex items-center gap-2">
+                                  <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                                  {inclusion}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Price Section */}
+                      <div className="text-right ml-4">
+                        <p className="text-2xl font-bold">${item.total_price.toLocaleString()}</p>
+                        <p className="text-sm text-muted-foreground">${item.unit_price.toLocaleString()} ea.</p>
+                        {item.configuration?.assembly?.enabled && item.configuration.assembly.price && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Incl. assembly: +${item.configuration.assembly.price}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
