@@ -106,7 +106,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   } = useUserPreferences();
   
   // Mock postcode lookup - this would connect to your postcode zones table
-  const { data: postcodeData, isLoading: postcodeLoading } = useQuery({
+  const { data: postcodeData, isLoading: postcodeLoading, error: postcodeQueryError } = useQuery({
     queryKey: ['postcode-lookup', postcode],
     queryFn: async () => {
       if (!postcode || postcode.length !== 4) return null;
@@ -155,6 +155,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       }
     },
     enabled: postcode.length === 4,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1
   });
   
   
@@ -1221,7 +1223,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                           )}
                           
                           {/* Loading/Checking Assembly */}
-                          {postcode.length === 4 && !assemblyEstimate && !postcodeError && (
+                          {postcode.length === 4 && postcodeLoading && (
                             <div className="mt-2 text-xs text-muted-foreground text-center py-2">
                               Checking assembly availability...
                             </div>
