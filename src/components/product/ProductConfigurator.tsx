@@ -703,11 +703,12 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     return totalArea;
   };
 
-  const handleDimensionChange = (dimension: 'width' | 'height' | 'depth', value: number) => {
-    // Allow any value during typing, validation happens on blur
+  const handleDimensionChange = (dimension: 'width' | 'height' | 'depth', value: string) => {
+    // Allow any value during typing, including empty strings
+    const numValue = value === '' ? 0 : parseInt(value) || 0;
     setDimensions(prev => ({
       ...prev,
-      [dimension]: value
+      [dimension]: numValue
     }));
   };
 
@@ -721,7 +722,12 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     };
 
     const constraint = constraints[dimension];
-    const currentValue = dimensions[dimension];
+    let currentValue = dimensions[dimension];
+    
+    // If value is 0 or empty, set to minimum
+    if (!currentValue || currentValue === 0) {
+      currentValue = constraint.min;
+    }
     
     if (currentValue < constraint.min || currentValue > constraint.max) {
       const clampedValue = Math.max(constraint.min, Math.min(constraint.max, currentValue));
@@ -733,6 +739,12 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       setDimensions(prev => ({
         ...prev,
         [dimension]: clampedValue
+      }));
+    } else if (dimensions[dimension] !== currentValue) {
+      // Update if we changed the value (e.g., from 0 to min)
+      setDimensions(prev => ({
+        ...prev,
+        [dimension]: currentValue
       }));
     }
   };
@@ -936,8 +948,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                             <Input
                               id="width"
                               type="number"
-                              value={dimensions.width}
-                              onChange={(e) => handleDimensionChange('width', parseInt(e.target.value) || 0)}
+                              value={dimensions.width || ''}
+                              onChange={(e) => handleDimensionChange('width', e.target.value)}
                               onBlur={() => handleDimensionBlur('width')}
                               className="text-center font-mono h-12 text-lg font-bold border-2 focus:border-primary/50 bg-background"
                             />
@@ -950,8 +962,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                             <Input
                               id="height"
                               type="number"
-                              value={dimensions.height}
-                              onChange={(e) => handleDimensionChange('height', parseInt(e.target.value) || 0)}
+                              value={dimensions.height || ''}
+                              onChange={(e) => handleDimensionChange('height', e.target.value)}
                               onBlur={() => handleDimensionBlur('height')}
                               className="text-center font-mono h-12 text-lg font-bold border-2 focus:border-primary/50 bg-background"
                             />
@@ -964,8 +976,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                             <Input
                               id="depth"
                               type="number"
-                              value={dimensions.depth}
-                              onChange={(e) => handleDimensionChange('depth', parseInt(e.target.value) || 0)}
+                              value={dimensions.depth || ''}
+                              onChange={(e) => handleDimensionChange('depth', e.target.value)}
                               onBlur={() => handleDimensionBlur('depth')}
                               className="text-center font-mono h-12 text-lg font-bold border-2 focus:border-primary/50 bg-background"
                             />
