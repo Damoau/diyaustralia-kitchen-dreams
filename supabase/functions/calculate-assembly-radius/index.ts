@@ -45,7 +45,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { center, apply_changes, surcharge_settings }: RadiusRequest = await req.json()
+    const { center, apply_changes, surcharge_settings, zone_id }: RadiusRequest & { zone_id?: string } = await req.json()
 
     if (!center || !center.latitude || !center.longitude || !center.radius_km) {
       return new Response(
@@ -140,16 +140,20 @@ serve(async (req) => {
         if (withinRadius) {
           updates.assembly_carcass_surcharge_pct = defaultSurcharge.carcass_surcharge_pct
           updates.assembly_doors_surcharge_pct = defaultSurcharge.doors_surcharge_pct
+          updates.assignment_method = 'radius'
+          updates.assigned_from_zone_id = center.zone_id || null
         } else {
           // Clear surcharges for postcodes outside radius
           updates.assembly_carcass_surcharge_pct = 0
           updates.assembly_doors_surcharge_pct = 0
         }
 
+        // Don't override manual settings
         const { error: updateError } = await supabaseClient
           .from('postcode_zones')
           .update(updates)
           .eq('id', zone.id)
+          .neq('assignment_method', 'manual')
 
         if (updateError) {
           console.error(`Error updating postcode ${zone.postcode}:`, updateError)

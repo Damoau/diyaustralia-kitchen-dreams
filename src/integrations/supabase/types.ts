@@ -2897,6 +2897,7 @@ export type Database = {
           assembly_doors_surcharge_pct: number | null
           assembly_eligible: boolean
           assembly_price_per_cabinet: number | null
+          assigned_from_zone_id: string | null
           assigned_zone_id: string | null
           assignment_method: string | null
           created_at: string
@@ -2920,6 +2921,7 @@ export type Database = {
           assembly_doors_surcharge_pct?: number | null
           assembly_eligible?: boolean
           assembly_price_per_cabinet?: number | null
+          assigned_from_zone_id?: string | null
           assigned_zone_id?: string | null
           assignment_method?: string | null
           created_at?: string
@@ -2943,6 +2945,7 @@ export type Database = {
           assembly_doors_surcharge_pct?: number | null
           assembly_eligible?: boolean
           assembly_price_per_cabinet?: number | null
+          assigned_from_zone_id?: string | null
           assigned_zone_id?: string | null
           assignment_method?: string | null
           created_at?: string
@@ -2960,6 +2963,13 @@ export type Database = {
           zone?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "postcode_zones_assigned_from_zone_id_fkey"
+            columns: ["assigned_from_zone_id"]
+            isOneToOne: false
+            referencedRelation: "assembly_surcharge_zones"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "postcode_zones_assigned_zone_id_fkey"
             columns: ["assigned_zone_id"]

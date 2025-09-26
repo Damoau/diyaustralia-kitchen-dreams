@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,24 +6,22 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
 import { 
   MapPin, 
-  Compass, 
   RefreshCw, 
   CheckCircle, 
   AlertTriangle,
   Settings,
-  Save,
-  User,
-  Target,
   Search,
-  Filter
+  Target,
+  Plus,
+  Edit,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -32,16 +30,12 @@ interface PostcodeZone {
   postcode: string;
   suburb?: string;
   state: string;
+  zone: string;
   assembly_eligible: boolean;
   assembly_carcass_surcharge_pct: number;
   assembly_doors_surcharge_pct: number;
-  assignment_method: 'manual' | 'radius' | string;
-  assigned_zone_id?: string;
-  last_assignment_date?: string;
-  assembly_surcharge_zones?: {
-    zone_name: string;
-    radius_km: number;
-  };
+  assignment_method?: 'manual' | 'radius' | 'default';
+  assigned_from_zone_id?: string;
 }
 
 interface AssemblyZone {
@@ -59,37 +53,47 @@ interface AssemblyZone {
 const UnifiedAssemblyManager = () => {
   const { toast } = useToast();
   const [postcodes, setPostcodes] = useState<PostcodeZone[]>([]);
-  const [filteredPostcodes, setFilteredPostcodes] = useState<PostcodeZone[]>([]);
   const [assemblyZones, setAssemblyZones] = useState<AssemblyZone[]>([]);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'postcodes'>('postcodes');
   
   // Filters
-  const [searchTerm, setSearchTerm] = useState('');
-  const [stateFilter, setStateFilter] = useState('all');
-  const [assignmentFilter, setAssemblyMethodFilter] = useState('all');
-  const [eligibilityFilter, setEligibilityFilter] = useState('all');
-
-  // New zone form
-  const [isCreatingZone, setIsCreatingZone] = useState(false);
+  const [filters, setFilters] = useState({
+    state: '',
+    postcode: '',
+    assemblyEligible: ''
+  });
   
   // Edit postcode dialog
-  const [isEditingPostcode, setIsEditingPostcode] = useState(false);
   const [editingPostcode, setEditingPostcode] = useState<PostcodeZone | null>(null);
-  const [newZone, setNewZone] = useState({
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  
+  // Create zone dialog
+  const [showCreateZoneDialog, setShowCreateZoneDialog] = useState(false);
+  const [isCreatingZone, setIsCreatingZone] = useState(false);
+  const [newZoneData, setNewZoneData] = useState({
     zone_name: '',
     center_latitude: -37.8136,
     center_longitude: 144.9631,
     radius_km: 50,
-    carcass_surcharge_pct: 15,
-    doors_surcharge_pct: 20
+    carcass_surcharge_pct: 0,
+    doors_surcharge_pct: 0,
+    active: true,
   });
 
-  // Map component for zone creation (simplified to coordinate inputs since Mapbox token is in Edge Functions)
-  const CoordinateInput = ({ latitude, longitude, radius, onLocationChange }: {
+  // Coordinate input component for radius assignment
+  const CoordinateInput = ({ 
+    latitude, 
+    longitude, 
+    radius, 
+    onCoordinateChange, 
+    onRadiusChange 
+  }: {
     latitude: number;
     longitude: number;
     radius: number;
-    onLocationChange: (lat: number, lng: number) => void;
+    onCoordinateChange: (lat: number, lng: number) => void;
+    onRadiusChange: (radius: number) => void;
   }) => {
     const [geocodeAddress, setGeocodeAddress] = useState('');
     const [isGeocoding, setIsGeocoding] = useState(false);
@@ -106,7 +110,7 @@ const UnifiedAssemblyManager = () => {
         if (error) throw error;
 
         if (data.latitude && data.longitude) {
-          onLocationChange(data.latitude, data.longitude);
+          onCoordinateChange(data.latitude, data.longitude);
           toast({
             title: "Address Geocoded",
             description: `Found coordinates: ${data.latitude.toFixed(6)}, ${data.longitude.toFixed(6)}`,
@@ -156,14 +160,14 @@ const UnifiedAssemblyManager = () => {
             </Button>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <div className="space-y-1">
               <Label className="text-xs">Latitude</Label>
               <Input
                 type="number"
                 step="0.000001"
                 value={latitude}
-                onChange={(e) => onLocationChange(parseFloat(e.target.value) || 0, longitude)}
+                onChange={(e) => onCoordinateChange(parseFloat(e.target.value) || 0, longitude)}
                 className="text-sm"
               />
             </div>
@@ -173,7 +177,18 @@ const UnifiedAssemblyManager = () => {
                 type="number"
                 step="0.000001"
                 value={longitude}
-                onChange={(e) => onLocationChange(latitude, parseFloat(e.target.value) || 0)}
+                onChange={(e) => onCoordinateChange(latitude, parseFloat(e.target.value) || 0)}
+                className="text-sm"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Radius (km)</Label>
+              <Input
+                type="number"
+                min="1"
+                max="500"
+                value={radius}
+                onChange={(e) => onRadiusChange(parseInt(e.target.value) || 50)}
                 className="text-sm"
               />
             </div>
@@ -197,23 +212,13 @@ const UnifiedAssemblyManager = () => {
     loadData();
   }, []);
 
-  useEffect(() => {
-    filterPostcodes();
-  }, [postcodes, searchTerm, stateFilter, assignmentFilter, eligibilityFilter]);
-
   const loadData = async () => {
     setLoading(true);
     try {
       const [postcodesRes, zonesRes] = await Promise.all([
         supabase
           .from('postcode_zones')
-          .select(`
-            *,
-            assembly_surcharge_zones (
-              zone_name,
-              radius_km
-            )
-          `)
+          .select('*')
           .order('postcode'),
         supabase
           .from('assembly_surcharge_zones')
@@ -239,591 +244,472 @@ const UnifiedAssemblyManager = () => {
     }
   };
 
-  const filterPostcodes = () => {
-    let filtered = postcodes;
-
-    if (searchTerm) {
-      filtered = filtered.filter(pc => 
-        pc.postcode.includes(searchTerm) || 
-        pc.suburb?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (stateFilter !== 'all') {
-      filtered = filtered.filter(pc => pc.state === stateFilter);
-    }
-
-    if (assignmentFilter !== 'all') {
-      filtered = filtered.filter(pc => pc.assignment_method === assignmentFilter);
-    }
-
-    if (eligibilityFilter !== 'all') {
-      const isEligible = eligibilityFilter === 'eligible';
-      filtered = filtered.filter(pc => pc.assembly_eligible === isEligible);
-    }
-
-    setFilteredPostcodes(filtered);
-  };
-
-  const updatePostcodeAssembly = async (postcodeId: string, updates: Partial<PostcodeZone>) => {
+  const updatePostcodeAssembly = async (postcode: string, updates: Partial<PostcodeZone>) => {
     try {
       const { error } = await supabase
         .from('postcode_zones')
         .update({
           ...updates,
-          assignment_method: 'manual',
-          assigned_zone_id: null,
-          last_assignment_date: new Date().toISOString()
+          assignment_method: 'manual' // Mark as manual override
         })
-        .eq('id', postcodeId);
+        .eq('postcode', postcode);
 
       if (error) throw error;
 
+      // Refresh data
+      loadData();
       toast({
         title: "Success",
-        description: "Postcode assembly settings updated",
+        description: "Postcode assembly settings updated successfully.",
       });
-
-      loadData();
     } catch (error) {
       console.error('Error updating postcode:', error);
       toast({
         title: "Error",
-        description: "Failed to update postcode settings",
-        variant: "destructive"
+        description: "Failed to update postcode assembly settings.",
+        variant: "destructive",
       });
     }
   };
 
-  const applyZoneToRadius = async (zoneId: string) => {
-    const zone = assemblyZones.find(z => z.id === zoneId);
-    if (!zone) return;
+  const createAssemblyZone = async () => {
+    if (!newZoneData.zone_name || !newZoneData.center_latitude || !newZoneData.center_longitude) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    setIsCreatingZone(true);
     try {
-      setLoading(true);
+      // First create the zone for administrative purposes
+      const { data: zone, error: zoneError } = await supabase
+        .from('assembly_surcharge_zones')
+        .insert([newZoneData])
+        .select()
+        .single();
+
+      if (zoneError) throw zoneError;
+
+      // Then apply the zone to postcodes within radius
+      await applyZoneToRadius(
+        zone.id,
+        newZoneData.center_latitude,
+        newZoneData.center_longitude,
+        newZoneData.radius_km,
+        newZoneData.carcass_surcharge_pct,
+        newZoneData.doors_surcharge_pct
+      );
+
+      // Reset form and close dialog
+      setNewZoneData({
+        zone_name: '',
+        center_latitude: 0,
+        center_longitude: 0,
+        radius_km: 50,
+        carcass_surcharge_pct: 0,
+        doors_surcharge_pct: 0,
+        active: true,
+      });
+      setShowCreateZoneDialog(false);
       
+      toast({
+        title: "Success",
+        description: "Radius assignment applied successfully.",
+      });
+      
+      // Refresh data
+      loadData();
+    } catch (error) {
+      console.error('Error applying radius assignment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to apply radius assignment.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingZone(false);
+    }
+  };
+
+  const applyZoneToRadius = async (
+    zoneId: string,
+    latitude: number,
+    longitude: number,
+    radius: number,
+    carcassSurchargePct: number,
+    doorsSurchargePct: number
+  ) => {
+    try {
       const { data, error } = await supabase.functions.invoke('calculate-assembly-radius', {
-        body: { 
+        body: {
           center: {
-            latitude: zone.center_latitude,
-            longitude: zone.center_longitude,
-            radius_km: zone.radius_km
+            latitude,
+            longitude,
+            radius_km: radius
           },
+          zone_id: zoneId,
           apply_changes: true,
           surcharge_settings: {
-            carcass_surcharge_pct: zone.carcass_surcharge_pct,
-            doors_surcharge_pct: zone.doors_surcharge_pct
+            carcass_surcharge_pct: carcassSurchargePct,
+            doors_surcharge_pct: doorsSurchargePct
           }
         }
       });
 
       if (error) throw error;
 
-      // Update assignment tracking for affected postcodes
-      const affectedPostcodes = data.results.filter((pc: any) => pc.within_radius);
-      
-      for (const pc of affectedPostcodes) {
-        await supabase
-          .from('postcode_zones')
-          .update({
-            assignment_method: 'radius',
-            assigned_zone_id: zoneId,
-            last_assignment_date: new Date().toISOString()
-          })
-          .eq('postcode', pc.postcode);
-      }
-
-      // Update zone's affected postcodes count
-      await supabase
-        .from('assembly_surcharge_zones')
-        .update({ affected_postcodes_count: affectedPostcodes.length })
-        .eq('id', zoneId);
-
       toast({
         title: "Success",
-        description: `Applied ${zone.zone_name} to ${affectedPostcodes.length} postcodes within ${zone.radius_km}km radius`,
+        description: `Applied radius assignment to ${data.stats.within_radius} postcodes`,
       });
 
       loadData();
     } catch (error) {
-      console.error('Error applying zone:', error);
-      toast({
-        title: "Error",
-        description: "Failed to apply zone to radius",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
+      console.error('Error applying radius:', error);
+      throw error;
     }
   };
 
-  const createAssemblyZone = async () => {
-    // Validate required fields
-    if (!newZone.zone_name.trim()) {
-      toast({
-        title: "Error",
-        description: "Zone name is required",
-        variant: "destructive"
-      });
-      return;
+  const filteredPostcodes = postcodes.filter(postcode => {
+    if (filters.state && postcode.state !== filters.state) return false;
+    if (filters.postcode && !postcode.postcode.includes(filters.postcode)) return false;
+    if (filters.assemblyEligible) {
+      const eligible = filters.assemblyEligible === 'true';
+      if (postcode.assembly_eligible !== eligible) return false;
     }
-
-    try {
-      const { error } = await supabase
-        .from('assembly_surcharge_zones')
-        .insert([newZone]);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Assembly zone created successfully",
-      });
-
-      setIsCreatingZone(false);
-      setNewZone({
-        zone_name: '',
-        center_latitude: -37.8136,
-        center_longitude: 144.9631,
-        radius_km: 50,
-        carcass_surcharge_pct: 15,
-        doors_surcharge_pct: 20
-      });
-      loadData();
-    } catch (error) {
-      console.error('Error creating zone:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create assembly zone",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const getAssignmentBadge = (postcode: PostcodeZone) => {
-    if (postcode.assignment_method === 'manual') {
-      return <Badge variant="outline"><User className="w-3 h-3 mr-1" />Manual</Badge>;
-    } else {
-      return <Badge variant="secondary"><Target className="w-3 h-3 mr-1" />Radius</Badge>;
-    }
-  };
-
-  const uniqueStates = [...new Set(postcodes.map(pc => pc.state))];
+    return true;
+  });
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Unified Assembly Management</h2>
-          <p className="text-muted-foreground">Manage assembly eligibility and surcharges for all postcodes in one place</p>
+          <p className="text-muted-foreground">
+            Manage assembly eligibility and surcharges using individual settings or radius tools
+          </p>
         </div>
-        <Button onClick={() => setIsCreatingZone(true)}>
-          <MapPin className="w-4 h-4 mr-2" />
-          Create Assembly Zone
+        <Button onClick={loadData} disabled={loading}>
+          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
         </Button>
       </div>
 
-      <Tabs defaultValue="postcodes" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="postcodes">Postcode Management</TabsTrigger>
-          <TabsTrigger value="zones">Assembly Zones</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'postcodes')}>
+        <TabsList className="grid w-full grid-cols-1">
+          <TabsTrigger value="postcodes">Unified Postcode Management</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="postcodes" className="space-y-4">
-          {/* Filters */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="w-5 h-5" />
-                Filters
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div className="space-y-2">
-                  <Label>Search</Label>
-                  <div className="relative">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Postcode or suburb"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-8"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>State</Label>
-                  <Select value={stateFilter} onValueChange={setStateFilter}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All States</SelectItem>
-                      {uniqueStates.map(state => (
-                        <SelectItem key={state} value={state}>{state}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Assignment Method</Label>
-                  <Select value={assignmentFilter} onValueChange={setAssemblyMethodFilter}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Methods</SelectItem>
-                      <SelectItem value="manual">Manual</SelectItem>
-                      <SelectItem value="radius">Radius</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Assembly Status</Label>
-                  <Select value={eligibilityFilter} onValueChange={setEligibilityFilter}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="eligible">Eligible</SelectItem>
-                      <SelectItem value="not-eligible">Not Eligible</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-end">
-                  <Button onClick={loadData} variant="outline">
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Refresh
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="postcodes" className="space-y-6">
+          <div className="flex flex-col gap-4">
+            <h3 className="text-lg font-medium">Unified Postcode Management</h3>
+            <p className="text-sm text-muted-foreground">
+              Manage assembly eligibility and surcharges for postcodes. Use individual settings for specific postcodes or radius tools for bulk assignments.
+            </p>
 
-          {/* Postcodes List */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Postcodes ({filteredPostcodes.length})</CardTitle>
-              <CardDescription>
-                Each postcode has a single record with assembly settings. Manual changes override radius assignments.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-center py-8">Loading postcodes...</div>
-              ) : (
-                <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {filteredPostcodes.map((postcode) => (
-                    <div key={postcode.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{postcode.postcode}</span>
-                            <Badge variant="outline" className="text-xs">{postcode.state}</Badge>
-                            {getAssignmentBadge(postcode)}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {postcode.suburb || 'Unknown suburb'}
-                          </div>
+            {/* Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <Label htmlFor="stateFilter">State</Label>
+                <Select value={filters.state} onValueChange={(value) => setFilters(prev => ({ ...prev, state: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All states" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All states</SelectItem>
+                    <SelectItem value="NSW">NSW</SelectItem>
+                    <SelectItem value="VIC">VIC</SelectItem>
+                    <SelectItem value="QLD">QLD</SelectItem>
+                    <SelectItem value="WA">WA</SelectItem>
+                    <SelectItem value="SA">SA</SelectItem>
+                    <SelectItem value="TAS">TAS</SelectItem>
+                    <SelectItem value="ACT">ACT</SelectItem>
+                    <SelectItem value="NT">NT</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="postcodeFilter">Postcode</Label>
+                <Input
+                  id="postcodeFilter"
+                  placeholder="Search postcode..."
+                  value={filters.postcode}
+                  onChange={(e) => setFilters(prev => ({ ...prev, postcode: e.target.value }))}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="assemblyFilter">Assembly Status</Label>
+                <Select value={filters.assemblyEligible} onValueChange={(value) => setFilters(prev => ({ ...prev, assemblyEligible: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All statuses</SelectItem>
+                    <SelectItem value="true">Assembly Available</SelectItem>
+                    <SelectItem value="false">No Assembly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex items-end">
+                <Button 
+                  onClick={() => setFilters({ state: '', postcode: '', assemblyEligible: '' })}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            </div>
+
+            {/* Radius Assignment Tools */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Radius Assignment Tools
+                </CardTitle>
+                <CardDescription>
+                  Bulk assign assembly settings to postcodes within a geographic radius
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Dialog open={showCreateZoneDialog} onOpenChange={setShowCreateZoneDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Radius Assignment
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>Create Radius Assignment</DialogTitle>
+                      <DialogDescription>
+                        Define a geographic radius to bulk assign assembly settings to postcodes within the area
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="zoneName">Zone Name</Label>
+                        <Input
+                          id="zoneName"
+                          placeholder="e.g., Melbourne Metro"
+                          value={newZoneData.zone_name}
+                          onChange={(e) => setNewZoneData(prev => ({ ...prev, zone_name: e.target.value }))}
+                        />
+                      </div>
+                      
+                      <CoordinateInput
+                        latitude={newZoneData.center_latitude}
+                        longitude={newZoneData.center_longitude}
+                        radius={newZoneData.radius_km}
+                        onCoordinateChange={(lat, lng) => 
+                          setNewZoneData(prev => ({ ...prev, center_latitude: lat, center_longitude: lng }))
+                        }
+                        onRadiusChange={(radius) => 
+                          setNewZoneData(prev => ({ ...prev, radius_km: radius }))
+                        }
+                      />
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="carcassSurcharge">Carcass Surcharge %</Label>
+                          <Input
+                            id="carcassSurcharge"
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={newZoneData.carcass_surcharge_pct}
+                            onChange={(e) => setNewZoneData(prev => ({ ...prev, carcass_surcharge_pct: parseInt(e.target.value) || 0 }))}
+                          />
                         </div>
-                        
-                        {/* Radius Zone Information */}
-                        <div className="flex-1 max-w-xs">
-                          {postcode.assembly_surcharge_zones ? (
-                            <div className="text-sm">
-                              <div className="flex items-center gap-1 text-primary">
-                                <Compass className="w-3 h-3" />
-                                <span className="font-medium">{postcode.assembly_surcharge_zones.zone_name}</span>
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                {postcode.assembly_surcharge_zones.radius_km}km radius zone
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="text-sm text-muted-foreground">
-                              <div className="flex items-center gap-1">
-                                <MapPin className="w-3 h-3" />
-                                <span>No radius zone</span>
-                              </div>
-                              <div className="text-xs">Manual assignment only</div>
-                            </div>
-                          )}
+                        <div>
+                          <Label htmlFor="doorsSurcharge">Doors Surcharge %</Label>
+                          <Input
+                            id="doorsSurcharge"
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={newZoneData.doors_surcharge_pct}
+                            onChange={(e) => setNewZoneData(prev => ({ ...prev, doors_surcharge_pct: parseInt(e.target.value) || 0 }))}
+                          />
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-4">
-                        <div className="text-sm">
-                          {postcode.assembly_eligible ? (
-                            <div className="text-green-600">
-                              <div>✓ Assembly Available</div>
-                              <div className="text-xs">
-                                +{postcode.assembly_carcass_surcharge_pct}% carcass, +{postcode.assembly_doors_surcharge_pct}% doors
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="text-gray-500">✗ No Assembly</div>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={postcode.assembly_eligible}
-                            onCheckedChange={(checked) => 
-                              updatePostcodeAssembly(postcode.id, {
-                                assembly_eligible: checked,
-                                assembly_carcass_surcharge_pct: checked ? 15 : 0,
-                                assembly_doors_surcharge_pct: checked ? 20 : 0
-                              })
-                            }
-                          />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingPostcode(postcode);
-                              setIsEditingPostcode(true);
-                            }}
-                          >
-                            <Settings className="w-4 h-4" />
-                          </Button>
-                        </div>
+                      <div className="bg-yellow-50 p-4 rounded-lg">
+                        <p className="text-sm text-yellow-800">
+                          <strong>Note:</strong> This will update all postcodes within the radius that don't have manual overrides. 
+                          Postcodes with manual settings will remain unchanged.
+                        </p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setShowCreateZoneDialog(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={createAssemblyZone} disabled={isCreatingZone}>
+                        {isCreatingZone ? "Applying..." : "Apply to Radius"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </CardContent>
+            </Card>
 
-        <TabsContent value="zones" className="space-y-4">
-          {/* Assembly Zones */}
-          <div className="grid gap-4">
-            {assemblyZones.map((zone) => (
-              <Card key={zone.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <Compass className="w-5 h-5" />
-                        {zone.zone_name}
-                      </CardTitle>
-                      <CardDescription>
-                        {zone.radius_km}km radius • {zone.affected_postcodes_count || 0} postcodes affected
-                      </CardDescription>
-                    </div>
-                    <Button 
-                      onClick={() => applyZoneToRadius(zone.id)}
-                      disabled={loading}
-                    >
-                      <Target className="w-4 h-4 mr-2" />
-                      Apply to Radius
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Center</p>
-                      <p className="font-medium">{zone.center_latitude.toFixed(4)}, {zone.center_longitude.toFixed(4)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Radius</p>
-                      <p className="font-medium">{zone.radius_km} km</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Carcass Surcharge</p>
-                      <p className="font-medium">+{zone.carcass_surcharge_pct}%</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Doors Surcharge</p>
-                      <p className="font-medium">+{zone.doors_surcharge_pct}%</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {/* Postcodes Table */}
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Postcode</TableHead>
+                      <TableHead>State</TableHead>
+                      <TableHead>Zone</TableHead>
+                      <TableHead>Assembly Available</TableHead>
+                      <TableHead>Carcass Surcharge</TableHead>
+                      <TableHead>Doors Surcharge</TableHead>
+                      <TableHead>Assignment</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPostcodes.map((postcode) => (
+                      <TableRow key={postcode.id}>
+                        <TableCell>{postcode.postcode}</TableCell>
+                        <TableCell>{postcode.state}</TableCell>
+                        <TableCell>{postcode.zone}</TableCell>
+                        <TableCell>
+                          <Badge variant={postcode.assembly_eligible ? "default" : "secondary"}>
+                            {postcode.assembly_eligible ? "Available" : "Not Available"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{postcode.assembly_carcass_surcharge_pct}%</TableCell>
+                        <TableCell>{postcode.assembly_doors_surcharge_pct}%</TableCell>
+                        <TableCell>
+                          <Badge variant={
+                            postcode.assignment_method === 'manual' ? "default" : 
+                            postcode.assignment_method === 'radius' ? "secondary" : "outline"
+                          }>
+                            {postcode.assignment_method === 'manual' ? "Manual" : 
+                             postcode.assignment_method === 'radius' ? "Radius" : "Default"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditingPostcode(postcode);
+                                setShowEditDialog(true);
+                              }}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                updatePostcodeAssembly(postcode.postcode, {
+                                  assembly_eligible: !postcode.assembly_eligible
+                                });
+                              }}
+                            >
+                              {postcode.assembly_eligible ? (
+                                <EyeOff className="h-3 w-3" />
+                              ) : (
+                                <Eye className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
       </Tabs>
 
       {/* Edit Postcode Dialog */}
-      <Dialog open={isEditingPostcode} onOpenChange={setIsEditingPostcode}>
-        <DialogContent className="max-w-2xl">
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Postcode Assembly Settings</DialogTitle>
             <DialogDescription>
-              Configure assembly settings for {editingPostcode?.postcode} - {editingPostcode?.suburb}
+              Update assembly eligibility and surcharges for {editingPostcode?.postcode}
             </DialogDescription>
           </DialogHeader>
           {editingPostcode && (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Assembly Eligible</Label>
-                  <Switch
-                    checked={editingPostcode.assembly_eligible}
-                    onCheckedChange={(checked) => 
-                      setEditingPostcode({
-                        ...editingPostcode,
-                        assembly_eligible: checked
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Carcass Surcharge (%)</Label>
-                  <Input
-                    type="number"
-                    value={editingPostcode.assembly_carcass_surcharge_pct}
-                    onChange={(e) => setEditingPostcode({
-                      ...editingPostcode,
-                      assembly_carcass_surcharge_pct: parseInt(e.target.value) || 0
-                    })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Doors Surcharge (%)</Label>
-                  <Input
-                    type="number"
-                    value={editingPostcode.assembly_doors_surcharge_pct}
-                    onChange={(e) => setEditingPostcode({
-                      ...editingPostcode,
-                      assembly_doors_surcharge_pct: parseInt(e.target.value) || 0
-                    })}
-                  />
-                </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={editingPostcode.assembly_eligible}
+                  onCheckedChange={(checked) => 
+                    setEditingPostcode(prev => prev ? { ...prev, assembly_eligible: checked } : null)
+                  }
+                />
+                <Label>Assembly Available</Label>
               </div>
-              <div className="flex gap-2 pt-4">
-                <Button 
-                  onClick={async () => {
-                    try {
-                      await updatePostcodeAssembly(editingPostcode.id, {
-                        assembly_eligible: editingPostcode.assembly_eligible,
-                        assembly_carcass_surcharge_pct: editingPostcode.assembly_carcass_surcharge_pct,
-                        assembly_doors_surcharge_pct: editingPostcode.assembly_doors_surcharge_pct
-                      });
-                      
-                      // Update local state immediately
-                      setPostcodes(prev => prev.map(pc => 
-                        pc.id === editingPostcode.id 
-                          ? { 
-                              ...pc, 
-                              assembly_eligible: editingPostcode.assembly_eligible,
-                              assembly_carcass_surcharge_pct: editingPostcode.assembly_carcass_surcharge_pct,
-                              assembly_doors_surcharge_pct: editingPostcode.assembly_doors_surcharge_pct,
-                              assignment_method: 'manual'
-                            }
-                          : pc
-                      ));
-                      
-                      setIsEditingPostcode(false);
-                      setEditingPostcode(null);
-                    } catch (error) {
-                      // Error handling is already in updatePostcodeAssembly
-                      console.error('Save failed:', error);
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Carcass Surcharge %</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={editingPostcode.assembly_carcass_surcharge_pct}
+                    onChange={(e) => 
+                      setEditingPostcode(prev => prev ? { 
+                        ...prev, 
+                        assembly_carcass_surcharge_pct: parseInt(e.target.value) || 0 
+                      } : null)
                     }
-                  }}
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Changes
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setIsEditingPostcode(false);
-                    setEditingPostcode(null);
-                  }}
-                >
-                  Cancel
-                </Button>
+                  />
+                </div>
+                <div>
+                  <Label>Doors Surcharge %</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={editingPostcode.assembly_doors_surcharge_pct}
+                    onChange={(e) => 
+                      setEditingPostcode(prev => prev ? { 
+                        ...prev, 
+                        assembly_doors_surcharge_pct: parseInt(e.target.value) || 0 
+                      } : null)
+                    }
+                  />
+                </div>
               </div>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Create Zone Dialog */}
-      <Dialog open={isCreatingZone} onOpenChange={setIsCreatingZone}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Create Assembly Zone</DialogTitle>
-            <DialogDescription>Define a geographic zone with assembly surcharges</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Zone Name <span className="text-red-500">*</span></Label>
-                <Input
-                  value={newZone.zone_name}
-                  onChange={(e) => setNewZone({...newZone, zone_name: e.target.value})}
-                  placeholder="Melbourne Assembly Zone"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Radius (km)</Label>
-                <Input
-                  type="number"
-                  value={newZone.radius_km}
-                  onChange={(e) => setNewZone({...newZone, radius_km: parseInt(e.target.value) || 50})}
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Set Center Location</Label>
-              <div className="text-sm text-muted-foreground mb-2">
-                Drag the pin to set the center of your assembly zone. The radius will be shown as a circle.
-              </div>
-              <CoordinateInput
-                latitude={newZone.center_latitude}
-                longitude={newZone.center_longitude}
-                radius={newZone.radius_km}
-                onLocationChange={(lat, lng) => setNewZone({...newZone, center_latitude: lat, center_longitude: lng})}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Carcass Surcharge (%)</Label>
-                <Input
-                  type="number"
-                  value={newZone.carcass_surcharge_pct}
-                  onChange={(e) => setNewZone({...newZone, carcass_surcharge_pct: parseInt(e.target.value) || 0})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Doors Surcharge (%)</Label>
-                <Input
-                  type="number"
-                  value={newZone.doors_surcharge_pct}
-                  onChange={(e) => setNewZone({...newZone, doors_surcharge_pct: parseInt(e.target.value) || 0})}
-                />
-              </div>
-            </div>
-
-            <div className="text-sm text-muted-foreground bg-blue-50 p-3 rounded-lg">
-              <div className="font-medium mb-1">Current coordinates:</div>
-              <div>Latitude: {newZone.center_latitude.toFixed(4)}</div>
-              <div>Longitude: {newZone.center_longitude.toFixed(4)}</div>
-            </div>
-            
-            <div className="flex gap-2 pt-4">
-              <Button 
-                onClick={createAssemblyZone}
-                disabled={!newZone.zone_name.trim()}
-              >
-                <Save className="w-4 h-4 mr-2" />
-                Create Zone
-              </Button>
-              <Button variant="outline" onClick={() => setIsCreatingZone(false)}>
-                Cancel
-              </Button>
-            </div>
-          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              if (editingPostcode) {
+                updatePostcodeAssembly(editingPostcode.postcode, {
+                  assembly_eligible: editingPostcode.assembly_eligible,
+                  assembly_carcass_surcharge_pct: editingPostcode.assembly_carcass_surcharge_pct,
+                  assembly_doors_surcharge_pct: editingPostcode.assembly_doors_surcharge_pct
+                });
+                setShowEditDialog(false);
+              }
+            }}>
+              Save Changes
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

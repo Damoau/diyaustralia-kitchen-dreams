@@ -18,22 +18,15 @@ interface PostcodeZone {
 
 interface ServiceAvailability {
   postcode: string;
-  zone: PostcodeZone | null;
-  services: {
-    flatPack: boolean;
-    assembly: boolean;
-    depotDelivery: boolean;
-    homeDelivery: boolean;
-  };
-  pricing: {
-    assemblyPerCabinet: number;
-    deliveryOptions: Array<{
-      type: 'depot' | 'home';
-      available: boolean;
-      basePrice?: number;
-    }>;
-  };
-  leadTime: number;
+  flat_pack_available: boolean;
+  assembly_available: boolean;
+  depot_delivery_available: boolean;
+  door_delivery_available: boolean;
+  assembly_lead_time_days: number | null;
+  depot_delivery_cost: number;
+  door_delivery_cost: number;
+  assembly_carcass_surcharge_pct: number;
+  assembly_doors_surcharge_pct: number;
 }
 
 export const usePostcodeServices = () => {
@@ -42,79 +35,55 @@ export const usePostcodeServices = () => {
   const [currentServices, setCurrentServices] = useState<ServiceAvailability | null>(null);
 
   const checkPostcodeServices = async (postcode: string): Promise<ServiceAvailability | null> => {
-    if (!postcode || postcode.length < 4) {
-      setError('Please enter a valid postcode');
-      return null;
-    }
-
     setLoading(true);
     setError(null);
 
     try {
-      // Look up postcode in zones table
-      const { data: zoneData, error: zoneError } = await supabase
+      // Query only postcode_zones table - single source of truth
+      const { data, error } = await supabase
         .from('postcode_zones')
         .select('*')
         .eq('postcode', postcode)
-        .maybeSingle();
+        .single();
 
-      if (zoneError) throw zoneError;
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      if (!data) {
+        return {
+          postcode,
+          flat_pack_available: false,
+          assembly_available: false,
+          depot_delivery_available: false,
+          door_delivery_available: false,
+          assembly_lead_time_days: null,
+          depot_delivery_cost: 0,
+          door_delivery_cost: 0,
+          assembly_carcass_surcharge_pct: 0,
+          assembly_doors_surcharge_pct: 0,
+        };
+      }
 
       const serviceAvailability: ServiceAvailability = {
-        postcode,
-        zone: zoneData,
-        services: {
-          flatPack: true, // Always available
-          assembly: zoneData?.assembly_eligible || false,
-          depotDelivery: zoneData?.depot_delivery_available || false,
-          homeDelivery: zoneData?.home_delivery_available || false,
-        },
-        pricing: {
-          assemblyPerCabinet: zoneData?.assembly_price_per_cabinet || 150.00,
-          deliveryOptions: [
-            {
-              type: 'depot',
-              available: zoneData?.depot_delivery_available || false,
-              basePrice: zoneData ? 45.00 : undefined, // Base depot pickup fee
-            },
-            {
-              type: 'home',
-              available: zoneData?.home_delivery_available || false,
-            },
-          ],
-        },
-        leadTime: zoneData?.lead_time_days || 14, // Default to 2 weeks if not in zone
+        postcode: data.postcode,
+        flat_pack_available: data.flat_pack_eligible || false,
+        assembly_available: data.assembly_eligible || false,
+        depot_delivery_available: data.depot_delivery_eligible || false,
+        door_delivery_available: data.door_delivery_eligible || false,
+        assembly_lead_time_days: data.assembly_lead_time_days,
+        depot_delivery_cost: data.depot_delivery_cost || 0,
+        door_delivery_cost: data.door_delivery_cost || 0,
+        assembly_carcass_surcharge_pct: data.assembly_carcass_surcharge_pct || 0,
+        assembly_doors_surcharge_pct: data.assembly_doors_surcharge_pct || 0,
       };
 
       setCurrentServices(serviceAvailability);
       return serviceAvailability;
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to check postcode services';
-      setError(errorMessage);
-      
-      // Return basic availability for unknown postcodes
-      const fallbackServices: ServiceAvailability = {
-        postcode,
-        zone: null,
-        services: {
-          flatPack: true,
-          assembly: false,
-          depotDelivery: false,
-          homeDelivery: false,
-        },
-        pricing: {
-          assemblyPerCabinet: 0,
-          deliveryOptions: [
-            { type: 'depot', available: false },
-            { type: 'home', available: false },
-          ],
-        },
-        leadTime: 21, // Extended lead time for unsupported areas
-      };
-
-      setCurrentServices(fallbackServices);
-      return fallbackServices;
+    } catch (error) {
+      console.error('Error checking postcode services:', error);
+      setError('Failed to check postcode services');
+      return null;
     } finally {
       setLoading(false);
     }
