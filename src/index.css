@@ -133,7 +133,19 @@ All colors MUST be HSL.
 
   /* High z-index utility class for mobile modals */
   .mobile-modal-high-z {
-    z-index: 10000 !important;
+    z-index: 999999 !important;
+  }
+
+  /* Ensure dialog content maintains proper modal behavior */
+  .mobile-modal-high-z[data-state="open"] {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 999999 !important;
+    margin: auto !important;
+    width: fit-content !important;
+    height: fit-content !important;
+    max-width: min(90vw, 1280px) !important;
+    max-height: 90vh !important;
   }
 
   .carousel-image {
