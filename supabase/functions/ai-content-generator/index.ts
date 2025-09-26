@@ -99,7 +99,6 @@ Format response as JSON with keys: meta_title, meta_description, meta_keywords, 
       contentData = JSON.parse(cleanContent);
     } catch (parseError) {
       console.error('Failed to parse AI response. Original:', generatedContent);
-      console.error('Cleaned content:', cleanContent || 'undefined');
       console.error('Parse error:', parseError);
       throw new Error(`Invalid AI response format: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
     }

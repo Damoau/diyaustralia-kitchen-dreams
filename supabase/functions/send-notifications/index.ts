@@ -86,7 +86,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     return new Response(JSON.stringify({ 
       success: true, 
-      email_id: emailResult.data?.id 
+      email_id: null // emailResult would be available if actually sending emails 
     }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },

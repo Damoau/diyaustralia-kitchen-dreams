@@ -73,7 +73,7 @@ serve(async (req) => {
               postcode,
               latitude: null,
               longitude: null,
-              error: error.message
+              error: error instanceof Error ? error.message : String(error)
             }
           }
         })
@@ -152,7 +152,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error',
-        details: error.message 
+        details: error instanceof Error ? error.message : String(error)
       }),
       {
         status: 500,

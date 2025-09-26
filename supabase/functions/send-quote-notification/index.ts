@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { Resend } from "https://esm.sh/resend@4.0.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -95,8 +96,8 @@ const handler = async (req: Request): Promise<Response> => {
       : generateEmailContent(
           notification_type,
           customer_name,
-          quoteData.quote_number,
-          quoteData.total_amount,
+          quoteData.quote_number || 'N/A',
+          quoteData.total_amount || 0,
           isNewUser,
           temporaryPassword,
           quote_id
@@ -123,13 +124,14 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email using Resend (in testing mode, send to verified email)
     const testRecipient = 'damianorwin@gmail.com'; // Testing mode recipient
-    const { error: emailError } = await resend.emails.send({
+    const emailOptions: any = {
       from: 'DIY Kitchens <onboarding@resend.dev>',
       to: [testRecipient],
       subject: `[TEST] ${subject} (Originally for: ${customer_email})`,
-      html: html.replace(customer_email, testRecipient), // Update email content for testing
+      html: html.replace(/\$\{customer_email\}/g, testRecipient), // Update email content for testing
       ...(emailAttachments.length > 0 && { attachments: emailAttachments })
-    });
+    };
+    const { error: emailError } = await resend.emails.send(emailOptions);
 
     if (emailError) {
       throw new Error(`Failed to send email: ${emailError.message}`);

@@ -102,7 +102,7 @@ serve(async (req) => {
           await handleShipmentUpdated(event.data);
           break;
         default:
-          console.warn('Unknown webhook event:', event.event);
+          console.warn('Unknown webhook event:', (event as any).event);
       }
 
       // Log webhook processing
@@ -128,7 +128,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Webhook processing error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

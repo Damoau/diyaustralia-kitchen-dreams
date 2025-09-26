@@ -150,7 +150,7 @@ serve(async (req) => {
         p_scope: 'portal_error',
         p_action: 'quotes_access_failed',
         p_after_data: JSON.stringify({
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           timestamp: new Date().toISOString()
         })
       });

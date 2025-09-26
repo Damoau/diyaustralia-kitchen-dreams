@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { timingSafeEqual } from "https://deno.land/std@0.208.0/crypto/timing_safe_equal.ts";
+import { createHmac } from "node:crypto";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -202,7 +203,7 @@ const handler = async (req: Request): Promise<Response> => {
         p_scope: 'paypal_webhook_error',
         p_action: 'webhook_processing_failed',
         p_after_data: JSON.stringify({ 
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           source_ip: clientIP 
         }),
         p_ip_address: clientIP,
@@ -210,20 +211,8 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
       // Try to parse and mark webhook as failed
-      try {
-        const event = JSON.parse(payload);
-        await supabase
-          .from('webhook_events')
-          .update({ 
-            error_message: error.message,
-            retry_count: 1,
-            processed_at: new Date().toISOString()
-          })
-          .eq('event_id', event.id)
-          .eq('provider', 'paypal');
-      } catch (parseError) {
-        console.error('Failed to parse webhook payload for error logging:', parseError);
-      }
+      // Note: original payload is not available in this error context
+      console.error('Failed to parse webhook for error logging');
     } catch (auditError) {
       console.error('Failed to log webhook error:', auditError);
     }
