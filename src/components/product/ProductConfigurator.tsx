@@ -1114,24 +1114,24 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                                   </div>
                                 </div>
                               ) : (
-                                // Show all options for selection
-                                <div className="space-y-2">
-                                  {/* Flat Pack Option - Always Available */}
-                                  <div 
-                                    className={`cursor-pointer p-3 rounded-lg border transition-all ${
-                                      !assemblyEnabled 
-                                        ? 'border-primary bg-primary/5 ring-1 ring-primary/20' 
-                                        : 'border-border hover:border-primary/30'
-                                    }`}
-                                    onClick={() => handleAssemblySelection('flat_pack')}
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-2">
-                                        <div className={`w-3 h-3 rounded-full border-2 ${
-                                          !assemblyEnabled 
-                                            ? 'border-primary bg-primary' 
-                                            : 'border-muted-foreground'
-                                        }`} />
+                                 // Show all options for selection
+                                 <div className="space-y-2">
+                                   {/* Flat Pack Option - Always Available */}
+                                   <div 
+                                     className={`cursor-pointer p-3 rounded-lg border transition-all ${
+                                       !assemblyEnabled 
+                                         ? 'border-primary bg-primary/5 ring-1 ring-primary/20' 
+                                         : 'border-border hover:border-primary/30'
+                                     }`}
+                                     onClick={() => handleAssemblySelection('flat_pack')}
+                                   >
+                                     <div className="flex items-center justify-between">
+                                       <div className="flex items-center gap-2">
+                                         <div className={`w-3 h-3 rounded-full border-2 ${
+                                           !assemblyEnabled 
+                                             ? 'border-primary bg-primary' 
+                                             : 'border-muted-foreground'
+                                         }`} />
                                          <div>
                                            <p className="text-xs font-medium">Flat Pack</p>
                                            <p className="text-xs text-muted-foreground">
@@ -1141,89 +1141,72 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                                              }
                                            </p>
                                          </div>
-                                      </div>
-                                      <Badge variant="outline" className="text-xs">
-                                        $0.00
-                                      </Badge>
-                                    </div>
-                                  </div>
-                                  
-                                  {/* Carcass Only Assembly Option */}
-                                  <div 
-                                    className={`cursor-pointer p-3 rounded-lg border transition-all ${
-                                      assemblyEnabled && assemblyType === 'carcass_only' 
-                                        ? 'border-primary bg-primary/5 ring-1 ring-primary/20' 
-                                        : (!assemblyEstimate?.eligible && postcode.length === 4) 
-                                          ? 'border-muted-foreground/30 bg-muted/30 cursor-not-allowed opacity-60' 
-                                          : 'border-border hover:border-primary/30'
-                                    }`}
-                                    onClick={() => {
-                                      if (assemblyEstimate?.eligible || postcode.length !== 4) {
-                                        handleAssemblySelection('carcass_only');
-                                      }
-                                    }}
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-2">
-                                        <div className={`w-3 h-3 rounded-full border-2 ${
-                                          assemblyEnabled && assemblyType === 'carcass_only' 
-                                            ? 'border-primary bg-primary' 
-                                            : 'border-muted-foreground'
-                                        }`} />
-                                        <div>
-                                          <p className="text-xs font-medium flex items-center gap-1">
-                                            Carcass Assembly
-                                            {!assemblyEstimate?.eligible && postcode.length === 4 && (
-                                              <span className="text-destructive">(Not available)</span>
-                                            )}
-                                          </p>
-                                          <p className="text-xs text-muted-foreground">Pre-assembled with drawer runners</p>
-                                        </div>
-                                      </div>
-                                      <Badge variant="outline" className="text-xs">
-                                        ${assemblyEstimate?.carcass_only_price?.toFixed(2) || '0.00'}
-                                      </Badge>
-                                    </div>
-                                  </div>
-                                  
-                                  {/* Complete Assembly Option */}
-                                  <div 
-                                    className={`cursor-pointer p-3 rounded-lg border transition-all ${
-                                      assemblyEnabled && assemblyType === 'with_doors' 
-                                        ? 'border-primary bg-primary/5 ring-1 ring-primary/20' 
-                                        : (!assemblyEstimate?.eligible && postcode.length === 4) 
-                                          ? 'border-muted-foreground/30 bg-muted/30 cursor-not-allowed opacity-60' 
-                                          : 'border-border hover:border-primary/30'
-                                    }`}
-                                    onClick={() => {
-                                      if (assemblyEstimate?.eligible || postcode.length !== 4) {
-                                        handleAssemblySelection('with_doors');
-                                      }
-                                    }}
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-2">
-                                        <div className={`w-3 h-3 rounded-full border-2 ${
-                                          assemblyEnabled && assemblyType === 'with_doors' 
-                                            ? 'border-primary bg-primary' 
-                                            : 'border-muted-foreground'
-                                        }`} />
-                                        <div>
-                                          <p className="text-xs font-medium flex items-center gap-1">
-                                            Complete Assembly
-                                            {!assemblyEstimate?.eligible && postcode.length === 4 && (
-                                              <span className="text-destructive">(Not available)</span>
-                                            )}
-                                          </p>
-                                          <p className="text-xs text-muted-foreground">Fully assembled with doors fitted</p>
-                                        </div>
-                                      </div>
-                                      <Badge variant="outline" className="text-xs">
-                                        ${assemblyEstimate?.with_doors_price?.toFixed(2) || '0.00'}
-                                      </Badge>
-                                    </div>
-                                  </div>
-                                </div>
+                                       </div>
+                                       <Badge variant="outline" className="text-xs">
+                                         $0.00
+                                       </Badge>
+                                     </div>
+                                   </div>
+                                   
+                                   {/* Only show assembly options if assembly is available */}
+                                   {assemblyEstimate?.eligible !== false && (
+                                     <>
+                                       {/* Carcass Only Assembly Option */}
+                                       <div 
+                                         className={`cursor-pointer p-3 rounded-lg border transition-all ${
+                                           assemblyEnabled && assemblyType === 'carcass_only' 
+                                             ? 'border-primary bg-primary/5 ring-1 ring-primary/20' 
+                                             : 'border-border hover:border-primary/30'
+                                         }`}
+                                         onClick={() => handleAssemblySelection('carcass_only')}
+                                       >
+                                         <div className="flex items-center justify-between">
+                                           <div className="flex items-center gap-2">
+                                             <div className={`w-3 h-3 rounded-full border-2 ${
+                                               assemblyEnabled && assemblyType === 'carcass_only' 
+                                                 ? 'border-primary bg-primary' 
+                                                 : 'border-muted-foreground'
+                                             }`} />
+                                             <div>
+                                               <p className="text-xs font-medium">Carcass Assembly</p>
+                                               <p className="text-xs text-muted-foreground">Pre-assembled with drawer runners</p>
+                                             </div>
+                                           </div>
+                                           <Badge variant="outline" className="text-xs">
+                                             ${assemblyEstimate?.carcass_only_price?.toFixed(2) || '0.00'}
+                                           </Badge>
+                                         </div>
+                                       </div>
+                                       
+                                       {/* Complete Assembly Option */}
+                                       <div 
+                                         className={`cursor-pointer p-3 rounded-lg border transition-all ${
+                                           assemblyEnabled && assemblyType === 'with_doors' 
+                                             ? 'border-primary bg-primary/5 ring-1 ring-primary/20' 
+                                             : 'border-border hover:border-primary/30'
+                                         }`}
+                                         onClick={() => handleAssemblySelection('with_doors')}
+                                       >
+                                         <div className="flex items-center justify-between">
+                                           <div className="flex items-center gap-2">
+                                             <div className={`w-3 h-3 rounded-full border-2 ${
+                                               assemblyEnabled && assemblyType === 'with_doors' 
+                                                 ? 'border-primary bg-primary' 
+                                                 : 'border-muted-foreground'
+                                             }`} />
+                                             <div>
+                                               <p className="text-xs font-medium">Complete Assembly</p>
+                                               <p className="text-xs text-muted-foreground">Fully assembled with doors fitted</p>
+                                             </div>
+                                           </div>
+                                           <Badge variant="outline" className="text-xs">
+                                             ${assemblyEstimate?.with_doors_price?.toFixed(2) || '0.00'}
+                                           </Badge>
+                                         </div>
+                                       </div>
+                                     </>
+                                   )}
+                                 </div>
                               )}
                             </div>
                           )}
