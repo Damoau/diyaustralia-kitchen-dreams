@@ -406,8 +406,8 @@ const UnifiedAssemblyManager = () => {
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   {filteredPostcodes.map((postcode) => (
                     <div key={postcode.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div>
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <span className="font-medium">{postcode.postcode}</span>
                             <Badge variant="outline" className="text-xs">{postcode.state}</Badge>
@@ -415,10 +415,30 @@ const UnifiedAssemblyManager = () => {
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {postcode.suburb || 'Unknown suburb'}
-                            {postcode.assembly_surcharge_zones && (
-                              <span className="ml-2">• Zone: {postcode.assembly_surcharge_zones.zone_name}</span>
-                            )}
                           </div>
+                        </div>
+                        
+                        {/* Radius Zone Information */}
+                        <div className="flex-1 max-w-xs">
+                          {postcode.assembly_surcharge_zones ? (
+                            <div className="text-sm">
+                              <div className="flex items-center gap-1 text-primary">
+                                <Compass className="w-3 h-3" />
+                                <span className="font-medium">{postcode.assembly_surcharge_zones.zone_name}</span>
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {postcode.assembly_surcharge_zones.radius_km}km radius zone
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-sm text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <MapPin className="w-3 h-3" />
+                                <span>No radius zone</span>
+                              </div>
+                              <div className="text-xs">Manual assignment only</div>
+                            </div>
+                          )}
                         </div>
                       </div>
                       
