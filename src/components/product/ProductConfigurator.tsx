@@ -755,6 +755,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       return;
     }
 
+    console.log('Adding item to cart - Starting process');
+    
     const totalPrice = calculateTotalPrice();
     const weightInfo = calculateWeightInfo();
 
@@ -790,14 +792,22 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       }
     };
 
-    // Add item directly to cart
-    await addToCart(cartItem);
-    
-    // Wait a bit to ensure cart is updated before showing success
-    setTimeout(() => {
-      toast.success(`Added ${quantity} × ${selectedCabinetType.name} to cart`);
-      onOpenChange(false);
-    }, 100);
+    console.log('Cart item to add:', cartItem);
+
+    try {
+      // Add item directly to cart
+      await addToCart(cartItem);
+      console.log('Item successfully added to cart');
+      
+      // Wait a bit to ensure cart is updated before showing success
+      setTimeout(() => {
+        toast.success(`Added ${quantity} × ${selectedCabinetType.name} to cart`);
+        onOpenChange(false);
+      }, 100);
+    } catch (error) {
+      console.error('Error adding item to cart:', error);
+      toast.error('Failed to add item to cart. Please try again.');
+    }
   };
 
   const handleStyleColorFinishSelection = (doorStyleId: string, colorId: string, finishId: string) => {
@@ -1337,16 +1347,10 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           </div>
         </div>
 
-        {/* Sticky Add to Cart Section - Remove quantity display to avoid duplication */}
+        {/* Sticky Add to Cart Section */}
         {selectedCabinetType && (
           <div className="sticky bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t shadow-lg p-4 z-50">
             <div className="max-w-md mx-auto space-y-3">
-              <div className="flex items-center justify-center">
-                <div className="text-lg font-bold text-primary">
-                  ${(calculateTotalPrice() * quantity).toFixed(2)}
-                </div>
-              </div>
-              
               <Button
                 onClick={handleAddToCart}
                 className="w-full"
