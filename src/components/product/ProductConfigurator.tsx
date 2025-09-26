@@ -213,9 +213,9 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       setAssemblyEditMode(false);
       setHasAssemblySelection(false);
     } else {
-      // When a 4-digit postcode is entered, show all options for selection
+      // When a 4-digit postcode is entered, always show all options for selection
       setAssemblyEditMode(true);
-      // Don't pre-select any option - let user choose
+      setHasAssemblySelection(false); // Reset selection to show all options
     }
 
     // Validate postcode format
@@ -1022,7 +1022,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                            {/* Assembly Options - Only show when postcode is entered */}
                            {postcode.length === 4 && (
                              <div className="mt-3 space-y-2">
-                               {!assemblyEditMode && hasAssemblySelection ? (
+                               {hasAssemblySelection && !assemblyEditMode ? (
                                 // Show selected option with edit button
                                 <div className="p-3 rounded-lg border border-primary bg-primary/5 ring-1 ring-primary/20">
                                   <div className="flex items-center justify-between">
