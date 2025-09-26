@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +46,17 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
     isLoading,
     getItemCount: getItemCount()
   });
+
+  // Force re-render when cart changes
+  useEffect(() => {
+    if (cart) {
+      console.log('CartDrawer cart updated:', {
+        cartId: cart.id,
+        itemsCount: cart.items.length,
+        totalAmount: cart.total_amount
+      });
+    }
+  }, [cart?.id, cart?.items?.length, cart?.total_amount]);
 
   const toggleNotes = (itemId: string) => {
     const newExpanded = new Set(expandedNotes);

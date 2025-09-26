@@ -737,7 +737,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     }
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish) {
       toast.error('Please complete all selections before adding to cart');
       return;
@@ -779,9 +779,13 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     };
 
     // Add item directly to cart
-    addToCart(cartItem);
-    toast.success(`Added ${quantity} × ${selectedCabinetType.name} to cart`);
-    onOpenChange(false);
+    await addToCart(cartItem);
+    
+    // Wait a bit to ensure cart is updated before showing success
+    setTimeout(() => {
+      toast.success(`Added ${quantity} × ${selectedCabinetType.name} to cart`);
+      onOpenChange(false);
+    }, 100);
   };
 
   const handleStyleColorFinishSelection = (doorStyleId: string, colorId: string, finishId: string) => {

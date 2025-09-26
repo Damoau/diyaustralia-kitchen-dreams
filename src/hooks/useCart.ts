@@ -58,6 +58,11 @@ export const useCart = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Initialize cart when component mounts or user changes
+  useEffect(() => {
+    initializeCart();
+  }, [user?.id]); // Re-initialize when user changes
+
   // Generate or get session ID for guest users
   const getSessionId = () => {
     let sessionId = sessionStorage.getItem('cart_session_id');
@@ -809,6 +814,47 @@ export const useCart = () => {
       supabase.removeChannel(channel);
     };
   }, [user?.id]);
+
+  // Set up real-time subscription for cart updates
+  useEffect(() => {
+    if (!cart?.id) return;
+
+    const channel = supabase
+      .channel(`cart_${cart.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'cart_items',
+          filter: `cart_id=eq.${cart.id}`
+        },
+        () => {
+          // Refresh cart when items change
+          console.log('Cart items changed, refreshing cart...');
+          initializeCart();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'carts',
+          filter: `id=eq.${cart.id}`
+        },
+        () => {
+          // Refresh cart when cart totals change
+          console.log('Cart totals changed, refreshing cart...');
+          initializeCart();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [cart?.id]);
 
   return {
     cart,
