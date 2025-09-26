@@ -61,11 +61,11 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AdminImpersonationProvider>
-          <NavigationProvider>
-            <HelmetProvider>
-              <Toaster />
-              <Sonner />
-                <BrowserRouter>
+          <HelmetProvider>
+            <Toaster />
+            <Sonner />
+              <BrowserRouter>
+                <NavigationProvider>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
@@ -106,9 +106,9 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
-            </BrowserRouter>
+                </NavigationProvider>
+              </BrowserRouter>
             </HelmetProvider>
-          </NavigationProvider>
         </AdminImpersonationProvider>
       </TooltipProvider>
     </QueryClientProvider>
