@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -518,88 +519,90 @@ const UnifiedAssemblyManager = () => {
       </Tabs>
 
       {/* Edit Postcode Dialog */}
-      {isEditingPostcode && editingPostcode && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Edit Postcode Assembly Settings</CardTitle>
-            <CardDescription>
-              Configure assembly settings for {editingPostcode.postcode} - {editingPostcode.suburb}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Assembly Eligible</Label>
-                <Switch
-                  checked={editingPostcode.assembly_eligible}
-                  onCheckedChange={(checked) => 
-                    setEditingPostcode({
+      <Dialog open={isEditingPostcode} onOpenChange={setIsEditingPostcode}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Postcode Assembly Settings</DialogTitle>
+            <DialogDescription>
+              Configure assembly settings for {editingPostcode?.postcode} - {editingPostcode?.suburb}
+            </DialogDescription>
+          </DialogHeader>
+          {editingPostcode && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Assembly Eligible</Label>
+                  <Switch
+                    checked={editingPostcode.assembly_eligible}
+                    onCheckedChange={(checked) => 
+                      setEditingPostcode({
+                        ...editingPostcode,
+                        assembly_eligible: checked
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Carcass Surcharge (%)</Label>
+                  <Input
+                    type="number"
+                    value={editingPostcode.assembly_carcass_surcharge_pct}
+                    onChange={(e) => setEditingPostcode({
                       ...editingPostcode,
-                      assembly_eligible: checked
-                    })
-                  }
-                />
+                      assembly_carcass_surcharge_pct: parseInt(e.target.value) || 0
+                    })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Doors Surcharge (%)</Label>
+                  <Input
+                    type="number"
+                    value={editingPostcode.assembly_doors_surcharge_pct}
+                    onChange={(e) => setEditingPostcode({
+                      ...editingPostcode,
+                      assembly_doors_surcharge_pct: parseInt(e.target.value) || 0
+                    })}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Carcass Surcharge (%)</Label>
-                <Input
-                  type="number"
-                  value={editingPostcode.assembly_carcass_surcharge_pct}
-                  onChange={(e) => setEditingPostcode({
-                    ...editingPostcode,
-                    assembly_carcass_surcharge_pct: parseInt(e.target.value) || 0
-                  })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Doors Surcharge (%)</Label>
-                <Input
-                  type="number"
-                  value={editingPostcode.assembly_doors_surcharge_pct}
-                  onChange={(e) => setEditingPostcode({
-                    ...editingPostcode,
-                    assembly_doors_surcharge_pct: parseInt(e.target.value) || 0
-                  })}
-                />
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  onClick={async () => {
+                    await updatePostcodeAssembly(editingPostcode.id, {
+                      assembly_eligible: editingPostcode.assembly_eligible,
+                      assembly_carcass_surcharge_pct: editingPostcode.assembly_carcass_surcharge_pct,
+                      assembly_doors_surcharge_pct: editingPostcode.assembly_doors_surcharge_pct
+                    });
+                    setIsEditingPostcode(false);
+                    setEditingPostcode(null);
+                  }}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Changes
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsEditingPostcode(false);
+                    setEditingPostcode(null);
+                  }}
+                >
+                  Cancel
+                </Button>
               </div>
             </div>
-            <div className="flex gap-2 pt-4">
-              <Button 
-                onClick={async () => {
-                  await updatePostcodeAssembly(editingPostcode.id, {
-                    assembly_eligible: editingPostcode.assembly_eligible,
-                    assembly_carcass_surcharge_pct: editingPostcode.assembly_carcass_surcharge_pct,
-                    assembly_doors_surcharge_pct: editingPostcode.assembly_doors_surcharge_pct
-                  });
-                  setIsEditingPostcode(false);
-                  setEditingPostcode(null);
-                }}
-              >
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setIsEditingPostcode(false);
-                  setEditingPostcode(null);
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Create Zone Dialog */}
-      {isCreatingZone && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Create Assembly Zone</CardTitle>
-            <CardDescription>Define a geographic zone with assembly surcharges</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+      <Dialog open={isCreatingZone} onOpenChange={setIsCreatingZone}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create Assembly Zone</DialogTitle>
+            <DialogDescription>Define a geographic zone with assembly surcharges</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Zone Name <span className="text-red-500">*</span></Label>
@@ -665,9 +668,9 @@ const UnifiedAssemblyManager = () => {
                 Cancel
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
