@@ -1218,13 +1218,6 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                             </div>
                           )}
                           
-                          {/* Assembly Not Available Message */}
-                          {postcode.length === 4 && assemblyEstimate && !assemblyEstimate.eligible && (
-                            <div className="mt-2 text-xs text-orange-600 text-center py-2 bg-orange-50 rounded border border-orange-200">
-                              Assembly not available for postcode {postcode}. Flat pack option available.
-                            </div>
-                          )}
-                          
                           {/* Assembly Available Message */}
                           {postcode.length === 4 && assemblyEstimate && assemblyEstimate.eligible && (
                             <div className="mt-2 text-xs text-green-600 text-center py-2 bg-green-50 rounded border border-green-200">
