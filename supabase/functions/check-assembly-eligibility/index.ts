@@ -24,6 +24,11 @@ interface AssemblyResponse {
     name: string;
     distance_km: number;
   };
+  surcharge_info?: {
+    carcass_surcharge_pct: number;
+    doors_surcharge_pct: number;
+    reason: string;
+  };
 }
 
 // Calculate distance between two points using Haversine formula
@@ -78,37 +83,54 @@ serve(async (req) => {
       console.error('Error checking postcode zones:', postcodeError)
     }
 
-    // If we have explicit data for this postcode, use it
-    if (postcodeZone) {
-      const response: AssemblyResponse = {
-        eligible: postcodeZone.assembly_eligible || false,
-        postcode: postcodeZone.postcode,
-        state: postcodeZone.state,
-        zone: postcodeZone.zone,
-        metro: postcodeZone.metro,
-        lead_time_days: postcodeZone.lead_time_days || 8
-      }
-
-      // Add assembly pricing if eligible
-      if (response.eligible) {
-        response.carcass_only_price = 50.00; // Default pricing
-        response.with_doors_price = 100.00;
-        response.includes = [
-          'Professional installation',
-          'Assembly of carcass components',
-          'Drawer runner installation',
-          'Quality inspection'
-        ]
-      }
-
-      return new Response(
-        JSON.stringify(response),
-        {
-          status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      )
+  // If we have explicit data for this postcode, use it
+  if (postcodeZone) {
+    const response: AssemblyResponse = {
+      eligible: postcodeZone.assembly_eligible || false,
+      postcode: postcodeZone.postcode,
+      state: postcodeZone.state,
+      zone: postcodeZone.zone,
+      metro: postcodeZone.metro,
+      lead_time_days: postcodeZone.lead_time_days || 8
     }
+
+    // Add assembly pricing if eligible
+    if (response.eligible) {
+      // Get base prices and surcharges from database
+      const baseCarcassPrice = postcodeZone.assembly_base_carcass_price || 50.00;
+      const baseDoorsPrice = postcodeZone.assembly_base_doors_price || 100.00;
+      const carcassSurcharge = postcodeZone.assembly_carcass_surcharge_pct || 0;
+      const doorsSurcharge = postcodeZone.assembly_doors_surcharge_pct || 0;
+      
+      // Calculate final prices with surcharges
+      response.carcass_only_price = baseCarcassPrice * (1 + carcassSurcharge / 100);
+      response.with_doors_price = baseDoorsPrice * (1 + doorsSurcharge / 100);
+      
+      response.includes = [
+        'Professional installation',
+        'Assembly of carcass components',
+        'Drawer runner installation',
+        'Quality inspection'
+      ]
+      
+      // Add surcharge info to response if there are surcharges
+      if (carcassSurcharge > 0 || doorsSurcharge > 0) {
+        response.surcharge_info = {
+          carcass_surcharge_pct: carcassSurcharge,
+          doors_surcharge_pct: doorsSurcharge,
+          reason: postcodeZone.remote ? 'Remote area surcharge' : 'Regional surcharge'
+        };
+      }
+    }
+
+    return new Response(
+      JSON.stringify(response),
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    )
+  }
 
     // If no explicit postcode data, try to geocode and check against assembly centers
     const MAPBOX_TOKEN = Deno.env.get('MAPBOX_PUBLIC_TOKEN')

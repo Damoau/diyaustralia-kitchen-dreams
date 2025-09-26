@@ -2849,6 +2849,10 @@ export type Database = {
       }
       postcode_zones: {
         Row: {
+          assembly_base_carcass_price: number | null
+          assembly_base_doors_price: number | null
+          assembly_carcass_surcharge_pct: number | null
+          assembly_doors_surcharge_pct: number | null
           assembly_eligible: boolean
           assembly_price_per_cabinet: number | null
           created_at: string
@@ -2865,6 +2869,10 @@ export type Database = {
           zone: string
         }
         Insert: {
+          assembly_base_carcass_price?: number | null
+          assembly_base_doors_price?: number | null
+          assembly_carcass_surcharge_pct?: number | null
+          assembly_doors_surcharge_pct?: number | null
           assembly_eligible?: boolean
           assembly_price_per_cabinet?: number | null
           created_at?: string
@@ -2881,6 +2889,10 @@ export type Database = {
           zone: string
         }
         Update: {
+          assembly_base_carcass_price?: number | null
+          assembly_base_doors_price?: number | null
+          assembly_carcass_surcharge_pct?: number | null
+          assembly_doors_surcharge_pct?: number | null
           assembly_eligible?: boolean
           assembly_price_per_cabinet?: number | null
           created_at?: string

@@ -23,6 +23,10 @@ interface PostcodeZone {
   lead_time_days: number;
   metro: boolean;
   remote: boolean;
+  assembly_carcass_surcharge_pct?: number;
+  assembly_doors_surcharge_pct?: number;
+  assembly_base_carcass_price?: number;
+  assembly_base_doors_price?: number;
 }
 
 const ZoneManagement = () => {
@@ -47,7 +51,11 @@ const ZoneManagement = () => {
     delivery_eligible: true,
     lead_time_days: 5,
     metro: false,
-    remote: false
+    remote: false,
+    assembly_carcass_surcharge_pct: 0,
+    assembly_doors_surcharge_pct: 0,
+    assembly_base_carcass_price: 50.00,
+    assembly_base_doors_price: 100.00
   });
 
   const states = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT'];
@@ -109,7 +117,11 @@ const ZoneManagement = () => {
       delivery_eligible: zone.delivery_eligible,
       lead_time_days: zone.lead_time_days,
       metro: zone.metro,
-      remote: zone.remote
+      remote: zone.remote,
+      assembly_carcass_surcharge_pct: zone.assembly_carcass_surcharge_pct || 0,
+      assembly_doors_surcharge_pct: zone.assembly_doors_surcharge_pct || 0,
+      assembly_base_carcass_price: zone.assembly_base_carcass_price || 50.00,
+      assembly_base_doors_price: zone.assembly_base_doors_price || 100.00
     });
     setIsEditDialogOpen(true);
   };
@@ -327,7 +339,7 @@ const ZoneManagement = () => {
           <CardDescription>Manage delivery zones and service eligibility</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>State</TableHead>
@@ -335,6 +347,8 @@ const ZoneManagement = () => {
                 <TableHead>Zone</TableHead>
                 <TableHead>Lead Time</TableHead>
                 <TableHead>Assembly</TableHead>
+                <TableHead>Carcass %</TableHead>
+                <TableHead>Doors %</TableHead>
                 <TableHead>Metro</TableHead>
                 <TableHead>Remote</TableHead>
                 <TableHead>Actions</TableHead>
@@ -353,6 +367,24 @@ const ZoneManagement = () => {
                     <Badge variant={zone.assembly_eligible ? "default" : "secondary"}>
                       {zone.assembly_eligible ? 'Yes' : 'No'}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {zone.assembly_eligible && zone.assembly_carcass_surcharge_pct ? (
+                      <Badge variant="outline" className="text-orange-700">
+                        +{zone.assembly_carcass_surcharge_pct}%
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {zone.assembly_eligible && zone.assembly_doors_surcharge_pct ? (
+                      <Badge variant="outline" className="text-orange-700">
+                        +{zone.assembly_doors_surcharge_pct}%
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Badge variant={zone.metro ? "default" : "secondary"}>
@@ -430,6 +462,69 @@ const ZoneManagement = () => {
                 onCheckedChange={(checked) => setEditData({...editData, remote: checked})}
               />
             </div>
+            
+            {/* Assembly Pricing Section */}
+            {editData.assembly_eligible && (
+              <>
+                <div className="border-t pt-4 space-y-4">
+                  <h4 className="text-sm font-medium text-muted-foreground">Assembly Pricing</h4>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Base Carcass Price ($)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={editData.assembly_base_carcass_price}
+                        onChange={(e) => setEditData({...editData, assembly_base_carcass_price: parseFloat(e.target.value) || 50.00})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Carcass Surcharge (%)</Label>
+                      <Input
+                        type="number"
+                        step="1"
+                        value={editData.assembly_carcass_surcharge_pct}
+                        onChange={(e) => setEditData({...editData, assembly_carcass_surcharge_pct: parseFloat(e.target.value) || 0})}
+                        placeholder="e.g., 10 for 10% increase"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Base Doors Price ($)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={editData.assembly_base_doors_price}
+                        onChange={(e) => setEditData({...editData, assembly_base_doors_price: parseFloat(e.target.value) || 100.00})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Doors Surcharge (%)</Label>
+                      <Input
+                        type="number"
+                        step="1"
+                        value={editData.assembly_doors_surcharge_pct}
+                        onChange={(e) => setEditData({...editData, assembly_doors_surcharge_pct: parseFloat(e.target.value) || 0})}
+                        placeholder="e.g., 15 for 15% increase"
+                      />
+                    </div>
+                  </div>
+                  
+                  {(editData.assembly_carcass_surcharge_pct > 0 || editData.assembly_doors_surcharge_pct > 0) && (
+                    <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                      <p className="text-sm text-orange-700">
+                        <strong>Final Prices:</strong><br/>
+                        Carcass Assembly: ${(editData.assembly_base_carcass_price * (1 + editData.assembly_carcass_surcharge_pct / 100)).toFixed(2)}<br/>
+                        Complete Assembly: ${(editData.assembly_base_doors_price * (1 + editData.assembly_doors_surcharge_pct / 100)).toFixed(2)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
