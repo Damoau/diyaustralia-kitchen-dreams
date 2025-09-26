@@ -202,7 +202,7 @@ const CategoryPage = () => {
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
         <DynamicHeader />
         
-        <main className="container mx-auto px-4 py-8 mobile-safe-bottom">
+        <main className="w-full px-6 py-8 mobile-safe-bottom">
           {/* Breadcrumbs */}
           <Breadcrumb className="mb-8">
             <BreadcrumbList>
