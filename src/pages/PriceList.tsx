@@ -229,7 +229,7 @@ export default function PriceList() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 mobile-safe-bottom">
         {/* Header Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Price List</h1>

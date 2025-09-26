@@ -115,6 +115,27 @@ All colors MUST be HSL.
 }
 
 @layer components {
+  /* Mobile dialog positioning to avoid Lovable UI overlap */
+  .mobile-dialog-content {
+    /* On mobile, ensure dialogs don't get hidden behind chat/preview buttons */
+    @media (max-width: 768px) {
+      max-height: calc(100vh - 160px);
+      overflow-y: auto;
+    }
+  }
+
+  /* Mobile page bottom padding to prevent content being hidden */
+  .mobile-safe-bottom {
+    @media (max-width: 768px) {
+      padding-bottom: 120px !important;
+    }
+  }
+
+  /* High z-index utility class for mobile modals */
+  .mobile-modal-high-z {
+    z-index: 10000 !important;
+  }
+
   .carousel-image {
     @apply w-full h-48 object-contain rounded-lg border border-gray-200 bg-white;
     object-position: center bottom;

@@ -118,7 +118,7 @@ const Cart = () => {
       <div className="min-h-screen bg-background">
         <DynamicHeader />
         
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-8 mobile-safe-bottom">
           <div className="flex items-center gap-2 mb-6">
             <ShoppingCart className="h-6 w-6" />
             <h1 className="text-3xl font-bold">Shopping Cart</h1>

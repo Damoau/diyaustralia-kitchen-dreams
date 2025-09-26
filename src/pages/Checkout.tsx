@@ -180,7 +180,7 @@ const Checkout = () => {
       <ImpersonationLayout>
         <div className="min-h-screen bg-background">
           <DynamicHeader />
-          <main className="container mx-auto px-4 py-8">
+          <main className="container mx-auto px-4 py-8 mobile-safe-bottom">
             <Card className="text-center py-12">
               <CardContent>
                 <ShoppingCart className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
@@ -210,7 +210,7 @@ const Checkout = () => {
       <div className="min-h-screen bg-background">
         <DynamicHeader />
         
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-8 pb-[120px] md:pb-8">
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <Button 
