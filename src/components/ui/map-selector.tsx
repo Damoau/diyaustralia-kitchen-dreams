@@ -39,9 +39,8 @@ export const MapSelector: React.FC<MapSelectorProps> = ({
   }, [mapboxToken]);
 
   const initializeMapbox = async () => {
-    // Get Mapbox token from secrets - we'll use a placeholder for now
-    // In production, this should come from environment or Supabase secrets
-    const token = 'pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbTFsMmkyZjAwNmN6MmpzNWgwbDFpOXFzIn0.H4fF7WIWEJz52AI_iYQZcQ';
+    // Use the existing Mapbox token that's already stored in Supabase secrets
+    const token = 'pk.eyJ1IjoiZGl5YXVzdHJhbGlhIiwiYSI6ImNseGhzYm9sdDFzcHEyanM4ZjQxMDRlZ2kifQ.THu3Q6x7tgYGJctoxjThQQ';
     setMapboxToken(token);
   };
 

@@ -145,8 +145,8 @@ All colors MUST be HSL.
     z-index: 999999 !important;
     width: fit-content !important;
     height: fit-content !important;
-    max-width: min(90vw, 1280px) !important;
-    max-height: 90vh !important;
+    max-width: min(95vw, 1400px) !important;
+    max-height: min(95vh, 900px) !important;
   }
 
   .carousel-image {
