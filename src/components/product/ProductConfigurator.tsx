@@ -106,7 +106,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   } = useUserPreferences();
   
   // Mock postcode lookup - this would connect to your postcode zones table
-  const { data: postcodeData, isLoading: postcodeLoading, error: postcodeQueryError } = useQuery({
+  const { data: postcodeData, isLoading: postcodeLoading, error: postcodeQueryError, refetch: refetchPostcode } = useQuery({
     queryKey: ['postcode-lookup', postcode],
     queryFn: async () => {
       if (!postcode || postcode.length !== 4) return null;
@@ -155,7 +155,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       }
     },
     enabled: postcode.length === 4,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 1 * 60 * 1000, // 1 minute
     retry: 1
   });
   
@@ -200,6 +200,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
   // Calculate assembly estimate when postcode changes
   useEffect(() => {
+    console.log('Assembly estimate effect triggered:', { postcodeData, selectedCabinetType, postcode });
+    
     if (postcodeData) {
       console.log('Setting assembly estimate for postcode data:', postcodeData);
       
@@ -212,7 +214,15 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         with_doors_price: 100
       };
       
-      const isEligible = postcodeData.assembly_eligible && (selectedCabinetType?.assembly_available ?? true);
+      // Type cast postcodeData to access properties
+      const typedPostcodeData = postcodeData as { assembly_eligible: boolean; postcode: string; state?: string; zone?: string; metro?: boolean; assembly_price_per_cabinet?: number };
+      const isEligible = typedPostcodeData.assembly_eligible && (selectedCabinetType?.assembly_available ?? true);
+      
+      console.log('Assembly eligibility check:', {
+        postcodeEligible: typedPostcodeData.assembly_eligible,
+        cabinetAssemblyAvailable: selectedCabinetType?.assembly_available,
+        finalEligible: isEligible
+      });
       
       setAssemblyEstimate({
         eligible: isEligible,
@@ -229,9 +239,15 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       
       // Reset to flat pack if assembly is not available
       if (!isEligible) {
+        console.log('Assembly not eligible, resetting to flat pack');
         setAssemblyEnabled(false);
         setHasAssemblySelection(false);
         setAssemblyEditMode(true); // Show options for selection
+      } else {
+        console.log('Assembly is eligible, showing all options');
+        // If assembly is available, show all options for selection
+        setAssemblyEditMode(true);
+        setHasAssemblySelection(false);
       }
       
       console.log('Assembly estimate set:', {
