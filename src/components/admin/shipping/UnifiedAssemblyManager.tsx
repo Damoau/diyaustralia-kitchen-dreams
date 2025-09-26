@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { 
   MapPin, 
   Compass, 
@@ -81,6 +83,132 @@ const UnifiedAssemblyManager = () => {
     carcass_surcharge_pct: 15,
     doors_surcharge_pct: 20
   });
+
+  // Map component for zone creation
+  const MapComponent = ({ latitude, longitude, radius, onLocationChange }: {
+    latitude: number;
+    longitude: number;
+    radius: number;
+    onLocationChange: (lat: number, lng: number) => void;
+  }) => {
+    const mapContainer = useRef<HTMLDivElement>(null);
+    const map = useRef<mapboxgl.Map | null>(null);
+    const marker = useRef<mapboxgl.Marker | null>(null);
+    const circle = useRef<any>(null);
+
+    useEffect(() => {
+      if (!mapContainer.current) return;
+
+      // Get Mapbox token from environment or show input
+      const mapboxToken = 'pk.eyJ1IjoiYWRtaW5zaGlwcGluZyIsImEiOiJjbHFudGt5bnUwaHZvMmpuemtnMXhqc2NwIn0.temp'; // You'll need to add the real token
+
+      mapboxgl.accessToken = mapboxToken;
+      
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [longitude, latitude],
+        zoom: 8
+      });
+
+      // Add navigation controls
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+      // Create draggable marker
+      marker.current = new mapboxgl.Marker({ draggable: true })
+        .setLngLat([longitude, latitude])
+        .addTo(map.current);
+
+      // Handle marker drag
+      marker.current.on('dragend', () => {
+        const lngLat = marker.current!.getLngLat();
+        onLocationChange(lngLat.lat, lngLat.lng);
+        updateCircle(lngLat.lat, lngLat.lng, radius);
+      });
+
+      // Add radius circle
+      map.current.on('load', () => {
+        updateCircle(latitude, longitude, radius);
+      });
+
+      return () => {
+        map.current?.remove();
+      };
+    }, []);
+
+    useEffect(() => {
+      if (marker.current) {
+        marker.current.setLngLat([longitude, latitude]);
+        updateCircle(latitude, longitude, radius);
+      }
+    }, [latitude, longitude, radius]);
+
+    const updateCircle = (lat: number, lng: number, radiusKm: number) => {
+      if (!map.current) return;
+
+      // Remove existing circle
+      if (circle.current) {
+        try {
+          map.current.removeLayer('radius-circle');
+          map.current.removeLayer('radius-circle-stroke');
+          map.current.removeSource('radius-circle');
+        } catch (e) {
+          // Layer might not exist yet
+        }
+      }
+
+      // Create a simple circle approximation
+      const points: number[][] = [];
+      const center = [lng, lat];
+      const steps = 64;
+      
+      for (let i = 0; i < steps; i++) {
+        const angle = (i / steps) * 2 * Math.PI;
+        const dx = (radiusKm / 111.32) * Math.cos(angle); // rough conversion to degrees
+        const dy = (radiusKm / 110.54) * Math.sin(angle);
+        points.push([center[0] + dx, center[1] + dy]);
+      }
+      points.push(points[0]); // close the polygon
+
+      const circleGeoJSON = {
+        "type": "Feature" as const,
+        "properties": {},
+        "geometry": {
+          "type": "Polygon" as const,
+          "coordinates": [points]
+        }
+      };
+
+      map.current.addSource('radius-circle', {
+        type: 'geojson',
+        data: circleGeoJSON as any
+      });
+
+      map.current.addLayer({
+        id: 'radius-circle',
+        type: 'fill',
+        source: 'radius-circle',
+        paint: {
+          'fill-color': '#007cbf',
+          'fill-opacity': 0.2
+        }
+      });
+
+      map.current.addLayer({
+        id: 'radius-circle-stroke',
+        type: 'line',
+        source: 'radius-circle',
+        paint: {
+          'line-color': '#007cbf',
+          'line-width': 2
+        }
+      });
+
+      circle.current = true;
+    };
+
+    return <div ref={mapContainer} className="w-full h-64 rounded-lg" />;
+  };
 
   useEffect(() => {
     loadData();
@@ -660,24 +788,22 @@ const UnifiedAssemblyManager = () => {
                   onChange={(e) => setNewZone({...newZone, radius_km: parseInt(e.target.value) || 50})}
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Center Latitude</Label>
-                <Input
-                  type="number"
-                  step="0.0001"
-                  value={newZone.center_latitude}
-                  onChange={(e) => setNewZone({...newZone, center_latitude: parseFloat(e.target.value)})}
-                />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Set Center Location</Label>
+              <div className="text-sm text-muted-foreground mb-2">
+                Drag the pin to set the center of your assembly zone. The radius will be shown as a circle.
               </div>
-              <div className="space-y-2">
-                <Label>Center Longitude</Label>
-                <Input
-                  type="number"
-                  step="0.0001"
-                  value={newZone.center_longitude}
-                  onChange={(e) => setNewZone({...newZone, center_longitude: parseFloat(e.target.value)})}
-                />
-              </div>
+              <MapComponent
+                latitude={newZone.center_latitude}
+                longitude={newZone.center_longitude}
+                radius={newZone.radius_km}
+                onLocationChange={(lat, lng) => setNewZone({...newZone, center_latitude: lat, center_longitude: lng})}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Carcass Surcharge (%)</Label>
                 <Input
@@ -695,6 +821,13 @@ const UnifiedAssemblyManager = () => {
                 />
               </div>
             </div>
+
+            <div className="text-sm text-muted-foreground bg-blue-50 p-3 rounded-lg">
+              <div className="font-medium mb-1">Current coordinates:</div>
+              <div>Latitude: {newZone.center_latitude.toFixed(4)}</div>
+              <div>Longitude: {newZone.center_longitude.toFixed(4)}</div>
+            </div>
+            
             <div className="flex gap-2 pt-4">
               <Button 
                 onClick={createAssemblyZone}
