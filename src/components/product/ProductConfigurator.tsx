@@ -830,7 +830,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="product-configurator-modal mobile-modal-high-z bg-background border shadow-2xl overflow-hidden p-0">
+      <DialogContent className="product-configurator-modal mobile-modal-high-z bg-background border shadow-2xl overflow-hidden p-0 max-w-7xl w-[95vw]">
         {/* Debug info - Remove after testing */}
         {!selectedCabinetType && open && (
           <div className="p-4 text-center">
@@ -857,34 +857,35 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
             </div>
           )}
 
-          {/* Desktop Floating Price Box - Top Right */}
-          {selectedCabinetType && (
-            <div className="hidden lg:block absolute top-6 right-6 z-10">
-              <Card className="shadow-2xl border-0 bg-gradient-to-br from-primary to-primary/90 text-primary-foreground">
-                <CardContent className="p-4 text-center min-w-[200px]">
-                  <div className="text-2xl font-bold mb-1">
-                    ${calculateTotalPrice().toFixed(2)}
-                  </div>
-                  <div className="text-xs opacity-90 mb-3">Total Price</div>
-                  <Badge variant="secondary" className="text-xs px-3 py-1 bg-white/20 text-white">
-                    {quantity} item{quantity !== 1 ? 's' : ''}
-                  </Badge>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Header */}
+          {/* Header with integrated price display */}
           <div className="px-6 py-4 border-b bg-gradient-to-r from-background to-secondary/5">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-3 text-xl">
-                {selectedCabinetType?.name || 'Configure Product'}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <DialogTitle className="text-xl">
+                    {selectedCabinetType?.name || 'Configure Product'}
+                  </DialogTitle>
+                  {selectedCabinetType && (
+                    <Badge variant="outline" className="text-xs font-medium">
+                      {selectedCabinetType.category}
+                    </Badge>
+                  )}
+                </div>
+                {/* Desktop Price Display - Integrated in Header */}
                 {selectedCabinetType && (
-                  <Badge variant="outline" className="text-xs font-medium">
-                    {selectedCabinetType.category}
-                  </Badge>
+                  <div className="hidden lg:flex items-center gap-4">
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-primary">
+                        ${calculateTotalPrice().toFixed(2)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">Total Price</div>
+                    </div>
+                    <Badge variant="secondary" className="text-xs px-3 py-1">
+                      {quantity} item{quantity !== 1 ? 's' : ''}
+                    </Badge>
+                  </div>
                 )}
-              </DialogTitle>
+              </div>
             </DialogHeader>
           </div>
 
