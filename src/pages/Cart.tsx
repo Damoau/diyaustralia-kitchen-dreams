@@ -301,7 +301,7 @@ const Cart = () => {
                           size="lg"
                           disabled={isLoading || isConverting}
                         >
-                          {isConverting ? "Saving Quote..." : "Save Quote"}
+                          {isConverting ? "Saving as Quote..." : "Save as Quote"}
                         </Button>
                         
                         <Button 
