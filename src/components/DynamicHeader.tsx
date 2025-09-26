@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, ShoppingCart, Settings, LogOut, LogIn, ChevronDown, User } from "lucide-react";
+import { Menu, ShoppingCart, Settings, LogOut, LogIn, ChevronDown, User, FileText } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -200,6 +200,17 @@ const DynamicHeader = () => {
             Get Quote
           </Button>
           
+          {isAuthenticated && (
+            <Button 
+              variant="outline"
+              size="sm" 
+              className="hidden sm:flex"
+              onClick={() => navigate('/portal/quotes')}
+            >
+              My Quotes
+            </Button>
+          )}
+          
           {isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -346,13 +357,21 @@ const DynamicHeader = () => {
                 <div className="flex-shrink-0 mt-6 space-y-4 border-t border-gray-100 pt-6">
                   {isAuthenticated ? (
                     <>
-                      <Button
-                        variant="outline"
+                       <Button
+                        variant="ghost"
                         onClick={() => handleNavigation('/portal')}
-                        className="w-full justify-start"
+                        className="justify-start"
                       >
                         <User className="mr-2 h-4 w-4" />
                         My Account
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleNavigation('/portal/quotes')}
+                        className="justify-start"
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        My Quotes
                       </Button>
                       {isAdmin && !isInAdminMode && (
                         <Button

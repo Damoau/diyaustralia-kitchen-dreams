@@ -149,7 +149,7 @@ export const QuotesList = () => {
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <DollarSign className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-semibold">${(quote.total_amount || quote.amount).toLocaleString()}</span>
+                  <span className="font-semibold">${((quote.total_amount || quote.amount) || 0).toLocaleString()}</span>
                 </div>
                 
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
