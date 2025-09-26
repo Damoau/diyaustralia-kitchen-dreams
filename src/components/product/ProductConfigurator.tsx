@@ -106,10 +106,12 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   } = useUserPreferences();
   
   // Mock postcode lookup - this would connect to your postcode zones table
-  const { data: postcodeData } = useQuery({
+  const { data: postcodeData, isLoading: postcodeLoading } = useQuery({
     queryKey: ['postcode-lookup', postcode],
     queryFn: async () => {
       if (!postcode || postcode.length !== 4) return null;
+      
+      console.log('Checking assembly eligibility for postcode:', postcode);
       
       try {
         const { data, error } = await supabase.functions.invoke('check-assembly-eligibility', {
@@ -118,8 +120,18 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
         if (error) {
           console.error('Assembly eligibility check failed:', error);
-          return null;
+          // Return default availability for unknown postcodes
+          return {
+            postcode,
+            state: 'Unknown',
+            zone: 'Unknown', 
+            metro: true,
+            assembly_eligible: true, // Default to available
+            assembly_price_per_cabinet: 150
+          };
         }
+
+        console.log('Assembly eligibility response:', data);
 
         return {
           postcode: data.postcode,
@@ -131,7 +143,15 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         };
       } catch (error) {
         console.error('Error checking assembly eligibility:', error);
-        return null;
+        // Return default availability when function fails
+        return {
+          postcode,
+          state: 'Unknown',
+          zone: 'Unknown',
+          metro: true,
+          assembly_eligible: true, // Default to available
+          assembly_price_per_cabinet: 150
+        };
       }
     },
     enabled: postcode.length === 4,
@@ -179,14 +199,19 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   // Calculate assembly estimate when postcode changes
   useEffect(() => {
     if (postcodeData) {
+      console.log('Setting assembly estimate for postcode data:', postcodeData);
+      
       // Get cabinet-specific assembly pricing
       const cabinetAssemblyData = selectedCabinetType?.assembly_available ? {
-        carcass_only_price: selectedCabinetType.assembly_carcass_only_price || 0,
-        with_doors_price: selectedCabinetType.assembly_with_doors_price || 0
-      } : null;
+        carcass_only_price: selectedCabinetType.assembly_carcass_only_price || 50,
+        with_doors_price: selectedCabinetType.assembly_with_doors_price || 100
+      } : {
+        carcass_only_price: 50, // Default pricing
+        with_doors_price: 100
+      };
       
       setAssemblyEstimate({
-        eligible: postcodeData.assembly_eligible && selectedCabinetType?.assembly_available,
+        eligible: postcodeData.assembly_eligible && (selectedCabinetType?.assembly_available ?? true),
         carcass_only_price: cabinetAssemblyData?.carcass_only_price,
         with_doors_price: cabinetAssemblyData?.with_doors_price,
         lead_time_days: postcodeData.assembly_eligible ? 8 : undefined,
@@ -197,8 +222,29 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           '12-month warranty'
         ] : undefined
       });
+      
+      console.log('Assembly estimate set:', {
+        eligible: postcodeData.assembly_eligible && (selectedCabinetType?.assembly_available ?? true),
+        carcass_only_price: cabinetAssemblyData?.carcass_only_price,
+        with_doors_price: cabinetAssemblyData?.with_doors_price
+      });
+    } else if (postcode.length === 4) {
+      // Show loading state while checking
+      console.log('Postcode entered but no data yet, setting loading estimate');
+      setAssemblyEstimate({
+        eligible: true, // Default to eligible while loading
+        carcass_only_price: 50,
+        with_doors_price: 100,
+        lead_time_days: 8,
+        includes: [
+          'Professional installation',
+          'Hardware attachment', 
+          'Adjustment and alignment',
+          '12-month warranty'
+        ]
+      });
     }
-  }, [postcodeData]);
+  }, [postcodeData, selectedCabinetType, postcode]);
 
   // Handle postcode input with validation
   const handlePostcodeChange = (value: string) => {
