@@ -165,7 +165,8 @@ serve(async (req) => {
       // If applying changes, update the postcode zone with assignment tracking
       if (apply_changes && surcharge_settings) {
         const updates: any = {
-          assembly_eligible: withinRadius
+          assembly_eligible: withinRadius,
+          last_assignment_date: new Date().toISOString()
         }
 
         // Only update assembly surcharge percentages if setting assembly to eligible
@@ -180,12 +181,13 @@ serve(async (req) => {
           updates.assembly_doors_surcharge_pct = 0
         }
 
-        // Don't override manual settings
+        console.log(`Updating postcode ${zone.postcode}:`, updates)
+
+        // Update all postcodes regardless of assignment_method when using radius tool
         const { error: updateError } = await supabaseClient
           .from('postcode_zones')
           .update(updates)
           .eq('id', zone.id)
-          .neq('assignment_method', 'manual')
 
         if (updateError) {
           console.error(`Error updating postcode ${zone.postcode}:`, updateError)
