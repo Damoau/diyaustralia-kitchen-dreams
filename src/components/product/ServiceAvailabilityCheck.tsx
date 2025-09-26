@@ -67,17 +67,16 @@ export const ServiceAvailabilityCheck: React.FC<ServiceAvailabilityCheckProps> =
           {currentServices && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <div>
+                 <div>
                   <h3 className="font-semibold">
-                    {currentServices.postcode} {currentServices.zone?.state}
+                    {currentServices.postcode}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    {currentServices.zone?.metro ? 'Metro Area' : 'Regional Area'}
-                    {currentServices.zone?.remote && ' (Remote)'}
+                    Service Area
                   </p>
                 </div>
-                <Badge variant={currentServices.zone ? 'default' : 'secondary'}>
-                  {currentServices.zone ? 'Serviced Area' : 'Limited Service'}
+                <Badge variant="default">
+                  Serviced Area
                 </Badge>
               </div>
 
@@ -103,15 +102,15 @@ export const ServiceAvailabilityCheck: React.FC<ServiceAvailabilityCheckProps> =
                     <div className="flex-1">
                       <h4 className="font-medium">Assembly Service</h4>
                       <p className="text-sm text-muted-foreground">
-                        {currentServices.services.assembly
-                          ? `${formatPrice(currentServices.pricing.assemblyPerCabinet)} per cabinet`
+                        {currentServices.assembly_available
+                          ? `${formatPrice(150)} per cabinet base + surcharges`
                           : 'Not available in your area'}
                       </p>
                     </div>
                     <Badge
-                      variant={currentServices.services.assembly ? 'default' : 'secondary'}
+                      variant={currentServices.assembly_available ? 'default' : 'secondary'}
                     >
-                      {currentServices.services.assembly ? 'Available' : 'Unavailable'}
+                      {currentServices.assembly_available ? 'Available' : 'Unavailable'}
                     </Badge>
                   </div>
                 </Card>
@@ -123,15 +122,15 @@ export const ServiceAvailabilityCheck: React.FC<ServiceAvailabilityCheckProps> =
                     <div className="flex-1">
                       <h4 className="font-medium">Depot Delivery</h4>
                       <p className="text-sm text-muted-foreground">
-                        {currentServices.services.depotDelivery
+                        {currentServices.depot_delivery_available
                           ? 'Pick up from local depot'
                           : 'Not available in your area'}
                       </p>
                     </div>
                     <Badge
-                      variant={currentServices.services.depotDelivery ? 'default' : 'secondary'}
+                      variant={currentServices.depot_delivery_available ? 'default' : 'secondary'}
                     >
-                      {currentServices.services.depotDelivery ? 'Available' : 'Unavailable'}
+                      {currentServices.depot_delivery_available ? 'Available' : 'Unavailable'}
                     </Badge>
                   </div>
                 </Card>
@@ -143,15 +142,15 @@ export const ServiceAvailabilityCheck: React.FC<ServiceAvailabilityCheckProps> =
                     <div className="flex-1">
                       <h4 className="font-medium">Home Delivery</h4>
                       <p className="text-sm text-muted-foreground">
-                        {currentServices.services.homeDelivery
+                        {currentServices.door_delivery_available
                           ? 'Direct to your door'
                           : 'Not available in your area'}
                       </p>
                     </div>
                     <Badge
-                      variant={currentServices.services.homeDelivery ? 'default' : 'secondary'}
+                      variant={currentServices.door_delivery_available ? 'default' : 'secondary'}
                     >
-                      {currentServices.services.homeDelivery ? 'Available' : 'Unavailable'}
+                      {currentServices.door_delivery_available ? 'Available' : 'Unavailable'}
                     </Badge>
                   </div>
                 </Card>
@@ -159,8 +158,7 @@ export const ServiceAvailabilityCheck: React.FC<ServiceAvailabilityCheckProps> =
 
               <div className="p-3 bg-muted rounded-md">
                 <p className="text-sm">
-                  <strong>Lead Time:</strong> {currentServices.leadTime} business days
-                  {!currentServices.zone && ' (extended for unsupported areas)'}
+                  <strong>Lead Time:</strong> {currentServices.assembly_lead_time_days || 14} business days
                 </p>
               </div>
             </div>

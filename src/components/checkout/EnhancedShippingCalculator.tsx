@@ -121,8 +121,9 @@ export const EnhancedShippingCalculator: React.FC<EnhancedShippingCalculatorProp
       
       // Add assembly cost if selected and available
       let finalCost = Number(quote.total_inc_gst || 0);
-      if (selectedMethod === 'home' && services.services.assembly) {
-        const assemblyCost = services.pricing.assemblyPerCabinet * items.reduce((sum, item) => sum + item.quantity, 0);
+      if (selectedMethod === 'home' && services.assembly_available) {
+        // Calculate assembly cost based on surcharge percentages
+        const assemblyCost = 150 * items.reduce((sum, item) => sum + item.quantity, 0); // Base assembly cost per cabinet
         finalCost += assemblyCost;
       }
 

@@ -34,7 +34,7 @@ interface PostcodeZone {
   assembly_eligible: boolean;
   assembly_carcass_surcharge_pct: number;
   assembly_doors_surcharge_pct: number;
-  assignment_method?: 'manual' | 'radius' | 'default';
+  assignment_method?: string;
   assigned_from_zone_id?: string;
 }
 
@@ -59,9 +59,9 @@ const UnifiedAssemblyManager = () => {
   
   // Filters
   const [filters, setFilters] = useState({
-    state: '',
+    state: 'all',
     postcode: '',
-    assemblyEligible: ''
+    assemblyEligible: 'all'
   });
   
   // Edit postcode dialog
@@ -374,9 +374,9 @@ const UnifiedAssemblyManager = () => {
   };
 
   const filteredPostcodes = postcodes.filter(postcode => {
-    if (filters.state && postcode.state !== filters.state) return false;
+    if (filters.state && filters.state !== 'all' && postcode.state !== filters.state) return false;
     if (filters.postcode && !postcode.postcode.includes(filters.postcode)) return false;
-    if (filters.assemblyEligible) {
+    if (filters.assemblyEligible && filters.assemblyEligible !== 'all') {
       const eligible = filters.assemblyEligible === 'true';
       if (postcode.assembly_eligible !== eligible) return false;
     }
@@ -414,12 +414,12 @@ const UnifiedAssemblyManager = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <Label htmlFor="stateFilter">State</Label>
-                <Select value={filters.state} onValueChange={(value) => setFilters(prev => ({ ...prev, state: value }))}>
+                <Select value={filters.state} onValueChange={(value) => setFilters(prev => ({ ...prev, state: value === 'all' ? '' : value }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="All states" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All states</SelectItem>
+                    <SelectItem value="all">All states</SelectItem>
                     <SelectItem value="NSW">NSW</SelectItem>
                     <SelectItem value="VIC">VIC</SelectItem>
                     <SelectItem value="QLD">QLD</SelectItem>
@@ -444,12 +444,12 @@ const UnifiedAssemblyManager = () => {
               
               <div>
                 <Label htmlFor="assemblyFilter">Assembly Status</Label>
-                <Select value={filters.assemblyEligible} onValueChange={(value) => setFilters(prev => ({ ...prev, assemblyEligible: value }))}>
+                <Select value={filters.assemblyEligible} onValueChange={(value) => setFilters(prev => ({ ...prev, assemblyEligible: value === 'all' ? '' : value }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="All statuses" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All statuses</SelectItem>
+                    <SelectItem value="all">All statuses</SelectItem>
                     <SelectItem value="true">Assembly Available</SelectItem>
                     <SelectItem value="false">No Assembly</SelectItem>
                   </SelectContent>
@@ -458,7 +458,7 @@ const UnifiedAssemblyManager = () => {
               
               <div className="flex items-end">
                 <Button 
-                  onClick={() => setFilters({ state: '', postcode: '', assemblyEligible: '' })}
+                  onClick={() => setFilters({ state: 'all', postcode: '', assemblyEligible: 'all' })}
                   variant="outline"
                   className="w-full"
                 >

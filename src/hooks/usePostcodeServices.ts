@@ -67,13 +67,13 @@ export const usePostcodeServices = () => {
 
       const serviceAvailability: ServiceAvailability = {
         postcode: data.postcode,
-        flat_pack_available: data.flat_pack_eligible || false,
+        flat_pack_available: data.delivery_eligible || false,
         assembly_available: data.assembly_eligible || false,
-        depot_delivery_available: data.depot_delivery_eligible || false,
-        door_delivery_available: data.door_delivery_eligible || false,
-        assembly_lead_time_days: data.assembly_lead_time_days,
-        depot_delivery_cost: data.depot_delivery_cost || 0,
-        door_delivery_cost: data.door_delivery_cost || 0,
+        depot_delivery_available: data.delivery_eligible || false,
+        door_delivery_available: data.delivery_eligible || false,
+        assembly_lead_time_days: data.lead_time_days,
+        depot_delivery_cost: 45.00,
+        door_delivery_cost: 65.00,
         assembly_carcass_surcharge_pct: data.assembly_carcass_surcharge_pct || 0,
         assembly_doors_surcharge_pct: data.assembly_doors_surcharge_pct || 0,
       };
