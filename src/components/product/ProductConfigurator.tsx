@@ -18,7 +18,7 @@ import { useCartPersistence } from '@/hooks/useCartPersistence';
 import { useCartSaveTracking } from '@/hooks/useCartSaveTracking';
 import { useCart } from '@/hooks/useCart';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { Ruler, Palette, Settings, FileText, ShoppingCart, MapPin, AlertCircle, Calculator, Edit2 } from 'lucide-react';
+import { Ruler, Palette, Settings, FileText, ShoppingCart, MapPin, AlertCircle, Calculator, Edit2, Plus, Minus } from 'lucide-react';
 import { useCabinetPreferences } from '@/hooks/useCabinetPreferences';
 import { CabinetType, CabinetPart, DoorStyle, Color, Finish, DoorStyleFinish, ColorFinish } from '@/types/cabinet';
 
@@ -814,22 +814,20 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         )}
         
         <div className="relative">
-          {/* Mobile Sticky Price Bar - Top */}
+          {/* Mobile Sticky Price Bar - Top - Only show cabinet name */}
           {selectedCabinetType && (
             <div className="lg:hidden sticky top-0 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground px-4 py-3 z-50 flex items-center justify-between shadow-lg">
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-base truncate">
                   {selectedCabinetType.name}
                 </h3>
-              </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
-                <div className="text-lg font-bold">
-                  ${calculateTotalPrice().toFixed(2)}
+                <div className="text-xs opacity-90">
+                  {selectedCabinetType.category}
                 </div>
-                <Badge variant="secondary" className="text-xs px-2 py-1 bg-white/20 text-white">
-                  {quantity} item{quantity !== 1 ? 's' : ''}
-                </Badge>
               </div>
+              <Badge variant="secondary" className="text-xs px-2 py-1 bg-white/20 text-white">
+                {quantity} item{quantity !== 1 ? 's' : ''}
+              </Badge>
             </div>
           )}
 
@@ -928,7 +926,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="pt-0">
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-3 gap-3">
                           <div className="space-y-2">
                             <Label htmlFor="width" className="text-sm font-medium">Width</Label>
                             <Input
@@ -937,7 +935,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                               value={dimensions.width}
                               onChange={(e) => handleDimensionChange('width', parseInt(e.target.value) || 0)}
                               onBlur={() => handleDimensionBlur('width')}
-                              className="text-center font-mono h-10 dimension-number font-semibold border-2 focus:border-primary/50"
+                              className="text-center font-mono h-12 text-lg font-bold border-2 focus:border-primary/50 bg-background"
                             />
                             <div className="text-xs text-muted-foreground text-center font-medium">
                               {selectedCabinetType.min_width_mm}-{selectedCabinetType.max_width_mm}
@@ -951,7 +949,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                               value={dimensions.height}
                               onChange={(e) => handleDimensionChange('height', parseInt(e.target.value) || 0)}
                               onBlur={() => handleDimensionBlur('height')}
-                              className="text-center font-mono h-10 dimension-number font-semibold border-2 focus:border-primary/50"
+                              className="text-center font-mono h-12 text-lg font-bold border-2 focus:border-primary/50 bg-background"
                             />
                             <div className="text-xs text-muted-foreground text-center font-medium">
                               {selectedCabinetType.min_height_mm}-{selectedCabinetType.max_height_mm}
@@ -965,7 +963,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                               value={dimensions.depth}
                               onChange={(e) => handleDimensionChange('depth', parseInt(e.target.value) || 0)}
                               onBlur={() => handleDimensionBlur('depth')}
-                              className="text-center font-mono h-10 dimension-number font-semibold border-2 focus:border-primary/50"
+                              className="text-center font-mono h-12 text-lg font-bold border-2 focus:border-primary/50 bg-background"
                             />
                             <div className="text-xs text-muted-foreground text-center font-medium">
                               {selectedCabinetType.min_depth_mm}-{selectedCabinetType.max_depth_mm}
@@ -1255,7 +1253,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                       </CardContent>
                     </Card>
 
-                     {/* Notes - Compact */}
+                    {/* Notes - Compact */}
                     <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-lg flex items-center gap-2 font-semibold">
@@ -1273,6 +1271,47 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                       </CardContent>
                     </Card>
 
+                    {/* Quantity - Separate section */}
+                    <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2 font-semibold">
+                          <Calculator className="w-5 h-5 text-primary" />
+                          Quantity
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="flex items-center justify-center">
+                          <div className="flex items-center space-x-3">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                              className="h-10 w-10 p-0"
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                            <Input
+                              type="number"
+                              value={quantity}
+                              onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                              min={1}
+                              className="text-center font-mono h-10 w-20 text-lg font-bold border-2 focus:border-primary/50"
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setQuantity(quantity + 1)}
+                              className="h-10 w-10 p-0"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
                     {/* Add bottom padding to prevent overlap with sticky add to cart */}
                     <div className="pb-24"></div>
                   </>
@@ -1282,22 +1321,14 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           </div>
         </div>
 
-        {/* Sticky Add to Cart Section */}
+        {/* Sticky Add to Cart Section - Remove quantity display to avoid duplication */}
         {selectedCabinetType && (
           <div className="sticky bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t shadow-lg p-4 z-50">
             <div className="max-w-md mx-auto space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="text-sm text-muted-foreground">
-                    {quantity} item{quantity !== 1 ? 's' : ''}
-                  </div>
-                  <div className="text-lg font-bold text-primary">
-                    ${(calculateTotalPrice() * quantity).toFixed(2)}
-                  </div>
+              <div className="flex items-center justify-center">
+                <div className="text-lg font-bold text-primary">
+                  ${(calculateTotalPrice() * quantity).toFixed(2)}
                 </div>
-                <Badge variant="outline" className="text-xs">
-                  Total Price
-                </Badge>
               </div>
               
               <Button

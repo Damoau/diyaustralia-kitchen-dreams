@@ -156,11 +156,24 @@ All colors MUST be HSL.
     min-width: 320px !important;
   }
 
+  /* Better visibility for dimension inputs on mobile */
+  .dimension-number {
+    font-size: 1.125rem !important;
+    font-weight: 700 !important;
+    background-color: hsl(var(--background)) !important;
+    border-width: 2px !important;
+  }
+
   /* Responsive width adjustments */
   @media (max-width: 640px) {
     .product-configurator-modal {
       width: 95vw !important;
       max-width: 95vw !important;
+    }
+    
+    .dimension-number {
+      height: 3rem !important;
+      font-size: 1.25rem !important;
     }
   }
 

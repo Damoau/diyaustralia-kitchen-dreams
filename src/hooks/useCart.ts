@@ -773,6 +773,41 @@ export const useCart = () => {
   // Initialize cart when component mounts or user changes
   useEffect(() => {
     initializeCart();
+    
+    // Set up real-time subscription for cart updates
+    const channel = supabase
+      .channel('cart-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'cart_items'
+        },
+        (payload) => {
+          console.log('Cart item change detected:', payload);
+          // Refresh cart when items are added/updated/deleted
+          setTimeout(() => initializeCart(), 100);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'carts'
+        },
+        (payload) => {
+          console.log('Cart change detected:', payload);
+          // Refresh cart when cart totals are updated
+          setTimeout(() => initializeCart(), 100);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user?.id]);
 
   return {
