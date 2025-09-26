@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
 import { useCartToQuote } from "@/hooks/useCartToQuote";
 import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
+import { useAuth } from "@/hooks/useAuth";
 
 interface CartItem {
   id: string;
@@ -30,6 +31,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
   const { cart, updateQuantity, removeFromCart, getItemCount, isLoading, initializeCart } = useCart();
   const { convertCartToQuote, isLoading: isConverting } = useCartToQuote();
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
+  const { user } = useAuth();
 
   const handleNavigateToProduct = (item: any) => {
     const category = item.cabinet_type?.category || 'base';
@@ -76,7 +78,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
     return getItemCount();
   };
 
-  const handleCheckout = async () => {
+  const handleRequestQuote = async () => {
     if (!cart?.items?.length) {
       toast.error("Your cart is empty");
       return;
@@ -110,9 +112,33 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
       return;
     }
 
-    // Regular checkout flow for non-impersonation
+    // Regular user quote request flow
+    if (cart?.id) {
+      const result = await convertCartToQuote(cart.id, user?.email);
+      
+      if (result.success) {
+        toast.success(`Quote ${result.quoteNumber} has been created and will be reviewed by our team`);
+        
+        // Initialize a new cart since the old one was converted to a quote
+        await initializeCart();
+        
+        // Close drawer and navigate to customer portal quotes
+        setIsOpen(false);
+        setTimeout(() => {
+          navigate('/portal/quotes');
+        }, 500);
+      }
+    }
+  };
+
+  const handleCheckout = () => {
+    if (!cart?.items?.length) {
+      toast.error("Your cart is empty");
+      return;
+    }
+    
     setIsOpen(false);
-    navigate("/get-quote");
+    navigate("/checkout");
   };
 
   const handleViewCart = () => {
@@ -281,17 +307,36 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
               </div>
               
               <div className="space-y-2">
-                <Button 
-                  onClick={handleCheckout}
-                  className="w-full"
-                  size="lg"
-                  disabled={isLoading || isConverting}
-                >
-                  {isImpersonating 
-                    ? (isConverting ? "Creating Quote..." : "Create Quote for Customer")
-                    : "Request Quote"
-                  }
-                </Button>
+                {isImpersonating ? (
+                  <Button 
+                    onClick={handleRequestQuote}
+                    className="w-full"
+                    size="lg"
+                    disabled={isLoading || isConverting}
+                  >
+                    {isConverting ? "Creating Quote..." : "Create Quote for Customer"}
+                  </Button>
+                ) : (
+                  <>
+                    <Button 
+                      onClick={handleRequestQuote}
+                      className="w-full"
+                      size="lg"
+                      disabled={isLoading || isConverting}
+                    >
+                      {isConverting ? "Creating Quote..." : "Request Quote"}
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={handleCheckout}
+                      className="w-full"
+                      disabled={isLoading}
+                    >
+                      Proceed to Checkout
+                    </Button>
+                  </>
+                )}
                 
                 <Button 
                   variant="outline" 

@@ -13,6 +13,7 @@ const FilesList = lazy(() => import('@/components/portal/FilesList').then(module
 const PortalMessages = lazy(() => import('@/pages/portal/PortalMessages').then(module => ({ default: module.PortalMessages })));
 const AddressBook = lazy(() => import('@/components/portal/AddressBook').then(module => ({ default: module.AddressBook })));
 const ProfileSettings = lazy(() => import('@/components/portal/ProfileSettings').then(module => ({ default: module.ProfileSettings })));
+const QuoteStatus = lazy(() => import('@/pages/portal/QuoteStatus'));
 const SavedCarts = lazy(() => import('@/components/portal/SavedCarts').then(module => ({ default: module.SavedCarts })));
 
 export const PortalRouter = () => {
@@ -26,6 +27,7 @@ export const PortalRouter = () => {
             <Route path="dashboard" element={<PortalDashboard />} />
             <Route path="quotes" element={<QuotesList />} />
             <Route path="quotes/:quoteId" element={<QuoteDetailWrapper />} />
+            <Route path="quotes/:quoteId/status" element={<QuoteStatusWrapper />} />
             <Route path="orders" element={<OrdersList />} />
             <Route path="orders/:orderId" element={<OrderDetailWrapper />} />
             <Route path="files" element={<FilesList />} />
@@ -49,6 +51,11 @@ const QuoteDetailWrapper = () => {
 const OrderDetailWrapper = () => {
   const { orderId } = useParams();
   return <OrderDetail orderId={orderId!} />;
+};
+
+const QuoteStatusWrapper = () => {
+  const { quoteId } = useParams();
+  return <QuoteStatus />;
 };
 
 export default PortalRouter;

@@ -12,6 +12,7 @@ import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
 import { useCart } from "@/hooks/useCart";
 import { useCartToQuote } from "@/hooks/useCartToQuote";
 import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
+import { useAuth } from "@/hooks/useAuth";
 
 interface CartItem {
   id: string;
@@ -28,6 +29,7 @@ const Cart = () => {
   const { cart, updateQuantity, removeFromCart, saveCart, getItemCount, isLoading, initializeCart } = useCart();
   const { convertCartToQuote, isLoading: isConverting } = useCartToQuote();
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
+  const { user } = useAuth();
 
   const toggleNotes = (itemId: string) => {
     const newExpanded = new Set(expandedNotes);
@@ -60,7 +62,7 @@ const Cart = () => {
     return getItemCount();
   };
 
-  const handleCheckout = async () => {
+  const handleRequestQuote = async () => {
     if (!cart?.items?.length) {
       toast.error("Your cart is empty");
       return;
@@ -84,19 +86,29 @@ const Cart = () => {
       return;
     }
 
-    // Add debugging to see what's happening
-    console.log('Cart data for checkout:', cart);
-    console.log('Cart items:', cart?.items);
-    console.log('Cart total:', cart?.total_amount);
-
-    // Regular checkout flow for non-impersonation
-    if (cart?.id) {
-      console.log('Navigating to checkout with cart ID:', cart.id);
-      navigate("/checkout");
-    } else {
-      console.error('No cart ID available for checkout');
-      toast.error("Cart not properly initialized. Please refresh and try again.");
+    // Regular user quote request flow
+    if (cart?.id && user) {
+      const result = await convertCartToQuote(cart.id, user.email);
+      
+      if (result.success) {
+        toast.success(`Quote ${result.quoteNumber} has been created and will be reviewed by our team`);
+        
+        // Initialize a new cart since the old one was converted to a quote
+        await initializeCart();
+        
+        // Navigate to customer portal quotes
+        navigate('/portal/quotes');
+      }
     }
+  };
+
+  const handleCheckout = () => {
+    if (!cart?.items?.length) {
+      toast.error("Your cart is empty");
+      return;
+    }
+    
+    navigate("/checkout");
   };
 
   const handleSaveCart = async () => {
@@ -272,17 +284,36 @@ const Cart = () => {
                       <span>${getTotalPrice().toFixed(2)}</span>
                     </div>
                     
-                    <Button 
-                      onClick={handleCheckout}
-                      className="w-full"
-                      size="lg"
-                      disabled={isLoading || isConverting}
-                    >
-                      {isImpersonating 
-                        ? (isConverting ? "Creating Quote..." : "Create Quote for Customer")
-                        : "Proceed to Checkout"
-                      }
-                    </Button>
+                    {isImpersonating ? (
+                      <Button 
+                        onClick={handleRequestQuote}
+                        className="w-full"
+                        size="lg"
+                        disabled={isLoading || isConverting}
+                      >
+                        {isConverting ? "Creating Quote..." : "Create Quote for Customer"}
+                      </Button>
+                    ) : (
+                      <>
+                        <Button 
+                          onClick={handleRequestQuote}
+                          className="w-full"
+                          size="lg"
+                          disabled={isLoading || isConverting}
+                        >
+                          {isConverting ? "Creating Quote..." : "Request Quote"}
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          onClick={handleCheckout}
+                          className="w-full"
+                          disabled={isLoading}
+                        >
+                          Proceed to Checkout
+                        </Button>
+                      </>
+                    )}
                     
                     {!isImpersonating && (
                       <Button 

@@ -38,6 +38,7 @@ const Pricing = lazy(() => import('@/pages/admin/Pricing'));
 const DoorStyles = lazy(() => import('@/pages/admin/DoorStyles'));
 const ConfigurationMigrationPlaceholder = lazy(() => import('@/components/admin/ConfigurationMigrationPlaceholder'));
 const TestingPlaceholder = lazy(() => import('@/components/admin/TestingPlaceholder'));
+const CartActivity = lazy(() => import('@/pages/admin/CartActivity'));
 
 export const AdminRouter = () => {
   return (
@@ -54,6 +55,7 @@ export const AdminRouter = () => {
             {/* Sales */}
             <Route path="sales/carts" element={<CartsList />} />
             <Route path="sales/quotes" element={<QuotesList />} />
+            <Route path="sales/cart-activity" element={<CartActivity />} />
             
             {/* Operations */}
             <Route path="orders" element={<AdminOrders />} />
