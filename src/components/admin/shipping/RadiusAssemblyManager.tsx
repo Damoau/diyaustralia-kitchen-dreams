@@ -51,9 +51,7 @@ const RadiusAssemblyManager = () => {
   const [affectedPostcodes, setAffectedPostcodes] = useState<PostcodeData[]>([]);
   const [surchargeSettings, setSurchargeSettings] = useState({
     carcass_surcharge_pct: 0,
-    doors_surcharge_pct: 0,
-    base_carcass_price: 50.00,
-    base_doors_price: 100.00
+    doors_surcharge_pct: 0
   });
   
   const [formData, setFormData] = useState({
@@ -305,7 +303,7 @@ const RadiusAssemblyManager = () => {
 
       toast({
         title: "Success",
-        description: `Updated assembly eligibility for postcodes within ${selectedCenter.radius_km}km radius. ${data.stats.within_radius} postcodes now assembly eligible with ${surchargeSettings.carcass_surcharge_pct}% carcass and ${surchargeSettings.doors_surcharge_pct}% doors surcharge.`,
+        description: `Updated assembly eligibility for postcodes within ${selectedCenter.radius_km}km radius. ${data.stats.within_radius} postcodes now have assembly eligibility with ${surchargeSettings.carcass_surcharge_pct}% carcass and ${surchargeSettings.doors_surcharge_pct}% doors surcharges applied to product base prices.`,
       });
 
       // Refresh the postcode analysis
@@ -509,42 +507,18 @@ const RadiusAssemblyManager = () => {
         </Card>
       )}
 
-      {/* Surcharge Settings */}
+      {/* Regional Assembly Surcharge Settings */}
       <Card>
         <CardHeader>
-          <CardTitle>Assembly Surcharge Settings</CardTitle>
-          <CardDescription>Configure pricing surcharges for postcodes within radius</CardDescription>
+          <CardTitle>Regional Assembly Surcharge Settings</CardTitle>
+          <CardDescription>
+            Configure percentage surcharges for postcodes within radius. Base assembly prices are set at the product level in the Cabinet Manager.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="baseCarcassPrice">Base Carcass Price ($)</Label>
-              <Input
-                id="baseCarcassPrice"
-                type="number"
-                step="0.01"
-                value={surchargeSettings.base_carcass_price}
-                onChange={(e) => setSurchargeSettings({
-                  ...surchargeSettings,
-                  base_carcass_price: parseFloat(e.target.value) || 50.00
-                })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="baseDoorsPrice">Base Doors Price ($)</Label>
-              <Input
-                id="baseDoorsPrice"
-                type="number"
-                step="0.01"
-                value={surchargeSettings.base_doors_price}
-                onChange={(e) => setSurchargeSettings({
-                  ...surchargeSettings,
-                  base_doors_price: parseFloat(e.target.value) || 100.00
-                })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="carcassSurcharge">Carcass Surcharge (%)</Label>
+              <Label htmlFor="carcassSurcharge">Carcass Assembly Surcharge (%)</Label>
               <Input
                 id="carcassSurcharge"
                 type="number"
@@ -556,10 +530,14 @@ const RadiusAssemblyManager = () => {
                   ...surchargeSettings,
                   carcass_surcharge_pct: parseInt(e.target.value) || 0
                 })}
+                placeholder="Percentage increase for carcass assembly"
               />
+              <p className="text-xs text-muted-foreground">
+                Percentage increase applied to product's base carcass assembly price
+              </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="doorsSurcharge">Doors Surcharge (%)</Label>
+              <Label htmlFor="doorsSurcharge">Doors Assembly Surcharge (%)</Label>
               <Input
                 id="doorsSurcharge"
                 type="number"
@@ -571,8 +549,19 @@ const RadiusAssemblyManager = () => {
                   ...surchargeSettings,
                   doors_surcharge_pct: parseInt(e.target.value) || 0
                 })}
+                placeholder="Percentage increase for doors assembly"
               />
+              <p className="text-xs text-muted-foreground">
+                Percentage increase applied to product's base doors assembly price
+              </p>
             </div>
+          </div>
+          
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm text-blue-800">
+              <strong>Note:</strong> Base assembly prices are configured individually for each cabinet type in the Cabinet Manager → Product Editor → Assembly Options tab. 
+              These surcharges are applied as percentage increases to those base prices for customers in this geographic region.
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -645,7 +634,7 @@ const RadiusAssemblyManager = () => {
                       </div>
                       {pc.within_radius && (surchargeSettings.carcass_surcharge_pct > 0 || surchargeSettings.doors_surcharge_pct > 0) && (
                         <div className="text-xs text-orange-600 mt-1">
-                          Surcharge: {surchargeSettings.carcass_surcharge_pct}% carcass, {surchargeSettings.doors_surcharge_pct}% doors
+                          Surcharges: +{surchargeSettings.carcass_surcharge_pct}% carcass, +{surchargeSettings.doors_surcharge_pct}% doors
                         </div>
                       )}
                       {pc.current_carcass_surcharge_pct > 0 || pc.current_doors_surcharge_pct > 0 ? (

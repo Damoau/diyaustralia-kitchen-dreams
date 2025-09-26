@@ -18,8 +18,6 @@ interface RadiusRequest {
   surcharge_settings?: {
     carcass_surcharge_pct: number;
     doors_surcharge_pct: number;
-    base_carcass_price: number;
-    base_doors_price: number;
   };
 }
 
@@ -74,12 +72,10 @@ serve(async (req) => {
     let withinRadiusCount = 0
     let outsideRadiusCount = 0
     
-    // Default surcharge settings if not provided
+    // Default surcharge settings if not provided (percentage only)
     const defaultSurcharge = surcharge_settings || {
       carcass_surcharge_pct: 0,
-      doors_surcharge_pct: 0,
-      base_carcass_price: 50.00,
-      base_doors_price: 100.00
+      doors_surcharge_pct: 0
     }
 
     for (const zone of postcodeZones || []) {
@@ -140,12 +136,14 @@ serve(async (req) => {
           assembly_eligible: withinRadius
         }
 
-        // Only update assembly pricing if setting assembly to eligible
+        // Only update assembly surcharge percentages if setting assembly to eligible
         if (withinRadius) {
-          updates.assembly_base_carcass_price = defaultSurcharge.base_carcass_price
-          updates.assembly_base_doors_price = defaultSurcharge.base_doors_price
           updates.assembly_carcass_surcharge_pct = defaultSurcharge.carcass_surcharge_pct
           updates.assembly_doors_surcharge_pct = defaultSurcharge.doors_surcharge_pct
+        } else {
+          // Clear surcharges for postcodes outside radius
+          updates.assembly_carcass_surcharge_pct = 0
+          updates.assembly_doors_surcharge_pct = 0
         }
 
         const { error: updateError } = await supabaseClient

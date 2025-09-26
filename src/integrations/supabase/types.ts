@@ -213,6 +213,45 @@ export type Database = {
           },
         ]
       }
+      assembly_surcharge_zones: {
+        Row: {
+          active: boolean
+          carcass_surcharge_pct: number
+          center_latitude: number
+          center_longitude: number
+          created_at: string
+          doors_surcharge_pct: number
+          id: string
+          radius_km: number
+          updated_at: string
+          zone_name: string
+        }
+        Insert: {
+          active?: boolean
+          carcass_surcharge_pct?: number
+          center_latitude: number
+          center_longitude: number
+          created_at?: string
+          doors_surcharge_pct?: number
+          id?: string
+          radius_km?: number
+          updated_at?: string
+          zone_name: string
+        }
+        Update: {
+          active?: boolean
+          carcass_surcharge_pct?: number
+          center_latitude?: number
+          center_longitude?: number
+          created_at?: string
+          doors_surcharge_pct?: number
+          id?: string
+          radius_km?: number
+          updated_at?: string
+          zone_name?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
