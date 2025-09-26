@@ -804,7 +804,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[98vw] max-w-[1600px] max-h-[90vh] overflow-hidden p-0 mobile-modal-high-z bg-background border shadow-2xl">
+      <DialogContent className="product-configurator-modal mobile-modal-high-z bg-background border shadow-2xl overflow-hidden p-0">
         {/* Debug info - Remove after testing */}
         {!selectedCabinetType && open && (
           <div className="p-4 text-center">
@@ -1255,7 +1255,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                       </CardContent>
                     </Card>
 
-                    {/* Notes - Compact */}
+                     {/* Notes - Compact */}
                     <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-lg flex items-center gap-2 font-semibold">
@@ -1273,28 +1273,51 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                       </CardContent>
                     </Card>
 
-                    {/* Packaging & Add to Cart - Enhanced */}
-                     <div className="space-y-3">
-                       <Button
-                         onClick={handleAddToCart}
-                         className="w-full"
-                         size="lg"
-                         disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish}
-                       >
-                         Add to Cart - ${(calculateTotalPrice() * quantity).toFixed(2)}
-                       </Button>
-                       {(!selectedDoorStyle || !selectedColor || !selectedFinish) && (
-                         <div className="text-sm text-muted-foreground text-center -mt-2 font-medium">
-                           Complete all selections to add to cart
-                         </div>
-                       )}
-                     </div>
+                    {/* Add bottom padding to prevent overlap with sticky add to cart */}
+                    <div className="pb-24"></div>
                   </>
                 )}
               </div>
             </div>
           </div>
         </div>
+
+        {/* Sticky Add to Cart Section */}
+        {selectedCabinetType && (
+          <div className="sticky bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t shadow-lg p-4 z-50">
+            <div className="max-w-md mx-auto space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="text-sm text-muted-foreground">
+                    {quantity} item{quantity !== 1 ? 's' : ''}
+                  </div>
+                  <div className="text-lg font-bold text-primary">
+                    ${(calculateTotalPrice() * quantity).toFixed(2)}
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  Total Price
+                </Badge>
+              </div>
+              
+              <Button
+                onClick={handleAddToCart}
+                className="w-full"
+                size="lg"
+                disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish}
+              >
+                <ShoppingCart className="w-4 h-4 mr-2" />
+                Add to Cart - ${(calculateTotalPrice() * quantity).toFixed(2)}
+              </Button>
+              
+              {(!selectedDoorStyle || !selectedColor || !selectedFinish) && (
+                <div className="text-xs text-muted-foreground text-center font-medium">
+                  Complete all selections to add to cart
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Style Color Finish Selector Dialog */}
         <StyleColorFinishSelector

@@ -145,8 +145,23 @@ All colors MUST be HSL.
     z-index: 999999 !important;
     width: fit-content !important;
     height: fit-content !important;
-    max-width: min(95vw, 1400px) !important;
+    max-width: min(98vw, 1600px) !important;
     max-height: min(95vh, 900px) !important;
+  }
+
+  /* Product configurator specific styling */
+  .product-configurator-modal {
+    width: 98vw !important;
+    max-width: 1600px !important;
+    min-width: 320px !important;
+  }
+
+  /* Responsive width adjustments */
+  @media (max-width: 640px) {
+    .product-configurator-modal {
+      width: 95vw !important;
+      max-width: 95vw !important;
+    }
   }
 
   .carousel-image {
