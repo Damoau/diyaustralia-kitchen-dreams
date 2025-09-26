@@ -200,13 +200,14 @@ export const useAssemblyJobs = () => {
         .select(`
           *,
           orders!inner (
-            order_number,
-            status as order_status
+            order_number
           )
         `)
         .single();
 
       if (error) throw error;
+
+      if (!data) throw new Error('No data returned from update');
 
       const typedData = {
         ...data,
@@ -216,8 +217,8 @@ export const useAssemblyJobs = () => {
         } : undefined
       } as AssemblyJob;
 
-      setJobs(prev => prev.map(job => job.id === id ? { ...job, ...data } : job));
-      calculateStats(jobs.map(job => job.id === id ? { ...job, ...data } : job));
+      setJobs(prev => prev.map(job => job.id === id ? typedData : job));
+      calculateStats(jobs.map(job => job.id === id ? typedData : job));
 
       toast({
         title: "Success",
