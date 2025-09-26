@@ -206,6 +206,13 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     // Clear assembly estimate while typing
     if (value.length !== 4) {
       setAssemblyEstimate(null);
+      // Reset to flat pack when clearing postcode
+      setAssemblyEnabled(false);
+      setAssemblyEditMode(false);
+    } else {
+      // When a 4-digit postcode is entered, default to flat pack
+      setAssemblyEnabled(false);
+      setAssemblyEditMode(false);
     }
 
     // Validate postcode format
@@ -228,13 +235,16 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       setSelectedColor('');
       setSelectedFinish('');
       setNotes('');
-      // Reset assembly state when opening configurator - don't clear postcode/preferences
+      // Reset assembly state when opening configurator
       setPostcodeError('');
       setAssemblyEstimate(null);
       setAssemblyEditMode(false);
-      // Don't reset assemblyEnabled and assemblyType - let preferences apply
+      // Reset assembly to flat pack if no postcode is entered
+      if (!postcode || postcode.length !== 4) {
+        setAssemblyEnabled(false);
+      }
     }
-  }, [open, cabinetTypeId]);
+  }, [open, cabinetTypeId, postcode]);
 
   // Load data when configurator opens
   useEffect(() => {
@@ -1006,7 +1016,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                             </p>
                           )}
                           
-                            {/* Assembly Options - Always Show */}
+                          {/* Assembly Options - Only show when postcode is entered */}
+                          {postcode.length === 4 && (
                             <div className="mt-3 space-y-2">
                               {!assemblyEditMode ? (
                                 // Show selected option with edit button
@@ -1161,6 +1172,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                                 </div>
                               )}
                             </div>
+                          )}
                           
                           {/* Loading/Checking Assembly */}
                           {postcode.length === 4 && !assemblyEstimate && !postcodeError && (
