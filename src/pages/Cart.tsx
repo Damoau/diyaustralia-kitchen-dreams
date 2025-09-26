@@ -130,11 +130,13 @@ const Cart = () => {
       <div className="min-h-screen bg-background">
         <DynamicHeader />
         
-        <main className="container mx-auto px-4 py-8 mobile-safe-bottom">
-          <div className="flex items-center gap-2 mb-6">
-            <ShoppingCart className="h-6 w-6" />
-            <h1 className="text-3xl font-bold">Shopping Cart</h1>
-            <Badge variant="secondary">{getTotalItems()} items</Badge>
+        <main className="container mx-auto px-4 py-6 md:py-8 mobile-safe-bottom">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-6">
+            <div className="flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" />
+              <h1 className="text-2xl md:text-3xl font-bold">Shopping Cart</h1>
+            </div>
+            <Badge variant="secondary" className="self-start sm:self-center">{getTotalItems()} items</Badge>
           </div>
 
           {!cart?.items?.length ? (
@@ -151,23 +153,23 @@ const Cart = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid lg:grid-cols-3 gap-8">
+            <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
               {/* Cart Items */}
-              <div className="lg:col-span-2 space-y-4">
+              <div className="lg:col-span-2 space-y-3 md:space-y-4">
                 {cart.items.map((item) => (
                   <Card key={item.id}>
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
+                    <CardContent className="p-4 md:p-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between">
+                        <div className="flex items-start space-x-3 sm:space-x-4 flex-1">
                           {item.cabinet_type?.product_image_url && (
                             <img 
                               src={item.cabinet_type.product_image_url} 
                               alt={item.cabinet_type.name}
-                              className="w-20 h-20 object-cover rounded"
+                              className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded flex-shrink-0"
                             />
                           )}
                           
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <h3 className="font-semibold">{item.cabinet_type?.name || 'Cabinet'}</h3>
                             <p className="text-sm text-muted-foreground">{item.cabinet_type?.category}</p>
                             <p className="text-xs text-muted-foreground">
@@ -217,38 +219,42 @@ const Cart = () => {
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                              disabled={isLoading}
-                            >
-                              <Minus className="h-3 w-3" />
-                            </Button>
-                            <span className="w-8 text-center font-medium">{item.quantity}</span>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                              disabled={isLoading}
-                            >
-                              <Plus className="h-3 w-3" />
-                            </Button>
-                          </div>
-                          
-                          <div className="text-right">
-                            <p className="font-semibold">
-                              ${item.total_price.toFixed(2)}
-                            </p>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mt-3 sm:mt-0">
+                          <div className="flex items-center justify-between sm:justify-start gap-2">
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                                disabled={isLoading}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Minus className="h-3 w-3" />
+                              </Button>
+                              <span className="w-8 text-center font-medium text-sm">{item.quantity}</span>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                                disabled={isLoading}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            
+                            <div className="text-right sm:ml-4">
+                              <p className="font-semibold text-sm">
+                                ${item.total_price.toFixed(2)}
+                              </p>
+                            </div>
                           </div>
                           
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => handleRemoveItem(item.id)}
-                            className="text-destructive hover:text-destructive"
+                            className="text-destructive hover:text-destructive self-end sm:self-center"
                             disabled={isLoading}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -262,7 +268,7 @@ const Cart = () => {
 
               {/* Order Summary */}
               <div>
-                <Card className="sticky top-4">
+                <Card className="sticky top-4 mt-6 lg:mt-0">
                   <CardHeader>
                     <CardTitle>Order Summary</CardTitle>
                   </CardHeader>
