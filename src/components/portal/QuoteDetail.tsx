@@ -184,9 +184,14 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
         description: `${data.items_added} items ready for checkout! Redirecting...`,
       });
 
-      // Super quick redirect
+      // Force cart refresh by dispatching a custom event
+      window.dispatchEvent(new CustomEvent('cart-updated'));
+
+      // Super quick redirect with cache busting
       setTimeout(() => {
-        window.location.href = '/checkout';
+        // Clear any cached cart data before redirect
+        sessionStorage.removeItem('cart_session_id');
+        window.location.href = '/checkout?refresh=' + Date.now();
       }, 600);
 
     } catch (error) {

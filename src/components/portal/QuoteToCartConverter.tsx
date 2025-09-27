@@ -118,9 +118,14 @@ export const QuoteToCartConverter = ({
 
       setOpen(false);
       
-      // Force a clean redirect to cart page
+      // Force cart refresh by dispatching a custom event
+      window.dispatchEvent(new CustomEvent('cart-updated'));
+      
+      // Force a clean redirect to cart page with cache busting
       setTimeout(() => {
-        window.location.href = '/cart';
+        // Clear any cached cart data before redirect
+        sessionStorage.removeItem('cart_session_id');
+        window.location.href = '/cart?refresh=' + Date.now();
       }, 500);
       
       if (onSuccess) {

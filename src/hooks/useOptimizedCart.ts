@@ -210,11 +210,24 @@ export const useOptimizedCart = () => {
     }
   }, [user?.id, getSessionId, isLoading]);
 
-  // Initialize cart only once when user changes
+  // Initialize cart only once when user changes or when forced refresh event occurs
   useEffect(() => {
     if (!cart) {
       initializeCart();
     }
+
+    // Listen for cart update events to refresh cart
+    const handleCartUpdate = () => {
+      console.log('Cart update event received - refreshing cart');
+      setCart(null);
+      setTimeout(() => initializeCart(), 100);
+    };
+
+    window.addEventListener('cart-updated', handleCartUpdate);
+    
+    return () => {
+      window.removeEventListener('cart-updated', handleCartUpdate);
+    };
   }, [user?.id]); // Only depend on user ID change
 
   // Helper functions
