@@ -136,26 +136,27 @@ export const QuoteChangeRequestDialog = ({
 
     setIsSubmitting(true);
     try {
-      // Send change request
-      const { error } = await supabase.functions.invoke('portal-quote-request-change', {
+      // Send message to staff
+      const { error } = await supabase.functions.invoke('portal-messages', {
         body: {
-          quote_id: quoteId,
-          message: changeRequest.trim(),
-          change_type: 'revision_request',
+          scope: 'quote',
+          scope_id: quoteId,
+          message_text: changeRequest.trim(),
+          message_type: 'customer_message',
           file_ids: uploadedFiles.map(f => f.id)
         }
       });
 
       if (error) throw error;
 
-      toast.success('Change request submitted successfully!');
+      toast.success('Message sent successfully!');
       setChangeRequest('');
       setUploadedFiles([]);
       setOpen(false);
       onRequestSubmitted();
     } catch (error) {
       console.error('Error submitting change request:', error);
-      toast.error('Failed to submit change request. Please try again.');
+      toast.error('Failed to send message. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -170,7 +171,7 @@ export const QuoteChangeRequestDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5" />
-            Request Changes
+            Send Staff a Message
           </DialogTitle>
         </DialogHeader>
         
@@ -178,10 +179,10 @@ export const QuoteChangeRequestDialog = ({
           {/* Message Input */}
           <div>
             <label className="text-sm font-medium mb-2 block">
-              Describe the changes you'd like to request
+              Your message to staff
             </label>
             <Textarea
-              placeholder="Please be as specific as possible about the changes you need. Include measurements, colors, configurations, or any other details that will help us understand your requirements."
+              placeholder="Type your message to our staff here. You can ask questions, request changes, or provide additional information about your quote."
               value={changeRequest}
               onChange={(e) => setChangeRequest(e.target.value)}
               rows={4}
@@ -268,7 +269,7 @@ export const QuoteChangeRequestDialog = ({
               onClick={handleSubmit}
               disabled={isSubmitting || !changeRequest.trim()}
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Request'}
+              {isSubmitting ? 'Sending...' : 'Send Message'}
             </Button>
           </div>
         </div>

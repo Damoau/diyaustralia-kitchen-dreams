@@ -140,14 +140,49 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
     return <Badge variant={config.variant}>{config.text}</Badge>;
   };
 
-  const handleAcceptQuote = () => {
-    setShowPaymentDialog(true);
-  };
+  const handleAcceptQuote = async () => {
+    try {
+      console.log('Adding all quote items to cart and redirecting to checkout');
+      
+      // Add all quote items to cart automatically
+      const { data: cartData, error: cartError } = await supabase.functions.invoke('portal-quote-to-cart', {
+        body: { 
+          quote_id: quoteId,
+          selected_items: quote?.quote_items?.map((item: any) => item.id) || [] // Select all items
+        },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-  const handlePayDeposit = () => {
-    // In real app, this would integrate with Stripe
-    console.log("Processing deposit payment:", quote.depositAmount);
-    setShowPaymentDialog(false);
+      if (cartError) {
+        console.error('Error adding items to cart:', cartError);
+        toast({
+          title: "Error",
+          description: "Failed to add items to cart. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Items Added to Cart!",
+        description: "All quote items have been added to your cart. Redirecting to checkout...",
+      });
+
+      // Redirect to checkout
+      setTimeout(() => {
+        window.location.href = '/checkout';
+      }, 1500);
+
+    } catch (error) {
+      console.error('Error processing quote:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process quote. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleRequestSubmitted = () => {
@@ -178,27 +213,30 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
                 <CardTitle>Quote Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Button onClick={handleAcceptQuote} className="w-full">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button 
+                    onClick={handleAcceptQuote}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                    size="lg"
+                  >
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    Accept Quote
+                    Checkout All Items
                   </Button>
                   
-                  <QuoteToCartConverter
+                  <QuoteToCartConverter 
                     quoteId={quoteDisplay.id}
-                    quoteNumber={quoteDisplay.quote_number}
-                    totalAmount={quoteDisplay.amount}
                     items={quoteDisplay.items}
+                    buttonText="Add Selected Items to Cart"
                   />
                 </div>
                 
-                <QuoteChangeRequestDialog 
+                <QuoteChangeRequestDialog
                   quoteId={quoteDisplay.id}
                   onRequestSubmitted={handleRequestSubmitted}
                 >
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" size="lg" className="flex-1">
                     <MessageSquare className="w-4 h-4 mr-2" />
-                    Request Changes
+                    Send Staff a Message
                   </Button>
                 </QuoteChangeRequestDialog>
               </CardContent>
@@ -218,7 +256,12 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
                       <div className="flex-1 space-y-3">
                         {/* Main Item Info */}
                         <div>
-                          <h4 className="font-semibold text-lg">{item.cabinet_types?.name || 'Cabinet'}</h4>
+                          <h4 className="font-semibold text-lg">
+                            {item.item_name || item.cabinet_types?.name || 'Cabinet'}
+                          </h4>
+                          {item.job_reference && (
+                            <p className="text-sm font-medium text-primary">{item.job_reference}</p>
+                          )}
                           <p className="text-sm text-muted-foreground">
                             Qty: {item.quantity} | Dimensions: {item.width_mm}×{item.height_mm}×{item.depth_mm}mm
                           </p>
@@ -250,50 +293,40 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
                             </div>
                           )}
 
+                          {/* Hardware Information */}
+                          {item.hardware_selections && Object.keys(item.hardware_selections).length > 0 && (
+                            <div className="space-y-2">
+                              <h5 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Hardware</h5>
+                              <div className="space-y-1">
+                                {Object.entries(item.hardware_selections).map(([type, selection]: [string, any]) => (
+                                  <p key={type} className="text-sm">
+                                    <span className="font-medium capitalize">{type}:</span> {selection.name || 'Standard'}
+                                  </p>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
                           {/* Assembly Information */}
-                          {item.configuration?.assembly && (
+                          {item.configuration?.assemblyService && (
                             <div className="space-y-2">
                               <h5 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Assembly</h5>
                               <div className="space-y-1">
                                 <p className="text-sm">
-                                  <span className="font-medium">Option:</span>{' '}
-                                  {item.configuration.assembly.enabled ? (
-                                    item.configuration.assembly.type === 'carcass_only' 
-                                      ? 'Carcass Assembly' 
-                                      : 'Full Assembly with Doors'
-                                  ) : (
-                                    'Flat Pack'
-                                  )}
+                                  <span className="font-medium">Service:</span> Required
                                 </p>
-                                {item.configuration.assembly.enabled && item.configuration.assembly.postcode && (
-                                  <p className="text-sm">
-                                    <span className="font-medium">Postcode:</span> {item.configuration.assembly.postcode}
-                                  </p>
-                                )}
-                                {item.configuration.assembly.enabled && item.configuration.assembly.lead_time_days && (
-                                  <p className="text-sm">
-                                    <span className="font-medium">Lead Time:</span> {item.configuration.assembly.lead_time_days} days
-                                  </p>
-                                )}
                               </div>
                             </div>
                           )}
 
                           {/* Additional Configuration */}
-                          {(item.configuration?.weight || item.notes) && (
+                          {(item.notes || item.enhanced_notes) && (
                             <div className="space-y-2">
-                              <h5 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Details</h5>
+                              <h5 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Notes</h5>
                               <div className="space-y-1">
-                                {item.configuration?.weight?.totalWeight && (
-                                  <p className="text-sm">
-                                    <span className="font-medium">Weight:</span> {item.configuration.weight.totalWeight.toFixed(1)}kg
-                                  </p>
-                                )}
-                                {item.notes && (
-                                  <p className="text-sm">
-                                    <span className="font-medium">Notes:</span> {item.notes}
-                                  </p>
-                                )}
+                                <p className="text-sm">
+                                  {item.enhanced_notes || item.notes}
+                                </p>
                               </div>
                             </div>
                           )}
@@ -401,7 +434,37 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
               <CardTitle>Downloads</CardTitle>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={async () => {
+                  try {
+                    const { data, error } = await supabase.functions.invoke('portal-quote-pdf', {
+                      body: { quote_id: quoteId }
+                    });
+                    
+                    if (error) throw error;
+                    
+                    // Create blob and download
+                    const blob = new Blob([data], { type: 'application/pdf' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `quote-${quote.quote_number}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                  } catch (error) {
+                    console.error('Error downloading PDF:', error);
+                    toast({
+                      title: "Error",
+                      description: "Failed to download PDF. Please try again.",
+                      variant: "destructive"
+                    });
+                  }
+                }}
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Download PDF
               </Button>
@@ -437,7 +500,7 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
               <Button variant="outline" onClick={() => setShowPaymentDialog(false)}>
                 Cancel
               </Button>
-              <Button onClick={handlePayDeposit}>
+              <Button onClick={() => console.log('Payment integration needed')}>
                 <CreditCard className="w-4 h-4 mr-2" />
                 Pay Deposit
               </Button>

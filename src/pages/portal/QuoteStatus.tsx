@@ -184,8 +184,6 @@ const QuoteStatus = () => {
             {quote.status === 'approved' && quote.quote_items && (
               <QuoteToCartConverter
                 quoteId={quote.id}
-                quoteNumber={quote.quote_number}
-                totalAmount={quote.total_amount}
                 items={quote.quote_items}
               />
             )}

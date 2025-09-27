@@ -40,17 +40,15 @@ interface QuoteItem {
 
 interface QuoteToCartConverterProps {
   quoteId: string;
-  quoteNumber: string;
-  totalAmount: number;
   items: QuoteItem[];
+  buttonText?: string;
   onSuccess?: () => void;
 }
 
 export const QuoteToCartConverter = ({ 
   quoteId, 
-  quoteNumber, 
-  totalAmount, 
   items,
+  buttonText = "Add to Cart",
   onSuccess 
 }: QuoteToCartConverterProps) => {
   const [open, setOpen] = useState(false);
@@ -122,7 +120,7 @@ export const QuoteToCartConverter = ({
           .from('carts')
           .insert({
             user_id: user.user.id,
-            name: `Quote ${quoteNumber} Items`,
+            name: `Quote Items`,
             source: 'quote_conversion',
             total_amount: 0
           })
@@ -151,7 +149,7 @@ export const QuoteToCartConverter = ({
         door_style_id: item.door_style_id,
         color_id: item.color_id,
         finish_id: item.finish_id,
-        notes: `Added from Quote ${quoteNumber}`
+        notes: `Added from quote`
       }));
 
       const { error: itemsError } = await supabase
@@ -176,7 +174,7 @@ export const QuoteToCartConverter = ({
 
       toast({
         title: "Items Added to Cart",
-        description: `${selectedItems.length} items from Quote ${quoteNumber} have been added to your cart.`
+        description: `${selectedItems.length} items from quote have been added to your cart.`
       });
 
       setOpen(false);
@@ -203,9 +201,14 @@ export const QuoteToCartConverter = ({
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} className="w-full">
+      <Button 
+        variant="outline" 
+        size="lg" 
+        onClick={() => setOpen(true)}
+        className="flex-1"
+      >
         <ShoppingCart className="w-4 h-4 mr-2" />
-        Add to Cart
+        {buttonText}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -217,12 +220,12 @@ export const QuoteToCartConverter = ({
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
               <div>
-                <p className="font-medium">Quote {quoteNumber}</p>
+                <p className="font-medium">Quote Items</p>
                 <p className="text-sm text-muted-foreground">{items.length} items total</p>
               </div>
               <Badge variant="secondary">
                 <DollarSign className="w-3 h-3 mr-1" />
-                {new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(totalAmount)}
+                {new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(getSelectedTotal())}
               </Badge>
             </div>
 
