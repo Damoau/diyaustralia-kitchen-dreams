@@ -17,7 +17,8 @@ serve(async (req) => {
   }
 
   try {
-    const { quote_id } = await req.json();
+    const startTime = Date.now();
+    const { quote_id, selected_item_ids } = await req.json();
     
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -32,14 +33,29 @@ serve(async (req) => {
       throw new Error('Invalid authorization');
     }
 
-    console.log(`Processing quote to cart conversion for quote: ${quote_id}, user: ${user.id}`);
+    console.log(`Fast quote-to-cart conversion for quote: ${quote_id}, user: ${user.id}`);
     
-    // Get quote data
+    // Single query to get quote and items
     const { data: quote, error: quoteError } = await supabase
       .from('quotes')
       .select(`
-        *,
-        quote_items (*)
+        id,
+        quote_number,
+        user_id,
+        quote_items!inner (
+          id,
+          cabinet_type_id,
+          quantity,
+          width_mm,
+          height_mm,
+          depth_mm,
+          unit_price,
+          total_price,
+          configuration,
+          door_style_id,
+          color_id,
+          finish_id
+        )
       `)
       .eq('id', quote_id)
       .eq('user_id', user.id)
@@ -49,37 +65,67 @@ serve(async (req) => {
       throw new Error('Quote not found or access denied');
     }
 
-    // Get or create cart
-    let { data: cart, error: cartError } = await supabase
-      .from('carts')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    // Filter selected items
+    const selectedItems = quote.quote_items.filter(item => 
+      selected_item_ids ? selected_item_ids.includes(item.id) : true
+    );
 
-    if (!cart) {
-      // Create new cart
-      const { data: newCart, error: createError } = await supabase
-        .from('carts')
-        .insert({
-          user_id: user.id,
-          name: `Quote ${quote.quote_number}`,
-          source: 'quote_conversion',
-          total_amount: 0,
-          status: 'active'
-        })
-        .select('id')
-        .single();
-
-      if (createError) throw createError;
-      cart = newCart;
+    if (selectedItems.length === 0) {
+      throw new Error('No items selected');
     }
 
-    // Prepare cart items (excluding fields that don't exist in cart_items table)
-    const cartItems = quote.quote_items.map((item: any) => ({
-      cart_id: cart!.id,
+    // Get or create cart using upsert for speed
+    const { data: cart, error: cartError } = await supabase
+      .from('carts')
+      .upsert({
+        user_id: user.id,
+        name: `Quote ${quote.quote_number}`,
+        source: 'quote_conversion',
+        status: 'active',
+        total_amount: 0,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id,status',
+        ignoreDuplicates: false
+      })
+      .select('id')
+      .single();
+
+    let cartId = cart?.id;
+    if (!cartId) {
+      // Fallback: get existing cart
+      const { data: existingCart } = await supabase
+        .from('carts')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (!existingCart) {
+        const { data: newCart, error: createError } = await supabase
+          .from('carts')
+          .insert({
+            user_id: user.id,
+            name: `Quote ${quote.quote_number}`,
+            source: 'quote_conversion',
+            total_amount: 0,
+            status: 'active'
+          })
+          .select('id')
+          .single();
+        
+        if (createError) throw createError;
+        cartId = newCart.id;
+      } else {
+        cartId = existingCart.id;
+      }
+    }
+
+    // Prepare cart items for bulk insert (exclude non-existent columns)
+    const cartItems = selectedItems.map((item: any) => ({
+      cart_id: cartId,
       cabinet_type_id: item.cabinet_type_id,
       quantity: item.quantity,
       width_mm: item.width_mm,
@@ -104,29 +150,30 @@ serve(async (req) => {
       throw itemsError;
     }
 
-    // Update cart total
-    const cartTotal = quote.quote_items.reduce((sum: number, item: any) => sum + item.total_price, 0);
+    // Calculate and update cart total
+    const cartTotal = selectedItems.reduce((sum: number, item: any) => sum + item.total_price, 0);
     const { error: updateError } = await supabase
       .from('carts')
       .update({ 
         total_amount: cartTotal,
         updated_at: new Date().toISOString()
       })
-      .eq('id', cart!.id);
+      .eq('id', cartId);
 
     if (updateError) {
       console.error('Error updating cart total:', updateError);
       throw updateError;
     }
 
-    console.log(`Successfully added ${quote.quote_items.length} items to cart ${cart.id}`);
+    const processingTime = Date.now() - startTime;
+    console.log(`Successfully added ${selectedItems.length} items to cart ${cartId} in ${processingTime}ms`);
 
-    // Return success response
     return new Response(JSON.stringify({ 
       success: true, 
       message: 'Items successfully added to cart',
-      cart_id: cart.id,
-      items_added: quote.quote_items.length
+      cart_id: cartId,
+      items_added: selectedItems.length,
+      processing_time_ms: processingTime
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

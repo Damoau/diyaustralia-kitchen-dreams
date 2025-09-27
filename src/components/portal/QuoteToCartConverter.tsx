@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { LoadingBox } from "@/components/ui/loading-box";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useCartSaveTracking } from "@/hooks/useCartSaveTracking";
@@ -95,94 +96,32 @@ export const QuoteToCartConverter = ({
     }
 
     setIsConverting(true);
-    markAsSaving(); // Track save status
+    markAsSaving();
 
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) {
-        throw new Error("User not authenticated");
-      }
+      // Use optimized edge function for much faster processing
+      const { data, error } = await supabase.functions.invoke('quote-to-cart-fast', {
+        body: { 
+          quote_id: quoteId,
+          selected_item_ids: selectedItems 
+        }
+      });
 
-      // Mark as unsaved when we start modifying the cart
-      markAsUnsaved();
+      if (error) throw error;
 
-      // Get or create user's cart
-      let { data: cart, error: cartError } = await supabase
-        .from('carts')
-        .select('id')
-        .eq('user_id', user.user.id)
-        .eq('status', 'active')
-        .single();
-
-      if (cartError && cartError.code === 'PGRST116') {
-        // No active cart found, create one
-        const { data: newCart, error: createError } = await supabase
-          .from('carts')
-          .insert({
-            user_id: user.user.id,
-            name: `Quote Items`,
-            source: 'quote_conversion',
-            total_amount: 0
-          })
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        cart = newCart;
-      } else if (cartError) {
-        throw cartError;
-      }
-
-      // Convert selected quote items to cart items
-      const selectedQuoteItems = items.filter(item => selectedItems.includes(item.id));
-      
-      const cartItems = selectedQuoteItems.map(item => ({
-        cart_id: cart!.id,
-        cabinet_type_id: item.cabinet_type_id,
-        quantity: item.quantity,
-        width_mm: item.width_mm,
-        height_mm: item.height_mm,
-        depth_mm: item.depth_mm,
-        unit_price: item.unit_price,
-        total_price: item.total_price,
-        configuration: item.configuration,
-        door_style_id: item.door_style_id,
-        color_id: item.color_id,
-        finish_id: item.finish_id,
-        notes: `Added from quote`
-      }));
-
-      const { error: itemsError } = await supabase
-        .from('cart_items')
-        .insert(cartItems);
-
-      if (itemsError) throw itemsError;
-
-      // Update cart total
-      const { error: updateError } = await supabase
-        .from('carts')
-        .update({ 
-          total_amount: getSelectedTotal(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', cart!.id);
-
-      if (updateError) throw updateError;
-
-      // Mark as successfully saved
       markAsSaved();
 
       toast({
-        title: "Items Added to Cart",
-        description: `${selectedItems.length} items from quote have been added to your cart. Redirecting to cart...`
+        title: "Items Added to Cart! 🎉",
+        description: `${selectedItems.length} items packed and ready. Redirecting to cart...`
       });
 
       setOpen(false);
       
-      // Redirect to cart page to allow customer to review and checkout
+      // Faster redirect
       setTimeout(() => {
         window.location.href = '/cart';
-      }, 1500);
+      }, 800);
       
       if (onSuccess) {
         onSuccess();
@@ -190,7 +129,7 @@ export const QuoteToCartConverter = ({
 
     } catch (error) {
       console.error('Error adding to cart:', error);
-      markAsError(); // Mark save as failed
+      markAsError();
       toast({
         title: "Error",
         description: "Failed to add items to cart. Please try again.",
@@ -219,126 +158,134 @@ export const QuoteToCartConverter = ({
             <DialogTitle>Add Quote Items to Cart</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div>
-                <p className="font-medium">Quote Items</p>
-                <p className="text-sm text-muted-foreground">{items.length} items total</p>
+          {isConverting ? (
+            <div className="flex items-center justify-center py-12">
+              <LoadingBox message="Packing your items into cart..." />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div>
+                  <p className="font-medium">Quote Items</p>
+                  <p className="text-sm text-muted-foreground">{items.length} items total</p>
+                </div>
+                <Badge variant="secondary">
+                  <DollarSign className="w-3 h-3 mr-1" />
+                  {new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(getSelectedTotal())}
+                </Badge>
               </div>
-              <Badge variant="secondary">
-                <DollarSign className="w-3 h-3 mr-1" />
-                {new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(getSelectedTotal())}
-              </Badge>
-            </div>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2 mb-4">
-                  <Checkbox
-                    id="select-all"
-                    checked={selectedItems.length === items.length}
-                    onCheckedChange={handleSelectAll}
-                  />
-                  <label htmlFor="select-all" className="font-medium cursor-pointer">
-                    Select All Items
-                  </label>
-                </div>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2 mb-4">
+                    <Checkbox
+                      id="select-all"
+                      checked={selectedItems.length === items.length}
+                      onCheckedChange={handleSelectAll}
+                    />
+                    <label htmlFor="select-all" className="font-medium cursor-pointer">
+                      Select All Items
+                    </label>
+                  </div>
 
-                <div className="space-y-3">
-                  {items.map((item) => (
-                    <div key={item.id} className="flex items-start space-x-3 p-4 border rounded-lg">
-                      <Checkbox
-                        checked={selectedItems.includes(item.id)}
-                        onCheckedChange={(checked) => handleSelectItem(item.id, !!checked)}
-                        className="mt-1"
-                      />
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Package className="w-4 h-4 text-muted-foreground" />
-                          <span className="font-medium">
-                            {item.cabinet_types?.name || 'Cabinet'}
-                          </span>
-                        </div>
+                  <div className="space-y-3">
+                    {items.map((item) => (
+                      <div key={item.id} className="flex items-start space-x-3 p-4 border rounded-lg">
+                        <Checkbox
+                          checked={selectedItems.includes(item.id)}
+                          onCheckedChange={(checked) => handleSelectItem(item.id, !!checked)}
+                          className="mt-1"
+                        />
                         
-                        <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground mb-2">
-                          <div>Qty: {item.quantity}</div>
-                          <div>Size: {item.width_mm}×{item.height_mm}×{item.depth_mm}mm</div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Package className="w-4 h-4 text-muted-foreground" />
+                            <span className="font-medium">
+                              {item.cabinet_types?.name || 'Cabinet'}
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground mb-2">
+                            <div>Qty: {item.quantity}</div>
+                            <div>Size: {item.width_mm}×{item.height_mm}×{item.depth_mm}mm</div>
+                          </div>
+
+                          {/* Configuration Details */}
+                          <div className="space-y-1 text-sm">
+                            {item.door_styles?.name && (
+                              <div className="flex gap-2">
+                                <span className="text-muted-foreground">Door Style:</span>
+                                <span className="font-medium">{item.door_styles.name}</span>
+                              </div>
+                            )}
+                            {item.colors?.name && (
+                              <div className="flex gap-2">
+                                <span className="text-muted-foreground">Color:</span>
+                                <span className="font-medium">{item.colors.name}</span>
+                              </div>
+                            )}
+                            {item.finishes?.name && (
+                              <div className="flex gap-2">
+                                <span className="text-muted-foreground">Finish:</span>
+                                <span className="font-medium">{item.finishes.name}</span>
+                              </div>
+                            )}
+                            {item.configuration && Object.keys(item.configuration).length > 0 && (
+                              <div className="flex gap-2">
+                                <span className="text-muted-foreground">Hardware:</span>
+                                <span className="font-medium">
+                                  {item.configuration.hardware || 'Standard'}
+                                </span>
+                              </div>
+                            )}
+                            {item.notes && (
+                              <div className="flex gap-2">
+                                <span className="text-muted-foreground">Notes:</span>
+                                <span className="font-medium">{item.notes}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
-                        {/* Configuration Details */}
-                        <div className="space-y-1 text-sm">
-                          {item.door_styles?.name && (
-                            <div className="flex gap-2">
-                              <span className="text-muted-foreground">Door Style:</span>
-                              <span className="font-medium">{item.door_styles.name}</span>
-                            </div>
-                          )}
-                          {item.colors?.name && (
-                            <div className="flex gap-2">
-                              <span className="text-muted-foreground">Color:</span>
-                              <span className="font-medium">{item.colors.name}</span>
-                            </div>
-                          )}
-                          {item.finishes?.name && (
-                            <div className="flex gap-2">
-                              <span className="text-muted-foreground">Finish:</span>
-                              <span className="font-medium">{item.finishes.name}</span>
-                            </div>
-                          )}
-                          {item.configuration && Object.keys(item.configuration).length > 0 && (
-                            <div className="flex gap-2">
-                              <span className="text-muted-foreground">Hardware:</span>
-                              <span className="font-medium">
-                                {item.configuration.hardware || 'Standard'}
-                              </span>
-                            </div>
-                          )}
-                          {item.notes && (
-                            <div className="flex gap-2">
-                              <span className="text-muted-foreground">Notes:</span>
-                              <span className="font-medium">{item.notes}</span>
-                            </div>
-                          )}
+                        <div className="text-right">
+                          <div className="font-semibold">
+                            {new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(item.total_price)}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(item.unit_price)} ea.
+                          </div>
                         </div>
                       </div>
+                    ))}
+                  </div>
 
-                      <div className="text-right">
-                        <div className="font-semibold">
-                          {new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(item.total_price)}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(item.unit_price)} ea.
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                  <Separator className="my-4" />
 
-                <Separator className="my-4" />
+                  <div className="flex justify-between items-center text-lg font-bold">
+                    <span>Selected Total:</span>
+                    <span>
+                      {new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(getSelectedTotal())}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
 
-                <div className="flex justify-between items-center text-lg font-bold">
-                  <span>Selected Total:</span>
-                  <span>
-                    {new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(getSelectedTotal())}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setOpen(false)}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleAddToCart}
-                disabled={isConverting || selectedItems.length === 0}
-              >
-                <ShoppingCart className="w-4 h-4 mr-2" />
-                {isConverting ? 'Adding...' : `Add ${selectedItems.length} Item${selectedItems.length !== 1 ? 's' : ''} to Cart`}
-              </Button>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setOpen(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleAddToCart}
+                  disabled={isConverting || selectedItems.length === 0}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  size="lg"
+                >
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  {isConverting ? 'Packing...' : `Pack ${selectedItems.length} Item${selectedItems.length !== 1 ? 's' : ''} in Cart`}
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
     </>

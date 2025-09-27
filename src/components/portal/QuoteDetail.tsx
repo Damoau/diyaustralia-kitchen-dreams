@@ -166,13 +166,13 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
         return;
       }
 
-      // Show loading immediately
+      // Show optimistic loading
       toast({
-        title: "Processing...",
-        description: "Adding items to cart, please wait...",
+        title: "Packing Items... 📦",
+        description: "Adding all items to your cart...",
       });
 
-      // Use optimized edge function for fast processing
+      // Use super-fast edge function
       const { data, error } = await supabase.functions.invoke('quote-to-cart-fast', {
         body: { quote_id: quoteId }
       });
@@ -180,14 +180,14 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
       if (error) throw error;
 
       toast({
-        title: "Success!",
-        description: "Items have been added to your cart. Redirecting to checkout...",
+        title: "All Packed! 🎉",
+        description: `${data.items_added} items ready for checkout! Redirecting...`,
       });
 
-      // Redirect immediately
+      // Super quick redirect
       setTimeout(() => {
         window.location.href = '/checkout';
-      }, 800);
+      }, 600);
 
     } catch (error) {
       console.error('Error processing quote:', error);
