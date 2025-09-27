@@ -87,8 +87,10 @@ const App = () => (
                   <Route path="/manufacturing" element={<Manufacturing />} />
                   <Route path="/kitchen-styles" element={<KitchenStyles />} />
                   <Route path="/cart" element={<Cart />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/auth" element={<Auth />} />
+                   <Route path="/checkout" element={<Checkout />} />
+                   <Route path="/auth" element={<Auth />} />
+                   {/* Redirect cart-system-health to admin version */}
+                   <Route path="/cart-system-health" element={<Navigate to="/admin/cart-system-health" replace />} />
                   <Route 
                     path="/portal/*" 
                     element={

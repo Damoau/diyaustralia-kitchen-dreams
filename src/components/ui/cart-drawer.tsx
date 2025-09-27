@@ -231,7 +231,8 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
           </div>
         </SheetTrigger>
         
-        <SheetContent side="right" className="w-full sm:max-w-lg">
+        <SheetContent side="right" className="w-full sm:max-w-lg p-0">
+          <div className="flex flex-col h-full p-6">
           <SheetHeader className="space-y-2.5 pr-6">
             <SheetTitle className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5" />
@@ -433,6 +434,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
               </div>
             </div>
           )}
+          </div>
         </SheetContent>
       </Sheet>
 
