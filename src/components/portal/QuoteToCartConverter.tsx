@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
@@ -59,9 +59,9 @@ export const QuoteToCartConverter = ({
   const { markAsUnsaved, markAsSaving, markAsSaved, markAsError } = useCartSaveTracking();
 
   // Select all items by default
-  useState(() => {
+  useEffect(() => {
     setSelectedItems(items.map(item => item.id));
-  });
+  }, [items]);
 
   const handleSelectItem = (itemId: string, checked: boolean) => {
     if (checked) {
