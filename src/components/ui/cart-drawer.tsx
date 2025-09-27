@@ -378,14 +378,21 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                   <span>${getTotalPrice().toFixed(2)}</span>
                 </div>
                 
-                {/* Compact 20% Deposit Banner */}
+                {/* Modern 20% Deposit Banner */}
                 {getTotalPrice() > 0 && (
                   <div className="flex justify-center">
-                    <div className="bg-purple-600 text-white rounded-full px-4 py-2 text-sm font-semibold inline-flex items-center gap-2">
-                      <span>20% Deposit</span>
-                      <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">
-                        ${(getTotalPrice() * 0.2).toFixed(2)}
-                      </span>
+                    <div className="bg-gradient-to-r from-primary to-blue-dark text-primary-foreground rounded-xl px-6 py-3 shadow-lg border border-primary/20 backdrop-blur-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium opacity-90">20% Deposit</span>
+                          <span className="text-lg font-bold">
+                            ${(getTotalPrice() * 0.2).toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                          <span className="text-xs font-bold">20%</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
