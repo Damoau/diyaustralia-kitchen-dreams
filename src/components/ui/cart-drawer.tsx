@@ -70,6 +70,27 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
     }
 
     try {
+      // Optimistically update the UI first
+      const updatedItems = cart?.items?.map(cartItem => 
+        cartItem.id === itemId 
+          ? { 
+              ...cartItem, 
+              quantity: newQuantity, 
+              total_price: newQuantity * cartItem.unit_price 
+            }
+          : cartItem
+      ) || [];
+      
+      // Update local cart state immediately
+      if (cart) {
+        const updatedCart = {
+          ...cart,
+          items: updatedItems,
+          total_amount: updatedItems.reduce((sum, item) => sum + item.total_price, 0)
+        };
+        // Note: We'd need access to setCart here for optimistic updates
+      }
+
       const { error } = await supabase
         .from('cart_items')
         .update({ 
@@ -83,6 +104,8 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
     } catch (err) {
       console.error('Error updating quantity:', err);
       toast.error('Failed to update item');
+      // Revert optimistic update on error
+      invalidateCache();
     }
   };
 
@@ -341,7 +364,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                         </div>
                         
                         <p className="text-sm font-semibold">
-                          ${item.total_price.toFixed(2)}
+                          ${(item.quantity * item.unit_price).toFixed(2)}
                         </p>
                       </div>
                     </div>

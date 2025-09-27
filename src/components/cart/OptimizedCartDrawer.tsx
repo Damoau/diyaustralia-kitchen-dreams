@@ -291,6 +291,9 @@ const OptimizedCartItem = memo(({ item, onUpdateQuantity, onRemove }: OptimizedC
     }
   }, [onUpdateQuantity]);
 
+  // Calculate real-time total price based on current quantity
+  const calculatedTotal = quantity * item.unit_price;
+
   return (
     <div className="flex gap-3 p-3 border rounded-lg bg-card">
       <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
@@ -349,7 +352,7 @@ const OptimizedCartItem = memo(({ item, onUpdateQuantity, onRemove }: OptimizedC
           
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold">
-              ${item.total_price.toLocaleString()}
+              ${calculatedTotal.toLocaleString()}
             </span>
             
             <Button
