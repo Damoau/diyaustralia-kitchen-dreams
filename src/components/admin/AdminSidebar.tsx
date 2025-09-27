@@ -15,12 +15,13 @@ import {
 import {
   LayoutDashboard,
   ShoppingCart,
+  Activity,
   FileText,
   Package,
   Truck,
   Settings,
   Users,
-  BarChart3,
+  Activity,
   Bell,
   DollarSign,
   Wrench,
@@ -149,8 +150,16 @@ export const AdminSidebar = () => {
                           {!isCollapsed && <span>{item.title}</span>}
                         </NavLink>
                       )}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <Link to="/admin/user-behavior-analytics" className="flex items-center gap-2">
+            <Activity className="w-4 h-4" />
+            <span>User Behavior Analytics</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
                 ))}
               </SidebarMenu>
             </SidebarGroupContent>

@@ -3943,6 +3943,48 @@ export type Database = {
           },
         ]
       }
+      simulation_reports: {
+        Row: {
+          average_duration_ms: number | null
+          created_at: string
+          failed_simulations: number
+          failure_patterns: Json | null
+          id: string
+          pass_rate: number | null
+          passed_simulations: number
+          performance_metrics: Json | null
+          report_date: string
+          total_simulations: number
+          user_behavior_patterns: Json | null
+        }
+        Insert: {
+          average_duration_ms?: number | null
+          created_at?: string
+          failed_simulations?: number
+          failure_patterns?: Json | null
+          id?: string
+          pass_rate?: number | null
+          passed_simulations?: number
+          performance_metrics?: Json | null
+          report_date?: string
+          total_simulations?: number
+          user_behavior_patterns?: Json | null
+        }
+        Update: {
+          average_duration_ms?: number | null
+          created_at?: string
+          failed_simulations?: number
+          failure_patterns?: Json | null
+          id?: string
+          pass_rate?: number | null
+          passed_simulations?: number
+          performance_metrics?: Json | null
+          report_date?: string
+          total_simulations?: number
+          user_behavior_patterns?: Json | null
+        }
+        Relationships: []
+      }
       subcategories: {
         Row: {
           active: boolean
@@ -4070,6 +4112,54 @@ export type Database = {
         }
         Relationships: []
       }
+      user_interactions: {
+        Row: {
+          action_type: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          mouse_x: number | null
+          mouse_y: number | null
+          page_url: string
+          session_id: string
+          target_element: string | null
+          timestamp: string
+          user_id: string | null
+          viewport_height: number | null
+          viewport_width: number | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          mouse_x?: number | null
+          mouse_y?: number | null
+          page_url: string
+          session_id: string
+          target_element?: string | null
+          timestamp?: string
+          user_id?: string | null
+          viewport_height?: number | null
+          viewport_width?: number | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          mouse_x?: number | null
+          mouse_y?: number | null
+          page_url?: string
+          session_id?: string
+          target_element?: string | null
+          timestamp?: string
+          user_id?: string | null
+          viewport_height?: number | null
+          viewport_width?: number | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -4085,6 +4175,60 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_sessions: {
+        Row: {
+          browser_info: Json | null
+          conversion_events: Json | null
+          created_at: string
+          device_type: string | null
+          ended_at: string | null
+          id: string
+          ip_address: unknown | null
+          pages_visited: string[] | null
+          referrer: string | null
+          session_duration_ms: number | null
+          session_id: string
+          started_at: string
+          total_actions: number | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          browser_info?: Json | null
+          conversion_events?: Json | null
+          created_at?: string
+          device_type?: string | null
+          ended_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          pages_visited?: string[] | null
+          referrer?: string | null
+          session_duration_ms?: number | null
+          session_id: string
+          started_at?: string
+          total_actions?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          browser_info?: Json | null
+          conversion_events?: Json | null
+          created_at?: string
+          device_type?: string | null
+          ended_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          pages_visited?: string[] | null
+          referrer?: string | null
+          session_duration_ms?: number | null
+          session_id?: string
+          started_at?: string
+          total_actions?: number | null
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -4366,6 +4510,23 @@ export type Database = {
           p_window_minutes?: number
         }
         Returns: boolean
+      }
+      create_simulation_report: {
+        Args: {
+          p_avg_duration: number
+          p_date: string
+          p_failed: number
+          p_failure_patterns?: Json
+          p_passed: number
+          p_performance_metrics?: Json
+          p_total: number
+          p_user_patterns?: Json
+        }
+        Returns: string
+      }
+      end_user_session: {
+        Args: { p_session_id: string }
+        Returns: undefined
       }
       enhanced_cart_consolidation: {
         Args: { p_session_id?: string; p_user_id?: string }

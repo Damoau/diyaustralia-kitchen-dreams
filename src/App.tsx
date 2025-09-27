@@ -10,7 +10,7 @@ import { AdminImpersonationProvider } from "@/contexts/AdminImpersonationContext
 import { NavigationProvider } from "@/components/navigation/NavigationContext";
 import { NavigationWrapper } from "@/components/navigation/NavigationWrapper";
 import { HelmetProvider } from "react-helmet-async";
-import Index from "./pages/Index";
+import { UserActionTracker } from "@/components/UserActionTracker";
 
 // Lazy load route components for code splitting
 const Shop = lazy(() => import("./pages/Shop"));
