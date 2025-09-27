@@ -373,15 +373,15 @@ export const QuoteSelectionDialog = ({
               
               {/* Update Quote Button - Always visible at bottom when quote is selected */}
               {selectedQuoteId && (
-                <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                  <div className="mb-2">
-                    <p className="text-sm font-medium">Selected Quote:</p>
-                    <p className="text-xs text-muted-foreground">{selectedQuoteName}</p>
+                <div className="mt-4 p-3 rounded-lg bg-primary/10 border-2 border-primary/30 shadow-sm">
+                  <div className="mb-3">
+                    <p className="text-sm font-semibold text-primary">✓ Selected Quote:</p>
+                    <p className="text-xs text-muted-foreground font-medium">{selectedQuoteName}</p>
                   </div>
                   <Button 
                     onClick={handleSelectExisting}
                     disabled={isLoading}
-                    className="w-full h-11 font-semibold"
+                    className="w-full h-12 font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all"
                     size="lg"
                   >
                     {isLoading ? (
@@ -390,9 +390,21 @@ export const QuoteSelectionDialog = ({
                         Updating Quote...
                       </>
                     ) : (
-                      'Update Selected Quote'
+                      <>
+                        <FileText className="w-4 h-4 mr-2" />
+                        Update Selected Quote
+                      </>
                     )}
                   </Button>
+                </div>
+              )}
+              
+              {/* Debug info for development */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mt-2 p-2 text-xs text-muted-foreground bg-muted/50 rounded">
+                  Debug: selectedQuoteId = {selectedQuoteId || 'none'} | 
+                  Quotes available: {quotes.length} | 
+                  Auth: {isAuthenticated ? 'yes' : 'no'}
                 </div>
               )}
             </div>
