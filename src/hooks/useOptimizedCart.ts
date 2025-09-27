@@ -290,16 +290,26 @@ export const useOptimizedCart = () => {
 
   // Remove debounced initialization as it's causing infinite re-renders
 
-  // Initialize cart on mount and user change - FIX: Remove debouncedInitialize dependency
+  // Initialize cart on mount and user change - STABLE VERSION
   useEffect(() => {
-    initializeCart();
-  }, [user?.id, cacheKey]); // Only depend on user and cacheKey
+    const timer = setTimeout(() => {
+      initializeCart();
+    }, 100); // Small delay to prevent rapid calls
+    
+    return () => clearTimeout(timer);
+  }, [user?.id]); // Only depend on user ID change
 
-  // Clear cache when user changes
+  // Add a separate effect to handle cart refresh when cache is cleared
   useEffect(() => {
-    cartCacheRef.current = {};
-    lastFetchTime.current = 0;
-  }, [user?.id]);
+    if (cart === null && !isLoading && !initializingRef.current) {
+      console.log('Cart is null and not loading, initializing...');
+      const timer = setTimeout(() => {
+        initializeCart();
+      }, 200);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [cart, isLoading]);
 
   // Optimized helper functions
   const getTotalItems = useCallback(() => {
@@ -315,10 +325,9 @@ export const useOptimizedCart = () => {
     delete cartCacheRef.current[cacheKey];
     lastFetchTime.current = 0;
     requestCache.clear();
-    // Force re-initialization
+    // Don't call initializeCart here - let the useEffect handle it
     setCart(null);
-    initializeCart();
-  }, [cacheKey, initializeCart]);
+  }, [cacheKey]);
 
   return {
     cart,
