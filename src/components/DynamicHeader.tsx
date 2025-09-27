@@ -160,15 +160,17 @@ const DynamicHeader = () => {
         </nav>
 
         <div className="flex items-center space-x-4">
-          <CartDrawer>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="relative hidden md:flex"
-            >
-              <ShoppingCart className="h-4 w-4" />
-            </Button>
-          </CartDrawer>
+          <div className="hidden md:block">
+            <CartDrawer>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="relative"
+              >
+                <ShoppingCart className="h-4 w-4" />
+              </Button>
+            </CartDrawer>
+          </div>
           
           <Button 
             size="sm" 
@@ -231,16 +233,18 @@ const DynamicHeader = () => {
         </div>
 
         {/* Mobile Menu */}
-        <div className="flex md:hidden">
-          <CartDrawer>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="relative mr-2"
-            >
-              <ShoppingCart className="h-4 w-4" />
-            </Button>
-          </CartDrawer>
+        <div className="flex md:hidden items-center">
+          <div className="md:hidden">
+            <CartDrawer>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="relative mr-2"
+              >
+                <ShoppingCart className="h-4 w-4" />
+              </Button>
+            </CartDrawer>
+          </div>
           
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
