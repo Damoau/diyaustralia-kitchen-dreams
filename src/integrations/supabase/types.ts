@@ -4367,6 +4367,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      enhanced_cart_consolidation: {
+        Args: { p_session_id?: string; p_user_id?: string }
+        Returns: {
+          action: string
+          cart_count: number
+          details: string
+        }[]
+      }
       generate_invoice_number: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -4465,6 +4473,10 @@ export type Database = {
           p_customer_email?: string
           p_quote_request_id: string
         }
+        Returns: undefined
+      }
+      set_primary_cart: {
+        Args: { p_cart_id: string }
         Returns: undefined
       }
       test_quote_requests_security_final: {
