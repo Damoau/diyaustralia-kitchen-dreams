@@ -160,68 +160,74 @@ export const QuoteSelectionDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
+      <DialogContent className="max-w-2xl max-h-[85vh] bg-gradient-to-b from-background to-muted/20">
+        <DialogHeader className="pb-4 border-b">
+          <DialogTitle className="flex items-center gap-3 text-xl">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <FileText className="w-5 h-5 text-primary" />
+            </div>
             Save Items as Quote
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-8 py-2">
           {/* Create New Quote Section */}
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="quote-name" className="text-base font-semibold">
-                Create New Quote
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Enter a name for your new quote to help you identify it later
-              </p>
-            </div>
-            
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Input
-                  id="quote-name"
-                  placeholder="e.g., Kitchen Renovation - Smith House"
-                  value={newQuoteName}
-                  onChange={(e) => {
-                    setNewQuoteName(e.target.value);
-                    // Clear existing quote selection when typing in new quote name
-                    if (selectedQuoteId) {
-                      setSelectedQuoteId(null);
-                      setSelectedQuoteName(null);
-                    }
-                    if (validationErrors.quoteName) {
-                      validateQuoteName(e.target.value);
-                    }
-                  }}
-                  onBlur={() => validateQuoteName(newQuoteName)}
-                  className={validationErrors.quoteName && !selectedQuoteId ? "border-red-500" : ""}
-                  maxLength={100}
-                />
-                {validationErrors.quoteName && !selectedQuoteId && (
-                  <p className="text-sm text-red-600 mt-1">{validationErrors.quoteName}</p>
-                )}
+            <div className="p-4 rounded-xl bg-card border border-border/50 shadow-sm">
+              <div className="mb-4">
+                <Label htmlFor="quote-name" className="text-base font-semibold flex items-center gap-2">
+                  <Plus className="w-4 h-4 text-primary" />
+                  Create New Quote
+                </Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Enter a name for your new quote to help you identify it later
+                </p>
               </div>
-              <Button 
-                onClick={handleCreateNew}
-                disabled={isLoading || !newQuoteName.trim() || !!validationErrors.quoteName}
-                className="px-6"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create New
-                  </>
-                )}
-              </Button>
+              
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <Input
+                    id="quote-name"
+                    placeholder="e.g., Kitchen Renovation - Smith House"
+                    value={newQuoteName}
+                    onChange={(e) => {
+                      setNewQuoteName(e.target.value);
+                      // Clear existing quote selection when typing in new quote name
+                      if (selectedQuoteId) {
+                        setSelectedQuoteId(null);
+                        setSelectedQuoteName(null);
+                      }
+                      if (validationErrors.quoteName) {
+                        validateQuoteName(e.target.value);
+                      }
+                    }}
+                    onBlur={() => validateQuoteName(newQuoteName)}
+                    className={`h-11 ${validationErrors.quoteName && !selectedQuoteId ? "border-red-500" : ""}`}
+                    maxLength={100}
+                  />
+                  {validationErrors.quoteName && !selectedQuoteId && (
+                    <p className="text-sm text-red-600 mt-1">{validationErrors.quoteName}</p>
+                  )}
+                </div>
+                <Button 
+                  onClick={handleCreateNew}
+                  disabled={isLoading || !newQuoteName.trim() || !!validationErrors.quoteName}
+                  className="px-6 h-11"
+                  size="lg"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create New
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -235,100 +241,106 @@ export const QuoteSelectionDialog = ({
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <Label className="text-base font-semibold">
-                    Update Existing Quote
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Select an existing quote to add these items to
-                  </p>
-                  {selectedQuoteId && selectedQuoteName && (
-                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
-                      <p className="text-sm text-blue-800 font-medium">
-                        ✓ Update quote: {selectedQuoteName}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <ScrollArea className="h-64 border rounded-lg p-2">
-                  <div className="space-y-2">
-                    {loadingQuotes ? (
-                      <div className="flex items-center justify-center py-8">
-                        <Loader2 className="w-6 h-6 animate-spin" />
-                        <span className="ml-2 text-sm text-muted-foreground">Loading quotes...</span>
-                      </div>
-                    ) : (
-                      quotes.map((quote) => (
-                        <Card 
-                          key={quote.id}
-                          className={`cursor-pointer transition-all hover:shadow-md ${
-                            selectedQuoteId === quote.id 
-                              ? 'ring-2 ring-primary border-primary' 
-                              : ''
-                          }`}
-                          onClick={() => {
-                            setSelectedQuoteId(quote.id);
-                            setSelectedQuoteName(`${quote.quote_number} - ${quote.customer_name || 'Unnamed Quote'}`);
-                            // Clear any validation errors when selecting existing quote
-                            setValidationErrors({});
-                            setNewQuoteName("");
-                          }}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <h3 className="font-semibold text-sm">{quote.quote_number}</h3>
-                                  {getStatusBadge(quote.status)}
-                                </div>
-                                
-                                <p className="text-sm font-medium text-foreground mb-1">
-                                  {quote.customer_name || "Unnamed Quote"}
-                                </p>
-                                
-                                <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                                  <div className="flex items-center gap-1">
-                                    <Calendar className="w-3 h-3" />
-                                    {new Date(quote.created_at).toLocaleDateString()}
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <DollarSign className="w-3 h-3" />
-                                    ${quote.total_amount.toLocaleString()}
-                                  </div>
-                                </div>
-                                
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {quote.quote_items.length} item(s) • 
-                                  {quote.valid_until 
-                                    ? ` Valid until ${new Date(quote.valid_until).toLocaleDateString()}`
-                                    : ' No expiry set'
-                                  }
-                                </p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))
-                    )}
+                <div className="p-4 rounded-xl bg-card border border-border/50 shadow-sm">
+                  <div className="mb-4">
+                    <Label className="text-base font-semibold flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-primary" />
+                      Update Existing Quote
+                    </Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Select an existing quote to add these items to
+                    </p>
                   </div>
-                </ScrollArea>
 
-                <Button 
-                  onClick={handleSelectExisting}
-                  disabled={isLoading || !selectedQuoteId}
-                  className="w-full"
-                  variant="outline"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Updating Quote...
-                    </>
-                  ) : (
-                    'Update Selected Quote'
-                  )}
-                </Button>
+                  <ScrollArea className="h-64 border rounded-lg p-3 bg-muted/20">
+                    <div className="space-y-3">
+                      {loadingQuotes ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                          <span className="ml-2 text-sm text-muted-foreground">Loading quotes...</span>
+                        </div>
+                      ) : (
+                        quotes.map((quote) => (
+                          <Card 
+                            key={quote.id}
+                            className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
+                              selectedQuoteId === quote.id 
+                                ? 'ring-2 ring-primary border-primary bg-primary/5 shadow-md' 
+                                : 'hover:border-primary/30'
+                            }`}
+                            onClick={() => {
+                              setSelectedQuoteId(quote.id);
+                              setSelectedQuoteName(`${quote.quote_number} - ${quote.customer_name || 'Unnamed Quote'}`);
+                              // Clear any validation errors when selecting existing quote
+                              setValidationErrors({});
+                              setNewQuoteName("");
+                            }}
+                          >
+                            <CardContent className="p-4">
+                              <div className="space-y-3">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <h3 className="font-semibold text-base">{quote.quote_number}</h3>
+                                      {getStatusBadge(quote.status)}
+                                    </div>
+                                    
+                                    <p className="text-sm font-medium text-foreground mb-2">
+                                      {quote.customer_name || "Unnamed Quote"}
+                                    </p>
+                                    
+                                    <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
+                                      <div className="flex items-center gap-1">
+                                        <Calendar className="w-3 h-3" />
+                                        {new Date(quote.created_at).toLocaleDateString()}
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <DollarSign className="w-3 h-3" />
+                                        ${quote.total_amount.toLocaleString()}
+                                      </div>
+                                    </div>
+                                    
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                      {quote.quote_items.length} item(s) • 
+                                      {quote.valid_until 
+                                        ? ` Valid until ${new Date(quote.valid_until).toLocaleDateString()}`
+                                        : ' No expiry set'
+                                      }
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                {/* Update Button - Only show for selected quote */}
+                                {selectedQuoteId === quote.id && (
+                                  <div className="pt-3 border-t border-border/50">
+                                    <Button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleSelectExisting();
+                                      }}
+                                      disabled={isLoading}
+                                      className="w-full"
+                                      size="sm"
+                                    >
+                                      {isLoading ? (
+                                        <>
+                                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                          Updating Quote...
+                                        </>
+                                      ) : (
+                                        'Update Quote'
+                                      )}
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))
+                      )}
+                    </div>
+                  </ScrollArea>
+                </div>
               </div>
             </>
           )}
@@ -336,20 +348,20 @@ export const QuoteSelectionDialog = ({
           {/* Cart Summary Section */}
           {itemCount > 0 && (
             <>
-              <Separator />
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
+              <Separator className="my-6" />
+              <div className="p-4 rounded-xl bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20">
+                <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="text-sm font-medium">Selected Items Total:</p>
-                    <p className="text-xs text-muted-foreground">{itemCount} item(s)</p>
+                    <p className="text-base font-semibold">Selected Items Total:</p>
+                    <p className="text-sm text-muted-foreground">{itemCount} item(s)</p>
                   </div>
-                  <p className="text-lg font-bold">${cartTotal.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-primary">${cartTotal.toLocaleString()}</p>
                 </div>
                 
                 {onAddToCart && (
                   <Button 
                     onClick={onAddToCart}
-                    className="w-full"
+                    className="w-full h-12 text-base"
                     size="lg"
                   >
                     Add {itemCount} Items to Cart
