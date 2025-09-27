@@ -139,7 +139,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
     setShowQuoteDialog(true);
   };
 
-  const handleQuoteSelected = async (quoteId: string | null, quoteName?: string) => {
+  const handleQuoteSelected = async (quoteId: string | null, quoteName?: string, replaceItems?: boolean) => {
     if (!cart?.id) return;
     
     setIsConverting(true);
@@ -151,13 +151,16 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
         user?.email, 
         undefined, // notes
         quoteId, // existing quote ID (null for new quote)
-        quoteName // name for new quote
+        quoteName, // name for new quote
+        replaceItems // replace all items in existing quote
       );
       
       if (result.success) {
         const message = result.isNewQuote 
           ? `Quote ${result.quoteNumber} has been created and will be reviewed by our team`
-          : `Items added to quote ${result.quoteNumber}`;
+          : (replaceItems 
+            ? `Quote ${result.quoteNumber} updated with cart items`
+            : `Items added to quote ${result.quoteNumber}`);
           
         toast.success(message);
         
@@ -365,9 +368,9 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                   ) : (
                     <>
                       <Button 
-                        variant="outline" 
                         onClick={handleCheckout}
-                        className="w-full"
+                        className="w-full h-12 text-base font-semibold"
+                        size="lg"
                         disabled={isLoading}
                       >
                         Proceed to Checkout
@@ -375,7 +378,8 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                   
                       <Button 
                         onClick={handleRequestQuote}
-                        className="w-full"
+                        variant="outline"
+                        className="w-full h-12 text-base bg-white border-2 border-primary/20 hover:bg-primary/5 hover:border-primary/40 text-foreground"
                         size="lg"
                         disabled={isLoading || isConverting}
                       >

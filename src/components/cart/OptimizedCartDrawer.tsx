@@ -41,11 +41,12 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
     }
   }, [isImpersonating, cart, navigate]);
 
-  const handleQuoteSelected = useCallback(async (quoteId: string | null, quoteName?: string) => {
+  const handleQuoteSelected = useCallback(async (quoteId: string | null, quoteName?: string, replaceItems?: boolean) => {
     setIsConverting(true);
     try {
-      // Implement quote conversion logic here
-      console.log('Converting cart to quote:', { quoteId, quoteName });
+      // Here you would implement the actual quote conversion logic
+      // For now, we'll just simulate the API call
+      console.log('Converting cart to quote:', { quoteId, quoteName, replaceItems });
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -53,6 +54,18 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
       // Invalidate cache and refresh
       invalidateCache();
       setShowQuoteDialog(false);
+      
+      // Show success message based on operation type
+      if (quoteId && replaceItems) {
+        // Updated existing quote by replacing items
+        console.log(`Quote updated with new items (${quoteName})`);
+      } else if (quoteId) {
+        // Added items to existing quote
+        console.log(`Items added to existing quote (${quoteName})`);
+      } else {
+        // Created new quote
+        console.log(`New quote created: ${quoteName}`);
+      }
     } catch (error) {
       console.error('Error converting to quote:', error);
     } finally {
@@ -199,20 +212,22 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
                   </Button>
                   
                   <div className="flex gap-2">
-                    <Button 
-                      onClick={handleCheckout}
-                      className="flex-1"
-                    >
-                      Proceed to Checkout
-                    </Button>
-                    
-                    <Button 
-                      onClick={handleRequestQuote}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      Request Quote
-                    </Button>
+                  <Button 
+                    onClick={handleCheckout}
+                    className="flex-1 h-12 text-base font-semibold"
+                    size="lg"
+                  >
+                    Proceed to Checkout
+                  </Button>
+                  
+                  <Button 
+                    onClick={handleRequestQuote}
+                    variant="outline"
+                    className="flex-1 h-12 text-base bg-white border-2 border-primary/20 hover:bg-primary/5 hover:border-primary/40 text-foreground"
+                    size="lg"
+                  >
+                    Save as Quote
+                  </Button>
                   </div>
                   
                   <Button 

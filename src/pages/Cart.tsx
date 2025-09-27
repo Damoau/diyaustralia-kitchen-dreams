@@ -114,7 +114,7 @@ const Cart = () => {
     setShowQuoteDialog(true);
   };
 
-  const handleQuoteSelected = async (existingQuoteId: string | null, quoteName?: string) => {
+  const handleQuoteSelected = async (existingQuoteId: string | null, quoteName?: string, replaceItems?: boolean) => {
     setShowQuoteDialog(false);
     
     if (!cart?.id || !user) return;
@@ -124,17 +124,20 @@ const Cart = () => {
       user.email,
       `Quote created from cart items`,
       existingQuoteId,
-      quoteName
+      quoteName,
+      replaceItems
     );
     
     if (result.success) {
       const actionText = existingQuoteId 
-        ? `Items added to quote ${result.quoteNumber}`
+        ? (replaceItems 
+          ? `Quote ${result.quoteNumber} updated with cart items`
+          : `Items added to quote ${result.quoteNumber}`)
         : `Quote ${result.quoteNumber} has been created and will be reviewed by our team`;
       
       toast.success(actionText);
       
-      // Refresh cart data  
+      // Refresh the cart after quote conversion
       invalidateCache();
       
       // Navigate to customer portal quotes

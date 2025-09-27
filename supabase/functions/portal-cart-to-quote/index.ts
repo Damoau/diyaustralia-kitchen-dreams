@@ -11,6 +11,7 @@ interface CartToQuoteRequest {
   notes?: string;
   existing_quote_id?: string; // Add to existing quote
   quote_name?: string; // Custom name for new quote
+  replace_items?: boolean; // Replace all existing items in quote instead of adding
 }
 
 Deno.serve(async (req) => {
@@ -25,7 +26,7 @@ Deno.serve(async (req) => {
     );
 
     if (req.method === 'POST') {
-      const { cart_id, customer_email, notes, existing_quote_id, quote_name }: CartToQuoteRequest = await req.json();
+      const { cart_id, customer_email, notes, existing_quote_id, quote_name, replace_items }: CartToQuoteRequest = await req.json();
 
       if (!cart_id) {
         throw new Error('Cart ID is required');
@@ -99,7 +100,7 @@ Deno.serve(async (req) => {
       let quoteNumber;
 
       if (existing_quote_id) {
-        // Adding to existing quote
+        // Adding to existing quote or replacing items
         const { data: existingQuote, error: existingQuoteError } = await supabase
           .from('quotes')
           .select('*')
@@ -114,23 +115,57 @@ Deno.serve(async (req) => {
         newQuote = existingQuote;
         quoteNumber = existingQuote.quote_number;
 
-        // Update existing quote totals
-        const newSubtotal = existingQuote.subtotal + subtotal;
-        const newTaxAmount = newSubtotal * 0.10;
-        const newTotalAmount = newSubtotal + newTaxAmount;
+        if (replace_items) {
+          // Replace all existing items - delete existing items and update totals to match cart
+          console.log('Replacing all items in existing quote');
+          
+          // Delete existing quote items
+          const { error: deleteError } = await supabase
+            .from('quote_items')
+            .delete()
+            .eq('quote_id', existing_quote_id);
 
-        const { error: updateError } = await supabase
-          .from('quotes')
-          .update({
-            subtotal: newSubtotal,
-            tax_amount: newTaxAmount,
-            total_amount: newTotalAmount,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existing_quote_id);
+          if (deleteError) {
+            throw new Error('Failed to clear existing quote items');
+          }
 
-        if (updateError) {
-          throw updateError;
+          // Update quote totals to match cart totals (replace, not add)
+          const { error: updateError } = await supabase
+            .from('quotes')
+            .update({
+              subtotal: subtotal,
+              tax_amount: taxAmount, 
+              total_amount: totalAmount,
+              updated_at: new Date().toISOString(),
+              notes: notes ? `${existingQuote.notes || ''}\n\n${notes}`.trim() : existingQuote.notes
+            })
+            .eq('id', existing_quote_id);
+
+          if (updateError) {
+            throw updateError;
+          }
+        } else {
+          // Add to existing quote (original behavior)
+          console.log('Adding items to existing quote');
+          
+          // Update existing quote totals by adding
+          const newSubtotal = existingQuote.subtotal + subtotal;
+          const newTaxAmount = newSubtotal * 0.10;
+          const newTotalAmount = newSubtotal + newTaxAmount;
+
+          const { error: updateError } = await supabase
+            .from('quotes')
+            .update({
+              subtotal: newSubtotal,
+              tax_amount: newTaxAmount,
+              total_amount: newTotalAmount,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existing_quote_id);
+
+          if (updateError) {
+            throw updateError;
+          }
         }
       } else {
         // Create new quote
@@ -230,8 +265,9 @@ Deno.serve(async (req) => {
       console.log('Cart to quote conversion completed:', {
         quoteId: newQuote.id,
         quoteNumber: quoteNumber,
-        totalAmount: totalAmount,
-        itemsCount: cart.cart_items.length
+        totalAmount: existing_quote_id && replace_items ? totalAmount : (existing_quote_id ? newQuote.total_amount : totalAmount),
+        itemsCount: cart.cart_items.length,
+        operation: existing_quote_id ? (replace_items ? 'replaced_items' : 'added_items') : 'created_new'
       });
 
       return new Response(JSON.stringify({ 

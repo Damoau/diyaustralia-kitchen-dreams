@@ -29,7 +29,7 @@ interface ExistingQuote {
 interface QuoteSelectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onQuoteSelected: (quoteId: string | null, quoteName?: string) => void;
+  onQuoteSelected: (quoteId: string | null, quoteName?: string, replaceItems?: boolean) => void;
   isLoading?: boolean;
   cartTotal?: number;
   itemCount?: number;
@@ -173,13 +173,14 @@ export const QuoteSelectionDialog = ({
     if (!selectedQuoteId) {
       toast({
         title: "No Quote Selected",
-        description: "Please select an existing quote to add items to",
+        description: "Please select an existing quote to update with these items",
         variant: "destructive"
       });
       return;
     }
     
-    onQuoteSelected(selectedQuoteId);
+    // Pass replaceItems: true to indicate we want to replace all existing items
+    onQuoteSelected(selectedQuoteId, undefined, true);
   };
 
   const getStatusBadge = (status: string) => {
@@ -196,8 +197,8 @@ export const QuoteSelectionDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] bg-gradient-to-b from-background to-muted/20">
-        <DialogHeader className="pb-4 border-b">
+      <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] bg-gradient-to-b from-background to-muted/20 overflow-hidden flex flex-col">
+        <DialogHeader className="pb-4 border-b flex-shrink-0">
           <DialogTitle className="flex items-center gap-3 text-xl">
             <div className="p-2 rounded-lg bg-primary/10">
               <FileText className="w-5 h-5 text-primary" />
@@ -206,7 +207,8 @@ export const QuoteSelectionDialog = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-8 py-2">
+        <ScrollArea className="flex-1 px-1">
+          <div className="space-y-6 py-4">
           {/* Create New Quote Section */}
           <div className="space-y-4">
             <div className="p-4 rounded-xl bg-card border border-border/50 shadow-sm">
@@ -248,7 +250,7 @@ export const QuoteSelectionDialog = ({
                 <Button 
                   onClick={handleCreateNew}
                   disabled={isLoading || !newQuoteName.trim() || !!validationErrors.quoteName}
-                  className="px-6 h-11"
+                  className="px-6 h-11 font-semibold"
                   size="lg"
                 >
                   {isLoading ? (
@@ -282,7 +284,7 @@ export const QuoteSelectionDialog = ({
                   Update Existing Quote
                 </Label>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Select an existing quote to add these items to
+                  Select an existing quote to replace all items with current cart items
                 </p>
               </div>
 
@@ -371,8 +373,8 @@ export const QuoteSelectionDialog = ({
                                     handleSelectExisting();
                                   }}
                                   disabled={isLoading}
-                                  className="w-full"
-                                  size="sm"
+                                  className="w-full h-11 font-semibold"
+                                  size="lg"
                                 >
                                   {isLoading ? (
                                     <>
@@ -420,7 +422,8 @@ export const QuoteSelectionDialog = ({
               </div>
             </>
           )}
-        </div>
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

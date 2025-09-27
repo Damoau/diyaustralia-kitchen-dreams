@@ -42,7 +42,8 @@ export const useCartToQuote = () => {
     customerEmail?: string,
     notes?: string,
     existingQuoteId?: string,
-    quoteName?: string
+    quoteName?: string,
+    replaceItems?: boolean
   ) => {
     setIsLoading(true);
     try {
@@ -51,7 +52,8 @@ export const useCartToQuote = () => {
         customerEmail, 
         notes, 
         existingQuoteId, 
-        quoteName 
+        quoteName,
+        replaceItems
       });
 
       const { data, error } = await supabase.functions.invoke('portal-cart-to-quote', {
@@ -60,7 +62,8 @@ export const useCartToQuote = () => {
           customer_email: customerEmail,
           notes: notes,
           existing_quote_id: existingQuoteId,
-          quote_name: quoteName
+          quote_name: quoteName,
+          replace_items: replaceItems || false
         }
       });
 
@@ -75,7 +78,9 @@ export const useCartToQuote = () => {
       }
 
       const actionText = existingQuoteId 
-        ? `Items added to quote ${data.quote_number}`
+        ? (replaceItems 
+          ? `Quote ${data.quote_number} updated with new items`
+          : `Items added to quote ${data.quote_number}`)
         : `Cart converted to quote ${data.quote_number}`;
 
       toast({
