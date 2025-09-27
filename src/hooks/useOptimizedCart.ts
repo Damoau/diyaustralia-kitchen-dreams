@@ -288,16 +288,12 @@ export const useOptimizedCart = () => {
     }
   }, [user?.id, cacheKey, getSessionId, deduplicatedRequest]);
 
-  // Debounced initialization to prevent rapid calls
-  const debouncedInitialize = useMemo(
-    () => debounce(initializeCart, 200),
-    [initializeCart]
-  );
+  // Remove debounced initialization as it's causing infinite re-renders
 
-  // Initialize cart on mount and user change
+  // Initialize cart on mount and user change - FIX: Remove debouncedInitialize dependency
   useEffect(() => {
-    debouncedInitialize();
-  }, [debouncedInitialize]);
+    initializeCart();
+  }, [user?.id, cacheKey]); // Only depend on user and cacheKey
 
   // Clear cache when user changes
   useEffect(() => {
@@ -315,10 +311,14 @@ export const useOptimizedCart = () => {
   }, [cart?.items]);
 
   const invalidateCache = useCallback(() => {
+    console.log('Invalidating cart cache for:', cacheKey);
     delete cartCacheRef.current[cacheKey];
     lastFetchTime.current = 0;
     requestCache.clear();
-  }, [cacheKey]);
+    // Force re-initialization
+    setCart(null);
+    initializeCart();
+  }, [cacheKey, initializeCart]);
 
   return {
     cart,

@@ -118,14 +118,10 @@ export const QuoteToCartConverter = ({
 
       setOpen(false);
       
-      // Force cart refresh and redirect
-      if (window.location.pathname.includes('/portal/')) {
-        // Redirect to cart with a refresh parameter to force cache clear
-        window.location.href = '/cart?refresh=' + Date.now();
-      } else {
-        // If already on cart page, force reload
-        window.location.reload();
-      }
+      // Force a clean redirect to cart page
+      setTimeout(() => {
+        window.location.href = '/cart';
+      }, 500);
       
       if (onSuccess) {
         onSuccess();
