@@ -701,6 +701,41 @@ export type Database = {
           },
         ]
       }
+      cart_activity_log: {
+        Row: {
+          action: string
+          cart_id: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          cart_id: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          cart_id?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_activity_log_cart_id_fkey"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "carts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cart_items: {
         Row: {
           attachment_file_ids: string[] | null
@@ -813,65 +848,98 @@ export type Database = {
         Row: {
           abandon_reason: string | null
           abandoned_at: string | null
+          archive_reason: string | null
+          auto_archived_at: string | null
+          change_summary: Json | null
           converted_order_id: string | null
           converted_quote_id: string | null
           created_at: string
+          expiry_date: string | null
           id: string
+          is_primary: boolean | null
           label: string | null
+          last_activity_at: string | null
+          lifecycle_state: string | null
           merged_from_cart_id: string | null
           merged_into_cart_id: string | null
           name: string | null
           notes: string | null
           owner_user_id: string | null
+          parent_cart_id: string | null
+          quote_version: string | null
           session_id: string | null
           source: string | null
+          source_details: Json | null
           status: string
           tags: string[] | null
           total_amount: number | null
           updated_at: string
           user_id: string | null
+          version_number: number | null
         }
         Insert: {
           abandon_reason?: string | null
           abandoned_at?: string | null
+          archive_reason?: string | null
+          auto_archived_at?: string | null
+          change_summary?: Json | null
           converted_order_id?: string | null
           converted_quote_id?: string | null
           created_at?: string
+          expiry_date?: string | null
           id?: string
+          is_primary?: boolean | null
           label?: string | null
+          last_activity_at?: string | null
+          lifecycle_state?: string | null
           merged_from_cart_id?: string | null
           merged_into_cart_id?: string | null
           name?: string | null
           notes?: string | null
           owner_user_id?: string | null
+          parent_cart_id?: string | null
+          quote_version?: string | null
           session_id?: string | null
           source?: string | null
+          source_details?: Json | null
           status?: string
           tags?: string[] | null
           total_amount?: number | null
           updated_at?: string
           user_id?: string | null
+          version_number?: number | null
         }
         Update: {
           abandon_reason?: string | null
           abandoned_at?: string | null
+          archive_reason?: string | null
+          auto_archived_at?: string | null
+          change_summary?: Json | null
           converted_order_id?: string | null
           converted_quote_id?: string | null
           created_at?: string
+          expiry_date?: string | null
           id?: string
+          is_primary?: boolean | null
           label?: string | null
+          last_activity_at?: string | null
+          lifecycle_state?: string | null
           merged_from_cart_id?: string | null
           merged_into_cart_id?: string | null
           name?: string | null
           notes?: string | null
           owner_user_id?: string | null
+          parent_cart_id?: string | null
+          quote_version?: string | null
           session_id?: string | null
           source?: string | null
+          source_details?: Json | null
           status?: string
           tags?: string[] | null
           total_amount?: number | null
           updated_at?: string
           user_id?: string | null
+          version_number?: number | null
         }
         Relationships: [
           {
@@ -891,6 +959,13 @@ export type Database = {
           {
             foreignKeyName: "carts_merged_into_cart_id_fkey"
             columns: ["merged_into_cart_id"]
+            isOneToOne: false
+            referencedRelation: "carts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carts_parent_cart_id_fkey"
+            columns: ["parent_cart_id"]
             isOneToOne: false
             referencedRelation: "carts"
             referencedColumns: ["id"]
@@ -4257,6 +4332,10 @@ export type Database = {
         Args: { p_file_id: string; p_scope: string; p_scope_id: string }
         Returns: undefined
       }
+      auto_archive_old_carts: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       calculate_gst_amount: {
         Args: { amount_ex_gst: number; tax_rate?: number }
         Returns: number
@@ -4309,6 +4388,17 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_primary_cart: {
+        Args: { p_session_id?: string; p_user_id?: string }
+        Returns: {
+          cart_id: string
+          cart_name: string
+          item_count: number
+          last_activity_at: string
+          lifecycle_state: string
+          total_amount: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -4348,6 +4438,10 @@ export type Database = {
           p_scope_id?: string
           p_user_agent?: string
         }
+        Returns: undefined
+      }
+      log_cart_activity: {
+        Args: { p_action: string; p_cart_id: string; p_details?: Json }
         Returns: undefined
       }
       log_failed_auth_attempt: {
