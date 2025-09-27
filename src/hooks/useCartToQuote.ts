@@ -2,40 +2,13 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const useCartToQuote = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  // Function to clear cart after successful quote conversion
-  const clearCartAfterQuoteConversion = async (cartId: string) => {
-    try {
-      const { error } = await supabase
-        .from('carts')
-        .update({ 
-          status: 'converted_to_quote',
-          total_amount: 0,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', cartId);
-
-      if (error) throw error;
-
-      // Also clear all cart items
-      const { error: itemsError } = await supabase
-        .from('cart_items')
-        .delete()
-        .eq('cart_id', cartId);
-
-      if (itemsError) throw itemsError;
-
-      return { success: true };
-    } catch (error) {
-      console.error('Error clearing cart after quote conversion:', error);
-      return { success: false, error: error.message };
-    }
-  };
+  const queryClient = useQueryClient();
 
   const convertCartToQuote = async (
     cartId: string, 
@@ -88,16 +61,21 @@ export const useCartToQuote = () => {
         description: actionText,
       });
 
-      // Clear cart state to prevent confusion between quote and cart modes
-      const clearCartResponse = await clearCartAfterQuoteConversion(cartId);
+      // Cart clearing is now handled atomically in the edge function
+      // Invalidate all cart-related queries to refresh UI
+      await queryClient.invalidateQueries({ queryKey: ['cart'] });
+      await queryClient.invalidateQueries({ queryKey: ['carts'] });
+      
+      // Dispatch cart updated event to ensure all components refresh
+      window.dispatchEvent(new CustomEvent('cart-updated'));
       
       return {
         success: true,
         quoteId: data.quote_id,
         quoteNumber: data.quote_number,
         totalAmount: data.total_amount,
-        shouldRefreshCart: true, // Signal that cart needs to be refreshed
-        cartCleared: clearCartResponse.success,
+        shouldRefreshCart: true,
+        cartCleared: data.cart_cleared || true, // Edge function handles clearing
         isNewQuote: !existingQuoteId
       };
 

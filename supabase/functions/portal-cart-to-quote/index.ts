@@ -160,13 +160,38 @@ serve(async (req) => {
 
       if (itemsError) throw itemsError;
 
+      // Clear the cart atomically after successful quote creation
+      const { error: clearCartError } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('cart_id', cart_id);
+      
+      if (clearCartError) {
+        console.warn('Failed to clear cart items after quote creation:', clearCartError);
+      }
+
+      // Update cart status
+      const { error: updateCartError } = await supabase
+        .from('carts')
+        .update({ 
+          status: 'converted_to_quote',
+          total_amount: 0,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', cart_id);
+      
+      if (updateCartError) {
+        console.warn('Failed to update cart status after quote creation:', updateCartError);
+      }
+
       console.log(`Successfully created new quote ${quote.quote_number} with ${cart_items.length} items`);
       return { 
         quote_id: quote.id,
         quote_number: quote.quote_number, 
         total_amount: quote.total_amount,
         action: 'created', 
-        items_count: cart_items.length 
+        items_count: cart_items.length,
+        cart_cleared: !clearCartError && !updateCartError
       };
     }
 
@@ -227,13 +252,38 @@ serve(async (req) => {
 
       if (updateError) throw updateError;
 
+      // Clear the cart atomically after successful quote update
+      const { error: clearCartError } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('cart_id', cart_id);
+      
+      if (clearCartError) {
+        console.warn('Failed to clear cart items after adding to quote:', clearCartError);
+      }
+
+      // Update cart status
+      const { error: updateCartError } = await supabase
+        .from('carts')
+        .update({ 
+          status: 'converted_to_quote',
+          total_amount: 0,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', cart_id);
+      
+      if (updateCartError) {
+        console.warn('Failed to update cart status after adding to quote:', updateCartError);
+      }
+
       console.log(`Successfully added ${cart_items.length} items to quote ${existingQuote.quote_number}`);
       return { 
         quote_id: targetQuoteId,
         quote_number: existingQuote.quote_number, 
         total_amount: updatedTotalAmount,
         action: 'added', 
-        items_count: cart_items.length 
+        items_count: cart_items.length,
+        cart_cleared: !clearCartError && !updateCartError
       };
     }
 
@@ -301,13 +351,38 @@ serve(async (req) => {
 
       if (updateError) throw updateError;
 
+      // Clear the cart atomically after successful quote replacement
+      const { error: clearCartError } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('cart_id', cart_id);
+      
+      if (clearCartError) {
+        console.warn('Failed to clear cart items after replacing quote:', clearCartError);
+      }
+
+      // Update cart status
+      const { error: updateCartError } = await supabase
+        .from('carts')
+        .update({ 
+          status: 'converted_to_quote',
+          total_amount: 0,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', cart_id);
+      
+      if (updateCartError) {
+        console.warn('Failed to update cart status after replacing quote:', updateCartError);
+      }
+
       console.log(`Successfully replaced quote ${existingQuote.quote_number} with ${cart_items.length} items`);
       return { 
         quote_id: targetQuoteId,
         quote_number: existingQuote.quote_number, 
         total_amount,
         action: 'replaced', 
-        items_count: cart_items.length 
+        items_count: cart_items.length,
+        cart_cleared: !clearCartError && !updateCartError
       };
     }
 

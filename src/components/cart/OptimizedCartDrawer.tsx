@@ -63,15 +63,21 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
       );
       
       if (result.success) {
-        // Invalidate cache and refresh
+        // Invalidate cache and refresh - cart is now cleared by edge function
         invalidateCache();
         setShowQuoteDialog(false);
+        
+        // Force a complete refresh to ensure UI shows empty cart
+        setTimeout(() => {
+          invalidateCache();
+          window.dispatchEvent(new CustomEvent('cart-updated'));
+        }, 100);
         
         // Navigate to the quote if it was successful
         if (result.quoteId && result.isNewQuote) {
           setTimeout(() => {
             window.open(`/portal/quotes/${result.quoteId}`, '_blank');
-          }, 500);
+          }, 1000);
         }
       }
     } catch (error) {
