@@ -99,6 +99,12 @@ const Cart = () => {
   };
 
   const handleRequestQuote = async () => {
+    console.log('🚀 handleRequestQuote called', { 
+      cartItems: cart?.items?.length, 
+      isImpersonating, 
+      impersonatedCustomerEmail 
+    });
+    
     if (!cart?.items?.length) {
       toast.error("Your cart is empty");
       return;
@@ -123,6 +129,7 @@ const Cart = () => {
     }
 
     // Regular user - show quote selection dialog
+    console.log('🔓 Opening quote selection dialog for regular user');
     setShowQuoteDialog(true);
   };
 
@@ -357,41 +364,51 @@ const Cart = () => {
                     
                     <hr />
                     
-                    <div className="flex justify-between font-semibold text-lg">
-                      <span>Total</span>
-                      <span>${getTotalPrice().toFixed(2)}</span>
-                    </div>
-                    
-                    {isImpersonating ? (
-                      <Button 
-                        onClick={handleRequestQuote}
-                        className="w-full"
-                        size="lg"
-                        disabled={isLoading || isConverting}
-                      >
-                        {isConverting ? "Creating Quote..." : "Create Quote for Customer"}
-                      </Button>
-                    ) : (
-                      <>
-                        <Button 
-                          onClick={handleRequestQuote}
-                          className="w-full"
-                          size="lg"
-                          disabled={isLoading || isConverting}
-                        >
-                          {isConverting ? "Saving as Quote..." : "Save as Quote"}
-                        </Button>
-                        
-                        <Button 
-                          variant="outline" 
-                          onClick={handleCheckout}
-                          className="w-full"
-                          disabled={isLoading}
-                        >
-                          Proceed to Checkout
-                        </Button>
-                      </>
-                    )}
+                     <div className="flex justify-between font-semibold text-lg">
+                       <span>Total</span>
+                       <span>${getTotalPrice().toFixed(2)}</span>
+                     </div>
+                     
+                     {/* Debug information */}
+                     {process.env.NODE_ENV === 'development' && (
+                       <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
+                         <p>Debug: isImpersonating = {String(isImpersonating)}</p>
+                         <p>Debug: isLoading = {String(isLoading)}</p>
+                         <p>Debug: isConverting = {String(isConverting)}</p>
+                         <p>Debug: cart items = {cart?.items?.length || 0}</p>
+                       </div>
+                     )}
+                     
+                     {isImpersonating ? (
+                       <Button 
+                         onClick={handleRequestQuote}
+                         className="w-full"
+                         size="lg"
+                         disabled={isLoading || isConverting}
+                       >
+                         {isConverting ? "Creating Quote..." : "Create Quote for Customer"}
+                       </Button>
+                     ) : (
+                       <>
+                         <Button 
+                           onClick={handleRequestQuote}
+                           className="w-full"
+                           size="lg"
+                           disabled={isLoading || isConverting}
+                         >
+                           {isConverting ? "Saving as Quote..." : "Save as Quote"}
+                         </Button>
+                         
+                         <Button 
+                           variant="outline" 
+                           onClick={handleCheckout}
+                           className="w-full"
+                           disabled={isLoading}
+                         >
+                           Proceed to Checkout
+                         </Button>
+                       </>
+                     )}
                     
                     {!isImpersonating && (
                       <Button 
