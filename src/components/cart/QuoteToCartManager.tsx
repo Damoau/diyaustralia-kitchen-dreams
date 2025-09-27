@@ -96,7 +96,10 @@ export const QuoteToCartManager = ({ quote, onConvert }: QuoteToCartManagerProps
           {/* Current Cart Status */}
           <div className="space-y-2">
             <h4 className="font-medium">Current Cart Status</h4>
-            <CartStatusIndicator cartInfo={cartInfo} />
+            <CartStatusIndicator 
+              status={cartInfo?.lifecycle_state || 'active'} 
+              itemCount={cartInfo?.item_count || 0}
+            />
             
             {isCartStale && (
               <div className="flex items-center gap-2 text-amber-600 text-sm">

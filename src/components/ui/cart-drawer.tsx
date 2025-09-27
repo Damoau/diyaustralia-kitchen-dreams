@@ -6,7 +6,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ShoppingCart, Trash2, Plus, Minus, X, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useCartMigration } from "@/hooks/useCartMigration";
+import { useCartOptimized } from "@/hooks/useCartOptimized";
+import { CartLoadingSkeleton } from "@/components/ui/cart-loading-skeleton";
 import { useCartToQuote } from "@/hooks/useCartToQuote";
 import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,7 +38,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
     invalidateCache,
     updateItemOptimistically,
     removeItemOptimistically
-  } = useCartMigration() || {};
+  } = useCartOptimized();
   
   // Defensive checks to prevent calling undefined functions
   const safeGetTotalItems = typeof getTotalItems === 'function' ? getTotalItems : () => 0;
@@ -239,7 +240,9 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
             </SheetTitle>
           </SheetHeader>
 
-          {!cart?.items?.length ? (
+          {isLoading ? (
+            <CartLoadingSkeleton />
+          ) : !cart?.items?.length ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">Your cart is empty</h3>

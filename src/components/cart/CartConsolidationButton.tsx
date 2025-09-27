@@ -1,21 +1,16 @@
 import { Button } from '@/components/ui/button';
 import { Loader2, Trash2 } from 'lucide-react';
-import { useCartConsolidation } from '@/hooks/useCartConsolidation';
+import { useCartConsolidationManager } from '@/hooks/useCartConsolidationManager';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 
 export const CartConsolidationButton = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { consolidateCarts, isConsolidating } = useCartConsolidation();
+  const { consolidateCarts, isConsolidating } = useCartConsolidationManager();
 
   const handleConsolidate = () => {
-    consolidateCarts(undefined, {
-      onSuccess: () => {
-        // Refresh cart data after consolidation
-        queryClient.invalidateQueries({ queryKey: ['cart'] });
-      }
-    });
+    consolidateCarts();
   };
 
   if (!user) return null;
