@@ -174,13 +174,15 @@ export const QuoteToCartConverter = ({
 
       toast({
         title: "Items Added to Cart",
-        description: `${selectedItems.length} items from quote have been added to your cart.`
+        description: `${selectedItems.length} items from quote have been added to your cart. Redirecting to cart...`
       });
 
       setOpen(false);
       
       // Redirect to cart page to allow customer to review and checkout
-      window.location.href = '/cart';
+      setTimeout(() => {
+        window.location.href = '/cart';
+      }, 1500);
       
       if (onSuccess) {
         onSuccess();

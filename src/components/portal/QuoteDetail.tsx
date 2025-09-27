@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -19,7 +20,10 @@ import {
   CheckCircle,
   CreditCard,
   Upload,
-  ShoppingCart
+  ShoppingCart,
+  Edit3,
+  Save,
+  X
 } from "lucide-react";
 
 interface QuoteDetailProps {
@@ -33,6 +37,9 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
   const [quote, setQuote] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isSubmittingChange, setIsSubmittingChange] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [quoteName, setQuoteName] = useState("");
+  const [isSavingName, setIsSavingName] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -76,6 +83,7 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
       }
 
       setQuote(quoteData);
+      setQuoteName(quoteData.customer_name || "Kitchen Quote");
     } catch (error) {
       console.error('Error fetching quote:', error);
       toast({
@@ -254,12 +262,102 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
     fetchQuoteData();
   };
 
+  const handleSaveName = async () => {
+    if (!quoteName.trim()) {
+      toast({
+        title: "Error",
+        description: "Quote name cannot be empty",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSavingName(true);
+    try {
+      const { error } = await supabase
+        .from('quotes')
+        .update({ customer_name: quoteName.trim() })
+        .eq('id', quoteId);
+
+      if (error) throw error;
+
+      // Update local state
+      setQuote((prev: any) => ({ ...prev, customer_name: quoteName.trim() }));
+      setIsEditingName(false);
+
+      toast({
+        title: "Success",
+        description: "Quote name updated successfully"
+      });
+    } catch (error) {
+      console.error('Error updating quote name:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update quote name",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSavingName(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setQuoteName(quote?.customer_name || "Kitchen Quote");
+    setIsEditingName(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between">
-        <div>
+        <div className="flex-1">
           <h1 className="text-3xl font-bold">{quoteDisplay.quote_number}</h1>
-          <p className="text-muted-foreground mt-2">{quoteDisplay.label}</p>
+          <div className="flex items-center gap-2 mt-2">
+            {!isEditingName ? (
+              <>
+                <p className="text-muted-foreground">{quoteName}</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsEditingName(true)}
+                  className="h-auto p-1 text-muted-foreground hover:text-foreground"
+                >
+                  <Edit3 className="w-4 h-4" />
+                </Button>
+              </>
+            ) : (
+              <div className="flex items-center gap-2 max-w-md">
+                <Input
+                  value={quoteName}
+                  onChange={(e) => setQuoteName(e.target.value)}
+                  placeholder="Enter quote name"
+                  className="text-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveName();
+                    if (e.key === 'Escape') handleCancelEdit();
+                  }}
+                  autoFocus
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSaveName}
+                  disabled={isSavingName}
+                  className="h-auto p-1 text-green-600 hover:text-green-700"
+                >
+                  <Save className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleCancelEdit}
+                  disabled={isSavingName}
+                  className="h-auto p-1 text-red-600 hover:text-red-700"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {getStatusBadge(quoteDisplay.status)}
