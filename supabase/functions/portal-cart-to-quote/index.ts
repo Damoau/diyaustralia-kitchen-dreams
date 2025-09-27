@@ -6,19 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface CartItem {
-  cabinet_type_id: string;
-  door_style_id: string;
-  color_id: string;
-  finish_id: string;
-  width_mm: number;
-  height_mm: number;
-  depth_mm: number;
-  quantity: number;
-  unit_price: number;
-  configuration: any;
-}
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -45,27 +32,78 @@ serve(async (req) => {
       throw new Error('Invalid or expired token');
     }
 
-    const { action, quote_id, cart_items }: { action: string; quote_id?: string; cart_items: CartItem[] } = await req.json();
-    console.log(`Cart-to-quote action: ${action} for user: ${user.id}`);
+    // Parse request body with correct parameter names matching frontend
+    const { 
+      cart_id, 
+      customer_email, 
+      notes, 
+      existing_quote_id, 
+      quote_name, 
+      replace_items 
+    } = await req.json();
+    
+    console.log(`Cart-to-quote conversion for user: ${user.id}, cart: ${cart_id}`);
 
-    if (!cart_items || !Array.isArray(cart_items) || cart_items.length === 0) {
-      throw new Error('No cart items provided');
+    if (!cart_id) {
+      throw new Error('Cart ID is required');
     }
 
-    let quoteId = quote_id;
-    let result;
+    // Fetch cart items from database - handle both user and session carts
+    const { data: cartData, error: cartError } = await supabase
+      .from('carts')
+      .select(`
+        id, name, total_amount, status, user_id, session_id,
+        cart_items (
+          id, cabinet_type_id, door_style_id, color_id, finish_id,
+          width_mm, height_mm, depth_mm, quantity, unit_price, total_price,
+          configuration, notes, item_name
+        )
+      `)
+      .eq('id', cart_id)
+      .single();
 
+    // Verify cart ownership - either by user_id or by session_id for anonymous users
+    if (cartError || !cartData) {
+      console.error('Error fetching cart:', cartError);
+      throw new Error('Cart not found');
+    }
+
+    if (cartData.user_id && cartData.user_id !== user.id) {
+      throw new Error('Cart access denied - user mismatch');
+    }
+
+    if (cartError) {
+      console.error('Error fetching cart:', cartError);
+      throw new Error('Cart not found or access denied');
+    }
+
+    if (!cartData.cart_items || cartData.cart_items.length === 0) {
+      throw new Error('Cart is empty');
+    }
+
+    const cart_items = cartData.cart_items;
+    console.log(`Found cart with ${cart_items.length} items, total: $${cartData.total_amount}`);
+
+    // Determine action based on parameters
+    let action = 'create_new';
+    let targetQuoteId = existing_quote_id;
+    
+    if (existing_quote_id) {
+      action = replace_items ? 'replace_quote' : 'add_to_existing';
+    }
+
+    console.log(`Action determined: ${action}, target quote: ${targetQuoteId || 'new'}`);
+
+    let result;
     switch (action) {
       case 'create_new':
         result = await createNewQuote();
         break;
       case 'add_to_existing':
-        if (!quote_id) throw new Error('Quote ID required for add_to_existing action');
-        result = await addToExistingQuote(quote_id);
+        result = await addToExistingQuote(targetQuoteId!);
         break;
       case 'replace_quote':
-        if (!quote_id) throw new Error('Quote ID required for replace_quote action');
-        result = await replaceQuote(quote_id);
+        result = await replaceQuote(targetQuoteId!);
         break;
       default:
         throw new Error(`Unknown action: ${action}`);
@@ -74,8 +112,8 @@ serve(async (req) => {
     async function createNewQuote() {
       console.log(`Creating new quote with ${cart_items.length} items`);
       
-      // Calculate totals
-      const subtotal = cart_items.reduce((sum: number, item: CartItem) => sum + (item.quantity * item.unit_price), 0);
+      // Calculate totals from cart items
+      const subtotal = cart_items.reduce((sum: number, item: any) => sum + (item.quantity * item.unit_price), 0);
       const tax_amount = subtotal * 0.1;
       const total_amount = subtotal + tax_amount;
 
@@ -88,19 +126,19 @@ serve(async (req) => {
           subtotal,
           tax_amount,
           total_amount,
-          notes: 'Quote created from cart items',
-          customer_email: user!.email,
+          notes: notes || 'Quote created from cart items',
+          customer_email: customer_email || user!.email,
+          customer_name: quote_name || 'Cart Quote',
           valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
         })
         .select()
         .single();
 
       if (quoteError) throw quoteError;
-      quoteId = quote.id;
 
       // Add items to quote
-      const quoteItems = cart_items.map((item: CartItem) => ({
-        quote_id: quoteId,
+      const quoteItems = cart_items.map((item: any) => ({
+        quote_id: quote.id,
         cabinet_type_id: item.cabinet_type_id,
         door_style_id: item.door_style_id,
         color_id: item.color_id,
@@ -110,8 +148,9 @@ serve(async (req) => {
         depth_mm: item.depth_mm,
         quantity: item.quantity,
         unit_price: item.unit_price,
-        total_price: item.quantity * item.unit_price,
-        notes: `Added from cart`,
+        total_price: item.total_price,
+        notes: item.notes || 'Added from cart',
+        item_name: item.item_name,
         configuration: item.configuration
       }));
 
@@ -122,7 +161,13 @@ serve(async (req) => {
       if (itemsError) throw itemsError;
 
       console.log(`Successfully created new quote ${quote.quote_number} with ${cart_items.length} items`);
-      return { quote_number: quote.quote_number, action: 'created', items_count: cart_items.length };
+      return { 
+        quote_id: quote.id,
+        quote_number: quote.quote_number, 
+        total_amount: quote.total_amount,
+        action: 'created', 
+        items_count: cart_items.length 
+      };
     }
 
     async function addToExistingQuote(targetQuoteId: string) {
@@ -131,7 +176,7 @@ serve(async (req) => {
       // Verify quote exists and belongs to user
       const { data: existingQuote, error: quoteError } = await supabase
         .from('quotes')
-        .select('id, quote_number, user_id')
+        .select('id, quote_number, user_id, subtotal, tax_amount, total_amount')
         .eq('id', targetQuoteId)
         .eq('user_id', user!.id)
         .single();
@@ -141,7 +186,7 @@ serve(async (req) => {
       }
 
       // Add items to quote
-      const quoteItems = cart_items.map((item: CartItem) => ({
+      const quoteItems = cart_items.map((item: any) => ({
         quote_id: targetQuoteId,
         cabinet_type_id: item.cabinet_type_id,
         door_style_id: item.door_style_id,
@@ -152,8 +197,9 @@ serve(async (req) => {
         depth_mm: item.depth_mm,
         quantity: item.quantity,
         unit_price: item.unit_price,
-        total_price: item.quantity * item.unit_price,
-        notes: `Added from cart to ${existingQuote.quote_number}`,
+        total_price: item.total_price,
+        notes: item.notes || `Added from cart to ${existingQuote.quote_number}`,
+        item_name: item.item_name,
         configuration: item.configuration
       }));
 
@@ -163,8 +209,32 @@ serve(async (req) => {
 
       if (itemsError) throw itemsError;
 
+      // Update quote totals
+      const newSubtotal = cart_items.reduce((sum: number, item: any) => sum + (item.quantity * item.unit_price), 0);
+      const updatedSubtotal = existingQuote.subtotal + newSubtotal;
+      const updatedTaxAmount = updatedSubtotal * 0.1;
+      const updatedTotalAmount = updatedSubtotal + updatedTaxAmount;
+
+      const { error: updateError } = await supabase
+        .from('quotes')
+        .update({
+          subtotal: updatedSubtotal,
+          tax_amount: updatedTaxAmount,
+          total_amount: updatedTotalAmount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', targetQuoteId);
+
+      if (updateError) throw updateError;
+
       console.log(`Successfully added ${cart_items.length} items to quote ${existingQuote.quote_number}`);
-      return { quote_number: existingQuote.quote_number, action: 'added', items_count: cart_items.length };
+      return { 
+        quote_id: targetQuoteId,
+        quote_number: existingQuote.quote_number, 
+        total_amount: updatedTotalAmount,
+        action: 'added', 
+        items_count: cart_items.length 
+      };
     }
 
     async function replaceQuote(targetQuoteId: string) {
@@ -191,7 +261,7 @@ serve(async (req) => {
       if (deleteError) throw deleteError;
 
       // Add new items to quote
-      const quoteItems = cart_items.map((item: CartItem) => ({
+      const quoteItems = cart_items.map((item: any) => ({
         quote_id: targetQuoteId,
         cabinet_type_id: item.cabinet_type_id,
         door_style_id: item.door_style_id,
@@ -202,8 +272,9 @@ serve(async (req) => {
         depth_mm: item.depth_mm,
         quantity: item.quantity,
         unit_price: item.unit_price,
-        total_price: item.quantity * item.unit_price,
-        notes: `Replaced items in ${existingQuote.quote_number}`,
+        total_price: item.total_price,
+        notes: item.notes || `Replaced items in ${existingQuote.quote_number}`,
+        item_name: item.item_name,
         configuration: item.configuration
       }));
 
@@ -213,8 +284,31 @@ serve(async (req) => {
 
       if (itemsError) throw itemsError;
 
+      // Update quote totals
+      const subtotal = cart_items.reduce((sum: number, item: any) => sum + (item.quantity * item.unit_price), 0);
+      const tax_amount = subtotal * 0.1;
+      const total_amount = subtotal + tax_amount;
+
+      const { error: updateError } = await supabase
+        .from('quotes')
+        .update({
+          subtotal,
+          tax_amount,
+          total_amount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', targetQuoteId);
+
+      if (updateError) throw updateError;
+
       console.log(`Successfully replaced quote ${existingQuote.quote_number} with ${cart_items.length} items`);
-      return { quote_number: existingQuote.quote_number, action: 'replaced', items_count: cart_items.length };
+      return { 
+        quote_id: targetQuoteId,
+        quote_number: existingQuote.quote_number, 
+        total_amount,
+        action: 'replaced', 
+        items_count: cart_items.length 
+      };
     }
 
     return new Response(
@@ -229,6 +323,7 @@ serve(async (req) => {
     console.error('Error in portal-cart-to-quote:', error);
     return new Response(
       JSON.stringify({ 
+        success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
         details: 'Failed to process cart to quote conversion'
       }),

@@ -74,24 +74,64 @@ export const useModernCart = () => {
   const cartQuery = useQuery({
     queryKey: ['cart', user?.id || getSessionId()],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('carts')
-        .select(`
-          id, user_id, session_id, name, total_amount, status, created_at, updated_at, source,
-          cart_items (
-            id, cart_id, cabinet_type_id, door_style_id, color_id, finish_id,
-            width_mm, height_mm, depth_mm, quantity, unit_price, total_price,
-            notes, configuration, created_at, updated_at,
-            cabinet_types (name, category, product_image_url),
-            door_styles (name, image_url),
-            colors (name, hex_code),
-            finishes (name)
-          )
-        `)
-        .eq('status', 'active')
-        .eq(user?.id ? 'user_id' : 'session_id', user?.id || getSessionId())
-        .order('updated_at', { ascending: false })
-        .limit(1);
+      let data;
+      let error;
+
+      if (user?.id) {
+        // For authenticated users, prioritize user-based cart with items
+        const { data: userCarts, error: userError } = await supabase
+          .from('carts')
+          .select(`
+            id, user_id, session_id, name, total_amount, status, created_at, updated_at, source,
+            cart_items (
+              id, cart_id, cabinet_type_id, door_style_id, color_id, finish_id,
+              width_mm, height_mm, depth_mm, quantity, unit_price, total_price,
+              notes, configuration, created_at, updated_at,
+              cabinet_types (name, category, product_image_url),
+              door_styles (name, image_url),
+              colors (name, hex_code),
+              finishes (name)
+            )
+          `)
+          .eq('status', 'active')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false });
+
+        if (userError) throw userError;
+
+        // Find cart with items, or use the most recent one
+        const cartWithItems = userCarts.find(cart => cart.cart_items && cart.cart_items.length > 0);
+        data = cartWithItems ? [cartWithItems] : userCarts.slice(0, 1);
+
+        // If we have multiple active carts, consolidate them
+        if (userCarts.length > 1) {
+          console.log(`Found ${userCarts.length} active carts, consolidating...`);
+          supabase.functions.invoke('cart-consolidation', {}).catch(console.error);
+        }
+      } else {
+        // For session users, use session-based cart
+        const { data: sessionData, error: sessionError } = await supabase
+          .from('carts')
+          .select(`
+            id, user_id, session_id, name, total_amount, status, created_at, updated_at, source,
+            cart_items (
+              id, cart_id, cabinet_type_id, door_style_id, color_id, finish_id,
+              width_mm, height_mm, depth_mm, quantity, unit_price, total_price,
+              notes, configuration, created_at, updated_at,
+              cabinet_types (name, category, product_image_url),
+              door_styles (name, image_url),
+              colors (name, hex_code),
+              finishes (name)
+            )
+          `)
+          .eq('status', 'active')
+          .eq('session_id', getSessionId())
+          .order('updated_at', { ascending: false })
+          .limit(1);
+
+        data = sessionData;
+        error = sessionError;
+      }
 
       if (error) throw error;
       return data;
