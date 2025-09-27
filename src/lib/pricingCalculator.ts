@@ -210,8 +210,8 @@ export class PricingCalculator {
       left_depth: cabinetType.left_side_depth_mm || dimensions.depth,
       right_depth: cabinetType.right_side_depth_mm || dimensions.depth,
       qty: quantity,
-      mat_rate_per_sqm: rates.materialRate || 85, // Default material rate
-      door_cost: rates.doorRate || 120, // Default door rate
+      mat_rate_per_sqm: rates.materialRate || 45, // Use actual material rate from specifications
+      door_cost: rates.doorRate || 120, // Combined door rate (style + color + finish)
       color_cost: rates.colorSurcharge || 0,
       finish_cost: rates.finishSurcharge || 0,
     };

@@ -35,6 +35,25 @@ export const usePricing = ({
 
   const [loading, setLoading] = useState(false);
   const [hardwareRequirements, setHardwareRequirements] = useState<any[]>([]);
+  const [materialSpecifications, setMaterialSpecifications] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchMaterialSpecifications = async () => {
+      try {
+        const { data: materials } = await supabase
+          .from('material_specifications')
+          .select('*')
+          .eq('active', true);
+        
+        setMaterialSpecifications(materials || []);
+      } catch (error) {
+        console.error('Error fetching material specifications:', error);
+        setMaterialSpecifications([]);
+      }
+    };
+
+    fetchMaterialSpecifications();
+  }, []);
 
   useEffect(() => {
     const fetchHardwareRequirements = async () => {
@@ -73,18 +92,22 @@ export const usePricing = ({
       setLoading(true);
       
       try {
-        const rates = {
-          materialRate: cabinetType.material_rate_per_sqm || 85,
-          doorRate: selectedDoorStyle?.base_rate_per_sqm || cabinetType.door_rate_per_sqm || 120,
-          colorSurcharge: selectedColor?.surcharge_rate_per_sqm || 0,
-          finishSurcharge: selectedFinish?.rate_per_sqm || 0,
-        };
+        // Get material rate from material specifications
+        const defaultMaterial = materialSpecifications.find(m => m.material_type === 'MDF') || materialSpecifications[0];
+        const materialRate = defaultMaterial?.cost_per_sqm || 45;
 
-        // Calculate door area for surcharges
-        const doorCount = Math.max(cabinetType.door_qty || cabinetType.door_count || 1, 1);
-        const doorArea = (dimensions.width / 1000) * (dimensions.height / 1000) * doorCount;
-        rates.colorSurcharge *= doorArea * quantity;
-        rates.finishSurcharge *= doorArea * quantity;
+        // Calculate proper door rate: base door style rate + color surcharge + finish rate
+        const baseDoorRate = selectedDoorStyle?.base_rate_per_sqm || 120;
+        const colorSurchargeRate = selectedColor?.surcharge_rate_per_sqm || 0;
+        const finishRate = selectedFinish?.rate_per_sqm || 0;
+        const totalDoorRate = baseDoorRate + colorSurchargeRate + finishRate;
+
+        const rates = {
+          materialRate: materialRate,
+          doorRate: totalDoorRate,
+          colorSurcharge: 0, // Already included in doorRate
+          finishSurcharge: 0, // Already included in doorRate
+        };
 
         const result = PricingCalculator.calculateCabinetPrice(
           cabinetType,
@@ -107,6 +130,7 @@ export const usePricing = ({
   }, [
     cabinetType,
     hardwareRequirements,
+    materialSpecifications,
     dimensions.width,
     dimensions.height,
     dimensions.depth,
