@@ -28,7 +28,7 @@ interface CabinetType {
   active: boolean;
   door_count: number;
   drawer_count: number;
-  featured_product: boolean;
+  is_featured: boolean;
   meta_title?: string;
   meta_description?: string;
   meta_keywords?: string;
@@ -52,7 +52,6 @@ interface CabinetType {
   left_side_depth_mm?: number;
   right_side_depth_mm?: number;
   display_order?: number;
-  is_featured?: boolean;
   qty_left_side?: number;
   qty_right_side?: number;
   qty_left_back?: number;
@@ -114,7 +113,7 @@ const defaultCabinetType: CabinetType = {
   active: true,
   door_count: 0,
   drawer_count: 0,
-  featured_product: false,
+  is_featured: false,
   meta_title: "",
   meta_description: "",
   meta_keywords: "",
@@ -131,7 +130,6 @@ const defaultCabinetType: CabinetType = {
   height_increment: 50,
   depth_increment: 50,
   display_order: 0,
-  is_featured: false,
 };
 
 // Hardware requirement form component
@@ -904,8 +902,8 @@ export default function EditCabinetType() {
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="featured"
-                      checked={cabinetType.featured_product}
-                      onCheckedChange={(checked) => handleInputChange('featured_product', checked)}
+                      checked={cabinetType.is_featured}
+                      onCheckedChange={(checked) => handleInputChange('is_featured', checked)}
                     />
                     <Label htmlFor="featured">Featured Product</Label>
                   </div>
