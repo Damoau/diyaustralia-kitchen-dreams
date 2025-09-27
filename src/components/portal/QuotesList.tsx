@@ -5,16 +5,22 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, FileText, Calendar, DollarSign } from "lucide-react";
+import { Search, FileText, Calendar, DollarSign, Edit3, Save, X } from "lucide-react";
 import { useQuotes } from "@/hooks/useQuotes";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export const QuotesList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [quotes, setQuotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingQuoteId, setEditingQuoteId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [savingQuoteId, setSavingQuoteId] = useState<string | null>(null);
   
   const { getQuotes } = useQuotes();
+  const { toast } = useToast();
 
   useEffect(() => {
     loadQuotes();
@@ -39,6 +45,7 @@ export const QuotesList = () => {
         adminView: false // Customer view
       });
       setQuotes(data);
+      console.log('Loaded quotes:', data); // Debug log
     } catch (error) {
       console.error('Error loading quotes:', error);
       // Don't show error for empty results, just show empty state
@@ -46,6 +53,63 @@ export const QuotesList = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEditName = (quote: any) => {
+    setEditingQuoteId(quote.id);
+    setEditingName(quote.customer_name || "");
+  };
+
+  const handleSaveName = async (quoteId: string) => {
+    if (!editingName.trim()) {
+      toast({
+        title: "Error",
+        description: "Quote name cannot be empty",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSavingQuoteId(quoteId);
+    try {
+      const { error } = await supabase
+        .from('quotes')
+        .update({ customer_name: editingName.trim() })
+        .eq('id', quoteId);
+
+      if (error) throw error;
+
+      // Update local state immediately
+      setQuotes(prevQuotes => 
+        prevQuotes.map(quote => 
+          quote.id === quoteId 
+            ? { ...quote, customer_name: editingName.trim() }
+            : quote
+        )
+      );
+
+      setEditingQuoteId(null);
+      setEditingName("");
+
+      toast({
+        title: "Success",
+        description: "Quote name updated successfully"
+      });
+    } catch (error) {
+      console.error('Error updating quote name:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update quote name",
+        variant: "destructive"
+      });
+    } finally {
+      setSavingQuoteId(null);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingQuoteId(null);
+    setEditingName("");
   };
 
   // Mock data fallback for demo
@@ -139,11 +203,50 @@ export const QuotesList = () => {
           <Card key={quote.id} className="hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-start justify-between">
-                  <div className="space-y-1">
+                  <div className="space-y-1 flex-1">
                     <CardTitle className="text-lg">{quote.quote_number}</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {quote.customer_name || 'Unnamed Quote'}
-                    </p>
+                    {editingQuoteId === quote.id ? (
+                      <div className="flex items-center gap-2 max-w-sm">
+                        <Input
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          className="h-8 text-sm"
+                          placeholder="Enter quote name"
+                          maxLength={100}
+                        />
+                        <Button
+                          size="sm"
+                          onClick={() => handleSaveName(quote.id)}
+                          disabled={savingQuoteId === quote.id}
+                          className="h-8 px-2"
+                        >
+                          <Save className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleCancelEdit}
+                          disabled={savingQuoteId === quote.id}
+                          className="h-8 px-2"
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-muted-foreground">
+                          {quote.customer_name || 'Unnamed Quote'}
+                        </p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditName(quote)}
+                          className="h-auto p-1 text-muted-foreground hover:text-foreground"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 <div className="flex flex-col items-end gap-2">
                   {getStatusBadge(quote.status)}
