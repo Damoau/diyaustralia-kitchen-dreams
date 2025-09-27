@@ -373,6 +373,12 @@ const Cart = () => {
         onOpenChange={setShowQuoteDialog}
         onQuoteSelected={handleQuoteSelected}
         isLoading={isConverting}
+        cartTotal={getTotalPrice()}
+        itemCount={getTotalItems()}
+        onAddToCart={() => {
+          setShowQuoteDialog(false);
+          handleCheckout();
+        }}
       />
     </ImpersonationLayout>
   );

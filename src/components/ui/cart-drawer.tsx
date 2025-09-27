@@ -385,6 +385,12 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
         onOpenChange={setShowQuoteDialog}
         onQuoteSelected={handleQuoteSelected}
         isLoading={isConverting}
+        cartTotal={getTotalPrice()}
+        itemCount={getTotalItems()}
+        onAddToCart={() => {
+          setShowQuoteDialog(false);
+          handleCheckout();
+        }}
       />
     </>
   );
