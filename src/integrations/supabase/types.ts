@@ -600,11 +600,13 @@ export type Database = {
           default_depth_mm: number
           default_height_mm: number
           default_width_mm: number
+          depth_increment: number
           display_order: number | null
           door_count: number
           door_qty: number | null
           door_rate_per_sqm: number | null
           drawer_count: number
+          height_increment: number
           id: string
           is_featured: boolean | null
           left_side_depth_mm: number | null
@@ -638,6 +640,7 @@ export type Database = {
           subcategory_display_order: number | null
           subcategory_id: string | null
           url_slug: string | null
+          width_increment: number
         }
         Insert: {
           active?: boolean
@@ -654,11 +657,13 @@ export type Database = {
           default_depth_mm: number
           default_height_mm: number
           default_width_mm: number
+          depth_increment?: number
           display_order?: number | null
           door_count?: number
           door_qty?: number | null
           door_rate_per_sqm?: number | null
           drawer_count?: number
+          height_increment?: number
           id?: string
           is_featured?: boolean | null
           left_side_depth_mm?: number | null
@@ -692,6 +697,7 @@ export type Database = {
           subcategory_display_order?: number | null
           subcategory_id?: string | null
           url_slug?: string | null
+          width_increment?: number
         }
         Update: {
           active?: boolean
@@ -708,11 +714,13 @@ export type Database = {
           default_depth_mm?: number
           default_height_mm?: number
           default_width_mm?: number
+          depth_increment?: number
           display_order?: number | null
           door_count?: number
           door_qty?: number | null
           door_rate_per_sqm?: number | null
           drawer_count?: number
+          height_increment?: number
           id?: string
           is_featured?: boolean | null
           left_side_depth_mm?: number | null
@@ -746,6 +754,7 @@ export type Database = {
           subcategory_display_order?: number | null
           subcategory_id?: string | null
           url_slug?: string | null
+          width_increment?: number
         }
         Relationships: [
           {
