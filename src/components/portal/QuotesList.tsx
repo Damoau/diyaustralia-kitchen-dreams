@@ -29,11 +29,23 @@ export const QuotesList = () => {
   // Listen for quote updates from detail page
   useEffect(() => {
     const handleQuoteUpdate = () => {
+      console.log('Quote update event received, reloading quotes...');
       loadQuotes();
     };
     
     window.addEventListener('quote-updated', handleQuoteUpdate);
     return () => window.removeEventListener('quote-updated', handleQuoteUpdate);
+  }, []);
+
+  // Also listen for focus events to refresh when user returns to tab/page
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('Page focused, refreshing quotes...');
+      loadQuotes();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   const loadQuotes = async () => {
@@ -79,6 +91,8 @@ export const QuotesList = () => {
 
       if (error) throw error;
 
+      console.log('Quote name updated successfully, refreshing list...');
+      
       // Update local state immediately
       setQuotes(prevQuotes => 
         prevQuotes.map(quote => 
@@ -90,6 +104,9 @@ export const QuotesList = () => {
 
       setEditingQuoteId(null);
       setEditingName("");
+
+      // Force a fresh reload from the database
+      await loadQuotes();
 
       toast({
         title: "Success",
