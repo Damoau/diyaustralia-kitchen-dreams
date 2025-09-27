@@ -8,8 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Trash2, Plus, Minus, ChevronDown, BookmarkIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
-import { useCart } from "@/hooks/useCart";
+import { useOptimizedCart } from "@/hooks/useOptimizedCart";
 import { useCartToQuote } from "@/hooks/useCartToQuote";
 import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,7 +29,7 @@ const Cart = () => {
   const navigate = useNavigate();
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
-  const { cart, updateQuantity, removeFromCart, saveCart, getItemCount, isLoading, initializeCart } = useCart();
+  const { cart, isLoading, error, getTotalItems, getTotalPrice, invalidateCache, refreshCart } = useOptimizedCart();
   const { convertCartToQuote, isLoading: isConverting } = useCartToQuote();
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
   const { user } = useAuth();
@@ -49,19 +50,40 @@ const Cart = () => {
       return;
     }
     
-    await updateQuantity(id, newQuantity);
+    try {
+      const { data, error } = await supabase
+        .from('cart_items')
+        .update({ 
+          quantity: newQuantity,
+          total_price: newQuantity * (cart?.items?.find(item => item.id === id)?.unit_price || 0)
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      invalidateCache();
+      toast.success('Item updated');
+    } catch (err) {
+      console.error('Error updating quantity:', err);
+      toast.error('Failed to update item');
+    }
   };
 
   const handleRemoveItem = async (id: string) => {
-    await removeFromCart(id);
-  };
+    try {
+      const { error } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('id', id);
 
-  const getTotalPrice = () => {
-    return cart?.total_amount || 0;
-  };
-
-  const getTotalItems = () => {
-    return getItemCount();
+      if (error) throw error;
+      
+      invalidateCache();
+      toast.success('Item removed from cart');
+    } catch (err) {
+      console.error('Error removing item:', err);
+      toast.error('Failed to remove item');
+    }
   };
 
   const handleRequestQuote = async () => {
@@ -80,8 +102,8 @@ const Cart = () => {
       
       if (result.success) {
         toast.success(`Quote ${result.quoteNumber} created for customer`);
-        // Initialize a new cart since the old one was converted to a quote
-        await initializeCart();
+        // Refresh cart data
+        invalidateCache();
         // Navigate to admin quotes list to see the created quote
         navigate('/admin/sales/quotes');
       }
@@ -112,8 +134,8 @@ const Cart = () => {
       
       toast.success(actionText);
       
-      // Initialize a new cart since the old one was converted to a quote
-      await initializeCart();
+      // Refresh cart data  
+      invalidateCache();
       
       // Navigate to customer portal quotes
       navigate('/portal/quotes');
@@ -135,7 +157,24 @@ const Cart = () => {
       return;
     }
     
-    await saveCart("Customer saved cart for later review");
+    try {
+      const { error } = await supabase
+        .from('carts')
+        .update({
+          status: 'saved',
+          abandon_reason: 'Customer saved cart for later review',
+          abandoned_at: new Date().toISOString()
+        })
+        .eq('id', cart?.id);
+
+      if (error) throw error;
+      
+      toast.success('Cart saved successfully');
+      invalidateCache();
+    } catch (err) {
+      console.error('Error saving cart:', err);
+      toast.error('Failed to save cart');
+    }
   };
 
   return (

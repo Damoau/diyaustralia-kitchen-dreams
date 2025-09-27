@@ -10,7 +10,7 @@ import { Truck, MapPin, Home, Building, Clock, Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { EnhancedShippingCalculator } from './EnhancedShippingCalculator';
-import { useCart } from '@/hooks/useCart';
+import { useOptimizedCart } from '@/hooks/useOptimizedCart';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ShippingAddress {
@@ -44,7 +44,7 @@ interface ShippingDeliveryProps {
 }
 
 export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: ShippingDeliveryProps) => {
-  const { cart } = useCart();
+  const { cart } = useOptimizedCart();
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     firstName: customerData?.customer_first_name || '',
     lastName: customerData?.customer_last_name || '',

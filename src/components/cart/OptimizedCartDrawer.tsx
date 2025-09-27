@@ -11,6 +11,7 @@ import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
 import { useNavigate } from "react-router-dom";
 import { withPerformanceMonitoring } from "@/components/performance/PerformanceOptimizer";
 import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface OptimizedCartDrawerProps {
   children: React.ReactNode;
@@ -146,13 +147,34 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
                     <OptimizedCartItem
                       key={item.id}
                       item={item}
-                      onUpdateQuantity={(quantity) => {
-                        // Implement quantity update
-                        console.log('Update quantity:', item.id, quantity);
+                       onUpdateQuantity={async (quantity) => {
+                        try {
+                          const { error } = await supabase
+                            .from('cart_items')
+                            .update({ 
+                              quantity,
+                              total_price: quantity * item.unit_price
+                            })
+                            .eq('id', item.id);
+
+                          if (error) throw error;
+                          invalidateCache();
+                        } catch (err) {
+                          console.error('Error updating quantity:', err);
+                        }
                       }}
-                      onRemove={() => {
-                        // Implement item removal
-                        console.log('Remove item:', item.id);
+                      onRemove={async () => {
+                        try {
+                          const { error } = await supabase
+                            .from('cart_items')
+                            .delete()
+                            .eq('id', item.id);
+
+                          if (error) throw error;
+                          invalidateCache();
+                        } catch (err) {
+                          console.error('Error removing item:', err);
+                        }
                       }}
                     />
                   ))}

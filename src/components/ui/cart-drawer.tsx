@@ -6,11 +6,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ShoppingCart, Trash2, Plus, Minus, X, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useCart } from "@/hooks/useCart";
+import { useOptimizedCart } from "@/hooks/useOptimizedCart";
 import { useCartToQuote } from "@/hooks/useCartToQuote";
 import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
 import { useAuth } from "@/hooks/useAuth";
 import { QuoteSelectionDialog } from "@/components/cart/QuoteSelectionDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CartItem {
   id: string;
@@ -30,11 +31,11 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
   const {
     cart,
     isLoading,
-    removeFromCart,
-    updateQuantity,
-    getItemCount,
-    initializeCart
-  } = useCart();
+    error,
+    getTotalItems,
+    getTotalPrice,
+    invalidateCache
+  } = useOptimizedCart();
   
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
   
@@ -44,19 +45,44 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
   const { convertCartToQuote, isLoading: isConvertLoading } = useCartToQuote();
 
-  useEffect(() => {
-    initializeCart();
-  }, [initializeCart]);
+  // No need to initialize cart - optimized cart handles this
 
   const handleRemoveItem = async (itemId: string) => {
-    await removeFromCart(itemId);
+    try {
+      const { error } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('id', itemId);
+
+      if (error) throw error;
+      invalidateCache();
+      toast.success('Item removed from cart');
+    } catch (err) {
+      console.error('Error removing item:', err);
+      toast.error('Failed to remove item');
+    }
   };
 
   const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
       await handleRemoveItem(itemId);
-    } else {
-      await updateQuantity(itemId, newQuantity);
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('cart_items')
+        .update({ 
+          quantity: newQuantity,
+          total_price: newQuantity * (cart?.items?.find(item => item.id === itemId)?.unit_price || 0)
+        })
+        .eq('id', itemId);
+
+      if (error) throw error;
+      invalidateCache();
+    } catch (err) {
+      console.error('Error updating quantity:', err);
+      toast.error('Failed to update item');
     }
   };
 
@@ -73,14 +99,6 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
   const handleNavigateToProduct = (item: any) => {
     console.log('Navigate to product:', item);
     // Implementation for navigating to product page
-  };
-
-  const getTotalPrice = () => {
-    return cart?.total_amount || 0;
-  };
-
-  const getTotalItems = () => {
-    return getItemCount();
   };
 
   const handleRequestQuote = async () => {
@@ -100,8 +118,8 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
       if (result.success) {
         toast.success(`Quote ${result.quoteNumber} created for customer`);
         
-        // Initialize a new cart since the old one was converted to a quote
-        await initializeCart();
+        // Refresh the cart after quote conversion
+        invalidateCache();
         
         // Dispatch custom event to notify quotes page to refresh
         window.dispatchEvent(new CustomEvent('quoteCreated', {
@@ -143,8 +161,8 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
           
         toast.success(message);
         
-        // Initialize a new cart since the old one was converted to a quote
-        await initializeCart();
+        // Refresh the cart after quote conversion
+        invalidateCache();
         
         // Close drawer and navigate to customer portal quotes
         setIsOpen(false);

@@ -16,7 +16,7 @@ import PricingCalculator from '@/lib/pricingCalculator';
 import { StyleColorFinishSelector } from './StyleColorFinishSelector';
 import { useCartPersistence } from '@/hooks/useCartPersistence';
 import { useCartSaveTracking } from '@/hooks/useCartSaveTracking';
-import { useCart } from '@/hooks/useCart';
+import { useOptimizedCart } from '@/hooks/useOptimizedCart';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { Ruler, Palette, Settings, FileText, ShoppingCart, MapPin, AlertCircle, Calculator, Edit2, Plus, Minus, Quote } from 'lucide-react';
 import { useCabinetPreferences } from '@/hooks/useCabinetPreferences';
@@ -110,8 +110,9 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   
   const { addToQuote, loading: addingToQuote } = useAddToQuote();
   
+  const { addToCart } = useCartPersistence();
+  const { invalidateCache } = useOptimizedCart();
   const { markAsUnsaved, markAsSaving, markAsSaved, markAsError } = useCartSaveTracking();
-  const { addToCart } = useCart();
   const { preferences: savedPrefs, updatePreference } = useCabinetPreferences();
   const { 
     preferences, 
@@ -779,43 +780,32 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     const weightInfo = calculateWeightInfo();
 
     const cartItem = {
-      cabinet_type_id: selectedCabinetType.id,
-      door_style_id: selectedDoorStyle,
-      color_id: selectedColor,
-      finish_id: selectedFinish,
-      width_mm: dimensions.width,
-      height_mm: dimensions.height,
-      depth_mm: dimensions.depth,
-      quantity: quantity,
-      unit_price: totalPrice,
-      notes: notes.trim() || undefined,
-      configuration: {
-        style: selectedDoorStyle,
-        color: selectedColor,
-        finish: selectedFinish,
-        customDimensions: dimensions,
-        weight: weightInfo,
-        quantity: quantity,
-        // Include assembly information in configuration
-        assembly: assemblyEnabled ? {
-          postcode: postcode,
-          enabled: true,
-          type: assemblyType,
-          price: assemblyType === 'carcass_only' ? assemblyEstimate?.carcass_only_price : assemblyEstimate?.with_doors_price,
-          lead_time_days: assemblyEstimate?.lead_time_days,
-          includes: assemblyEstimate?.includes
-        } : {
-          enabled: false
-        }
+      cabinetType: selectedCabinetType,
+      selectedOptions: {
+        doorStyleId: selectedDoorStyle,
+        colorId: selectedColor,
+        finishId: selectedFinish,
+        assemblyEnabled: assemblyEnabled,
+        postcode: assemblyEnabled ? postcode : undefined,
+        assemblyEstimate: assemblyEnabled ? assemblyEstimate : undefined
+      },
+      pricing: {
+        basePrice: totalPrice,
+        shippingCost: 0, // Will be calculated at checkout
+        assemblyCost: assemblyEnabled ? (assemblyType === 'carcass_only' ? assemblyEstimate?.carcass_only_price || 0 : assemblyEstimate?.with_doors_price || 0) : 0,
+        totalPrice: totalPrice + (assemblyEnabled ? (assemblyType === 'carcass_only' ? assemblyEstimate?.carcass_only_price || 0 : assemblyEstimate?.with_doors_price || 0) : 0)
       }
     };
 
     console.log('Cart item to add:', cartItem);
 
     try {
-      // Add item directly to cart
+      // Add item directly to cart using cart persistence
       await addToCart(cartItem);
       console.log('Item successfully added to cart');
+      
+      // Refresh optimized cart cache after adding item
+      invalidateCache();
       
       // Wait a bit to ensure cart is updated before showing success
       setTimeout(() => {

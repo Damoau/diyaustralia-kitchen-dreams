@@ -8,16 +8,9 @@ export const useCartMigration = () => {
   
   // Feature flag for gradual rollout
   useEffect(() => {
-    // Enable optimized cart for new sessions or based on feature flag
-    const isOptimizedEnabled = 
-      localStorage.getItem('cart_optimization_enabled') === 'true' ||
-      Math.random() < 0.5; // 50% rollout
-    
-    setUseOptimized(isOptimizedEnabled);
-    
-    if (isOptimizedEnabled) {
-      localStorage.setItem('cart_optimization_enabled', 'true');
-    }
+    // Enable optimized cart by default now
+    setUseOptimized(true);
+    localStorage.setItem('cart_optimization_enabled', 'true');
   }, []);
 
   const legacyCart = useCart();
