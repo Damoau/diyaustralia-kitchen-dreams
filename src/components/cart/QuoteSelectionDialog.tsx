@@ -363,30 +363,6 @@ export const QuoteSelectionDialog = ({
                                 </p>
                               </div>
                             </div>
-                            
-                            {/* Update Button - Only show for selected quote */}
-                            {selectedQuoteId === quote.id && (
-                              <div className="pt-3 border-t border-border/50">
-                                <Button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleSelectExisting();
-                                  }}
-                                  disabled={isLoading}
-                                  className="w-full h-11 font-semibold"
-                                  size="lg"
-                                >
-                                  {isLoading ? (
-                                    <>
-                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                      Updating Quote...
-                                    </>
-                                  ) : (
-                                    'Update Quote'
-                                  )}
-                                </Button>
-                              </div>
-                            )}
                           </div>
                         </CardContent>
                       </Card>
@@ -394,6 +370,31 @@ export const QuoteSelectionDialog = ({
                   )}
                 </div>
               </ScrollArea>
+              
+              {/* Update Quote Button - Always visible at bottom when quote is selected */}
+              {selectedQuoteId && (
+                <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                  <div className="mb-2">
+                    <p className="text-sm font-medium">Selected Quote:</p>
+                    <p className="text-xs text-muted-foreground">{selectedQuoteName}</p>
+                  </div>
+                  <Button 
+                    onClick={handleSelectExisting}
+                    disabled={isLoading}
+                    className="w-full h-11 font-semibold"
+                    size="lg"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Updating Quote...
+                      </>
+                    ) : (
+                      'Update Selected Quote'
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
