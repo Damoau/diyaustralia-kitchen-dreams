@@ -365,21 +365,21 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                   ) : (
                     <>
                       <Button 
-                        onClick={handleRequestQuote}
-                        className="w-full"
-                        size="lg"
-                        disabled={isLoading || isConverting}
-                      >
-                        {isConverting ? "Saving as Quote..." : "Save as Quote"}
-                      </Button>
-                  
-                      <Button 
                         variant="outline" 
                         onClick={handleCheckout}
                         className="w-full"
                         disabled={isLoading}
                       >
                         Proceed to Checkout
+                      </Button>
+                  
+                      <Button 
+                        onClick={handleRequestQuote}
+                        className="w-full"
+                        size="lg"
+                        disabled={isLoading || isConverting}
+                      >
+                        {isConverting ? "Saving as Quote..." : "Save as Quote"}
                       </Button>
                     </>
                   )}

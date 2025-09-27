@@ -876,7 +876,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="product-configurator-modal mobile-modal-high-z bg-background border shadow-2xl overflow-hidden p-0 max-w-7xl w-[95vw]">
+      <DialogContent className="product-configurator-modal mobile-modal-high-z bg-background border shadow-2xl overflow-hidden p-0 max-w-4xl w-[90vw]">
         {/* Debug info - Remove after testing */}
         {!selectedCabinetType && open && (
           <div className="p-4 text-center">
@@ -1404,23 +1404,15 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         {selectedCabinetType && (
           <div className="sticky bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t shadow-lg p-4 z-50">
             <div className="max-w-md mx-auto space-y-3">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 <Button
                   onClick={handleAddToCart}
-                  variant="outline" 
                   size="lg"
+                  className="w-full"
                   disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish}
                 >
                   <ShoppingCart className="w-4 h-4 mr-2" />
                   Add to Cart
-                </Button>
-                <Button
-                  onClick={handleAddToQuote}
-                  size="lg"
-                  disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish || addingToQuote}
-                >
-                  <Quote className="w-4 h-4 mr-2" />
-                  {addingToQuote ? 'Adding...' : 'Add to Quote'}
                 </Button>
               </div>
               

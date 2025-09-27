@@ -200,21 +200,28 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
                   
                   <div className="flex gap-2">
                     <Button 
+                      onClick={handleCheckout}
+                      className="flex-1"
+                    >
+                      Proceed to Checkout
+                    </Button>
+                    
+                    <Button 
                       onClick={handleRequestQuote}
                       variant="outline"
                       className="flex-1"
                     >
                       Request Quote
                     </Button>
-                    
-                    <Button 
-                      onClick={handleViewCart}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      View Cart
-                    </Button>
                   </div>
+                  
+                  <Button 
+                    onClick={handleViewCart}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    View Cart
+                  </Button>
                 </div>
               </div>
             </div>
