@@ -279,6 +279,18 @@ const Checkout = () => {
                     <span>${getTotalPrice().toFixed(2)}</span>
                   </div>
                   
+                  {/* 20% Deposit Highlight */}
+                  <div className="bg-gradient-to-r from-primary/10 to-primary-glow/10 border border-primary/20 rounded-lg p-3 my-2">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="default" className="text-xs">20% Deposit</Badge>
+                        <span className="text-sm font-medium">Required Today</span>
+                      </div>
+                      <span className="font-semibold text-primary">${(getTotalPrice() * 0.2).toFixed(2)}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Remaining balance due on delivery</p>
+                  </div>
+                  
                   <div className="flex justify-between">
                     <span>Shipping</span>
                     <span className="text-muted-foreground">Calculated at checkout</span>

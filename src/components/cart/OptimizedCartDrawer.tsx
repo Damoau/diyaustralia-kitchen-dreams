@@ -202,6 +202,20 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
                   </span>
                 </div>
 
+                {/* 20% Deposit Highlight */}
+                {getTotalPrice() > 0 && (
+                  <div className="bg-gradient-to-r from-primary/10 to-primary-glow/10 border border-primary/20 rounded-lg p-3">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="default" className="text-xs">20% Deposit</Badge>
+                        <span className="text-sm font-medium">Required</span>
+                      </div>
+                      <span className="font-semibold text-primary">${(getTotalPrice() * 0.2).toFixed(2)}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Secures your order</p>
+                  </div>
+                )}
+
                 <div className="space-y-3">
                   <Button 
                     onClick={handleCheckout}

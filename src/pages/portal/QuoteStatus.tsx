@@ -168,9 +168,26 @@ const QuoteStatus = () => {
             
             <Separator />
             
-            <div className="text-center">
-              <p className="text-2xl font-bold">${quote.total_amount?.toFixed(2) || '0.00'}</p>
-              <p className="text-sm text-muted-foreground">Total Quote Value</p>
+            <div className="text-center space-y-3">
+              <div>
+                <p className="text-2xl font-bold">${quote.total_amount?.toFixed(2) || '0.00'}</p>
+                <p className="text-sm text-muted-foreground">Total Quote Value</p>
+              </div>
+              
+              {/* 20% Deposit Highlight */}
+              <div className="bg-gradient-to-r from-primary/10 to-primary-glow/10 border border-primary/20 rounded-lg p-3">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Badge variant="default" className="bg-primary hover:bg-primary">
+                    20% Deposit Required
+                  </Badge>
+                </div>
+                <p className="text-lg font-semibold text-primary">
+                  ${((quote.total_amount || 0) * 0.2).toFixed(2)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  To secure your order
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
