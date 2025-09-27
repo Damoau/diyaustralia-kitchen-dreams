@@ -118,12 +118,14 @@ export const QuoteToCartConverter = ({
 
       setOpen(false);
       
-      // Force cart refresh by dispatching a custom event
+      // Multiple methods to ensure cart refresh works
       window.dispatchEvent(new CustomEvent('cart-updated'));
+      localStorage.setItem('cart_updated', Date.now().toString());
+      setTimeout(() => localStorage.removeItem('cart_updated'), 1000);
       
       // Force a clean redirect to cart page with cache busting
       setTimeout(() => {
-        // Clear any cached cart data before redirect
+        // Clear any cached cart data before redirect  
         sessionStorage.removeItem('cart_session_id');
         window.location.href = '/cart?refresh=' + Date.now();
       }, 500);

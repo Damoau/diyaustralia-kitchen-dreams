@@ -212,23 +212,48 @@ export const useOptimizedCart = () => {
 
   // Initialize cart only once when user changes or when forced refresh event occurs
   useEffect(() => {
-    if (!cart) {
+    // Check if we need to refresh due to recent cart updates
+    const cartUpdated = localStorage.getItem('cart_updated');
+    const shouldForceRefresh = cartUpdated && (Date.now() - parseInt(cartUpdated)) < 5000; // 5 seconds
+    
+    if (!cart || shouldForceRefresh) {
+      if (shouldForceRefresh) {
+        console.log('🔄 Force refreshing cart due to recent update');
+        localStorage.removeItem('cart_updated');
+      }
       initializeCart();
     }
+  }, [user?.id]); // Only depend on user ID change
 
-    // Listen for cart update events to refresh cart
+  // Separate effect for cart update events to avoid dependency issues
+  useEffect(() => {
     const handleCartUpdate = () => {
-      console.log('Cart update event received - refreshing cart');
-      setCart(null);
-      setTimeout(() => initializeCart(), 100);
+      console.log('🔄 Cart update event received - force refreshing cart data');
+      setCart(null);  // Clear current cart
+      setIsLoading(false);  // Reset loading state
+      // Force immediate re-initialization
+      setTimeout(() => {
+        console.log('🔄 Re-initializing cart after update event');
+        initializeCart();
+      }, 50);
     };
 
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'cart_updated') {
+        console.log('🔄 Storage cart update detected');
+        handleCartUpdate();
+      }
+    };
+
+    // Listen for both custom events and storage events
     window.addEventListener('cart-updated', handleCartUpdate);
+    window.addEventListener('storage', handleStorageChange);
     
     return () => {
       window.removeEventListener('cart-updated', handleCartUpdate);
+      window.removeEventListener('storage', handleStorageChange);
     };
-  }, [user?.id]); // Only depend on user ID change
+  }, [initializeCart]);
 
   // Helper functions
   const getTotalItems = useCallback(() => {

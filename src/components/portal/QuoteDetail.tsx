@@ -184,8 +184,10 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
         description: `${data.items_added} items ready for checkout! Redirecting...`,
       });
 
-      // Force cart refresh by dispatching a custom event
+      // Multiple methods to ensure cart refresh works
       window.dispatchEvent(new CustomEvent('cart-updated'));
+      localStorage.setItem('cart_updated', Date.now().toString());
+      setTimeout(() => localStorage.removeItem('cart_updated'), 1000);
 
       // Super quick redirect with cache busting
       setTimeout(() => {
