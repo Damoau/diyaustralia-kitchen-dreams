@@ -28,6 +28,9 @@ interface QuoteSelectionDialogProps {
   onOpenChange: (open: boolean) => void;
   onQuoteSelected: (quoteId: string | null, quoteName?: string) => void;
   isLoading?: boolean;
+  cartTotal?: number;
+  itemCount?: number;
+  onAddToCart?: () => void;
 }
 
 // Input validation schema
@@ -45,12 +48,16 @@ export const QuoteSelectionDialog = ({
   open, 
   onOpenChange, 
   onQuoteSelected,
-  isLoading = false 
+  isLoading = false,
+  cartTotal = 0,
+  itemCount = 0,
+  onAddToCart
 }: QuoteSelectionDialogProps) => {
   const [quotes, setQuotes] = useState<ExistingQuote[]>([]);
   const [loadingQuotes, setLoadingQuotes] = useState(false);
   const [newQuoteName, setNewQuoteName] = useState("");
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
+  const [selectedQuoteName, setSelectedQuoteName] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
   const { toast } = useToast();
 
@@ -59,6 +66,7 @@ export const QuoteSelectionDialog = ({
       fetchExistingQuotes();
       setNewQuoteName("");
       setSelectedQuoteId(null);
+      setSelectedQuoteName(null);
       setValidationErrors({});
     }
   }, [open]);
@@ -180,15 +188,20 @@ export const QuoteSelectionDialog = ({
                   value={newQuoteName}
                   onChange={(e) => {
                     setNewQuoteName(e.target.value);
+                    // Clear existing quote selection when typing in new quote name
+                    if (selectedQuoteId) {
+                      setSelectedQuoteId(null);
+                      setSelectedQuoteName(null);
+                    }
                     if (validationErrors.quoteName) {
                       validateQuoteName(e.target.value);
                     }
                   }}
                   onBlur={() => validateQuoteName(newQuoteName)}
-                  className={validationErrors.quoteName ? "border-red-500" : ""}
+                  className={validationErrors.quoteName && !selectedQuoteId ? "border-red-500" : ""}
                   maxLength={100}
                 />
-                {validationErrors.quoteName && (
+                {validationErrors.quoteName && !selectedQuoteId && (
                   <p className="text-sm text-red-600 mt-1">{validationErrors.quoteName}</p>
                 )}
               </div>
@@ -224,11 +237,18 @@ export const QuoteSelectionDialog = ({
               <div className="space-y-4">
                 <div>
                   <Label className="text-base font-semibold">
-                    Add to Existing Quote
+                    Update Existing Quote
                   </Label>
                   <p className="text-sm text-muted-foreground">
                     Select an existing quote to add these items to
                   </p>
+                  {selectedQuoteId && selectedQuoteName && (
+                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                      <p className="text-sm text-blue-800 font-medium">
+                        ✓ Update quote: {selectedQuoteName}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <ScrollArea className="h-64 border rounded-lg p-2">
@@ -247,7 +267,13 @@ export const QuoteSelectionDialog = ({
                               ? 'ring-2 ring-primary border-primary' 
                               : ''
                           }`}
-                          onClick={() => setSelectedQuoteId(quote.id)}
+                          onClick={() => {
+                            setSelectedQuoteId(quote.id);
+                            setSelectedQuoteName(`${quote.quote_number} - ${quote.customer_name || 'Unnamed Quote'}`);
+                            // Clear any validation errors when selecting existing quote
+                            setValidationErrors({});
+                            setNewQuoteName("");
+                          }}
                         >
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between">
@@ -297,12 +323,38 @@ export const QuoteSelectionDialog = ({
                   {isLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Adding to Quote...
+                      Updating Quote...
                     </>
                   ) : (
-                    'Add to Selected Quote'
+                    'Update Selected Quote'
                   )}
                 </Button>
+              </div>
+            </>
+          )}
+
+          {/* Cart Summary Section */}
+          {itemCount > 0 && (
+            <>
+              <Separator />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Selected Items Total:</p>
+                    <p className="text-xs text-muted-foreground">{itemCount} item(s)</p>
+                  </div>
+                  <p className="text-lg font-bold">${cartTotal.toLocaleString()}</p>
+                </div>
+                
+                {onAddToCart && (
+                  <Button 
+                    onClick={onAddToCart}
+                    className="w-full"
+                    size="lg"
+                  >
+                    Add {itemCount} Items to Cart
+                  </Button>
+                )}
               </div>
             </>
           )}
