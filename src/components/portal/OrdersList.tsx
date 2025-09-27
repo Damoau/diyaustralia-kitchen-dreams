@@ -62,12 +62,12 @@ export const OrdersList = () => {
             order_number: "ORD-2024-001", 
             status: "in_production",
             total_amount: 15800,
-            subtotal_amount: 14364,
+            subtotal: 14364,
             created_at: "2024-01-05T00:00:00Z",
             user_id: null,
             payment_schedules: [
               { schedule_type: "deposit", percentage: 20, amount: 3160, status: "paid", paid_at: "2024-01-05T00:00:00Z" },
-              { schedule_type: "progress", percentage: 30, amount: 4740, status: "pending", due_date: "2024-01-20" }
+              { schedule_type: "part_payment", percentage: 30, amount: 4740, status: "pending", due_date: "2024-01-20" }
             ]
           },
           {
@@ -75,12 +75,12 @@ export const OrdersList = () => {
             order_number: "ORD-2023-089",
             status: "shipped", 
             total_amount: 4200,
-            subtotal_amount: 3818,
+            subtotal: 3818,
             created_at: "2023-11-15T00:00:00Z",
             user_id: null,
             payment_schedules: [
               { schedule_type: "deposit", percentage: 20, amount: 840, status: "paid" },
-              { schedule_type: "final", percentage: 80, amount: 3360, status: "paid" }
+              { schedule_type: "balance", percentage: 80, amount: 3360, status: "paid" }
             ]
           }
         ];
