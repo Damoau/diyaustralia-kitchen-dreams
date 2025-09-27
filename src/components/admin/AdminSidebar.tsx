@@ -21,7 +21,6 @@ import {
   Truck,
   Settings,
   Users,
-  Activity,
   Bell,
   DollarSign,
   Wrench,
@@ -34,6 +33,7 @@ import {
   Home,
   Store,
   List,
+  BarChart3,
 } from 'lucide-react';
 
 const navigationItems = [
@@ -150,16 +150,8 @@ export const AdminSidebar = () => {
                           {!isCollapsed && <span>{item.title}</span>}
                         </NavLink>
                       )}
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-      <SidebarMenuItem>
-        <SidebarMenuButton asChild>
-          <Link to="/admin/user-behavior-analytics" className="flex items-center gap-2">
-            <Activity className="w-4 h-4" />
-            <span>User Behavior Analytics</span>
-          </Link>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 ))}
               </SidebarMenu>
             </SidebarGroupContent>

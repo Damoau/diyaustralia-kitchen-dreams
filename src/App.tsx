@@ -13,6 +13,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { UserActionTracker } from "@/components/UserActionTracker";
 
 // Lazy load route components for code splitting
+const Index = lazy(() => import("./pages/Index"));
 const Shop = lazy(() => import("./pages/Shop"));
 const RoomCategories = lazy(() => import("./pages/RoomCategories"));
 const RoomCategory = lazy(() => import("./pages/RoomCategory"));
