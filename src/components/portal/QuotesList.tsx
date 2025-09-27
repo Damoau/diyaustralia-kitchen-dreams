@@ -51,13 +51,14 @@ export const QuotesList = () => {
   const loadQuotes = async () => {
     try {
       setLoading(true);
+      console.log('Loading quotes with filters:', { status: statusFilter, search: searchTerm });
       const data = await getQuotes({
         status: statusFilter,
         search: searchTerm,
         adminView: false // Customer view
       });
+      console.log('Loaded quotes data:', data.map(q => ({ id: q.id, quote_number: q.quote_number, customer_name: q.customer_details?.name })));
       setQuotes(data);
-      console.log('Loaded quotes:', data); // Debug log
     } catch (error) {
       console.error('Error loading quotes:', error);
       // Don't show error for empty results, just show empty state
@@ -69,7 +70,7 @@ export const QuotesList = () => {
 
   const handleEditName = (quote: any) => {
     setEditingQuoteId(quote.id);
-    setEditingName(quote.customer_name || "");
+    setEditingName(quote.customer_details?.name || "");
   };
 
   const handleSaveName = async (quoteId: string) => {
@@ -97,7 +98,13 @@ export const QuotesList = () => {
       setQuotes(prevQuotes => 
         prevQuotes.map(quote => 
           quote.id === quoteId 
-            ? { ...quote, customer_name: editingName.trim() }
+            ? { 
+                ...quote, 
+                customer_details: {
+                  ...quote.customer_details,
+                  name: editingName.trim()
+                }
+              }
             : quote
         )
       );
@@ -251,9 +258,9 @@ export const QuotesList = () => {
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <p className="text-sm text-muted-foreground">
-                          {quote.customer_name || 'Unnamed Quote'}
-                        </p>
+                         <p className="text-sm text-muted-foreground">
+                           {quote.customer_details?.name || 'Unnamed Quote'}
+                         </p>
                         <Button
                           variant="ghost"
                           size="sm"
