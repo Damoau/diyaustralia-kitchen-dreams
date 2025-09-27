@@ -10,6 +10,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { FileText, Plus, Calendar, DollarSign, Loader2 } from "lucide-react";
+import { OptimizedImage } from "@/components/performance/PerformanceOptimizer";
+import { QuoteDetailSkeleton } from "@/components/ui/cart-skeleton";
+import { useSlowRenderDetector } from "@/hooks/usePerformanceMonitor";
 import { z } from "zod";
 
 interface ExistingQuote {
@@ -53,6 +56,8 @@ export const QuoteSelectionDialog = ({
   itemCount = 0,
   onAddToCart
 }: QuoteSelectionDialogProps) => {
+  // Performance monitoring
+  useSlowRenderDetector('QuoteSelectionDialog', 50);
   const [quotes, setQuotes] = useState<ExistingQuote[]>([]);
   const [loadingQuotes, setLoadingQuotes] = useState(false);
   const [newQuoteName, setNewQuoteName] = useState("");
@@ -255,10 +260,7 @@ export const QuoteSelectionDialog = ({
                   <ScrollArea className="h-64 border rounded-lg p-3 bg-muted/20">
                     <div className="space-y-3">
                       {loadingQuotes ? (
-                        <div className="flex items-center justify-center py-8">
-                          <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                          <span className="ml-2 text-sm text-muted-foreground">Loading quotes...</span>
-                        </div>
+                        <QuoteDetailSkeleton />
                       ) : (
                         quotes.map((quote) => (
                           <Card 

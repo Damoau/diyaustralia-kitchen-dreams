@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { debounce, memoize } from '@/lib/performance';
+import { usePerformanceMonitor } from './usePerformanceMonitor';
 
 export interface CartItem {
   id: string;
@@ -57,11 +59,21 @@ export const useCart = () => {
   const [cart, setCart] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const initializingRef = useRef(false);
+  const cartCacheRef = useRef<{ [key: string]: Cart | null }>({});
+  
+  // Performance monitoring
+  const metrics = usePerformanceMonitor('useCart');
 
-  // Initialize cart when component mounts or user changes
-  useEffect(() => {
-    initializeCart();
-  }, [user?.id]); // Re-initialize when user changes
+  // Debounced cart initialization to prevent multiple rapid calls
+  const debouncedInitialize = useMemo(
+    () => debounce(() => {
+      if (!initializingRef.current) {
+        initializeCartInternal();
+      }
+    }, 100),
+    [user?.id]
+  );
 
   // Generate or get session ID for guest users
   const getSessionId = () => {
@@ -73,10 +85,35 @@ export const useCart = () => {
     return sessionId;
   };
 
+  // Initialize cart when component mounts or user changes
+  useEffect(() => {
+    debouncedInitialize();
+  }, [debouncedInitialize]);
+
+  // Memoized cache key for user context
+  const cacheKey = useMemo(() => {
+    return user?.id ? `user_${user.id}` : `session_${getSessionId()}`;
+  }, [user?.id]);
+
   // Get or create cart (for both authenticated and guest users) with consolidation logic
-  const initializeCart = async () => {
+  const initializeCartInternal = async () => {
+    if (initializingRef.current) {
+      console.log('Cart initialization already in progress, skipping...');
+      return;
+    }
+
+    // Check cache first
+    if (cartCacheRef.current[cacheKey]) {
+      console.log('Using cached cart');
+      setCart(cartCacheRef.current[cacheKey]);
+      return;
+    }
+
+    initializingRef.current = true;
     setIsLoading(true);
     setError(null);
+
+    const startTime = performance.now();
 
     try {
       let existingCart = null;
@@ -454,9 +491,11 @@ export const useCart = () => {
         })) || []
       };
 
-      console.log('Cart initialized:', {
+      const endTime = performance.now();
+      console.log(`Cart initialized in ${(endTime - startTime).toFixed(2)}ms:`, {
         cartId: formattedCart.id,
         itemsCount: formattedCart.items.length,
+        cacheKey,
         items: formattedCart.items.map(item => ({
           id: item.id,
           notes: item.notes,
@@ -464,14 +503,19 @@ export const useCart = () => {
         }))
       });
 
+      // Cache the result
+      cartCacheRef.current[cacheKey] = formattedCart;
       setCart(formattedCart);
 
     } catch (err: any) {
       console.error('Error initializing cart:', err);
       setError(err.message);
       toast.error('Failed to load cart');
+      // Clear cache on error
+      cartCacheRef.current[cacheKey] = null;
     } finally {
       setIsLoading(false);
+      initializingRef.current = false;
     }
   };
 
@@ -497,7 +541,7 @@ export const useCart = () => {
       if (!currentCart) {
         console.log('No cart found, initializing...');
         // Try to initialize cart first
-        await initializeCart();
+        await initializeCartInternal();
         
         // Check if cart was initialized in state - use a small delay to allow state update
         await new Promise(resolve => setTimeout(resolve, 50));
@@ -775,50 +819,11 @@ export const useCart = () => {
     return cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
   };
 
-  // Initialize cart when component mounts or user changes
-  useEffect(() => {
-    initializeCart();
-    
-    // Set up real-time subscription for cart updates
-    const channel = supabase
-      .channel('cart-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'cart_items'
-        },
-        (payload) => {
-          console.log('Cart item change detected:', payload);
-          // Refresh cart when items are added/updated/deleted
-          setTimeout(() => initializeCart(), 100);
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'carts'
-        },
-        (payload) => {
-          console.log('Cart change detected:', payload);
-          // Refresh cart when cart totals are updated
-          setTimeout(() => initializeCart(), 100);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id]);
-
-  // Set up real-time subscription for cart updates
+  // Initialize cart when component mounts or user changes (REMOVED - moved to optimized version above)
+  // Real-time subscriptions (optimized to prevent excessive re-initialization)
   useEffect(() => {
     if (!cart?.id) return;
-
+    
     const channel = supabase
       .channel(`cart_${cart.id}`)
       .on(
@@ -830,23 +835,13 @@ export const useCart = () => {
           filter: `cart_id=eq.${cart.id}`
         },
         () => {
-          // Refresh cart when items change
+          // Debounce cart refresh to prevent excessive calls
           console.log('Cart items changed, refreshing cart...');
-          initializeCart();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'carts',
-          filter: `id=eq.${cart.id}`
-        },
-        () => {
-          // Refresh cart when cart totals change
-          console.log('Cart totals changed, refreshing cart...');
-          initializeCart();
+          setTimeout(() => {
+            // Clear cache and refresh
+            cartCacheRef.current[cacheKey] = null;
+            initializeCartInternal();
+          }, 500);
         }
       )
       .subscribe();
@@ -854,7 +849,7 @@ export const useCart = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [cart?.id]);
+  }, [cart?.id, cacheKey]);
 
   return {
     cart,
@@ -866,6 +861,6 @@ export const useCart = () => {
     clearCart,
     saveCart,
     getItemCount,
-    initializeCart
+    initializeCart: initializeCartInternal
   };
 };

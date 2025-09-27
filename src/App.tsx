@@ -35,6 +35,10 @@ const PortalRouter = lazy(() => import("./pages/PortalRouter"));
 // Lazy load ProtectedRoute
 const ProtectedRoute = lazy(() => import("./components/ProtectedRoute"));
 
+// Performance components
+const PerformanceDashboard = lazy(() => import("./components/performance/PerformanceDashboard"));
+const CartPerformanceWrapper = lazy(() => import("./components/performance/CartPerformanceWrapper"));
+
 // Enhanced QueryClient with performance optimizations
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -103,10 +107,16 @@ const App = () => (
                       </Suspense>
                     } 
                   />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-                </NavigationProvider>
+                   <Route path="*" element={<NotFound />} />
+                 </Routes>
+               </Suspense>
+                 
+                 {/* Performance monitoring for development */}
+                 <Suspense fallback={null}>
+                   <PerformanceDashboard />
+                 </Suspense>
+                 
+                 </NavigationProvider>
               </BrowserRouter>
             </HelmetProvider>
         </AdminImpersonationProvider>
