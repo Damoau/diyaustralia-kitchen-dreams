@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
@@ -20,7 +20,9 @@ for (let i = 0; i < localStorage.length; i++) {
 keysToRemove.forEach(key => localStorage.removeItem(key));
 
 createRoot(document.getElementById("root")!).render(
-  <QueryProvider>
-    <App />
-  </QueryProvider>
+  <StrictMode>
+    <QueryProvider>
+      <App />
+    </QueryProvider>
+  </StrictMode>
 );
