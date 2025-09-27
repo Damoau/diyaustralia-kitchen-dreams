@@ -56,7 +56,7 @@ serve(async (req) => {
         cart_items (
           id, cabinet_type_id, door_style_id, color_id, finish_id,
           width_mm, height_mm, depth_mm, quantity, unit_price, total_price,
-          configuration, notes, item_name
+          configuration, notes
         )
       `)
       .eq('id', cart_id)
@@ -137,7 +137,7 @@ serve(async (req) => {
       if (quoteError) throw quoteError;
 
       // Add items to quote
-      const quoteItems = cart_items.map((item: any) => ({
+      const quoteItems = cart_items.map((item: any, index: number) => ({
         quote_id: quote.id,
         cabinet_type_id: item.cabinet_type_id,
         door_style_id: item.door_style_id,
@@ -150,7 +150,7 @@ serve(async (req) => {
         unit_price: item.unit_price,
         total_price: item.total_price,
         notes: item.notes || 'Added from cart',
-        item_name: item.item_name,
+        item_name: item.cabinet_type_id ? `Cabinet Item ${index + 1}` : `Item ${index + 1}`,
         configuration: item.configuration
       }));
 
@@ -186,7 +186,7 @@ serve(async (req) => {
       }
 
       // Add items to quote
-      const quoteItems = cart_items.map((item: any) => ({
+      const quoteItems = cart_items.map((item: any, index: number) => ({
         quote_id: targetQuoteId,
         cabinet_type_id: item.cabinet_type_id,
         door_style_id: item.door_style_id,
@@ -199,7 +199,7 @@ serve(async (req) => {
         unit_price: item.unit_price,
         total_price: item.total_price,
         notes: item.notes || `Added from cart to ${existingQuote.quote_number}`,
-        item_name: item.item_name,
+        item_name: item.cabinet_type_id ? `Cabinet Item ${index + 1}` : `Item ${index + 1}`,
         configuration: item.configuration
       }));
 
@@ -261,7 +261,7 @@ serve(async (req) => {
       if (deleteError) throw deleteError;
 
       // Add new items to quote
-      const quoteItems = cart_items.map((item: any) => ({
+      const quoteItems = cart_items.map((item: any, index: number) => ({
         quote_id: targetQuoteId,
         cabinet_type_id: item.cabinet_type_id,
         door_style_id: item.door_style_id,
@@ -274,7 +274,7 @@ serve(async (req) => {
         unit_price: item.unit_price,
         total_price: item.total_price,
         notes: item.notes || `Replaced items in ${existingQuote.quote_number}`,
-        item_name: item.item_name,
+        item_name: item.cabinet_type_id ? `Cabinet Item ${index + 1}` : `Item ${index + 1}`,
         configuration: item.configuration
       }));
 

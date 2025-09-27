@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { QuoteSelectionDialog } from "../cart/QuoteSelectionDialog";
 import { CartSkeleton } from "@/components/ui/cart-skeleton";
 import { useCartMigration } from "@/hooks/useCartMigration";
+import { useCartToQuote } from "@/hooks/useCartToQuote";
 import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
 import { useNavigate } from "react-router-dom";
 import { withPerformanceMonitoring } from "@/components/performance/PerformanceOptimizer";
@@ -22,6 +23,7 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
   const { isImpersonating } = useAdminImpersonation();
+  const { convertCartToQuote } = useCartToQuote();
   const navigate = useNavigate();
 
   const itemCount = getTotalItems();
@@ -42,36 +44,42 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
   }, [isImpersonating, cart, navigate]);
 
   const handleQuoteSelected = useCallback(async (quoteId: string | null, quoteName?: string, replaceItems?: boolean) => {
+    if (!cart?.id) {
+      console.error('No cart ID available for quote conversion');
+      return;
+    }
+
     setIsConverting(true);
     try {
-      // Here you would implement the actual quote conversion logic
-      // For now, we'll just simulate the API call
-      console.log('Converting cart to quote:', { quoteId, quoteName, replaceItems });
+      console.log('Converting cart to quote:', { cartId: cart.id, quoteId, quoteName, replaceItems });
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const result = await convertCartToQuote(
+        cart.id,
+        undefined, // customer email - will use user's email
+        'Cart converted to quote',
+        quoteId || undefined,
+        quoteName,
+        replaceItems
+      );
       
-      // Invalidate cache and refresh
-      invalidateCache();
-      setShowQuoteDialog(false);
-      
-      // Show success message based on operation type
-      if (quoteId && replaceItems) {
-        // Updated existing quote by replacing items
-        console.log(`Quote updated with new items (${quoteName})`);
-      } else if (quoteId) {
-        // Added items to existing quote
-        console.log(`Items added to existing quote (${quoteName})`);
-      } else {
-        // Created new quote
-        console.log(`New quote created: ${quoteName}`);
+      if (result.success) {
+        // Invalidate cache and refresh
+        invalidateCache();
+        setShowQuoteDialog(false);
+        
+        // Navigate to the quote if it was successful
+        if (result.quoteId && result.isNewQuote) {
+          setTimeout(() => {
+            window.open(`/portal/quotes/${result.quoteId}`, '_blank');
+          }, 500);
+        }
       }
     } catch (error) {
       console.error('Error converting to quote:', error);
     } finally {
       setIsConverting(false);
     }
-  }, [invalidateCache]);
+  }, [cart?.id, convertCartToQuote, invalidateCache]);
 
   const handleCheckout = useCallback(() => {
     navigate('/checkout');
