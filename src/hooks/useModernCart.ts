@@ -70,14 +70,14 @@ export const useModernCart = () => {
   // Enable real-time updates
   useCartRealtime();
 
-  // Query for cart data using TanStack Query
+  // Query for cart data using TanStack Query with proper deduplication
   const cartQuery = useQuery({
     queryKey: ['cart', user?.id || getSessionId()],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('carts')
         .select(`
-          id, user_id, session_id, name, total_amount, status, created_at, updated_at,
+          id, user_id, session_id, name, total_amount, status, created_at, updated_at, source,
           cart_items (
             id, cart_id, cabinet_type_id, door_style_id, color_id, finish_id,
             width_mm, height_mm, depth_mm, quantity, unit_price, total_price,
@@ -97,8 +97,10 @@ export const useModernCart = () => {
       return data;
     },
     enabled: true,
-    staleTime: 1000 * 30, // 30 seconds
-    refetchOnWindowFocus: true,
+    staleTime: 1000 * 60, // 1 minute - reduce frequent refetches
+    refetchOnWindowFocus: false, // Prevent multiple cart creations on focus
+    refetchOnReconnect: true,
+    retry: 1, // Reduce retry attempts
   });
 
   // Process cart data
@@ -118,28 +120,49 @@ export const useModernCart = () => {
     } as Cart;
   }, [cartQuery.data]);
 
-  // Initialize cart mutation
+  // Initialize cart mutation with race condition prevention
   const initializeCartMutation = useMutation({
+    mutationKey: ['initializeCart', user?.id || getSessionId()],
     mutationFn: async () => {
+      // Double-check if cart already exists to prevent race conditions
+      const { data: existingCarts, error: checkError } = await supabase
+        .from('carts')
+        .select('id, user_id, session_id, name, total_amount, status, created_at, updated_at, source')
+        .eq('status', 'active')
+        .eq(user?.id ? 'user_id' : 'session_id', user?.id || getSessionId())
+        .order('updated_at', { ascending: false })
+        .limit(1);
+
+      if (checkError) throw checkError;
+      
+      if (existingCarts && existingCarts.length > 0) {
+        console.log('Cart already exists, using existing cart:', existingCarts[0].id);
+        return existingCarts[0];
+      }
+
+      console.log('Creating new cart for', user?.id ? `user ${user.id}` : `session ${getSessionId()}`);
+
       const cartData = user?.id 
         ? { 
             user_id: user.id,
             name: 'My Cabinet Quote',
             status: 'active',
-            total_amount: 0
+            total_amount: 0,
+            source: 'manual'
           }
         : {
             session_id: getSessionId(),
             name: 'My Cabinet Quote', 
             status: 'active',
-            total_amount: 0
+            total_amount: 0,
+            source: 'manual'
           };
 
       const { data, error } = await supabase
         .from('carts')
         .insert(cartData)
         .select(`
-          id, user_id, session_id, name, total_amount, status, created_at, updated_at,
+          id, user_id, session_id, name, total_amount, status, created_at, updated_at, source,
           cart_items (
             id, cart_id, cabinet_type_id, door_style_id, color_id, finish_id,
             width_mm, height_mm, depth_mm, quantity, unit_price, total_price,
@@ -153,12 +176,12 @@ export const useModernCart = () => {
         .single();
 
       if (error) throw error;
+      console.log('New cart created:', data.id);
       return data;
     },
     onSuccess: () => {
       // Invalidate cart queries to refetch data
       queryClient.invalidateQueries({ queryKey: ['cart'] });
-      toast.success('Cart initialized');
     },
     onError: (error: any) => {
       console.error('Failed to initialize cart:', error);
