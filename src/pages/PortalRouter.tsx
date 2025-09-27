@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { PageLoader } from '@/components/ui/page-loader';
 import { PortalNavigation } from '@/components/portal/PortalNavigation';
+import { RouteGuard } from '@/components/navigation/RouteGuard';
 
 // Lazy load portal components
 const PortalDashboard = lazy(() => import('@/components/portal/PortalDashboard').then(module => ({ default: module.PortalDashboard })));
@@ -18,27 +19,29 @@ const SavedCarts = lazy(() => import('@/components/portal/SavedCarts').then(modu
 
 export const PortalRouter = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <PortalNavigation />
-      <main className="container mx-auto px-4 py-6 mobile-safe-bottom">
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<PortalDashboard />} />
-            <Route path="quotes" element={<QuotesList />} />
-            <Route path="quotes/:quoteId" element={<QuoteDetailWrapper />} />
-            <Route path="quotes/:quoteId/status" element={<QuoteStatusWrapper />} />
-            <Route path="orders" element={<OrdersList />} />
-            <Route path="orders/:orderId" element={<OrderDetailWrapper />} />
-            <Route path="files" element={<FilesList />} />
-            <Route path="messages" element={<PortalMessages />} />
-            <Route path="saved-carts" element={<SavedCarts />} />
-            <Route path="addresses" element={<AddressBook />} />
-            <Route path="profile" element={<ProfileSettings />} />
-          </Routes>
-        </Suspense>
-      </main>
-    </div>
+    <RouteGuard expectedRoute="portal" fallbackRoute="/">
+      <div className="min-h-screen bg-background">
+        <PortalNavigation />
+        <main className="container mx-auto px-4 py-6 mobile-safe-bottom">
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<PortalDashboard />} />
+              <Route path="quotes" element={<QuotesList />} />
+              <Route path="quotes/:quoteId" element={<QuoteDetailWrapper />} />
+              <Route path="quotes/:quoteId/status" element={<QuoteStatusWrapper />} />
+              <Route path="orders" element={<OrdersList />} />
+              <Route path="orders/:orderId" element={<OrderDetailWrapper />} />
+              <Route path="files" element={<FilesList />} />
+              <Route path="messages" element={<PortalMessages />} />
+              <Route path="saved-carts" element={<SavedCarts />} />
+              <Route path="addresses" element={<AddressBook />} />
+              <Route path="profile" element={<ProfileSettings />} />
+            </Routes>
+          </Suspense>
+        </main>
+      </div>
+    </RouteGuard>
   );
 };
 

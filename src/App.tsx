@@ -9,6 +9,7 @@ import { PageLoader } from "@/components/ui/page-loader";
 import { AdminImpersonationProvider } from "@/contexts/AdminImpersonationContext";
 import { NavigationProvider } from "@/components/navigation/NavigationContext";
 import { HelmetProvider } from "react-helmet-async";
+import { useNavigationMismatchDetector } from "@/components/navigation/NavigationDebugger";
 import Index from "./pages/Index";
 
 // Lazy load route components for code splitting
@@ -60,7 +61,10 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => (
+const App = () => {
+  const { NavigationDebugger } = useNavigationMismatchDetector();
+
+  return (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -116,6 +120,9 @@ const App = () => (
                    <PerformanceDashboard />
                  </Suspense>
                  
+                 {/* Navigation debugger */}
+                 <NavigationDebugger />
+                 
                  </NavigationProvider>
               </BrowserRouter>
             </HelmetProvider>
@@ -124,5 +131,6 @@ const App = () => (
     </QueryClientProvider>
   </ErrorBoundary>
 );
+};
 
 export default App;

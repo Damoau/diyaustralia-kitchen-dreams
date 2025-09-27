@@ -35,18 +35,41 @@ export const NavigationProvider = ({ children }: NavigationProviderProps) => {
 
   useEffect(() => {
     console.log('Navigation Debug: Route changing from', navigationState.currentPath, 'to', location.pathname);
+    
+    // Reset state if we're navigating to a completely different section
+    const currentSection = location.pathname.split('/')[1];
+    const previousSection = navigationState.currentPath.split('/')[1];
+    
+    if (currentSection !== previousSection && previousSection) {
+      console.log('Navigation Debug: Section change detected, resetting navigation state');
+      setCustomBreadcrumbs([]);
+    }
+    
     setNavigationState(prev => ({
       ...prev,
       previousPath: prev.currentPath,
       currentPath: location.pathname,
       canGoBack: prev.currentPath !== location.pathname && prev.currentPath !== ''
     }));
+    
+    // Store current path in sessionStorage for recovery
+    sessionStorage.setItem('last_valid_route', location.pathname);
   }, [location.pathname]);
 
   const goBack = () => {
     if (navigationState.canGoBack && navigationState.previousPath) {
       console.log('Navigation Debug: Going back to', navigationState.previousPath);
-      window.history.back();
+      
+      // Validate that the previous path is still valid
+      const previousSection = navigationState.previousPath.split('/')[1];
+      const validSections = ['shop', 'portal', 'admin', ''];
+      
+      if (validSections.includes(previousSection)) {
+        window.history.back();
+      } else {
+        console.warn('Navigation Debug: Invalid previous path, going to home instead');
+        navigate('/');
+      }
     }
   };
 
