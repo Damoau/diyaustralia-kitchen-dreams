@@ -10,6 +10,7 @@ import { useCart } from "@/hooks/useCart";
 import { useCartToQuote } from "@/hooks/useCartToQuote";
 import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
 import { useAuth } from "@/hooks/useAuth";
+import { QuoteSelectionDialog } from "@/components/cart/QuoteSelectionDialog";
 
 interface CartItem {
   id: string;
@@ -17,7 +18,6 @@ interface CartItem {
   category: string;
   quantity: number;
   price: number;
-  image?: string;
 }
 
 interface CartDrawerProps {
@@ -26,37 +26,39 @@ interface CartDrawerProps {
 
 export const CartDrawer = ({ children }: CartDrawerProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const {
+    cart,
+    isLoading,
+    removeFromCart,
+    updateQuantity,
+    getItemCount,
+    initializeCart
+  } = useCart();
+  
+  const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
+  
   const [isOpen, setIsOpen] = useState(false);
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
-  const { cart, updateQuantity, removeFromCart, getItemCount, isLoading, initializeCart } = useCart();
-  const { convertCartToQuote, isLoading: isConverting } = useCartToQuote();
-  const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
-  const { user } = useAuth();
+  const [isConverting, setIsConverting] = useState(false);
+  const [showQuoteDialog, setShowQuoteDialog] = useState(false);
+  const { convertCartToQuote, isLoading: isConvertLoading } = useCartToQuote();
 
-  const handleNavigateToProduct = (item: any) => {
-    const category = item.cabinet_type?.category || 'base';
-    setIsOpen(false); // Close the cart drawer
-    navigate(`/shop/kitchen/${category}?cabinet=${item.cabinet_type_id}`);
+  useEffect(() => {
+    initializeCart();
+  }, [initializeCart]);
+
+  const handleRemoveItem = async (itemId: string) => {
+    await removeFromCart(itemId);
   };
 
-  // Debug logging - remove or reduce in production
-  console.log('CartDrawer render:', {
-    hasCart: !!cart,
-    itemsCount: cart?.items?.length || 0,
-    isLoading,
-    getItemCount: getItemCount()
-  });
-
-  // Force re-render when cart changes
-  useEffect(() => {
-    if (cart) {
-      console.log('CartDrawer cart updated:', {
-        cartId: cart.id,
-        itemsCount: cart.items.length,
-        totalAmount: cart.total_amount
-      });
+  const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
+    if (newQuantity <= 0) {
+      await handleRemoveItem(itemId);
+    } else {
+      await updateQuantity(itemId, newQuantity);
     }
-  }, [cart?.id, cart?.items?.length, cart?.total_amount]);
+  };
 
   const toggleNotes = (itemId: string) => {
     const newExpanded = new Set(expandedNotes);
@@ -68,17 +70,9 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
     setExpandedNotes(newExpanded);
   };
 
-  const handleUpdateQuantity = async (id: string, newQuantity: number) => {
-    if (newQuantity === 0) {
-      await handleRemoveItem(id);
-      return;
-    }
-    
-    await updateQuantity(id, newQuantity);
-  };
-
-  const handleRemoveItem = async (id: string) => {
-    await removeFromCart(id);
+  const handleNavigateToProduct = (item: any) => {
+    console.log('Navigate to product:', item);
+    // Implementation for navigating to product page
   };
 
   const getTotalPrice = () => {
@@ -123,12 +117,31 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
       return;
     }
 
-    // Regular user quote request flow
-    if (cart?.id) {
-      const result = await convertCartToQuote(cart.id, user?.email);
+    // For regular users, show the quote selection dialog
+    setShowQuoteDialog(true);
+  };
+
+  const handleQuoteSelected = async (quoteId: string | null, quoteName?: string) => {
+    if (!cart?.id) return;
+    
+    setIsConverting(true);
+    setShowQuoteDialog(false);
+    
+    try {
+      const result = await convertCartToQuote(
+        cart.id, 
+        user?.email, 
+        undefined, // notes
+        quoteId, // existing quote ID (null for new quote)
+        quoteName // name for new quote
+      );
       
       if (result.success) {
-        toast.success(`Quote ${result.quoteNumber} has been created and will be reviewed by our team`);
+        const message = result.isNewQuote 
+          ? `Quote ${result.quoteNumber} has been created and will be reviewed by our team`
+          : `Items added to quote ${result.quoteNumber}`;
+          
+        toast.success(message);
         
         // Initialize a new cart since the old one was converted to a quote
         await initializeCart();
@@ -139,6 +152,10 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
           navigate('/portal/quotes');
         }, 500);
       }
+    } catch (error) {
+      console.error('Error in quote conversion:', error);
+    } finally {
+      setIsConverting(false);
     }
   };
 
@@ -147,7 +164,6 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
       toast.error("Your cart is empty");
       return;
     }
-    
     setIsOpen(false);
     navigate("/checkout");
   };
@@ -158,196 +174,198 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <div className="relative">
-          {children}
-          {getTotalItems() > 0 && (
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-            >
-              {getTotalItems()}
-            </Badge>
-          )}
-        </div>
-      </SheetTrigger>
-      
-      <SheetContent side="right" className="w-full sm:max-w-lg">
-        <SheetHeader className="space-y-2.5 pr-6">
-          <SheetTitle className="flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5" />
-            Shopping Cart
-            <Badge variant="secondary">{getTotalItems()} items</Badge>
-          </SheetTitle>
-        </SheetHeader>
-
-        {!cart?.items?.length ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Your cart is empty</h3>
-            <p className="text-muted-foreground mb-6">
-              Browse our kitchen cabinets and hardware to get started
-            </p>
-            <Button onClick={() => { setIsOpen(false); navigate("/shop"); }}>
-              Continue Shopping
-            </Button>
+    <>
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
+          <div className="relative">
+            {children}
+            {getTotalItems() > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+              >
+                {getTotalItems()}
+              </Badge>
+            )}
           </div>
-        ) : (
-          <div className="flex flex-col h-full">
-            <ScrollArea className="flex-1 pr-6">
-              <div className="space-y-4 py-4">
-                {cart.items.map((item) => (
-                  <div key={item.id} className="flex items-start space-x-4 py-4 border-b last:border-0">
-                    {item.cabinet_type?.product_image_url && (
-                      <img 
-                        src={item.cabinet_type.product_image_url} 
-                        alt={item.cabinet_type.name}
-                        className="w-16 h-16 object-cover rounded"
-                      />
-                    )}
-                    
-                    <div className="flex-1 min-w-0">
-                      <button 
-                        onClick={() => handleNavigateToProduct(item)}
-                        className="font-medium truncate hover:text-primary cursor-pointer text-left"
-                      >
-                        {item.cabinet_type?.name || 'Cabinet'}
-                      </button>
-                      <p className="text-sm text-muted-foreground">{item.cabinet_type?.category}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.width_mm} × {item.height_mm} × {item.depth_mm}mm
-                      </p>
-                      
-                      {/* Style selections */}
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {item.door_style?.name && (
-                          <span className="block">Door: {item.door_style.name}</span>
-                        )}
-                        {item.color?.name && (
-                          <span className="block">Color: {item.color.name}</span>
-                        )}
-                        {item.finish?.name && (
-                          <span className="block">Finish: {item.finish.name}</span>
-                        )}
-                        {item.configuration?.assembly?.enabled && (
-                          <span className="block text-primary">
-                            Assembly: {item.configuration.assembly.type === 'carcass_only' 
-                              ? 'Carcass Only' 
-                              : 'Complete Assembly'
-                            } (+${item.configuration.assembly.price?.toFixed(2)})
-                          </span>
-                        )}
-                      </div>
-                      
-                      {/* Check for notes in multiple places */}
-                      {(item.notes || item.configuration?.notes) && (
-                        <div className="mt-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleNotes(item.id)}
-                            className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-                          >
-                            Notes
-                            <ChevronDown 
-                              className={`h-3 w-3 transition-transform ${
-                                expandedNotes.has(item.id) ? 'rotate-180' : ''
-                              }`} 
-                            />
-                          </Button>
-                          {expandedNotes.has(item.id) && (
-                            <div className="text-xs text-muted-foreground mt-1 p-2 bg-muted/50 rounded">
-                              <p className="whitespace-pre-wrap break-words">
-                                {item.notes || item.configuration?.notes}
-                              </p>
-                            </div>
-                          )}
-                        </div>
+        </SheetTrigger>
+        
+        <SheetContent side="right" className="w-full sm:max-w-lg">
+          <SheetHeader className="space-y-2.5 pr-6">
+            <SheetTitle className="flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5" />
+              Shopping Cart
+              <Badge variant="secondary">{getTotalItems()} items</Badge>
+            </SheetTitle>
+          </SheetHeader>
+
+          {!cart?.items?.length ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Your cart is empty</h3>
+              <p className="text-muted-foreground mb-6">
+                Browse our kitchen cabinets and hardware to get started
+              </p>
+              <Button onClick={() => { setIsOpen(false); navigate("/shop"); }}>
+                Continue Shopping
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col h-full">
+              <ScrollArea className="flex-1 pr-6">
+                <div className="space-y-4">
+                  {cart.items.map((item) => (
+                    <div key={item.id} className="flex items-start space-x-4 py-4 border-b last:border-0">
+                      {item.cabinet_type?.product_image_url && (
+                        <img 
+                          src={item.cabinet_type.product_image_url} 
+                          alt={item.cabinet_type.name}
+                          className="w-16 h-16 object-cover rounded"
+                        />
                       )}
                       
-                      <p className="text-sm font-medium mt-1">${item.unit_price.toFixed(2)} each</p>
-                    </div>
-                    
-                    <div className="flex flex-col items-end space-y-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleRemoveItem(item.id)}
-                        className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                        disabled={isLoading}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                      
-                      <div className="flex items-center space-x-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                          className="h-6 w-6 p-0"
-                          disabled={isLoading}
+                      <div className="flex-1 min-w-0">
+                        <button 
+                          onClick={() => handleNavigateToProduct(item)}
+                          className="font-medium truncate hover:text-primary cursor-pointer text-left"
                         >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                          className="h-6 w-6 p-0"
-                          disabled={isLoading}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
+                          {item.cabinet_type?.name || 'Cabinet'}
+                        </button>
+                        <p className="text-sm text-muted-foreground">{item.cabinet_type?.category}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.width_mm} × {item.height_mm} × {item.depth_mm}mm
+                        </p>
+                        
+                        {/* Style selections */}
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {item.door_style?.name && (
+                            <span className="block">Door: {item.door_style.name}</span>
+                          )}
+                          {item.color?.name && (
+                            <span className="block">Color: {item.color.name}</span>
+                          )}
+                          {item.finish?.name && (
+                            <span className="block">Finish: {item.finish.name}</span>
+                          )}
+                          {item.configuration?.assembly?.enabled && (
+                            <span className="block text-primary">
+                              Assembly: {item.configuration.assembly.type === 'carcass_only' 
+                                ? 'Carcass Only' 
+                                : 'Complete Assembly'
+                              } (+${item.configuration.assembly.price?.toFixed(2)})
+                            </span>
+                          )}
+                        </div>
+                        
+                        {/* Check for notes in multiple places */}
+                        {(item.notes || item.configuration?.notes) && (
+                          <div className="mt-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleNotes(item.id)}
+                              className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                            >
+                              Notes
+                              <ChevronDown 
+                                className={`h-3 w-3 transition-transform ${
+                                  expandedNotes.has(item.id) ? 'rotate-180' : ''
+                                }`} 
+                              />
+                            </Button>
+                            {expandedNotes.has(item.id) && (
+                              <div className="text-xs text-muted-foreground mt-1 p-2 bg-muted/50 rounded">
+                                <p className="whitespace-pre-wrap break-words">
+                                  {item.notes || item.configuration?.notes}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        <p className="text-sm font-medium mt-1">${item.unit_price.toFixed(2)} each</p>
                       </div>
                       
-                      <p className="text-sm font-semibold">
-                        ${item.total_price.toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-
-            <div className="border-t pt-4 space-y-4">
-              <div className="flex justify-between text-lg font-semibold">
-                <span>Total</span>
-                <span>${getTotalPrice().toFixed(2)}</span>
-              </div>
-              
-              <div className="space-y-2">
-                {isImpersonating ? (
-                  <Button 
-                    onClick={handleRequestQuote}
-                    className="w-full"
-                    size="lg"
-                    disabled={isLoading || isConverting}
-                  >
-                    {isConverting ? "Creating Quote..." : "Create Quote for Customer"}
-                  </Button>
-                ) : (
-                  <>
-                        <Button 
-                          onClick={handleRequestQuote}
-                          className="w-full"
-                          size="lg"
-                          disabled={isLoading || isConverting}
+                      <div className="flex flex-col items-end space-y-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleRemoveItem(item.id)}
+                          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                          disabled={isLoading}
                         >
-                          {isConverting ? "Saving as Quote..." : "Save as Quote"}
+                          <X className="h-3 w-3" />
                         </Button>
-                    
+                        
+                        <div className="flex items-center space-x-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                            className="h-6 w-6 p-0"
+                            disabled={isLoading}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                            className="h-6 w-6 p-0"
+                            disabled={isLoading}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        
+                        <p className="text-sm font-semibold">
+                          ${item.total_price.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+
+              <div className="border-t pt-4 space-y-4">
+                <div className="flex justify-between text-lg font-semibold">
+                  <span>Total</span>
+                  <span>${getTotalPrice().toFixed(2)}</span>
+                </div>
+                
+                <div className="space-y-2">
+                  {isImpersonating ? (
                     <Button 
-                      variant="outline" 
-                      onClick={handleCheckout}
+                      onClick={handleRequestQuote}
                       className="w-full"
-                      disabled={isLoading}
+                      size="lg"
+                      disabled={isLoading || isConverting}
                     >
-                      Proceed to Checkout
+                      {isConverting ? "Creating Quote..." : "Create Quote for Customer"}
                     </Button>
-                  </>
-                )}
+                  ) : (
+                    <>
+                      <Button 
+                        onClick={handleRequestQuote}
+                        className="w-full"
+                        size="lg"
+                        disabled={isLoading || isConverting}
+                      >
+                        {isConverting ? "Saving as Quote..." : "Save as Quote"}
+                      </Button>
+                  
+                      <Button 
+                        variant="outline" 
+                        onClick={handleCheckout}
+                        className="w-full"
+                        disabled={isLoading}
+                      >
+                        Proceed to Checkout
+                      </Button>
+                    </>
+                  )}
+                </div>
                 
                 <Button 
                   variant="outline" 
@@ -358,9 +376,16 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                 </Button>
               </div>
             </div>
-          </div>
-        )}
-      </SheetContent>
-    </Sheet>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      <QuoteSelectionDialog
+        open={showQuoteDialog}
+        onOpenChange={setShowQuoteDialog}
+        onQuoteSelected={handleQuoteSelected}
+        isLoading={isConverting}
+      />
+    </>
   );
 };

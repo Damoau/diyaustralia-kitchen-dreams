@@ -40,17 +40,27 @@ export const useCartToQuote = () => {
   const convertCartToQuote = async (
     cartId: string, 
     customerEmail?: string,
-    notes?: string
+    notes?: string,
+    existingQuoteId?: string,
+    quoteName?: string
   ) => {
     setIsLoading(true);
     try {
-      console.log('Converting cart to quote:', { cartId, customerEmail, notes });
+      console.log('Converting cart to quote:', { 
+        cartId, 
+        customerEmail, 
+        notes, 
+        existingQuoteId, 
+        quoteName 
+      });
 
       const { data, error } = await supabase.functions.invoke('portal-cart-to-quote', {
         body: {
           cart_id: cartId,
           customer_email: customerEmail,
-          notes: notes
+          notes: notes,
+          existing_quote_id: existingQuoteId,
+          quote_name: quoteName
         }
       });
 
@@ -64,9 +74,13 @@ export const useCartToQuote = () => {
         throw new Error(data.error || 'Failed to convert cart to quote');
       }
 
+      const actionText = existingQuoteId 
+        ? `Items added to quote ${data.quote_number}`
+        : `Cart converted to quote ${data.quote_number}`;
+
       toast({
         title: "Success",
-        description: `Cart converted to quote ${data.quote_number}`,
+        description: actionText,
       });
 
       // Clear cart state to prevent confusion between quote and cart modes
@@ -78,7 +92,8 @@ export const useCartToQuote = () => {
         quoteNumber: data.quote_number,
         totalAmount: data.total_amount,
         shouldRefreshCart: true, // Signal that cart needs to be refreshed
-        cartCleared: clearCartResponse.success
+        cartCleared: clearCartResponse.success,
+        isNewQuote: !existingQuoteId
       };
 
     } catch (error) {
