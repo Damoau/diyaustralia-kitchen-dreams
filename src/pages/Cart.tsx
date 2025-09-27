@@ -10,10 +10,11 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
-import { useCartMigration } from "@/hooks/useCartMigration";
+import { useCartOptimized } from "@/hooks/useCartOptimized";
 import { useCartToQuote } from "@/hooks/useCartToQuote";
 import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
 import { useAuth } from "@/hooks/useAuth";
+import { CartLoadingSkeleton } from "@/components/ui/cart-loading-skeleton";
 import { QuoteSelectionDialog } from "@/components/cart/QuoteSelectionDialog";
 import { CartStatusIndicator } from "@/components/cart/CartStatusIndicator";
 
@@ -30,11 +31,11 @@ const Cart = () => {
   const navigate = useNavigate();
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
-  const { cart, isLoading, error, getTotalItems, getTotalPrice, invalidateCache, refreshCart, updateItemOptimistically, removeItemOptimistically } = useCartMigration() || {};
+  const { cart, isLoading, error, getTotalItems, getTotalPrice, refreshCart, updateItemOptimistically, removeItemOptimistically } = useCartOptimized();
   
-  // Defensive checks to prevent calling undefined functions
-  const safeGetTotalItems = typeof getTotalItems === 'function' ? getTotalItems : () => 0;
-  const safeGetTotalPrice = typeof getTotalPrice === 'function' ? getTotalPrice : () => 0;
+  // Clean helper functions
+  const totalItems = cart?.items?.length || 0;
+  const totalPrice = cart?.items?.reduce((sum, item) => sum + item.total_price, 0) || 0;
   const { convertCartToQuote, isLoading: isConverting } = useCartToQuote();
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
   const { user } = useAuth();
@@ -57,7 +58,7 @@ const Cart = () => {
     
     try {
       // Optimistic update first
-      updateItemOptimistically(id, newQuantity);
+      updateItemOptimistically?.(id, newQuantity);
       
       const { data, error } = await supabase
         .from('cart_items')
@@ -68,8 +69,8 @@ const Cart = () => {
         .eq('id', id);
 
       if (error) {
-        // Revert optimistic update on error
-        invalidateCache();
+        // Refresh cart on error
+        refreshCart();
         throw error;
       }
       
@@ -83,7 +84,7 @@ const Cart = () => {
   const handleRemoveItem = async (id: string) => {
     try {
       // Optimistic update first
-      removeItemOptimistically(id);
+      removeItemOptimistically?.(id);
       
       const { error } = await supabase
         .from('cart_items')
@@ -91,8 +92,8 @@ const Cart = () => {
         .eq('id', id);
 
       if (error) {
-        // Revert optimistic update on error
-        invalidateCache();
+        // Refresh cart on error
+        refreshCart();
         throw error;
       }
       
@@ -126,7 +127,7 @@ const Cart = () => {
       if (result.success) {
         toast.success(`Quote ${result.quoteNumber} created for customer`);
         // Refresh cart data
-        invalidateCache();
+        refreshCart();
         // Navigate to admin quotes list to see the created quote
         navigate('/admin/sales/quotes');
       }
@@ -162,7 +163,7 @@ const Cart = () => {
       toast.success(actionText);
       
       // Refresh the cart after quote conversion
-      invalidateCache();
+      refreshCart();
       
       // Navigate to customer portal quotes
       navigate('/portal/quotes');
@@ -197,7 +198,7 @@ const Cart = () => {
       if (error) throw error;
       
       toast.success('Cart saved successfully');
-      invalidateCache();
+      refreshCart();
     } catch (err) {
       console.error('Error saving cart:', err);
       toast.error('Failed to save cart');
@@ -220,13 +221,12 @@ const Cart = () => {
               <div className="flex items-center gap-2 mb-2">
                 <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" />
                 <h1 className="text-2xl md:text-3xl font-bold">Shopping Cart</h1>
-                <Badge variant="secondary" className="self-start">{safeGetTotalItems()} items</Badge>
+                <Badge variant="secondary" className="self-start">{totalItems} items</Badge>
               </div>
               {cart && (
                 <div className="flex flex-col gap-2">
                   <CartStatusIndicator 
                     status={cart.status}
-                    source={cart.source}
                     itemCount={cart.items?.length || 0}
                   />
                   {cart?.name && cart.name !== 'My Cabinet Quote' && (
@@ -375,8 +375,8 @@ const Cart = () => {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex justify-between">
-                      <span>Subtotal ({safeGetTotalItems()} items)</span>
-                      <span>${safeGetTotalPrice().toFixed(2)}</span>
+                      <span>Subtotal ({totalItems} items)</span>
+                      <span>${totalPrice.toFixed(2)}</span>
                     </div>
                     
                     <div className="flex justify-between">
@@ -388,7 +388,7 @@ const Cart = () => {
                     
                      <div className="flex justify-between font-semibold text-lg">
                        <span>Total</span>
-                       <span>${safeGetTotalPrice().toFixed(2)}</span>
+                       <span>${totalPrice.toFixed(2)}</span>
                      </div>
                      
                      {isImpersonating ? (
@@ -456,8 +456,8 @@ const Cart = () => {
         onOpenChange={setShowQuoteDialog}
         onQuoteSelected={handleQuoteSelected}
         isLoading={isConverting}
-        cartTotal={safeGetTotalPrice()}
-        itemCount={safeGetTotalItems()}
+        cartTotal={totalPrice}
+        itemCount={totalItems}
         onAddToCart={() => {
           setShowQuoteDialog(false);
           handleCheckout();
