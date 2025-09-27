@@ -13,6 +13,8 @@ import { useNavigate } from "react-router-dom";
 import { withPerformanceMonitoring } from "@/components/performance/PerformanceOptimizer";
 import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useCartConsolidation } from "@/hooks/useCartConsolidation";
+import { CartConsolidationButton } from "./CartConsolidationButton";
 
 interface OptimizedCartDrawerProps {
   children: React.ReactNode;

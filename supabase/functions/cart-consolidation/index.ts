@@ -50,56 +50,90 @@ serve(async (req) => {
       throw new Error('Failed to fetch user carts');
     }
 
-    // Find cart with items
-    const cartWithItems = userCarts.find(cart => cart.cart_items.length > 0);
+    // Separate carts by content
     const emptyCarts = userCarts.filter(cart => cart.cart_items.length === 0);
+    const cartsWithItems = userCarts.filter(cart => cart.cart_items.length > 0);
+    const primaryCart = cartsWithItems.length > 0 ? cartsWithItems[0] : null;
 
-    console.log(`Found ${userCarts.length} active carts, ${emptyCarts.length} empty carts`);
+    console.log(`Found ${userCarts.length} active carts: ${emptyCarts.length} empty, ${cartsWithItems.length} with items`);
 
     let actions = [];
 
-    // Deactivate empty carts
+    // Deactivate empty carts in batches to avoid URI length limits
     if (emptyCarts.length > 0) {
-      const { error: deactivateError } = await supabase
-        .from('carts')
-        .update({ 
-          status: 'inactive',
-          abandon_reason: 'Consolidated - duplicate empty cart',
-          abandoned_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .in('id', emptyCarts.map(cart => cart.id));
+      const batchSize = 50; // Process in smaller batches
+      let totalDeactivated = 0;
+      
+      for (let i = 0; i < emptyCarts.length; i += batchSize) {
+        const batch = emptyCarts.slice(i, i + batchSize);
+        const { error: deactivateError } = await supabase
+          .from('carts')
+          .update({ 
+            status: 'inactive',
+            abandon_reason: 'Consolidated - duplicate empty cart',
+            abandoned_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .in('id', batch.map(cart => cart.id));
 
-      if (deactivateError) {
-        console.error('Error deactivating empty carts:', deactivateError);
-      } else {
-        actions.push(`Deactivated ${emptyCarts.length} empty carts`);
-        console.log(`Deactivated ${emptyCarts.length} empty carts`);
+        if (deactivateError) {
+          console.error(`Error deactivating batch ${i / batchSize + 1}:`, deactivateError);
+        } else {
+          totalDeactivated += batch.length;
+          console.log(`Deactivated batch of ${batch.length} empty carts`);
+        }
+      }
+      
+      if (totalDeactivated > 0) {
+        actions.push(`Deactivated ${totalDeactivated} empty carts`);
+        console.log(`Total deactivated: ${totalDeactivated} empty carts`);
       }
     }
 
-    // If there's a cart with items, recalculate its total
-    if (cartWithItems) {
+    // Handle multiple carts with items - keep only the most recent one
+    if (cartsWithItems.length > 1) {
+      // Keep the most recent cart with items, deactivate others
+      const [keepCart, ...deactivateCarts] = cartsWithItems;
+      
+      for (const cart of deactivateCarts) {
+        const { error: deactivateError } = await supabase
+          .from('carts')
+          .update({ 
+            status: 'inactive',
+            abandon_reason: 'Consolidated - multiple carts with items',
+            abandoned_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', cart.id);
+
+        if (!deactivateError) {
+          actions.push(`Deactivated duplicate cart with ${cart.cart_items.length} items`);
+        }
+      }
+    }
+
+    // If there's a primary cart with items, recalculate its total
+    if (primaryCart) {
       const { data: cartItems, error: itemsError } = await supabase
         .from('cart_items')
         .select('total_price')
-        .eq('cart_id', cartWithItems.id);
+        .eq('cart_id', primaryCart.id);
 
       if (!itemsError && cartItems) {
         const calculatedTotal = cartItems.reduce((sum, item) => sum + Number(item.total_price), 0);
         
-        if (Math.abs(calculatedTotal - Number(cartWithItems.total_amount)) > 0.01) {
+        if (Math.abs(calculatedTotal - Number(primaryCart.total_amount)) > 0.01) {
           const { error: updateError } = await supabase
             .from('carts')
             .update({ 
               total_amount: calculatedTotal,
               updated_at: new Date().toISOString()
             })
-            .eq('id', cartWithItems.id);
+            .eq('id', primaryCart.id);
 
           if (!updateError) {
-            actions.push(`Updated cart total from $${cartWithItems.total_amount} to $${calculatedTotal}`);
-            console.log(`Updated cart ${cartWithItems.id} total to $${calculatedTotal}`);
+            actions.push(`Updated cart total from $${primaryCart.total_amount} to $${calculatedTotal}`);
+            console.log(`Updated cart ${primaryCart.id} total to $${calculatedTotal}`);
           }
         }
       }
@@ -110,8 +144,8 @@ serve(async (req) => {
         success: true,
         message: 'Cart consolidation completed',
         actions,
-        activeCartId: cartWithItems?.id || null,
-        itemCount: cartWithItems?.cart_items.length || 0
+        activeCartId: primaryCart?.id || null,
+        itemCount: primaryCart?.cart_items.length || 0
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
