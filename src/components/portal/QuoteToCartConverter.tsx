@@ -9,6 +9,8 @@ import { LoadingBox } from "@/components/ui/loading-box";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useCartSaveTracking } from "@/hooks/useCartSaveTracking";
+import { useCartMigration } from "@/hooks/useCartMigration";
+import { CartChoiceDialog } from "@/components/cart/CartChoiceDialog";
 import { ShoppingCart, Package, DollarSign } from "lucide-react";
 
 interface QuoteItem {
@@ -55,8 +57,10 @@ export const QuoteToCartConverter = ({
   const [open, setOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isConverting, setIsConverting] = useState(false);
+  const [showChoiceDialog, setShowChoiceDialog] = useState(false);
   const { toast } = useToast();
   const { markAsUnsaved, markAsSaving, markAsSaved, markAsError } = useCartSaveTracking();
+  const { cart, getTotalItems } = useCartMigration();
 
   // Select all items by default
   useEffect(() => {
@@ -85,7 +89,7 @@ export const QuoteToCartConverter = ({
       .reduce((sum, item) => sum + item.total_price, 0);
   };
 
-  const handleAddToCart = async () => {
+  const handleInitialAddToCart = () => {
     if (selectedItems.length === 0) {
       toast({
         title: "No Items Selected",
@@ -95,15 +99,33 @@ export const QuoteToCartConverter = ({
       return;
     }
 
+    // Check if user has existing cart items
+    if (cart && cart.items && cart.items.length > 0) {
+      // Show choice dialog
+      setShowChoiceDialog(true);
+      setOpen(false);
+    } else {
+      // Direct add to cart
+      handleAddToCart('merge'); // Default to merge for empty cart
+    }
+  };
+
+  const handleCartChoice = (choice: 'replace' | 'merge' | 'new') => {
+    setShowChoiceDialog(false);
+    handleAddToCart(choice);
+  };
+
+  const handleAddToCart = async (mode: 'replace' | 'merge' | 'new') => {
     setIsConverting(true);
     markAsSaving();
 
     try {
-      // Use optimized edge function for much faster processing
-      const { data, error } = await supabase.functions.invoke('quote-to-cart-fast', {
+      // Use enhanced edge function with cart management
+      const { data, error } = await supabase.functions.invoke('quote-to-cart-enhanced', {
         body: { 
           quote_id: quoteId,
-          selected_item_ids: selectedItems 
+          selected_item_ids: selectedItems,
+          mode: mode // 'replace', 'merge', or 'new'
         }
       });
 
@@ -111,13 +133,17 @@ export const QuoteToCartConverter = ({
 
       markAsSaved();
 
+      const modeMessages = {
+        replace: "Cart replaced with quote items! 🔄",
+        merge: "Quote items added to cart! ➕", 
+        new: "New cart created with quote items! 🆕"
+      };
+
       toast({
-        title: "Items Added to Cart! 🎉",
-        description: `${selectedItems.length} items packed and ready. Redirecting to cart...`
+        title: modeMessages[mode],
+        description: `${selectedItems.length} items ready. Redirecting to cart...`
       });
 
-      setOpen(false);
-      
       // Multiple methods to ensure cart refresh works
       window.dispatchEvent(new CustomEvent('cart-updated'));
       localStorage.setItem('cart_updated', Date.now().toString());
@@ -282,7 +308,7 @@ export const QuoteToCartConverter = ({
                   Cancel
                 </Button>
                 <Button 
-                  onClick={handleAddToCart}
+                  onClick={handleInitialAddToCart}
                   disabled={isConverting || selectedItems.length === 0}
                   className="bg-green-600 hover:bg-green-700 text-white"
                   size="lg"
@@ -295,6 +321,18 @@ export const QuoteToCartConverter = ({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Cart Choice Dialog */}
+      <CartChoiceDialog
+        open={showChoiceDialog}
+        onOpenChange={setShowChoiceDialog}
+        existingCartTotal={cart?.total_amount || 0}
+        existingItemCount={getTotalItems()}
+        newItemsTotal={getSelectedTotal()}
+        newItemCount={selectedItems.length}
+        onChoice={handleCartChoice}
+        isProcessing={isConverting}
+      />
     </>
   );
 };

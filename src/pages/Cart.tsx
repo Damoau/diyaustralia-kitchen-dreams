@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Trash2, Plus, Minus, ChevronDown, BookmarkIcon } from "lucide-react";
+import { ShoppingCart, Trash2, Plus, Minus, ChevronDown, BookmarkIcon, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,7 @@ import { useCartToQuote } from "@/hooks/useCartToQuote";
 import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
 import { useAuth } from "@/hooks/useAuth";
 import { QuoteSelectionDialog } from "@/components/cart/QuoteSelectionDialog";
+import { CartStatusIndicator } from "@/components/cart/CartStatusIndicator";
 
 interface CartItem {
   id: string;
@@ -214,12 +215,29 @@ const Cart = () => {
         <DynamicHeader />
         
         <main className="container mx-auto px-4 py-6 md:py-8 mobile-safe-bottom">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-6">
-            <div className="flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" />
-              <h1 className="text-2xl md:text-3xl font-bold">Shopping Cart</h1>
+          <div className="flex flex-col sm:flex-row sm:items-start gap-4 mb-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" />
+                <h1 className="text-2xl md:text-3xl font-bold">Shopping Cart</h1>
+                <Badge variant="secondary" className="self-start">{safeGetTotalItems()} items</Badge>
+              </div>
+              {cart && (
+                <div className="flex flex-col gap-2">
+                  <CartStatusIndicator 
+                    status={cart.status}
+                    source={cart.source}
+                    itemCount={cart.items?.length || 0}
+                  />
+                  {cart?.name && cart.name !== 'My Cabinet Quote' && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Info className="w-4 h-4" />
+                      <span>Cart: {cart.name}</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            <Badge variant="secondary" className="self-start sm:self-center">{safeGetTotalItems()} items</Badge>
           </div>
 
           {!cart?.items?.length ? (
