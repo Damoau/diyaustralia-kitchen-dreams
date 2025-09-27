@@ -209,7 +209,7 @@ export const useOptimizedCart = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, getSessionId, isLoading]);
+  }, [user?.id, getSessionId]); // Remove isLoading from deps to prevent cycles
 
   // Initialize cart only once when user changes or when forced refresh event occurs
   useEffect(() => {
@@ -224,7 +224,7 @@ export const useOptimizedCart = () => {
       }
       initializeCart();
     }
-  }, [user?.id]); // Only depend on user ID change
+  }, [user?.id, initializeCart, cart]); // Add cart and initializeCart to deps
 
   // Separate effect for cart update events to avoid dependency issues
   useEffect(() => {
