@@ -132,7 +132,7 @@ export const QuotesList = () => {
                   <div className="space-y-1">
                     <CardTitle className="text-lg">{quote.quote_number}</CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      {quote.notes || quote.customer_details?.name || 'Custom Quote'}
+                      {quote.customer_name || 'Unnamed Quote'}
                     </p>
                   </div>
                 <div className="flex flex-col items-end gap-2">
