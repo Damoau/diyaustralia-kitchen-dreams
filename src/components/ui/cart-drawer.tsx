@@ -37,7 +37,11 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
     invalidateCache,
     updateItemOptimistically,
     removeItemOptimistically
-  } = useOptimizedCart();
+  } = useOptimizedCart() || {};
+  
+  // Defensive checks to prevent calling undefined functions
+  const safeGetTotalItems = typeof getTotalItems === 'function' ? getTotalItems : () => 0;
+  const safeGetTotalPrice = typeof getTotalPrice === 'function' ? getTotalPrice : () => 0;
   
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
   
@@ -215,12 +219,12 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
         <SheetTrigger asChild>
           <div className="relative">
             {children}
-            {getTotalItems() > 0 && (
+            {safeGetTotalItems() > 0 && (
               <Badge 
                 variant="destructive" 
                 className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
               >
-                {getTotalItems()}
+                {safeGetTotalItems()}
               </Badge>
             )}
           </div>
@@ -231,7 +235,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
             <SheetTitle className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5" />
               Shopping Cart
-              <Badge variant="secondary">{getTotalItems()} items</Badge>
+              <Badge variant="secondary">{safeGetTotalItems()} items</Badge>
             </SheetTitle>
           </SheetHeader>
 
@@ -434,8 +438,8 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
         onOpenChange={setShowQuoteDialog}
         onQuoteSelected={handleQuoteSelected}
         isLoading={isConverting}
-        cartTotal={getTotalPrice()}
-        itemCount={getTotalItems()}
+        cartTotal={safeGetTotalPrice()}
+        itemCount={safeGetTotalItems()}
         onAddToCart={() => {
           setShowQuoteDialog(false);
           handleCheckout();

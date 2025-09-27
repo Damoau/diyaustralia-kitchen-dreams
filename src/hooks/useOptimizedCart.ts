@@ -25,8 +25,12 @@ export const useOptimizedCart = () => {
 
   // Simple cart initialization without complex caching
   const initializeCart = useCallback(async () => {
-    if (isLoading) return;
+    if (isLoading) {
+      console.log('Cart initialization skipped - already loading');
+      return;
+    }
     
+    console.log('Starting cart initialization for user:', user?.id || 'guest');
     setIsLoading(true);
     setError(null);
 
@@ -214,11 +218,11 @@ export const useOptimizedCart = () => {
   }, [user?.id]); // Only depend on user ID change
 
   // Helper functions
-  const getTotalItems = useMemo(() => {
+  const getTotalItems = useCallback(() => {
     return cart?.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
   }, [cart?.items]);
 
-  const getTotalPrice = useMemo(() => {
+  const getTotalPrice = useCallback(() => {
     return cart?.items?.reduce((sum: number, item: any) => sum + item.total_price, 0) || 0;
   }, [cart?.items]);
 
@@ -263,11 +267,11 @@ export const useOptimizedCart = () => {
     cart,
     isLoading,
     error,
-    getTotalItems,
-    getTotalPrice,
+    getTotalItems: getTotalItems || (() => 0),
+    getTotalPrice: getTotalPrice || (() => 0),
     refreshCart,
-    updateItemOptimistically,
-    removeItemOptimistically,
+    updateItemOptimistically: updateItemOptimistically || (() => {}),
+    removeItemOptimistically: removeItemOptimistically || (() => {}),
     invalidateCache: refreshCart // Alias for compatibility
   };
 };

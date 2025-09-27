@@ -29,7 +29,11 @@ const Cart = () => {
   const navigate = useNavigate();
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
-  const { cart, isLoading, error, getTotalItems, getTotalPrice, invalidateCache, refreshCart, updateItemOptimistically, removeItemOptimistically } = useOptimizedCart();
+  const { cart, isLoading, error, getTotalItems, getTotalPrice, invalidateCache, refreshCart, updateItemOptimistically, removeItemOptimistically } = useOptimizedCart() || {};
+  
+  // Defensive checks to prevent calling undefined functions
+  const safeGetTotalItems = typeof getTotalItems === 'function' ? getTotalItems : () => 0;
+  const safeGetTotalPrice = typeof getTotalPrice === 'function' ? getTotalPrice : () => 0;
   const { convertCartToQuote, isLoading: isConverting } = useCartToQuote();
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
   const { user } = useAuth();
@@ -215,7 +219,7 @@ const Cart = () => {
               <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" />
               <h1 className="text-2xl md:text-3xl font-bold">Shopping Cart</h1>
             </div>
-            <Badge variant="secondary" className="self-start sm:self-center">{getTotalItems()} items</Badge>
+            <Badge variant="secondary" className="self-start sm:self-center">{safeGetTotalItems()} items</Badge>
           </div>
 
           {!cart?.items?.length ? (
@@ -353,8 +357,8 @@ const Cart = () => {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex justify-between">
-                      <span>Subtotal ({getTotalItems()} items)</span>
-                      <span>${getTotalPrice().toFixed(2)}</span>
+                      <span>Subtotal ({safeGetTotalItems()} items)</span>
+                      <span>${safeGetTotalPrice().toFixed(2)}</span>
                     </div>
                     
                     <div className="flex justify-between">
@@ -366,7 +370,7 @@ const Cart = () => {
                     
                      <div className="flex justify-between font-semibold text-lg">
                        <span>Total</span>
-                       <span>${getTotalPrice().toFixed(2)}</span>
+                       <span>${safeGetTotalPrice().toFixed(2)}</span>
                      </div>
                      
                      {isImpersonating ? (
@@ -434,8 +438,8 @@ const Cart = () => {
         onOpenChange={setShowQuoteDialog}
         onQuoteSelected={handleQuoteSelected}
         isLoading={isConverting}
-        cartTotal={getTotalPrice()}
-        itemCount={getTotalItems()}
+        cartTotal={safeGetTotalPrice()}
+        itemCount={safeGetTotalItems()}
         onAddToCart={() => {
           setShowQuoteDialog(false);
           handleCheckout();
