@@ -29,7 +29,7 @@ const Cart = () => {
   const navigate = useNavigate();
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
-  const { cart, isLoading, error, getTotalItems, getTotalPrice, invalidateCache, refreshCart } = useOptimizedCart();
+  const { cart, isLoading, error, getTotalItems, getTotalPrice, invalidateCache, refreshCart, updateItemOptimistically, removeItemOptimistically } = useOptimizedCart();
   const { convertCartToQuote, isLoading: isConverting } = useCartToQuote();
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
   const { user } = useAuth();
@@ -51,6 +51,9 @@ const Cart = () => {
     }
     
     try {
+      // Optimistic update first
+      updateItemOptimistically(id, newQuantity);
+      
       const { data, error } = await supabase
         .from('cart_items')
         .update({ 
@@ -59,9 +62,12 @@ const Cart = () => {
         })
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        // Revert optimistic update on error
+        invalidateCache();
+        throw error;
+      }
       
-      invalidateCache();
       toast.success('Item updated');
     } catch (err) {
       console.error('Error updating quantity:', err);
@@ -71,14 +77,20 @@ const Cart = () => {
 
   const handleRemoveItem = async (id: string) => {
     try {
+      // Optimistic update first
+      removeItemOptimistically(id);
+      
       const { error } = await supabase
         .from('cart_items')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        // Revert optimistic update on error
+        invalidateCache();
+        throw error;
+      }
       
-      invalidateCache();
       toast.success('Item removed from cart');
     } catch (err) {
       console.error('Error removing item:', err);

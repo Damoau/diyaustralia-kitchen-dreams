@@ -34,7 +34,9 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
     error,
     getTotalItems,
     getTotalPrice,
-    invalidateCache
+    invalidateCache,
+    updateItemOptimistically,
+    removeItemOptimistically
   } = useOptimizedCart();
   
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
@@ -49,13 +51,20 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
 
   const handleRemoveItem = async (itemId: string) => {
     try {
+      // Optimistic update first
+      removeItemOptimistically(itemId);
+      
       const { error } = await supabase
         .from('cart_items')
         .delete()
         .eq('id', itemId);
 
-      if (error) throw error;
-      invalidateCache();
+      if (error) {
+        // Revert optimistic update on error
+        invalidateCache();
+        throw error;
+      }
+      
       toast.success('Item removed from cart');
     } catch (err) {
       console.error('Error removing item:', err);
@@ -70,26 +79,8 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
     }
 
     try {
-      // Optimistically update the UI first
-      const updatedItems = cart?.items?.map(cartItem => 
-        cartItem.id === itemId 
-          ? { 
-              ...cartItem, 
-              quantity: newQuantity, 
-              total_price: newQuantity * cartItem.unit_price 
-            }
-          : cartItem
-      ) || [];
-      
-      // Update local cart state immediately
-      if (cart) {
-        const updatedCart = {
-          ...cart,
-          items: updatedItems,
-          total_amount: updatedItems.reduce((sum, item) => sum + item.total_price, 0)
-        };
-        // Note: We'd need access to setCart here for optimistic updates
-      }
+      // Optimistic update first
+      updateItemOptimistically(itemId, newQuantity);
 
       const { error } = await supabase
         .from('cart_items')
@@ -99,13 +90,14 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
         })
         .eq('id', itemId);
 
-      if (error) throw error;
-      invalidateCache();
+      if (error) {
+        // Revert optimistic update on error
+        invalidateCache();
+        throw error;
+      }
     } catch (err) {
       console.error('Error updating quantity:', err);
       toast.error('Failed to update item');
-      // Revert optimistic update on error
-      invalidateCache();
     }
   };
 

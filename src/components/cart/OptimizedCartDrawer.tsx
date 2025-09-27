@@ -18,7 +18,7 @@ interface OptimizedCartDrawerProps {
 }
 
 const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
-  const { cart, isLoading, getTotalItems, getTotalPrice, invalidateCache } = useOptimizedCart();
+  const { cart, isLoading, getTotalItems, getTotalPrice, invalidateCache, updateItemOptimistically, removeItemOptimistically } = useOptimizedCart();
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
   const { isImpersonating } = useAdminImpersonation();
@@ -162,6 +162,9 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
                       item={item}
                        onUpdateQuantity={async (quantity) => {
                         try {
+                          // Optimistic update first
+                          updateItemOptimistically(item.id, quantity);
+                          
                           const { error } = await supabase
                             .from('cart_items')
                             .update({ 
@@ -170,21 +173,30 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
                             })
                             .eq('id', item.id);
 
-                          if (error) throw error;
-                          invalidateCache();
+                          if (error) {
+                            // Revert on error
+                            invalidateCache();
+                            throw error;
+                          }
                         } catch (err) {
                           console.error('Error updating quantity:', err);
                         }
                       }}
                       onRemove={async () => {
                         try {
+                          // Optimistic update first
+                          removeItemOptimistically(item.id);
+                          
                           const { error } = await supabase
                             .from('cart_items')
                             .delete()
                             .eq('id', item.id);
 
-                          if (error) throw error;
-                          invalidateCache();
+                          if (error) {
+                            // Revert on error
+                            invalidateCache();
+                            throw error;
+                          }
                         } catch (err) {
                           console.error('Error removing item:', err);
                         }
