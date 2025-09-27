@@ -9,7 +9,7 @@ import { CheckoutSequence } from "@/components/checkout/CheckoutSequence";
 import { CustomerIdentify } from "@/components/checkout/CustomerIdentify";
 import { ShippingDelivery } from "@/components/checkout/ShippingDelivery";
 import { PaymentStep } from "@/components/checkout/PaymentStep";
-import { useCart } from "@/hooks/useCart";
+import { useOptimizedCart } from "@/hooks/useOptimizedCart";
 import { useCheckout } from "@/hooks/useCheckout";
 import { useNavigate } from "react-router-dom";
 import { ShoppingCart, ArrowLeft } from "lucide-react";
@@ -25,7 +25,7 @@ interface SequenceStep {
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { cart, getItemCount } = useCart();
+  const { cart, getTotalItems, getTotalPrice } = useOptimizedCart();
   const { startCheckout } = useCheckout();
   
   const [currentStep, setCurrentStep] = useState('identity');
@@ -130,9 +130,6 @@ const Checkout = () => {
     }
   };
 
-  const getTotalPrice = () => {
-    return cart?.total_amount || 0;
-  };
 
   const renderCurrentStep = () => {
     if (!checkoutId) {
@@ -225,7 +222,7 @@ const Checkout = () => {
             <div className="flex items-center gap-2">
               <ShoppingCart className="h-6 w-6" />
               <h1 className="text-3xl font-bold">Checkout</h1>
-              <Badge variant="secondary">{getItemCount()} items</Badge>
+              <Badge variant="secondary">{getTotalItems()} items</Badge>
             </div>
           </div>
 
@@ -275,7 +272,7 @@ const Checkout = () => {
                   <hr />
                   
                   <div className="flex justify-between">
-                    <span>Subtotal ({getItemCount()} items)</span>
+                    <span>Subtotal ({getTotalItems()} items)</span>
                     <span>${getTotalPrice().toFixed(2)}</span>
                   </div>
                   

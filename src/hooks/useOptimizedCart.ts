@@ -325,9 +325,11 @@ export const useOptimizedCart = () => {
     delete cartCacheRef.current[cacheKey];
     lastFetchTime.current = 0;
     requestCache.clear();
-    // Don't call initializeCart here - let the useEffect handle it
-    setCart(null);
-  }, [cacheKey]);
+    // Set cart to null to trigger refresh, but prevent infinite loop
+    if (cart !== null) {
+      setCart(null);
+    }
+  }, [cacheKey, cart]);
 
   return {
     cart,
