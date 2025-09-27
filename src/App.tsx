@@ -8,8 +8,8 @@ import { Suspense, lazy } from "react";
 import { PageLoader } from "@/components/ui/page-loader";
 import { AdminImpersonationProvider } from "@/contexts/AdminImpersonationContext";
 import { NavigationProvider } from "@/components/navigation/NavigationContext";
+import { NavigationWrapper } from "@/components/navigation/NavigationWrapper";
 import { HelmetProvider } from "react-helmet-async";
-import { useNavigationMismatchDetector } from "@/components/navigation/NavigationDebugger";
 import Index from "./pages/Index";
 
 // Lazy load route components for code splitting
@@ -61,10 +61,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => {
-  const { NavigationDebugger } = useNavigationMismatchDetector();
-
-  return (
+const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -74,6 +71,7 @@ const App = () => {
             <Sonner />
               <BrowserRouter>
                 <NavigationProvider>
+                  <NavigationWrapper>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
@@ -120,9 +118,7 @@ const App = () => {
                    <PerformanceDashboard />
                  </Suspense>
                  
-                 {/* Navigation debugger */}
-                 <NavigationDebugger />
-                 
+                 </NavigationWrapper>
                  </NavigationProvider>
               </BrowserRouter>
             </HelmetProvider>
@@ -131,6 +127,5 @@ const App = () => {
     </QueryClientProvider>
   </ErrorBoundary>
 );
-};
 
 export default App;
