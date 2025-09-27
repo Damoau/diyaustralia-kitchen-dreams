@@ -206,43 +206,6 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Quote Actions */}
-          {(quoteDisplay.status === "sent" || quoteDisplay.status === "draft" || quoteDisplay.status === "revision_requested") && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Quote Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button 
-                    onClick={handleAcceptQuote}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                    size="lg"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Checkout All Items
-                  </Button>
-                  
-                  <QuoteToCartConverter 
-                    quoteId={quoteDisplay.id}
-                    items={quoteDisplay.items}
-                    buttonText="Add Selected Items to Cart"
-                  />
-                </div>
-                
-                <QuoteChangeRequestDialog
-                  quoteId={quoteDisplay.id}
-                  onRequestSubmitted={handleRequestSubmitted}
-                >
-                  <Button variant="outline" size="lg" className="flex-1">
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Send Staff a Message
-                  </Button>
-                </QuoteChangeRequestDialog>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Quote Items */}
           <Card>
             <CardHeader>
@@ -425,6 +388,36 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
                   <p className="font-semibold">{quoteDisplay.createdAt}</p>
                 </div>
               </div>
+              
+              {/* Action Buttons */}
+              {(quoteDisplay.status === "sent" || quoteDisplay.status === "draft" || quoteDisplay.status === "revision_requested") && (
+                <div className="space-y-3 pt-4 border-t">
+                  <Button 
+                    onClick={handleAcceptQuote}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    size="lg"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Checkout All Items
+                  </Button>
+                  
+                  <QuoteToCartConverter 
+                    quoteId={quoteDisplay.id}
+                    items={quoteDisplay.items}
+                    buttonText="Add Selected Items to Cart"
+                  />
+                  
+                  <QuoteChangeRequestDialog
+                    quoteId={quoteDisplay.id}
+                    onRequestSubmitted={handleRequestSubmitted}
+                  >
+                    <Button variant="outline" className="w-full">
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Send Staff a Message
+                    </Button>
+                  </QuoteChangeRequestDialog>
+                </div>
+              )}
             </CardContent>
           </Card>
 
