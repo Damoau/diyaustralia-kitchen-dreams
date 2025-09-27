@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { QuoteSelectionDialog } from "../cart/QuoteSelectionDialog";
 import { CartSkeleton } from "@/components/ui/cart-skeleton";
-import { useOptimizedCart } from "@/hooks/useOptimizedCart";
+import { useCartMigration } from "@/hooks/useCartMigration";
 import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
 import { useNavigate } from "react-router-dom";
 import { withPerformanceMonitoring } from "@/components/performance/PerformanceOptimizer";
@@ -18,7 +18,7 @@ interface OptimizedCartDrawerProps {
 }
 
 const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
-  const { cart, isLoading, getTotalItems, getTotalPrice, invalidateCache, updateItemOptimistically, removeItemOptimistically } = useOptimizedCart();
+  const { cart, isLoading, getTotalItems, getTotalPrice, invalidateCache, updateItemOptimistically, removeItemOptimistically } = useCartMigration();
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
   const { isImpersonating } = useAdminImpersonation();

@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
-import { useOptimizedCart } from "@/hooks/useOptimizedCart";
+import { useCartMigration } from "@/hooks/useCartMigration";
 import { useCartToQuote } from "@/hooks/useCartToQuote";
 import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,7 +29,7 @@ const Cart = () => {
   const navigate = useNavigate();
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
-  const { cart, isLoading, error, getTotalItems, getTotalPrice, invalidateCache, refreshCart, updateItemOptimistically, removeItemOptimistically } = useOptimizedCart() || {};
+  const { cart, isLoading, error, getTotalItems, getTotalPrice, invalidateCache, refreshCart, updateItemOptimistically, removeItemOptimistically } = useCartMigration() || {};
   
   // Defensive checks to prevent calling undefined functions
   const safeGetTotalItems = typeof getTotalItems === 'function' ? getTotalItems : () => 0;

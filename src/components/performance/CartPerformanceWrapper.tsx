@@ -43,7 +43,7 @@ export const CartProvider = memo(({ children }: CartProviderProps) => {
   React.useEffect(() => {
     // Preload critical cart resources
     const preloadTimer = setTimeout(() => {
-      import('@/hooks/useOptimizedCart');
+      import('@/hooks/useCartMigration');
       import('@/components/cart/OptimizedCartDrawer');
     }, 100);
 

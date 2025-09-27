@@ -16,7 +16,7 @@ import PricingCalculator from '@/lib/pricingCalculator';
 import { StyleColorFinishSelector } from './StyleColorFinishSelector';
 import { useCartPersistence } from '@/hooks/useCartPersistence';
 import { useCartSaveTracking } from '@/hooks/useCartSaveTracking';
-import { useOptimizedCart } from '@/hooks/useOptimizedCart';
+import { useCartMigration } from "@/hooks/useCartMigration";
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { Ruler, Palette, Settings, FileText, ShoppingCart, MapPin, AlertCircle, Calculator, Edit2, Plus, Minus, Quote } from 'lucide-react';
 import { useCabinetPreferences } from '@/hooks/useCabinetPreferences';
@@ -111,7 +111,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   const { addToQuote, loading: addingToQuote } = useAddToQuote();
   
   const { addToCart } = useCartPersistence();
-  const { invalidateCache } = useOptimizedCart();
+  const { invalidateCache } = useCartMigration();
   const { markAsUnsaved, markAsSaving, markAsSaved, markAsError } = useCartSaveTracking();
   const { preferences: savedPrefs, updatePreference } = useCabinetPreferences();
   const { 

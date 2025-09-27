@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ShoppingCart, Trash2, Plus, Minus, X, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useOptimizedCart } from "@/hooks/useOptimizedCart";
+import { useCartMigration } from "@/hooks/useCartMigration";
 import { useCartToQuote } from "@/hooks/useCartToQuote";
 import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,7 +37,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
     invalidateCache,
     updateItemOptimistically,
     removeItemOptimistically
-  } = useOptimizedCart() || {};
+  } = useCartMigration() || {};
   
   // Defensive checks to prevent calling undefined functions
   const safeGetTotalItems = typeof getTotalItems === 'function' ? getTotalItems : () => 0;
