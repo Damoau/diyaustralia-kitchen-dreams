@@ -92,7 +92,7 @@ export const OrderDetail = ({ orderId }: OrderDetailProps) => {
             order_number: "ORD-2023-089",
             status: "shipped",
             total_amount: 4200,
-            subtotal_amount: 3818,
+            subtotal: 3818,
             tax_amount: 382,
             created_at: "2023-11-15T00:00:00Z",
             order_items: [
@@ -233,7 +233,7 @@ export const OrderDetail = ({ orderId }: OrderDetailProps) => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span>Subtotal:</span>
-                    <span>${(order.subtotal_amount || 0).toLocaleString()}</span>
+                    <span>${(order.subtotal || 0).toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>GST (10%):</span>
