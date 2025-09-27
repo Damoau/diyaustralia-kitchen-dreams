@@ -109,7 +109,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   
   const { addToQuote, loading: addingToQuote } = useAddToQuote();
   
-  const { cart, isLoading, refreshCart } = useCartOptimized();
+  const { cart, isLoading, refreshCart, addToCart } = useCartOptimized();
   const { markAsUnsaved, markAsSaving, markAsSaved, markAsError } = useCartSaveTracking();
   const { preferences: savedPrefs, updatePreference } = useCabinetPreferences();
   const { 
@@ -798,18 +798,31 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     console.log('Cart item to add:', cartItem);
 
     try {
-      // TODO: Implement proper cart integration with new optimized system
-      console.log('Item configured for cart:', cartItem);
-      console.log('Item successfully added to cart via optimized system');
+      const totalPriceWithAssembly = totalPrice + (assemblyEnabled ? (assemblyType === 'carcass_only' ? assemblyEstimate?.carcass_only_price || 0 : assemblyEstimate?.with_doors_price || 0) : 0);
       
-      // Refresh optimized cart cache after adding item
-      refreshCart();
+      addToCart({
+        cabinet_type_id: selectedCabinetType.id,
+        door_style_id: selectedDoorStyle,
+        color_id: selectedColor,
+        finish_id: selectedFinish,
+        width_mm: dimensions.width,
+        height_mm: dimensions.height,
+        depth_mm: dimensions.depth,
+        quantity: quantity,
+        unit_price: totalPriceWithAssembly,
+        total_price: totalPriceWithAssembly * quantity,
+        configuration: {
+          assembly: assemblyEnabled ? {
+            type: assemblyType,
+            price: assemblyType === 'carcass_only' ? assemblyEstimate?.carcass_only_price : assemblyEstimate?.with_doors_price,
+            postcode: postcode
+          } : null,
+          hardware: hardwareSelections
+        },
+        notes: assemblyEnabled ? `Assembly: ${assemblyType} (${postcode})` : undefined
+      });
       
-      // Wait a bit to ensure cart is updated before showing success
-      setTimeout(() => {
-        toast.success(`Added ${quantity} × ${selectedCabinetType.name} to cart`);
-        onOpenChange(false);
-      }, 100);
+      onOpenChange(false);
     } catch (error) {
       console.error('Error adding item to cart:', error);
       toast.error('Failed to add item to cart. Please try again.');

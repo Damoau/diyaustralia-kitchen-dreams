@@ -255,6 +255,44 @@ export const useCartOptimized = () => {
     }
   });
 
+  const addItemMutation = useMutation({
+    mutationFn: async (newItem: {
+      cabinet_type_id: string;
+      door_style_id: string;
+      color_id: string;
+      finish_id: string;
+      width_mm: number;
+      height_mm: number;
+      depth_mm: number;
+      quantity: number;
+      unit_price: number;
+      total_price: number;
+      configuration?: any;
+      notes?: string;
+    }) => {
+      if (!formattedCart?.id) {
+        throw new Error('No active cart found');
+      }
+
+      const { error } = await supabase
+        .from('cart_items')
+        .insert({
+          cart_id: formattedCart.id,
+          ...newItem
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart', identifier] });
+      toast.success('Item added to cart');
+    },
+    onError: (error) => {
+      console.error('Error adding item to cart:', error);
+      toast.error('Failed to add item to cart');
+    }
+  });
+
   const removeItemMutation = useMutation({
     mutationFn: async (itemId: string) => {
       const { error } = await supabase
@@ -281,6 +319,22 @@ export const useCartOptimized = () => {
     getTotalItems,
     getTotalPrice,
     refreshCart: refetch,
+    addToCart: (item: {
+      cabinet_type_id: string;
+      door_style_id: string;
+      color_id: string;
+      finish_id: string;
+      width_mm: number;
+      height_mm: number;
+      depth_mm: number;
+      quantity: number;
+      unit_price: number;
+      total_price: number;
+      configuration?: any;
+      notes?: string;
+    }) => {
+      addItemMutation.mutate(item);
+    },
     updateItemOptimistically: (itemId: string, quantity: number) => {
       updateItemMutation.mutate({ itemId, quantity });
     },

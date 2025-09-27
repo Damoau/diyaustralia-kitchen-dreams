@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calculator, Package, Truck, MapPin, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useCartPersistence } from "@/hooks/useCartPersistence";
+import { useCartOptimized } from "@/hooks/useCartOptimized";
 
 // Input validation schema
 const postcodeSchema = z.string()
@@ -72,7 +72,7 @@ const PackagingModal = ({
   const [assemblyEstimate, setAssemblyEstimate] = useState<AssemblyEstimate | null>(null);
   const [calculatingShipping, setCalculatingShipping] = useState(false);
 
-  const { addToCart } = useCartPersistence();
+  const { addToCart } = useCartOptimized();
 
   // Get cabinet dimensions and calculate basic metrics
   const cabinetVolume = cabinetType ? 
@@ -189,30 +189,57 @@ const PackagingModal = ({
 
   // Handle add to cart
   const handleAddToCart = () => {
-    if (!cabinetType) return;
+    if (!cabinetType || !selectedOptions.doorStyleId || !selectedOptions.colorId || !selectedOptions.finishId) {
+      toast.error('Please complete all selections before adding to cart');
+      return;
+    }
     
-    const cartItem = {
-      cabinetType,
-      selectedOptions: {
-        ...selectedOptions,
-        assemblyEnabled,
-        postcode: postcode || undefined,
-        shippingEstimate: shippingEstimate || undefined,
-        assemblyEstimate: assemblyEstimate || undefined
+    const totalPrice = getTotal();
+    
+    const cartItemData = {
+      cabinet_type_id: cabinetType.id,
+      door_style_id: selectedOptions.doorStyleId,
+      color_id: selectedOptions.colorId,
+      finish_id: selectedOptions.finishId,
+      width_mm: cabinetType.width_mm,
+      height_mm: cabinetType.height_mm,
+      depth_mm: cabinetType.depth_mm,
+      quantity: 1,
+      unit_price: totalPrice,
+      total_price: totalPrice,
+      configuration: {
+        assembly: assemblyEnabled ? {
+          enabled: true,
+          price: assemblyEstimate?.price,
+          postcode: postcode
+        } : { enabled: false },
+        shipping: shippingEstimate || null
       },
-      pricing: {
-        basePrice: 250,
-        shippingCost: shippingEstimate?.price || 0,
-        assemblyCost: assemblyEnabled && assemblyEstimate?.price ? assemblyEstimate.price : 0,
-        totalPrice: getTotal()
-      }
+      notes: assemblyEnabled ? `Assembly enabled for ${postcode}` : undefined
     };
     
-    // Use cart persistence hook or fallback to prop
+    // Use cart optimized hook or fallback to prop
     if (onAddToCart) {
-      onAddToCart(cartItem);
+      // Convert back to old format for prop callback
+      const legacyCartItem = {
+        cabinetType,
+        selectedOptions: {
+          ...selectedOptions,
+          assemblyEnabled,
+          postcode: postcode || undefined,
+          shippingEstimate: shippingEstimate || undefined,
+          assemblyEstimate: assemblyEstimate || undefined
+        },
+        pricing: {
+          basePrice: 250,
+          shippingCost: shippingEstimate?.price || 0,
+          assemblyCost: assemblyEnabled && assemblyEstimate?.price ? assemblyEstimate.price : 0,
+          totalPrice: totalPrice
+        }
+      };
+      onAddToCart(legacyCartItem);
     } else {
-      addToCart(cartItem);
+      addToCart(cartItemData);
     }
     
     onOpenChange(false);
