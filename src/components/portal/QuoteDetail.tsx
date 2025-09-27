@@ -290,7 +290,11 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
       });
 
       // Trigger refresh of quotes list if parent component exists
-      window.dispatchEvent(new CustomEvent('quote-updated'));
+      try {
+        window.dispatchEvent(new CustomEvent('quote-updated'));
+      } catch (e) {
+        console.log('Failed to dispatch quote-updated event:', e);
+      }
     } catch (error) {
       console.error('Error updating quote name:', error);
       toast({
