@@ -277,11 +277,11 @@ const Checkout = () => {
                   </div>
                   
                    {/* Modern 20% Deposit Banner */}
-                   <div className="flex justify-center my-4">
+                   <div className="w-full max-w-md mx-auto my-4">
                      <div className="bg-gradient-to-r from-primary to-blue-dark text-primary-foreground rounded-xl px-6 py-3 shadow-lg border border-primary/20 backdrop-blur-sm">
                        <div className="flex items-center gap-3">
                          <div className="flex flex-col">
-                           <span className="text-sm font-medium opacity-90">20% Deposit</span>
+                           <span className="text-sm font-medium opacity-90">20% deposit to get all cabinets started</span>
                            <span className="text-lg font-bold">
                              ${(getTotalPrice() * 0.2).toFixed(2)}
                            </span>

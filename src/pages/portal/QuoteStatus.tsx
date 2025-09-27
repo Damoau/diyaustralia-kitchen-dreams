@@ -175,16 +175,21 @@ const QuoteStatus = () => {
               </div>
               
               {/* Modern 20% Deposit Highlight */}
-              <div className="bg-gradient-to-r from-primary to-blue-dark text-primary-foreground rounded-xl p-4 shadow-lg border border-primary/20 backdrop-blur-sm">
-                <div className="flex items-center justify-center gap-3 mb-2">
-                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-bold">20%</span>
+              <div className="w-full max-w-md mx-auto">
+                <div className="bg-gradient-to-r from-primary to-blue-dark text-primary-foreground rounded-xl p-4 shadow-lg border border-primary/20 backdrop-blur-sm">
+                  <div className="text-center mb-2">
+                    <span className="text-sm font-medium opacity-90">20% deposit to get all cabinets started</span>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm font-medium opacity-90">Deposit Required</p>
-                    <p className="text-xl font-bold">
-                      ${((quote.total_amount || 0) * 0.2).toFixed(2)}
-                    </p>
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-bold">20%</span>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-medium opacity-90">Deposit Required</p>
+                      <p className="text-xl font-bold">
+                        ${((quote.total_amount || 0) * 0.2).toFixed(2)}
+                      </p>
+                    </div>
                   </div>
                 </div>
                 <p className="text-xs text-center opacity-75">
