@@ -13,6 +13,7 @@ import { useCart } from "@/hooks/useCart";
 import { useCartToQuote } from "@/hooks/useCartToQuote";
 import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
 import { useAuth } from "@/hooks/useAuth";
+import { QuoteSelectionDialog } from "@/components/cart/QuoteSelectionDialog";
 
 interface CartItem {
   id: string;
@@ -26,6 +27,7 @@ interface CartItem {
 const Cart = () => {
   const navigate = useNavigate();
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
+  const [showQuoteDialog, setShowQuoteDialog] = useState(false);
   const { cart, updateQuantity, removeFromCart, saveCart, getItemCount, isLoading, initializeCart } = useCart();
   const { convertCartToQuote, isLoading: isConverting } = useCartToQuote();
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
@@ -86,19 +88,35 @@ const Cart = () => {
       return;
     }
 
-    // Regular user quote request flow
-    if (cart?.id && user) {
-      const result = await convertCartToQuote(cart.id, user.email);
+    // Regular user - show quote selection dialog
+    setShowQuoteDialog(true);
+  };
+
+  const handleQuoteSelected = async (existingQuoteId: string | null, quoteName?: string) => {
+    setShowQuoteDialog(false);
+    
+    if (!cart?.id || !user) return;
+
+    const result = await convertCartToQuote(
+      cart.id,
+      user.email,
+      `Quote created from cart items`,
+      existingQuoteId,
+      quoteName
+    );
+    
+    if (result.success) {
+      const actionText = existingQuoteId 
+        ? `Items added to quote ${result.quoteNumber}`
+        : `Quote ${result.quoteNumber} has been created and will be reviewed by our team`;
       
-      if (result.success) {
-        toast.success(`Quote ${result.quoteNumber} has been created and will be reviewed by our team`);
-        
-        // Initialize a new cart since the old one was converted to a quote
-        await initializeCart();
-        
-        // Navigate to customer portal quotes
-        navigate('/portal/quotes');
-      }
+      toast.success(actionText);
+      
+      // Initialize a new cart since the old one was converted to a quote
+      await initializeCart();
+      
+      // Navigate to customer portal quotes
+      navigate('/portal/quotes');
     }
   };
 
@@ -349,6 +367,13 @@ const Cart = () => {
         
         <Footer />
       </div>
+
+      <QuoteSelectionDialog
+        open={showQuoteDialog}
+        onOpenChange={setShowQuoteDialog}
+        onQuoteSelected={handleQuoteSelected}
+        isLoading={isConverting}
+      />
     </ImpersonationLayout>
   );
 };

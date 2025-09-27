@@ -9,6 +9,8 @@ interface CartToQuoteRequest {
   cart_id: string;
   customer_email?: string; // For impersonation mode
   notes?: string;
+  existing_quote_id?: string; // Add to existing quote
+  quote_name?: string; // Custom name for new quote
 }
 
 Deno.serve(async (req) => {
@@ -23,7 +25,7 @@ Deno.serve(async (req) => {
     );
 
     if (req.method === 'POST') {
-      const { cart_id, customer_email, notes }: CartToQuoteRequest = await req.json();
+      const { cart_id, customer_email, notes, existing_quote_id, quote_name }: CartToQuoteRequest = await req.json();
 
       if (!cart_id) {
         throw new Error('Cart ID is required');
@@ -88,40 +90,82 @@ Deno.serve(async (req) => {
         throw new Error('User ID could not be determined');
       }
 
-      // Calculate totals
+      // Calculate totals for new items
       const subtotal = cart.cart_items.reduce((sum: number, item: any) => sum + item.total_price, 0);
       const taxAmount = subtotal * 0.10; // 10% GST
       const totalAmount = subtotal + taxAmount;
 
-      // Generate quote number
-      const { data: quoteNumber } = await supabase.rpc('generate_quote_number');
+      let newQuote;
+      let quoteNumber;
 
-      // Get customer email - either provided or from cart user lookup
-      let finalCustomerEmail = customer_email;
-      if (!finalCustomerEmail && userId) {
-        const { data: userData } = await supabase.auth.admin.getUserById(userId);
-        finalCustomerEmail = userData.user?.email || 'no-email@example.com';
-      }
+      if (existing_quote_id) {
+        // Adding to existing quote
+        const { data: existingQuote, error: existingQuoteError } = await supabase
+          .from('quotes')
+          .select('*')
+          .eq('id', existing_quote_id)
+          .eq('user_id', userId)
+          .single();
 
-      // Create quote
-      const { data: newQuote, error: quoteError } = await supabase
-        .from('quotes')
-        .insert({
-          user_id: userId,
-          customer_email: finalCustomerEmail,
-          quote_number: quoteNumber,
-          status: 'draft',
-          subtotal: subtotal,
-          tax_amount: taxAmount,
-          total_amount: totalAmount,
-          valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Convert to date string
-          notes: notes || `Quote created from cart items`
-        })
-        .select()
-        .single();
+        if (existingQuoteError || !existingQuote) {
+          throw new Error('Existing quote not found or access denied');
+        }
 
-      if (quoteError) {
-        throw quoteError;
+        newQuote = existingQuote;
+        quoteNumber = existingQuote.quote_number;
+
+        // Update existing quote totals
+        const newSubtotal = existingQuote.subtotal + subtotal;
+        const newTaxAmount = newSubtotal * 0.10;
+        const newTotalAmount = newSubtotal + newTaxAmount;
+
+        const { error: updateError } = await supabase
+          .from('quotes')
+          .update({
+            subtotal: newSubtotal,
+            tax_amount: newTaxAmount,
+            total_amount: newTotalAmount,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existing_quote_id);
+
+        if (updateError) {
+          throw updateError;
+        }
+      } else {
+        // Create new quote
+        const { data: generatedQuoteNumber } = await supabase.rpc('generate_quote_number');
+        quoteNumber = generatedQuoteNumber;
+
+        // Get customer email - either provided or from cart user lookup
+        let finalCustomerEmail = customer_email;
+        if (!finalCustomerEmail && userId) {
+          const { data: userData } = await supabase.auth.admin.getUserById(userId);
+          finalCustomerEmail = userData.user?.email || 'no-email@example.com';
+        }
+
+        const { data: createdQuote, error: quoteError } = await supabase
+          .from('quotes')
+          .insert({
+            user_id: userId,
+            customer_email: finalCustomerEmail,
+            customer_name: quote_name || null,
+            quote_number: quoteNumber,
+            status: 'draft',
+            subtotal: subtotal,
+            tax_amount: taxAmount,
+            total_amount: totalAmount,
+            valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            notes: notes || `Quote created from cart items`
+          })
+          .select()
+          .single();
+
+        if (quoteError) {
+          throw quoteError;
+        }
+
+        newQuote = createdQuote;
       }
 
       // Create quote items from cart items
