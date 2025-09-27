@@ -926,7 +926,7 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
             </div>
           </DialogHeader>
 
-        <Tabs defaultValue="basic" className="flex-1 flex flex-col min-h-0">
+        <Tabs defaultValue="basic" className="flex-1 flex flex-col min-h-0" key="cabinet-tabs">
           <div className="px-6 py-2 border-b flex-shrink-0 bg-background">
             <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="basic" className="flex items-center gap-2">
