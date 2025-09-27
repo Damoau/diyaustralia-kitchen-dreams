@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +14,9 @@ import {
   Edit, 
   Trash2, 
   Package,
-  Filter
+  Filter,
+  AlertCircle,
+  Search
 } from 'lucide-react';
 
 interface CabinetType {
@@ -54,12 +56,22 @@ interface RoomCategory {
 const CabinetManager: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   // Filter states
   const [roomFilter, setRoomFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [subcategoryFilter, setSubcategoryFilter] = useState<string>('all');
   const [searchFilter, setSearchFilter] = useState<string>('');
+  const [dataValidationIssues, setDataValidationIssues] = useState<string[]>([]);
+
+  // Read URL parameters on mount
+  useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    if (urlSearch) {
+      setSearchFilter(urlSearch);
+    }
+  }, [searchParams]);
 
   // Fetch room categories
   const { data: roomCategories } = useQuery({
@@ -96,14 +108,58 @@ const CabinetManager: React.FC = () => {
     },
   });
 
+  // Improved search logic with better matching
+  const normalizeSearchTerm = (term: string) => term.trim().toLowerCase().replace(/\s+/g, ' ');
+  
   // Filter cabinet types based on filters
   const filteredCabinetTypes = cabinetTypes?.filter(cabinet => {
     if (roomFilter !== 'all' && cabinet.room_category_id !== roomFilter) return false;
     if (categoryFilter !== 'all' && cabinet.category !== categoryFilter) return false;
     if (subcategoryFilter !== 'all' && cabinet.subcategory !== subcategoryFilter) return false;
-    if (searchFilter && !cabinet.name.toLowerCase().includes(searchFilter.toLowerCase())) return false;
+    
+    // Improved search logic
+    if (searchFilter) {
+      const normalizedSearch = normalizeSearchTerm(searchFilter);
+      const normalizedName = normalizeSearchTerm(cabinet.name);
+      const normalizedCategory = normalizeSearchTerm(cabinet.category || '');
+      const normalizedSubcategory = normalizeSearchTerm(cabinet.subcategory || '');
+      
+      // Check if search term matches name, category, subcategory, or door count
+      const matchesName = normalizedName.includes(normalizedSearch);
+      const matchesCategory = normalizedCategory.includes(normalizedSearch);
+      const matchesSubcategory = normalizedSubcategory.includes(normalizedSearch);
+      const matchesDoorCount = cabinet.door_count?.toString().includes(normalizedSearch);
+      const matchesDrawerCount = cabinet.drawer_count?.toString().includes(normalizedSearch);
+      
+      if (!matchesName && !matchesCategory && !matchesSubcategory && !matchesDoorCount && !matchesDrawerCount) {
+        return false;
+      }
+    }
+    
     return true;
   }) || [];
+
+  // Data validation: check for inconsistencies
+  useEffect(() => {
+    if (cabinetTypes) {
+      const issues: string[] = [];
+      
+      cabinetTypes.forEach(cabinet => {
+        // Check if door count matches name
+        if (cabinet.name.toLowerCase().includes('door')) {
+          const doorMatch = cabinet.name.match(/(\d+)\s*door/i);
+          if (doorMatch) {
+            const expectedDoors = parseInt(doorMatch[1]);
+            if (cabinet.door_count !== expectedDoors) {
+              issues.push(`"${cabinet.name}" has door_count: ${cabinet.door_count}, expected: ${expectedDoors}`);
+            }
+          }
+        }
+      });
+      
+      setDataValidationIssues(issues);
+    }
+  }, [cabinetTypes]);
 
   // Get unique categories and subcategories from filtered data
   const uniqueCategories = [...new Set(cabinetTypes?.map(c => c.category) || [])];
@@ -213,6 +269,18 @@ const CabinetManager: React.FC = () => {
     navigate('/admin/cabinets/new');
   };
 
+  const handleSearchChange = (value: string) => {
+    setSearchFilter(value);
+    // Update URL to maintain search state
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (value.trim()) {
+      newSearchParams.set('search', value);
+    } else {
+      newSearchParams.delete('search');
+    }
+    setSearchParams(newSearchParams);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -231,6 +299,9 @@ const CabinetManager: React.FC = () => {
               <CardTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5" />
                 Cabinet Types
+                <Badge variant="secondary" className="ml-2">
+                  {filteredCabinetTypes.length} of {cabinetTypes?.length || 0}
+                </Badge>
               </CardTitle>
               <CardDescription>
                 Manage cabinet configurations, dimensions, and specifications
@@ -242,6 +313,54 @@ const CabinetManager: React.FC = () => {
             </Button>
           </div>
           
+          {/* Data Validation Issues */}
+          {dataValidationIssues.length > 0 && (
+            <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertCircle className="h-4 w-4 text-yellow-600" />
+                <span className="font-medium text-yellow-800">Data Validation Issues</span>
+              </div>
+              <ul className="text-sm text-yellow-700 space-y-1">
+                {dataValidationIssues.map((issue, index) => (
+                  <li key={index}>• {issue}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {/* Active Filters Display */}
+          {(searchFilter || roomFilter !== 'all' || categoryFilter !== 'all' || subcategoryFilter !== 'all') && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Filter className="h-4 w-4 text-blue-600" />
+                <span className="font-medium text-blue-800">Active Filters</span>
+              </div>
+              <div className="flex flex-wrap gap-2 text-sm">
+                {searchFilter && (
+                  <Badge variant="outline" className="bg-white">
+                    <Search className="h-3 w-3 mr-1" />
+                    Search: "{searchFilter}"
+                  </Badge>
+                )}
+                {roomFilter !== 'all' && (
+                  <Badge variant="outline" className="bg-white">
+                    Room: {roomCategories?.find(r => r.id === roomFilter)?.display_name || roomFilter}
+                  </Badge>
+                )}
+                {categoryFilter !== 'all' && (
+                  <Badge variant="outline" className="bg-white">
+                    Category: {categoryFilter}
+                  </Badge>
+                )}
+                {subcategoryFilter !== 'all' && (
+                  <Badge variant="outline" className="bg-white">
+                    Subcategory: {subcategoryFilter}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
+          
           {/* Filters */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t">
             <div className="space-y-2">
@@ -249,7 +368,7 @@ const CabinetManager: React.FC = () => {
               <Input
                 placeholder="Search cabinets..."
                 value={searchFilter}
-                onChange={(e) => setSearchFilter(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -303,19 +422,43 @@ const CabinetManager: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <DataTable
-            columns={cabinetTypeColumns}
-            data={filteredCabinetTypes}
-            loading={loadingTypes}
-            actions={[
-              {
-                label: 'Delete',
-                icon: <Trash2 className="h-4 w-4 mr-2" />,
-                variant: 'destructive' as const,
-                onClick: (item) => handleDeleteType(item.id),
-              },
-            ]}
-          />
+          {filteredCabinetTypes.length === 0 && !loadingTypes && (
+            <div className="text-center py-12">
+              <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No cabinets found</h3>
+              <p className="text-gray-500 mb-4">
+                {searchFilter || roomFilter !== 'all' || categoryFilter !== 'all' || subcategoryFilter !== 'all'
+                  ? 'No cabinets match your current filters.'
+                  : 'No cabinets have been added yet.'}
+              </p>
+              {(searchFilter || roomFilter !== 'all' || categoryFilter !== 'all' || subcategoryFilter !== 'all') && (
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">Try:</p>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Clearing your search term</li>
+                    <li>• Changing your filter selection</li>
+                    <li>• Checking for spelling variations</li>
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {filteredCabinetTypes.length > 0 && (
+            <DataTable
+              columns={cabinetTypeColumns}
+              data={filteredCabinetTypes}
+              loading={loadingTypes}
+              actions={[
+                {
+                  label: 'Delete',
+                  icon: <Trash2 className="h-4 w-4 mr-2" />,
+                  variant: 'destructive' as const,
+                  onClick: (item) => handleDeleteType(item.id),
+                },
+              ]}
+            />
+          )}
         </CardContent>
       </Card>
 
