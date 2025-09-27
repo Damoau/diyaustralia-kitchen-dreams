@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { runCartSystemSimulations, SimulationResult } from '@/utils/cartSystemSimulations';
+import { runComprehensiveCartSimulations, SimulationResult } from '@/utils/comprehensiveCartSimulations';
 import { Play, CheckCircle, XCircle, Clock, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -18,7 +18,7 @@ export const SimulationRunner: React.FC = () => {
     setProgress(0);
     
     try {
-      const simulationResults = await runCartSystemSimulations();
+      const simulationResults = await runComprehensiveCartSimulations();
       setResults(simulationResults);
       setProgress(100);
       
@@ -66,7 +66,7 @@ export const SimulationRunner: React.FC = () => {
           Cart System Simulations
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Run comprehensive end-to-end simulations to validate the complete cart system
+          Run 100+ comprehensive end-to-end simulations covering all cart scenarios
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -82,7 +82,7 @@ export const SimulationRunner: React.FC = () => {
             ) : (
               <Play className="h-4 w-4" />
             )}
-            {isRunning ? 'Running Simulations...' : 'Run All Simulations'}
+            {isRunning ? 'Running 100+ Simulations...' : 'Run 100+ Simulations'}
           </Button>
 
           {results.length > 0 && (
@@ -172,8 +172,8 @@ export const SimulationRunner: React.FC = () => {
 
         {/* Test Coverage Info */}
         <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded">
-          <strong>Coverage:</strong> Database connectivity, cart creation, item addition, persistence, 
-          multi-item workflow, shop→cart→checkout flow, cleanup, error handling, and performance validation.
+          <strong>Coverage:</strong> Kitchen cabinets, base cabinets, wall cabinets, side cart, checkout flow, 
+          cross-page navigation, multi-user sessions, error recovery, and performance under load (100+ scenarios).
         </div>
       </CardContent>
     </Card>

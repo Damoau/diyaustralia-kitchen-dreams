@@ -39,6 +39,7 @@ const DoorStyles = lazy(() => import('@/pages/admin/DoorStyles'));
 const ConfigurationMigrationPlaceholder = lazy(() => import('@/components/admin/ConfigurationMigrationPlaceholder'));
 const TestingPlaceholder = lazy(() => import('@/components/admin/TestingPlaceholder'));
 const CartActivity = lazy(() => import('@/pages/admin/CartActivity'));
+const CartSystemHealth = lazy(() => import('@/pages/admin/CartSystemHealth'));
 
 export const AdminRouter = () => {
   return (
@@ -97,6 +98,7 @@ export const AdminRouter = () => {
             {/* System */}
             <Route path="security" element={<SecurityDashboard />} />
             <Route path="testing" element={<TestingPlaceholder />} />
+            <Route path="cart-system-health" element={<CartSystemHealth />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="settings" element={<Settings />} />
           </Routes>

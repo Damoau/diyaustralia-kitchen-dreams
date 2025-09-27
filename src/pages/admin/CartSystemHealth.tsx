@@ -4,6 +4,7 @@ import { CartConsolidationManager } from '@/components/cart/CartConsolidationMan
 import { CartSystemValidator } from '@/components/testing/CartSystemValidator';
 import { CartEndToEndTester } from '@/components/testing/CartEndToEndTester';
 import { EnhancedCartConsolidation } from '@/components/cart/EnhancedCartConsolidation';
+import { ExtensiveSimulationRunner } from '@/components/testing/ExtensiveSimulationRunner';
 
 export default function CartSystemHealth() {
   return (
@@ -22,8 +23,9 @@ export default function CartSystemHealth() {
           <EnhancedCartConsolidation />
         </div>
 
-        <div className="grid gap-6">
+        <div className="grid gap-6 md:grid-cols-2">
           <CartEndToEndTester />
+          <ExtensiveSimulationRunner />
         </div>
       </div>
     </AdminLayout>

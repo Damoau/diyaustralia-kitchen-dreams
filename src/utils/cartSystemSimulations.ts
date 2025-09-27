@@ -49,7 +49,7 @@ export class CartSystemSimulator {
     return this.results;
   }
 
-  private async runSimulation(name: string, testFn: () => Promise<any>): Promise<SimulationResult> {
+  protected async runSimulation(name: string, testFn: () => Promise<any>): Promise<SimulationResult> {
     const startTime = Date.now();
     
     try {
