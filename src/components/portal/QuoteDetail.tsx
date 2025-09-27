@@ -40,6 +40,9 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [quoteName, setQuoteName] = useState("");
   const [isSavingName, setIsSavingName] = useState(false);
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [customerNotes, setCustomerNotes] = useState("");
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -84,6 +87,7 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
 
       setQuote(quoteData);
       setQuoteName(quoteData.customer_name || "Kitchen Quote");
+      setCustomerNotes(quoteData.customer_internal_notes || "");
     } catch (error) {
       console.error('Error fetching quote:', error);
       toast({
@@ -310,6 +314,41 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
   const handleCancelEdit = () => {
     setQuoteName(quote?.customer_name || "Kitchen Quote");
     setIsEditingName(false);
+  };
+
+  const handleSaveNotes = async () => {
+    setIsSavingNotes(true);
+    try {
+      const { error } = await supabase
+        .from('quotes')
+        .update({ customer_internal_notes: customerNotes.trim() })
+        .eq('id', quoteId);
+
+      if (error) throw error;
+
+      // Update local state
+      setQuote((prev: any) => ({ ...prev, customer_internal_notes: customerNotes.trim() }));
+      setIsEditingNotes(false);
+
+      toast({
+        title: "Success",
+        description: "Internal notes updated successfully"
+      });
+    } catch (error) {
+      console.error('Error updating internal notes:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update internal notes",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSavingNotes(false);
+    }
+  };
+
+  const handleCancelNotesEdit = () => {
+    setCustomerNotes(quote?.customer_internal_notes || "");
+    setIsEditingNotes(false);
   };
 
   return (
@@ -629,6 +668,70 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
                 <Download className="w-4 h-4 mr-2" />
                 Download PDF
               </Button>
+            </CardContent>
+          </Card>
+          
+          {/* Internal Notes */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                My Internal Notes
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Private notes for your reference only. These notes will not appear when items are added to cart or on any public documents.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {!isEditingNotes ? (
+                <div className="space-y-3">
+                  {customerNotes ? (
+                    <div className="p-3 bg-muted/50 rounded-md">
+                      <p className="text-sm whitespace-pre-wrap">{customerNotes}</p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">No internal notes added yet.</p>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditingNotes(true)}
+                    className="w-full"
+                  >
+                    <Edit3 className="w-4 h-4 mr-2" />
+                    {customerNotes ? 'Edit Notes' : 'Add Notes'}
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <Textarea
+                    value={customerNotes}
+                    onChange={(e) => setCustomerNotes(e.target.value)}
+                    placeholder="Add your internal notes here..."
+                    rows={4}
+                    className="resize-none"
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={handleSaveNotes}
+                      disabled={isSavingNotes}
+                      className="flex-1"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      {isSavingNotes ? 'Saving...' : 'Save'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCancelNotesEdit}
+                      disabled={isSavingNotes}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

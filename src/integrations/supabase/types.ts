@@ -3497,6 +3497,7 @@ export type Database = {
           customer_abn: string | null
           customer_company: string | null
           customer_email: string
+          customer_internal_notes: string | null
           customer_name: string | null
           customer_phone: string | null
           id: string
@@ -3522,6 +3523,7 @@ export type Database = {
           customer_abn?: string | null
           customer_company?: string | null
           customer_email: string
+          customer_internal_notes?: string | null
           customer_name?: string | null
           customer_phone?: string | null
           id?: string
@@ -3547,6 +3549,7 @@ export type Database = {
           customer_abn?: string | null
           customer_company?: string | null
           customer_email?: string
+          customer_internal_notes?: string | null
           customer_name?: string | null
           customer_phone?: string | null
           id?: string
