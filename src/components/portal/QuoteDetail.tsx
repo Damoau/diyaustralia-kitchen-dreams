@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { QuoteToCartConverter } from "@/components/portal/QuoteToCartConverter";
 import { QuoteChangeRequestDialog } from "@/components/portal/QuoteChangeRequestDialog";
 import { CustomerQuoteMessages } from './CustomerQuoteMessages';
 import { 
@@ -144,26 +143,85 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
     try {
       console.log('Adding all quote items to cart and redirecting to checkout');
       
-      // Add all quote items to cart automatically
-      const { data: cartData, error: cartError } = await supabase.functions.invoke('portal-quote-to-cart', {
-        body: { 
-          quote_id: quoteId,
-          selected_items: quote?.quote_items?.map((item: any) => item.id) || [] // Select all items
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (cartError) {
-        console.error('Error adding items to cart:', cartError);
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) {
         toast({
-          title: "Error",
-          description: "Failed to add items to cart. Please try again.",
+          title: "Authentication Required",
+          description: "Please log in to proceed with checkout.",
           variant: "destructive",
         });
         return;
       }
+
+      // Get or create user's cart
+      let { data: cart, error: cartError } = await supabase
+        .from('carts')
+        .select('id')
+        .eq('user_id', user.user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (cartError) {
+        console.error('Error fetching cart:', cartError);
+        throw cartError;
+      }
+
+      if (!cart) {
+        // Create new cart
+        const { data: newCart, error: createError } = await supabase
+          .from('carts')
+          .insert({
+            user_id: user.user.id,
+            name: `Quote ${quote.quote_number}`,
+            source: 'quote_conversion',
+            total_amount: 0,
+            status: 'active'
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        cart = newCart;
+      }
+
+      // Add all quote items to cart
+      const cartItems = quote.quote_items.map((item: any) => ({
+        cart_id: cart!.id,
+        cabinet_type_id: item.cabinet_type_id,
+        quantity: item.quantity,
+        width_mm: item.width_mm,
+        height_mm: item.height_mm,
+        depth_mm: item.depth_mm,
+        unit_price: item.unit_price,
+        total_price: item.total_price,
+        configuration: item.configuration,
+        door_style_id: item.door_style_id,
+        color_id: item.color_id,
+        finish_id: item.finish_id,
+        notes: `Added from quote ${quote.quote_number}`,
+        item_name: item.item_name,
+        job_reference: item.job_reference,
+        enhanced_notes: item.enhanced_notes,
+        hardware_selections: item.hardware_selections
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('cart_items')
+        .insert(cartItems);
+
+      if (itemsError) throw itemsError;
+
+      // Update cart total
+      const cartTotal = quote.quote_items.reduce((sum: number, item: any) => sum + item.total_price, 0);
+      const { error: updateError } = await supabase
+        .from('carts')
+        .update({ 
+          total_amount: cartTotal,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', cart!.id);
+
+      if (updateError) throw updateError;
 
       toast({
         title: "Items Added to Cart!",
@@ -400,12 +458,6 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Checkout All Items
                   </Button>
-                  
-                  <QuoteToCartConverter 
-                    quoteId={quoteDisplay.id}
-                    items={quoteDisplay.items}
-                    buttonText="Add Selected Items to Cart"
-                  />
                   
                   <QuoteChangeRequestDialog
                     quoteId={quoteDisplay.id}
