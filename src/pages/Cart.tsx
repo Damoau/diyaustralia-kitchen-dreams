@@ -369,16 +369,6 @@ const Cart = () => {
                        <span>${getTotalPrice().toFixed(2)}</span>
                      </div>
                      
-                     {/* Debug information */}
-                     {process.env.NODE_ENV === 'development' && (
-                       <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
-                         <p>Debug: isImpersonating = {String(isImpersonating)}</p>
-                         <p>Debug: isLoading = {String(isLoading)}</p>
-                         <p>Debug: isConverting = {String(isConverting)}</p>
-                         <p>Debug: cart items = {cart?.items?.length || 0}</p>
-                       </div>
-                     )}
-                     
                      {isImpersonating ? (
                        <Button 
                          onClick={handleRequestQuote}

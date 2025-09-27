@@ -227,40 +227,45 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
                 )}
 
                 <div className="space-y-3">
-                  <Button 
-                    onClick={handleCheckout}
-                    className="w-full h-12 text-base font-medium"
-                    size="lg"
-                  >
-                    Proceed to Checkout
-                  </Button>
-                  
-                  <div className="flex gap-2">
-                  <Button 
-                    onClick={handleCheckout}
-                    className="flex-1 h-12 text-base font-semibold"
-                    size="lg"
-                  >
-                    Proceed to Checkout
-                  </Button>
-                  
-                  <Button 
-                    onClick={handleRequestQuote}
-                    variant="outline"
-                    className="flex-1 h-12 text-base bg-white border-2 border-primary/20 hover:bg-primary/5 hover:border-primary/40 text-foreground"
-                    size="lg"
-                  >
-                    Save as Quote
-                  </Button>
-                  </div>
-                  
-                  <Button 
-                    onClick={handleViewCart}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    View Cart
-                  </Button>
+                  {getTotalPrice() > 0 && (
+                    <>
+                      <Button 
+                        onClick={handleCheckout}
+                        className="w-full h-12 text-base font-medium"
+                        size="lg"
+                      >
+                        Proceed to Checkout
+                      </Button>
+                      
+                      {isImpersonating ? (
+                        <Button 
+                          onClick={handleRequestQuote}
+                          variant="outline"
+                          className="w-full h-12 text-base"
+                          size="lg"
+                        >
+                          Create Quote for Customer
+                        </Button>
+                      ) : (
+                        <Button 
+                          onClick={handleRequestQuote}
+                          variant="outline"
+                          className="w-full h-12 text-base bg-white border-2 border-primary/20 hover:bg-primary/5 hover:border-primary/40 text-foreground"
+                          size="lg"
+                        >
+                          Save as Quote
+                        </Button>
+                      )}
+                      
+                      <Button 
+                        onClick={handleViewCart}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        View Cart
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

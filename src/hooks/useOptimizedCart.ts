@@ -326,26 +326,30 @@ export const useOptimizedCart = () => {
 
   // Remove debounced initialization as it's causing infinite re-renders
 
-  // Initialize cart on mount and user change - STABLE VERSION
+  // Initialize cart on mount - use ref to prevent infinite loops
+  const hasInitialized = useRef(false);
+  
   useEffect(() => {
-    const timer = setTimeout(() => {
-      initializeCart();
-    }, 100); // Small delay to prevent rapid calls
-    
-    return () => clearTimeout(timer);
-  }, [user?.id]); // Only depend on user ID change
-
-  // Add a separate effect to handle cart refresh when cache is cleared
-  useEffect(() => {
-    if (cart === null && !isLoading && !initializingRef.current && invalidationRef.current) {
-      console.log('Cart invalidated, reinitializing...');
+    if (!hasInitialized.current && !cart && !isLoading && (user?.id || getSessionId())) {
+      hasInitialized.current = true;
       const timer = setTimeout(() => {
         initializeCart();
       }, 100);
       
       return () => clearTimeout(timer);
     }
-  }, [cart, isLoading]);
+  }, [user?.id]); // Minimal dependencies to prevent loops
+
+  // Handle invalidation-triggered refresh
+  useEffect(() => {
+    if (invalidationRef.current && !isLoading && !initializingRef.current) {
+      const timer = setTimeout(() => {
+        initializeCart();
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [invalidationRef.current]);
 
   // Optimized helper functions
   const getTotalItems = useCallback(() => {
@@ -356,19 +360,16 @@ export const useOptimizedCart = () => {
     return cart?.items?.reduce((sum: number, item: any) => sum + item.total_price, 0) || 0;
   }, [cart?.items]);
 
+  // Stable functions to prevent infinite re-renders - use refs to avoid dependency cycles
   const invalidateCache = useCallback(() => {
-    console.log('Invalidating cart cache for:', cacheKey);
+    console.log('🔄 Invalidating cart cache for:', cacheKey);
     delete cartCacheRef.current[cacheKey];
     lastFetchTime.current = 0;
     requestCache.clear();
     invalidationRef.current = true;
-    // Trigger refresh by calling initializeCart directly instead of setting cart to null
-    setTimeout(() => {
-      initializeCart();
-    }, 50);
-  }, [cacheKey, initializeCart]);
+    // Don't call initializeCart here to avoid infinite loops
+  }, [cacheKey]);
 
-  // Add optimistic update functions
   const updateCartOptimistically = useCallback((updater: (cart: any) => any) => {
     setCart(prevCart => {
       if (!prevCart) return prevCart;
@@ -414,7 +415,10 @@ export const useOptimizedCart = () => {
     getTotalItems,
     getTotalPrice,
     invalidateCache,
-    refreshCart: initializeCart,
+    refreshCart: () => {
+      invalidateCache();
+      setTimeout(() => initializeCart(), 100);
+    },
     updateItemOptimistically,
     removeItemOptimistically
   };
