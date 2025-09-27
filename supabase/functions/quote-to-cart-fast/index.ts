@@ -115,38 +115,87 @@ serve(async (req) => {
       console.log(`Created new cart: ${cartId}`);
     }
 
-    // Prepare cart items for bulk insert (exclude non-existent columns)
-    const cartItems = selectedItems.map((item: any) => ({
-      cart_id: cartId,
-      cabinet_type_id: item.cabinet_type_id,
-      quantity: item.quantity,
-      width_mm: item.width_mm,
-      height_mm: item.height_mm,
-      depth_mm: item.depth_mm,
-      unit_price: item.unit_price,
-      total_price: item.total_price,
-      configuration: item.configuration,
-      door_style_id: item.door_style_id,
-      color_id: item.color_id,
-      finish_id: item.finish_id,
-      notes: `Added from quote ${quote.quote_number}`
-    }));
-
-    // Bulk insert cart items
-    const { error: itemsError } = await supabase
+    // Get existing cart items to check for duplicates
+    const { data: existingCartItems, error: existingError } = await supabase
       .from('cart_items')
-      .insert(cartItems);
+      .select('*')
+      .eq('cart_id', cartId);
 
-    if (itemsError) {
-      console.error('Error inserting cart items:', itemsError);
-      throw itemsError;
+    if (existingError) {
+      throw existingError;
     }
 
-    // Calculate new total (add to existing total)
-    const addedTotal = selectedItems.reduce((sum: number, item: any) => sum + item.total_price, 0);
-    const newTotal = currentTotal + addedTotal;
+    // Process each selected item - update quantity if duplicate exists, or create new
+    let totalItemsAdded = 0;
+    let totalAmountAdded = 0;
+
+    for (const item of selectedItems) {
+      // Check for existing item with same configuration
+      const existingItem = existingCartItems?.find(existing => 
+        existing.cabinet_type_id === item.cabinet_type_id &&
+        existing.width_mm === item.width_mm &&
+        existing.height_mm === item.height_mm &&
+        existing.depth_mm === item.depth_mm &&
+        existing.door_style_id === item.door_style_id &&
+        existing.color_id === item.color_id &&
+        existing.finish_id === item.finish_id &&
+        JSON.stringify(existing.configuration) === JSON.stringify(item.configuration)
+      );
+
+      if (existingItem) {
+        // Update existing item quantity and total
+        const newQuantity = existingItem.quantity + item.quantity;
+        const newTotalPrice = item.unit_price * newQuantity;
+
+        const { error: updateError } = await supabase
+          .from('cart_items')
+          .update({
+            quantity: newQuantity,
+            total_price: newTotalPrice,
+            notes: `Updated from quote ${quote.quote_number}`
+          })
+          .eq('id', existingItem.id);
+
+        if (updateError) {
+          throw updateError;
+        }
+
+        totalAmountAdded += item.total_price; // Add the new amount
+        console.log(`Updated existing cart item ${existingItem.id}: qty ${existingItem.quantity} -> ${newQuantity}`);
+      } else {
+        // Create new cart item
+        const { error: insertError } = await supabase
+          .from('cart_items')
+          .insert({
+            cart_id: cartId,
+            cabinet_type_id: item.cabinet_type_id,
+            quantity: item.quantity,
+            width_mm: item.width_mm,
+            height_mm: item.height_mm,
+            depth_mm: item.depth_mm,
+            unit_price: item.unit_price,
+            total_price: item.total_price,
+            configuration: item.configuration,
+            door_style_id: item.door_style_id,
+            color_id: item.color_id,
+            finish_id: item.finish_id,
+            notes: `Added from quote ${quote.quote_number}`
+          });
+
+        if (insertError) {
+          throw insertError;
+        }
+
+        totalAmountAdded += item.total_price;
+        totalItemsAdded++;
+        console.log(`Created new cart item for ${item.cabinet_type_id}`);
+      }
+    }
+
+    // Calculate new total
+    const newTotal = currentTotal + totalAmountAdded;
     
-    console.log(`Updating cart total: ${currentTotal} + ${addedTotal} = ${newTotal}`);
+    console.log(`Updating cart total: ${currentTotal} + ${totalAmountAdded} = ${newTotal}`);
     
     const { error: updateError } = await supabase
       .from('carts')
@@ -162,7 +211,7 @@ serve(async (req) => {
     }
 
     const processingTime = Date.now() - startTime;
-    console.log(`Successfully added ${selectedItems.length} items to cart ${cartId} in ${processingTime}ms`);
+    console.log(`Successfully processed ${selectedItems.length} items to cart ${cartId} (${totalItemsAdded} new, ${selectedItems.length - totalItemsAdded} merged) in ${processingTime}ms`);
 
     return new Response(JSON.stringify({ 
       success: true, 
