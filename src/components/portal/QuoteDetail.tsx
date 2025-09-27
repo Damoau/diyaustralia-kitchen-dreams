@@ -166,89 +166,28 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
         return;
       }
 
-      // Get or create user's cart
-      let { data: cart, error: cartError } = await supabase
-        .from('carts')
-        .select('id')
-        .eq('user_id', user.user.id)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (cartError && cartError.code === 'PGRST116') {
-        // No active cart found - this is normal, we'll create one below
-        cart = null;
-      } else if (cartError) {
-        console.error('Error fetching cart:', cartError);
-        throw cartError;
-      }
-
-      if (!cart) {
-        // Create new cart
-        const { data: newCart, error: createError } = await supabase
-          .from('carts')
-          .insert({
-            user_id: user.user.id,
-            name: `Quote ${quote.quote_number}`,
-            source: 'quote_conversion',
-            total_amount: 0,
-            status: 'active'
-          })
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        cart = newCart;
-      }
-
-      // Add all quote items to cart
-      const cartItems = quote.quote_items.map((item: any) => ({
-        cart_id: cart!.id,
-        cabinet_type_id: item.cabinet_type_id,
-        quantity: item.quantity,
-        width_mm: item.width_mm,
-        height_mm: item.height_mm,
-        depth_mm: item.depth_mm,
-        unit_price: item.unit_price,
-        total_price: item.total_price,
-        configuration: item.configuration,
-        door_style_id: item.door_style_id,
-        color_id: item.color_id,
-        finish_id: item.finish_id,
-        notes: `Added from quote ${quote.quote_number}`,
-        item_name: item.item_name,
-        job_reference: item.job_reference,
-        hardware_selections: item.hardware_selections
-      }));
-
-      const { error: itemsError } = await supabase
-        .from('cart_items')
-        .insert(cartItems);
-
-      if (itemsError) throw itemsError;
-
-      // Update cart total
-      const cartTotal = quote.quote_items.reduce((sum: number, item: any) => sum + item.total_price, 0);
-      const { error: updateError } = await supabase
-        .from('carts')
-        .update({ 
-          total_amount: cartTotal,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', cart!.id);
-
-      if (updateError) throw updateError;
-
+      // Show loading immediately
       toast({
-        title: "Items Added to Cart!",
-        description: "All quote items have been added to your cart. Redirecting to checkout...",
+        title: "Processing...",
+        description: "Adding items to cart, please wait...",
       });
 
-      // Redirect to checkout
+      // Use optimized edge function for fast processing
+      const { data, error } = await supabase.functions.invoke('quote-to-cart-fast', {
+        body: { quote_id: quoteId }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success!",
+        description: "Items have been added to your cart. Redirecting to checkout...",
+      });
+
+      // Redirect immediately
       setTimeout(() => {
         window.location.href = '/checkout';
-      }, 1500);
+      }, 800);
 
     } catch (error) {
       console.error('Error processing quote:', error);
