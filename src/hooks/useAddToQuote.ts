@@ -35,6 +35,7 @@ interface QuoteItemData {
     hinges?: HardwareProduct | null;
     drawer_runners?: HardwareProduct | null;
   };
+  productOptions?: Record<string, any>;
   itemName: string;
   jobReference?: string;
   notes?: string;
@@ -139,6 +140,7 @@ export const useAddToQuote = () => {
           configuration: {
             assembly: itemData.assemblyOptions,
             dimensions: itemData.dimensions,
+            productOptions: itemData.productOptions,
             specifications: {
               door_style: itemData.selectedDoorStyle,
               color: itemData.selectedColor,

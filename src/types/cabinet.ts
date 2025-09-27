@@ -221,6 +221,12 @@ export interface CabinetHardwareRequirement {
   unit_scope: 'per_cabinet' | 'per_door' | 'per_drawer';
   units_per_scope: number;
   notes?: string;
+  // Additional product options for specific cabinet configurations
+  product_options?: Record<string, {
+    type: 'select' | 'text' | 'textarea' | 'file_upload';
+    value: string | File | null;
+    textValue?: string;
+  }>;
   active: boolean;
   created_at: string;
 }

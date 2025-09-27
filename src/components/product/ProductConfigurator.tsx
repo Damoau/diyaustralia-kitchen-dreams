@@ -23,6 +23,8 @@ import { CabinetType, CabinetPart, DoorStyle, Color, Finish, DoorStyleFinish, Co
 import { ItemNamingDialog } from './ItemNamingDialog';
 import { HardwareSelection } from './HardwareSelection';
 import { useAddToQuote } from '@/hooks/useAddToQuote';
+import { ProductOptionsConfiguration } from './ProductOptionsConfiguration';
+import { useProductOptions } from '@/hooks/useProductOptions';
 
 // Input validation schema  
 const postcodeSchema = z.string()
@@ -110,6 +112,19 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   const { addToQuote, loading: addingToQuote } = useAddToQuote();
   
   const { cart, isLoading, refreshCart, addToCart } = useCartOptimized();
+  
+  // Product options hook
+  const {
+    options: productOptions,
+    values: productOptionValues,
+    updateValues: updateProductOptionValues,
+    validateRequiredOptions,
+    getValidationErrors,
+    exportValues: exportProductOptions
+  } = useProductOptions({ 
+    cabinetTypeId: selectedCabinetType?.id,
+    cabinetTypeName: selectedCabinetType?.name 
+  });
   const { markAsUnsaved, markAsSaving, markAsSaved, markAsError } = useCartSaveTracking();
   const { preferences: savedPrefs, updatePreference } = useCabinetPreferences();
   const { 
@@ -817,7 +832,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
             price: assemblyType === 'carcass_only' ? assemblyEstimate?.carcass_only_price : assemblyEstimate?.with_doors_price,
             postcode: postcode
           } : null,
-          hardware: hardwareSelections
+          hardware: hardwareSelections,
+          productOptions: exportProductOptions()
         },
         notes: assemblyEnabled ? `Assembly: ${assemblyType} (${postcode})` : undefined
       });
@@ -856,6 +872,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         postcode: postcode || undefined
       } : { enabled: false },
       hardwareSelections,
+      productOptions: exportProductOptions(),
       itemName: namingData.itemName,
       jobReference: namingData.jobReference,
       notes: namingData.notes
@@ -1402,6 +1419,14 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                       onHardwareChange={setHardwareSelections}
                     />
 
+                    {/* Product Options Configuration */}
+                    <ProductOptionsConfiguration
+                      cabinetTypeId={selectedCabinetType.id}
+                      options={productOptions}
+                      values={productOptionValues}
+                      onValuesChange={updateProductOptionValues}
+                    />
+
                     {/* Add bottom padding to prevent overlap with sticky add to cart */}
                     <div className="pb-32"></div>
                   </>
@@ -1420,7 +1445,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                   onClick={handleAddToCart}
                   size="lg"
                   className="w-full"
-                  disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish}
+                  disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish || !validateRequiredOptions()}
                 >
                   <ShoppingCart className="w-4 h-4 mr-2" />
                   Add to Cart
@@ -1431,9 +1456,12 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                 <div className="text-lg font-bold text-foreground">
                   ${(calculateTotalPrice() * quantity).toFixed(2)}
                 </div>
-                {(!selectedDoorStyle || !selectedColor || !selectedFinish) && (
+                {(!selectedDoorStyle || !selectedColor || !selectedFinish || !validateRequiredOptions()) && (
                   <div className="text-xs text-muted-foreground font-medium">
-                    Complete all selections to proceed
+                    {!selectedDoorStyle || !selectedColor || !selectedFinish 
+                      ? "Complete all selections to proceed"
+                      : getValidationErrors().join(", ")
+                    }
                   </div>
                 )}
               </div>
