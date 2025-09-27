@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { ProductOptionConfig, ProductOptionValue, getDefaultCabinetOptions } from '@/components/product/ProductOptionsConfiguration';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseProductOptionsProps {
   cabinetTypeId?: string;
@@ -25,25 +26,55 @@ export const useProductOptions = ({ cabinetTypeId, cabinetTypeName }: UseProduct
     setIsLoading(true);
     
     try {
-      // For now, use default options based on cabinet type
-      // In a real implementation, you'd fetch from database
-      const defaultOptions = getDefaultCabinetOptions(cabinetTypeName);
-      
-      // TODO: Load custom options from database
-      // const { data: customOptions, error } = await supabase
-      //   .from('cabinet_product_options')
-      //   .select('*')
-      //   .eq('cabinet_type_id', cabinetTypeId)
-      //   .eq('active', true);
-      
-      setOptions(defaultOptions);
+      // First try to load custom options from database
+      const { data: customOptions, error } = await supabase
+        .from('cabinet_product_options')
+        .select(`
+          *,
+          cabinet_option_values (*)
+        `)
+        .eq('cabinet_type_id', cabinetTypeId)
+        .eq('active', true)
+        .order('display_order');
+
+      if (error) {
+        console.error('Error loading custom options:', error);
+        // Fall back to default options
+        const defaultOptions = getDefaultCabinetOptions(cabinetTypeName);
+        setOptions(defaultOptions);
+      } else if (customOptions && customOptions.length > 0) {
+        // Convert database options to ProductOptionConfig format
+        const convertedOptions = customOptions.map(option => ({
+          id: option.id,
+          name: option.option_name,
+          type: option.option_type as 'select' | 'text' | 'textarea' | 'file_upload',
+          required: option.required,
+          description: option.description,
+          options: option.option_type === 'select' && option.cabinet_option_values 
+            ? option.cabinet_option_values
+                .filter((v: any) => v.active)
+                .sort((a: any, b: any) => a.display_order - b.display_order)
+                .map((v: any) => v.display_text)  // Just use display_text as string
+            : undefined,
+          maxFileSize: option.option_type === 'file_upload' ? 5 : undefined,
+          fileTypes: option.option_type === 'file_upload' ? ['image/*', '.pdf'] : undefined
+        }));
+        
+        setOptions(convertedOptions);
+      } else {
+        // No custom options found, use defaults
+        const defaultOptions = getDefaultCabinetOptions(cabinetTypeName);
+        setOptions(defaultOptions);
+      }
       
       // Clear existing values when options change
       setValues([]);
       
     } catch (error) {
       console.error('Error loading product options:', error);
-      setOptions([]);
+      // Fall back to default options
+      const defaultOptions = getDefaultCabinetOptions(cabinetTypeName);
+      setOptions(defaultOptions);
     } finally {
       setIsLoading(false);
     }

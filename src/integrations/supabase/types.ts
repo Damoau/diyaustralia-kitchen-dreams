@@ -454,6 +454,44 @@ export type Database = {
           },
         ]
       }
+      cabinet_option_values: {
+        Row: {
+          active: boolean
+          cabinet_option_id: string
+          created_at: string
+          display_order: number
+          display_text: string
+          id: string
+          value: string
+        }
+        Insert: {
+          active?: boolean
+          cabinet_option_id: string
+          created_at?: string
+          display_order?: number
+          display_text: string
+          id?: string
+          value: string
+        }
+        Update: {
+          active?: boolean
+          cabinet_option_id?: string
+          created_at?: string
+          display_order?: number
+          display_text?: string
+          id?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cabinet_option_values_cabinet_option_id_fkey"
+            columns: ["cabinet_option_id"]
+            isOneToOne: false
+            referencedRelation: "cabinet_product_options"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cabinet_parts: {
         Row: {
           cabinet_type_id: string
@@ -506,6 +544,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      cabinet_product_options: {
+        Row: {
+          active: boolean
+          cabinet_type_id: string
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          option_name: string
+          option_type: string
+          required: boolean
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          cabinet_type_id: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          option_name: string
+          option_type: string
+          required?: boolean
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          cabinet_type_id?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          option_name?: string
+          option_type?: string
+          required?: boolean
+          updated_at?: string
+        }
+        Relationships: []
       }
       cabinet_types: {
         Row: {

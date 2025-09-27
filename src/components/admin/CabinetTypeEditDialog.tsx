@@ -15,6 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataTable } from '@/components/admin/shared/DataTable';
 import { CabinetComponentsTab } from '@/components/admin/CabinetComponentsTab';
+import { CabinetProductOptionsManager } from '@/components/admin/CabinetProductOptionsManager';
 import { Plus, Trash2, Edit, Package, Settings, Wrench, X, Upload, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
@@ -927,7 +928,7 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
 
         <Tabs defaultValue="basic" className="flex-1 flex flex-col min-h-0">
           <div className="px-6 py-2 border-b flex-shrink-0 bg-background">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="basic" className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
                 Basic Information
@@ -943,6 +944,10 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
               <TabsTrigger value="parts" disabled={!cabinetType?.id} className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
                 Parts & Formulas
+              </TabsTrigger>
+              <TabsTrigger value="options" disabled={!cabinetType?.id} className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                Product Options
               </TabsTrigger>
               <TabsTrigger value="hardware" disabled={!cabinetType?.id} className="flex items-center gap-2">
                 <Wrench className="h-4 w-4" />
@@ -1686,6 +1691,15 @@ export const CabinetTypeEditDialog: React.FC<CabinetTypeEditDialogProps> = ({
                 cabinetStyle={formData.cabinet_style || 'standard'}
                 onCabinetStyleChange={(style) => handleInputChange('cabinet_style', style)}
               />
+            </TabsContent>
+
+            <TabsContent value="options" className="p-6 m-0">
+              {cabinetType?.id && (
+                <CabinetProductOptionsManager
+                  cabinetTypeId={cabinetType.id}
+                  cabinetTypeName={cabinetType.name}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="hardware" className="p-6 space-y-8 m-0">
