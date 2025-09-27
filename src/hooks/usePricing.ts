@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import PricingCalculator from '@/lib/pricingCalculator';
 import { supabase } from '@/integrations/supabase/client';
+import { useMaterialSpecifications } from './useMaterialSpecifications';
 
 interface UsePricingProps {
   cabinetType: any;
@@ -35,25 +36,7 @@ export const usePricing = ({
 
   const [loading, setLoading] = useState(false);
   const [hardwareRequirements, setHardwareRequirements] = useState<any[]>([]);
-  const [materialSpecifications, setMaterialSpecifications] = useState<any[]>([]);
-
-  useEffect(() => {
-    const fetchMaterialSpecifications = async () => {
-      try {
-        const { data: materials } = await supabase
-          .from('material_specifications')
-          .select('*')
-          .eq('active', true);
-        
-        setMaterialSpecifications(materials || []);
-      } catch (error) {
-        console.error('Error fetching material specifications:', error);
-        setMaterialSpecifications([]);
-      }
-    };
-
-    fetchMaterialSpecifications();
-  }, []);
+  const { getDefaultMaterialRate } = useMaterialSpecifications();
 
   useEffect(() => {
     const fetchHardwareRequirements = async () => {
@@ -93,8 +76,7 @@ export const usePricing = ({
       
       try {
         // Get material rate from material specifications
-        const defaultMaterial = materialSpecifications.find(m => m.material_type === 'MDF') || materialSpecifications[0];
-        const materialRate = defaultMaterial?.cost_per_sqm || 45;
+        const materialRate = getDefaultMaterialRate();
 
         // Calculate proper door rate: base door style rate + color surcharge + finish rate
         const baseDoorRate = selectedDoorStyle?.base_rate_per_sqm || 120;
@@ -130,14 +112,14 @@ export const usePricing = ({
   }, [
     cabinetType,
     hardwareRequirements,
-    materialSpecifications,
     dimensions.width,
     dimensions.height,
     dimensions.depth,
     quantity,
     selectedDoorStyle,
     selectedColor,
-    selectedFinish
+    selectedFinish,
+    getDefaultMaterialRate
   ]);
 
   return { pricing, loading };

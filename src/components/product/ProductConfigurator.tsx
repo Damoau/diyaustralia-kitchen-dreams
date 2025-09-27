@@ -26,6 +26,7 @@ import { useAddToQuote } from '@/hooks/useAddToQuote';
 import { ProductOptionsConfiguration } from './ProductOptionsConfiguration';
 import { useProductOptions } from '@/hooks/useProductOptions';
 import { formatCurrency } from '@/lib/formatPrice';
+import { useMaterialSpecifications } from '@/hooks/useMaterialSpecifications';
 
 // Input validation schema  
 const postcodeSchema = z.string()
@@ -128,6 +129,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   });
   const { markAsUnsaved, markAsSaving, markAsSaved, markAsError } = useCartSaveTracking();
   const { preferences: savedPrefs, updatePreference } = useCabinetPreferences();
+  const { getDefaultMaterialRate } = useMaterialSpecifications();
   const { 
     preferences, 
     updateStylePreferences,
@@ -698,6 +700,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     }
 
     const doorStyle = doorStyles.find(ds => ds.id === selectedDoorStyle);
+    const color = colors.find(c => c.id === selectedColor);
+    const finish = finishes.find(f => f.id === selectedFinish);
     
     const cabinetTypeWithParts = {
       ...selectedCabinetType,
@@ -709,8 +713,10 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       dimensions,
       quantity,
       {
-        materialRate: (selectedCabinetType as any).material_rate_per_sqm || 85,
-        doorRate: doorStyle?.base_rate_per_sqm || (selectedCabinetType as any).door_rate_per_sqm || 120,
+        materialRate: getDefaultMaterialRate(),
+        doorRate: (doorStyle?.base_rate_per_sqm || 120) + 
+                  ((color?.surcharge_rate_per_sqm || 0)) + 
+                  ((finish?.rate_per_sqm || 0)),
         colorSurcharge: 0,
         finishSurcharge: 0,
       },

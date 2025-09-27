@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import PricingCalculator from '@/lib/pricingCalculator';
 import { DollarSign } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useMaterialSpecifications } from '@/hooks/useMaterialSpecifications';
 
 interface PricingDisplayProps {
   cabinetType: any;
@@ -35,6 +36,7 @@ export const PricingDisplay: React.FC<PricingDisplayProps> = ({
   } | null>(null);
   const [cabinetParts, setCabinetParts] = useState<any[]>([]);
   const [hardwareRequirements, setHardwareRequirements] = useState<any[]>([]);
+  const { getDefaultMaterialRate } = useMaterialSpecifications();
 
   // Fetch cabinet parts when cabinetType changes
   useEffect(() => {
@@ -88,17 +90,13 @@ export const PricingDisplay: React.FC<PricingDisplayProps> = ({
     };
 
     const rates = {
-      materialRate: cabinetType.material_rate_per_sqm || 85,
-      doorRate: selectedDoorStyle?.base_rate_per_sqm || cabinetType.door_rate_per_sqm || 120,
-      colorSurcharge: selectedColor?.surcharge_rate_per_sqm || 0,
-      finishSurcharge: selectedFinish?.rate_per_sqm || 0,
+      materialRate: getDefaultMaterialRate(),
+      doorRate: (selectedDoorStyle?.base_rate_per_sqm || 120) + 
+                (selectedColor?.surcharge_rate_per_sqm || 0) +
+                (selectedFinish?.rate_per_sqm || 0),
+      colorSurcharge: 0, // Already included in doorRate
+      finishSurcharge: 0, // Already included in doorRate
     };
-
-    // Calculate door area for surcharges
-    const doorCount = Math.max(cabinetType.door_qty || cabinetType.door_count || 1, 1);
-    const doorArea = (dimensions.width / 1000) * (dimensions.height / 1000) * doorCount;
-    rates.colorSurcharge *= doorArea * quantity;
-    rates.finishSurcharge *= doorArea * quantity;
 
     const calculatedPricing = PricingCalculator.calculateCabinetPrice(
       cabinetTypeWithParts,
@@ -109,7 +107,7 @@ export const PricingDisplay: React.FC<PricingDisplayProps> = ({
     );
 
     setPricing(calculatedPricing);
-  }, [cabinetType, cabinetParts, hardwareRequirements, dimensions, quantity, selectedDoorStyle, selectedColor, selectedFinish]);
+  }, [cabinetType, cabinetParts, hardwareRequirements, dimensions, quantity, selectedDoorStyle, selectedColor, selectedFinish, getDefaultMaterialRate]);
 
   if (!pricing) {
     return (

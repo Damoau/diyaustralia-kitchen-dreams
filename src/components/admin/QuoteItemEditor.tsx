@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { QuoteItem } from '@/hooks/useQuotes';
+import { useMaterialSpecifications } from '@/hooks/useMaterialSpecifications';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Calculator, Package, Ruler } from 'lucide-react';
@@ -63,6 +64,8 @@ export const QuoteItemEditor = ({ item, open, onOpenChange, onItemUpdated }: Quo
     setProductionOptions([]);
   };
 
+  const { getDefaultMaterialRate } = useMaterialSpecifications();
+
   const calculatePrice = () => {
     const width = (formData.width_mm || 0) / 1000;
     const height = (formData.height_mm || 0) / 1000;
@@ -75,22 +78,15 @@ export const QuoteItemEditor = ({ item, open, onOpenChange, onItemUpdated }: Quo
     const finish = finishes.find(f => f.id === formData.finish_id);
 
     if (cabinetType) {
-      // Material cost
-      basePrice += area * (cabinetType.material_rate_per_sqm || 85);
+      // Material cost using dynamic material rate
+      basePrice += area * getDefaultMaterialRate();
       
-      // Door cost
+      // Door cost using combined rate (door style + color + finish)
       if (doorStyle && cabinetType.door_count > 0) {
-        basePrice += area * (doorStyle.base_rate_per_sqm || 120) * cabinetType.door_count;
-      }
-
-      // Color surcharge
-      if (color) {
-        basePrice += area * (color.surcharge_rate_per_sqm || 0);
-      }
-
-      // Finish cost
-      if (finish) {
-        basePrice += area * (finish.rate_per_sqm || 0);
+        const doorRate = (doorStyle.base_rate_per_sqm || 120) + 
+                        (color?.surcharge_rate_per_sqm || 0) + 
+                        (finish?.rate_per_sqm || 0);
+        basePrice += area * doorRate * cabinetType.door_count;
       }
 
       // Base cabinet cost
