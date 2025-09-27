@@ -67,7 +67,7 @@ export const useOptimizedCart = () => {
 
         if (userCart) {
           existingCart = userCart;
-          console.log('Found user cart:', userCart.id);
+          console.log('✅ Found user cart:', userCart.id, 'Items:', userCart.cart_items?.length);
         } else {
           // Try to convert session cart to user cart
           const sessionId = getSessionId();
@@ -195,14 +195,15 @@ export const useOptimizedCart = () => {
       };
 
       setCart(formattedCart);
-      console.log('Cart loaded successfully:', {
+      console.log('✅ Cart loaded successfully:', {
         cartId: formattedCart.id,
         itemsCount: formattedCart.items.length,
-        totalAmount: formattedCart.total_amount
+        totalAmount: formattedCart.total_amount,
+        rawCartItems: existingCart.cart_items?.length
       });
 
     } catch (err: any) {
-      console.error('Error loading cart:', err);
+      console.error('❌ Error loading cart:', err);
       setError(err.message);
       toast.error('Failed to load cart');
     } finally {
