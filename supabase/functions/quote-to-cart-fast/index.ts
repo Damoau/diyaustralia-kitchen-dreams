@@ -74,53 +74,45 @@ serve(async (req) => {
       throw new Error('No items selected');
     }
 
-    // Get or create cart using upsert for speed
-    const { data: cart, error: cartError } = await supabase
+    // Get the existing active cart for the user (don't create new ones)
+    const { data: existingCart, error: cartError } = await supabase
       .from('carts')
-      .upsert({
-        user_id: user.id,
-        name: `Quote ${quote.quote_number}`,
-        source: 'quote_conversion',
-        status: 'active',
-        total_amount: 0,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id,status',
-        ignoreDuplicates: false
-      })
-      .select('id')
-      .single();
+      .select('id, total_amount')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    let cartId = cart?.id;
-    if (!cartId) {
-      // Fallback: get existing cart
-      const { data: existingCart } = await supabase
+    if (cartError) {
+      throw cartError;
+    }
+
+    let cartId;
+    let currentTotal = 0;
+
+    if (existingCart) {
+      cartId = existingCart.id;
+      currentTotal = Number(existingCart.total_amount) || 0;
+      console.log(`Using existing cart: ${cartId} with current total: ${currentTotal}`);
+    } else {
+      // Only create new cart if none exists
+      const { data: newCart, error: createError } = await supabase
         .from('carts')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .insert({
+          user_id: user.id,
+          name: `Quote ${quote.quote_number}`,
+          source: 'quote_conversion',
+          total_amount: 0,
+          status: 'active'
+        })
+        .select('id, total_amount')
+        .single();
       
-      if (!existingCart) {
-        const { data: newCart, error: createError } = await supabase
-          .from('carts')
-          .insert({
-            user_id: user.id,
-            name: `Quote ${quote.quote_number}`,
-            source: 'quote_conversion',
-            total_amount: 0,
-            status: 'active'
-          })
-          .select('id')
-          .single();
-        
-        if (createError) throw createError;
-        cartId = newCart.id;
-      } else {
-        cartId = existingCart.id;
-      }
+      if (createError) throw createError;
+      cartId = newCart.id;
+      currentTotal = 0;
+      console.log(`Created new cart: ${cartId}`);
     }
 
     // Prepare cart items for bulk insert (exclude non-existent columns)
@@ -150,12 +142,16 @@ serve(async (req) => {
       throw itemsError;
     }
 
-    // Calculate and update cart total
-    const cartTotal = selectedItems.reduce((sum: number, item: any) => sum + item.total_price, 0);
+    // Calculate new total (add to existing total)
+    const addedTotal = selectedItems.reduce((sum: number, item: any) => sum + item.total_price, 0);
+    const newTotal = currentTotal + addedTotal;
+    
+    console.log(`Updating cart total: ${currentTotal} + ${addedTotal} = ${newTotal}`);
+    
     const { error: updateError } = await supabase
       .from('carts')
       .update({ 
-        total_amount: cartTotal,
+        total_amount: newTotal,
         updated_at: new Date().toISOString()
       })
       .eq('id', cartId);
