@@ -84,9 +84,13 @@ export const QuoteToCartConverter = ({
   };
 
   const getSelectedTotal = () => {
-    return items
+    const subtotal = items
       .filter(item => selectedItems.includes(item.id))
       .reduce((sum, item) => sum + item.total_price, 0);
+    
+    // Add 10% GST to match quote total display
+    const tax = subtotal * 0.1;
+    return subtotal + tax;
   };
 
   const handleInitialAddToCart = () => {
