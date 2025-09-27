@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { QuoteToCartConverter } from "@/components/portal/QuoteToCartConverter";
 import { QuoteChangeRequestDialog } from "@/components/portal/QuoteChangeRequestDialog";
 import { CustomerQuoteMessages } from './CustomerQuoteMessages';
 import { 
@@ -159,9 +160,14 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
         .select('id')
         .eq('user_id', user.user.id)
         .eq('status', 'active')
-        .maybeSingle();
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
 
-      if (cartError) {
+      if (cartError && cartError.code === 'PGRST116') {
+        // No active cart found - this is normal, we'll create one below
+        cart = null;
+      } else if (cartError) {
         console.error('Error fetching cart:', cartError);
         throw cartError;
       }
@@ -458,6 +464,12 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Checkout All Items
                   </Button>
+                  
+                  <QuoteToCartConverter 
+                    quoteId={quoteDisplay.id}
+                    items={quoteDisplay.items}
+                    buttonText="Add Selected Items to Cart"
+                  />
                   
                   <QuoteChangeRequestDialog
                     quoteId={quoteDisplay.id}
