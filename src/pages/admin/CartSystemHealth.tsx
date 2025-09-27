@@ -4,15 +4,17 @@ import { CartConsolidationManager } from '@/components/cart/CartConsolidationMan
 import { CartSystemValidator } from '@/components/testing/CartSystemValidator';
 import { CartEndToEndTester } from '@/components/testing/CartEndToEndTester';
 import { EnhancedCartConsolidation } from '@/components/cart/EnhancedCartConsolidation';
-import { ExtensiveSimulationRunner } from '@/components/testing/ExtensiveSimulationRunner';
+import { MassiveSimulationRunner } from '@/components/testing/MassiveSimulationRunner';
 
 export default function CartSystemHealth() {
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Cart System Health & Testing</h1>
-          <p className="text-muted-foreground">
+      <div className="container mx-auto p-6 space-y-8 max-w-7xl">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            Cart System Health & Testing
+          </h1>
+          <p className="text-muted-foreground text-lg">
             Monitor cart system performance and run comprehensive tests to ensure reliability.
           </p>
         </div>
@@ -23,9 +25,9 @@ export default function CartSystemHealth() {
           <EnhancedCartConsolidation />
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
           <CartEndToEndTester />
-          <ExtensiveSimulationRunner />
+          <MassiveSimulationRunner />
         </div>
       </div>
     </AdminLayout>

@@ -477,7 +477,7 @@ export class ComprehensiveCartSimulator extends CartSystemSimulator {
   }
 
   // Helper method to create test cart
-  private async createTestCart(sessionId: string) {
+  protected async createTestCart(sessionId: string) {
     const { data, error } = await supabase
       .from('carts')
       .insert({
@@ -494,7 +494,7 @@ export class ComprehensiveCartSimulator extends CartSystemSimulator {
   }
 
   // Helper method to add test item to cart
-  private async addTestItemToCart(cartId: string, overrides: any = {}) {
+  protected async addTestItemToCart(cartId: string, overrides: any = {}) {
     const defaultItem = {
       cabinet_type_id: '5ec0aa14-2ad5-44ce-9df0-27d14beaec4c',
       door_style_id: 'a84d294a-e113-4ca7-9f3e-1d4bd6561411',
