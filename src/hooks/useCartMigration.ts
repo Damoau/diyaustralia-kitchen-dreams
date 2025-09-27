@@ -1,29 +1,31 @@
 import { useEffect, useState } from 'react';
 import { useCart } from './useCart';
 import { useOptimizedCart } from './useOptimizedCart';
+import { useModernCart } from './useModernCart';
 
-// Migration hook to gradually switch from old cart to optimized cart
+// Migration hook to gradually switch from old cart to modern TanStack Query implementation
 export const useCartMigration = () => {
-  const [useOptimized, setUseOptimized] = useState(false);
+  const [useModern, setUseModern] = useState(false);
   
-  // Feature flag for gradual rollout
+  // Feature flag for modern cart rollout
   useEffect(() => {
-    // Enable optimized cart by default now
-    setUseOptimized(true);
-    localStorage.setItem('cart_optimization_enabled', 'true');
+    // Enable modern cart implementation
+    setUseModern(true);
+    localStorage.setItem('cart_modern_enabled', 'true');
   }, []);
 
   const legacyCart = useCart();
   const optimizedCart = useOptimizedCart();
+  const modernCart = useModernCart();
 
   // Performance comparison logging
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[Cart Migration] Using', useOptimized ? 'optimized' : 'legacy', 'cart implementation');
+      console.log('[Cart Migration] Using', useModern ? 'modern' : 'legacy', 'cart implementation');
     }
-  }, [useOptimized]);
+  }, [useModern]);
 
-  return useOptimized ? optimizedCart : legacyCart;
+  return useModern ? modernCart : optimizedCart;
 };
 
 // Hook for A/B testing cart performance

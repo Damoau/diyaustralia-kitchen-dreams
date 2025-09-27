@@ -2,6 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
+import { QueryProvider } from './providers/QueryProvider.tsx';
 
 // Reset user session to simulate new visitor
 localStorage.removeItem('cabinet_user_preferences');
@@ -18,4 +19,8 @@ for (let i = 0; i < localStorage.length; i++) {
 }
 keysToRemove.forEach(key => localStorage.removeItem(key));
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <QueryProvider>
+    <App />
+  </QueryProvider>
+);
