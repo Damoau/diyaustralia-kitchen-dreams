@@ -15,6 +15,8 @@ import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCartConsolidation } from "@/hooks/useCartConsolidation";
 import { CartConsolidationButton } from "./CartConsolidationButton";
+import { formatCurrency } from "@/lib/formatPrice";
+import { toast } from "sonner";
 
 interface OptimizedCartDrawerProps {
   children: React.ReactNode;
@@ -29,6 +31,24 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
   const navigate = useNavigate();
 
   const itemCount = getTotalItems();
+  
+  const handleNavigateToProduct = (item: any) => {
+    console.log('Navigate to product:', item);
+    
+    // Extract room and category information from the item
+    if (item.cabinet_type?.room_category && item.cabinet_type?.unified_categories) {
+      const roomCategory = item.cabinet_type.room_category;
+      const category = item.cabinet_type.unified_categories;
+      const productSlug = item.cabinet_type.url_slug || item.cabinet_type.name.toLowerCase().replace(/\s+/g, '-');
+      
+      // Navigate to the product page and close the cart drawer
+      navigate(`/shop/${roomCategory.name}/${category.name}/${productSlug}?cabinet=${item.cabinet_type.id}`);
+    } else {
+      // Fallback navigation to shop if we can't determine the exact path
+      navigate('/shop');
+      toast.error('Could not find product page');
+    }
+  };
   
   const handleRequestQuote = useCallback(() => {
     if (isImpersonating) {
@@ -176,6 +196,7 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
                     <OptimizedCartItem
                       key={item.id}
                       item={item}
+                      onNavigateToProduct={handleNavigateToProduct}
                        onUpdateQuantity={async (quantity) => {
                         try {
                           // Optimistic update first
@@ -226,7 +247,7 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
                 <div className="flex justify-between items-center">
                   <span className="text-base font-medium">Total:</span>
                   <span className="text-lg font-bold text-primary">
-                    ${getTotalPrice().toLocaleString()}
+                    {formatCurrency(getTotalPrice())}
                   </span>
                 </div>
 
@@ -238,7 +259,7 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
                         <div className="flex flex-col">
                           <span className="text-sm font-medium opacity-90">20% deposit to get all cabinets started</span>
                           <span className="text-lg font-bold">
-                            ${(getTotalPrice() * 0.2).toFixed(2)}
+                            {formatCurrency(getTotalPrice() * 0.2)}
                           </span>
                         </div>
                         <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
@@ -317,9 +338,10 @@ interface OptimizedCartItemProps {
   item: any;
   onUpdateQuantity: (quantity: number) => void;
   onRemove: () => void;
+  onNavigateToProduct: (item: any) => void;
 }
 
-const OptimizedCartItem = memo(({ item, onUpdateQuantity, onRemove }: OptimizedCartItemProps) => {
+const OptimizedCartItem = memo(({ item, onUpdateQuantity, onRemove, onNavigateToProduct }: OptimizedCartItemProps) => {
   const [quantity, setQuantity] = useState(item.quantity);
 
   const handleQuantityChange = useCallback((newQuantity: number) => {
@@ -348,9 +370,12 @@ const OptimizedCartItem = memo(({ item, onUpdateQuantity, onRemove }: OptimizedC
       </div>
       
       <div className="flex-1 min-w-0 space-y-1">
-        <h4 className="font-medium text-sm leading-tight">
+        <button 
+          onClick={() => onNavigateToProduct(item)}
+          className="font-medium text-sm leading-tight hover:text-primary cursor-pointer text-left w-full"
+        >
           {item.cabinet_type?.name || 'Cabinet'}
-        </h4>
+        </button>
         
         <div className="text-xs text-muted-foreground space-y-0.5">
           {item.door_style && (
@@ -390,7 +415,7 @@ const OptimizedCartItem = memo(({ item, onUpdateQuantity, onRemove }: OptimizedC
           
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold">
-              ${calculatedTotal.toLocaleString()}
+              {formatCurrency(calculatedTotal)}
             </span>
             
             <Button

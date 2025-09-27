@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { CartLoadingSkeleton } from "@/components/ui/cart-loading-skeleton";
 import { QuoteSelectionDialog } from "@/components/cart/QuoteSelectionDialog";
 import { CartStatusIndicator } from "@/components/cart/CartStatusIndicator";
+import { formatCurrency } from "@/lib/formatPrice";
 
 interface CartItem {
   id: string;
@@ -316,7 +317,7 @@ const Cart = () => {
                               </div>
                             )}
                             
-                            <p className="font-medium mt-1">${item.unit_price.toFixed(2)} each</p>
+                            <p className="font-medium mt-1">{formatCurrency(item.unit_price)} each</p>
                           </div>
                         </div>
                         
@@ -346,7 +347,7 @@ const Cart = () => {
                             
                             <div className="text-right sm:ml-4">
                               <p className="font-semibold text-sm">
-                                ${item.total_price.toFixed(2)}
+                                {formatCurrency(item.total_price)}
                               </p>
                             </div>
                           </div>
@@ -376,7 +377,7 @@ const Cart = () => {
                   <CardContent className="space-y-4">
                     <div className="flex justify-between">
                       <span>Subtotal ({totalItems} items)</span>
-                      <span>${totalPrice.toFixed(2)}</span>
+                      <span>{formatCurrency(totalPrice)}</span>
                     </div>
                     
                     <div className="flex justify-between">
@@ -388,7 +389,7 @@ const Cart = () => {
                     
                      <div className="flex justify-between font-semibold text-lg">
                        <span>Total</span>
-                       <span>${totalPrice.toFixed(2)}</span>
+                       <span>{formatCurrency(totalPrice)}</span>
                      </div>
                      
                      {isImpersonating ? (

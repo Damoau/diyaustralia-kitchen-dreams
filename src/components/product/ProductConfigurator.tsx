@@ -25,6 +25,7 @@ import { HardwareSelection } from './HardwareSelection';
 import { useAddToQuote } from '@/hooks/useAddToQuote';
 import { ProductOptionsConfiguration } from './ProductOptionsConfiguration';
 import { useProductOptions } from '@/hooks/useProductOptions';
+import { formatCurrency } from '@/lib/formatPrice';
 
 // Input validation schema  
 const postcodeSchema = z.string()
@@ -950,7 +951,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                   <div className="hidden lg:flex items-center gap-4">
                     <div className="text-right">
                       <div className="text-2xl font-bold text-primary">
-                        ${calculateTotalPrice().toFixed(2)}
+                        {formatCurrency(calculateTotalPrice())}
                       </div>
                       <div className="text-xs text-muted-foreground">Total Price</div>
                     </div>
@@ -1224,8 +1225,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                                         {!assemblyEnabled 
                                           ? '$0.00' 
                                           : assemblyType === 'carcass_only' 
-                                            ? `$${assemblyEstimate?.carcass_only_price?.toFixed(2) || '0.00'}` 
-                                            : `$${assemblyEstimate?.with_doors_price?.toFixed(2) || '0.00'}`
+                                             ? `{formatCurrency(assemblyEstimate?.carcass_only_price || 0)}` 
+                                             : `{formatCurrency(assemblyEstimate?.with_doors_price || 0)}`
                                         }
                                       </Badge>
                                       <Button 
@@ -1299,7 +1300,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                                               </div>
                                             </div>
                                             <Badge variant="outline" className="text-xs">
-                                              ${assemblyEstimate?.carcass_only_price?.toFixed(2) || '0.00'}
+                                              {formatCurrency(assemblyEstimate?.carcass_only_price || 0)}
                                             </Badge>
                                           </div>
                                         </div>
@@ -1326,7 +1327,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                                               </div>
                                             </div>
                                             <Badge variant="outline" className="text-xs">
-                                              ${assemblyEstimate?.with_doors_price?.toFixed(2) || '0.00'}
+                                              {formatCurrency(assemblyEstimate?.with_doors_price || 0)}
                                             </Badge>
                                           </div>
                                         </div>
@@ -1454,7 +1455,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
               
               <div className="text-center">
                 <div className="text-lg font-bold text-foreground">
-                  ${(calculateTotalPrice() * quantity).toFixed(2)}
+                  {formatCurrency(calculateTotalPrice() * quantity)}
                 </div>
                 {(!selectedDoorStyle || !selectedColor || !selectedFinish || !validateRequiredOptions()) && (
                   <div className="text-xs text-muted-foreground font-medium">

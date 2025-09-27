@@ -13,6 +13,7 @@ import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
 import { useAuth } from "@/hooks/useAuth";
 import { QuoteSelectionDialog } from "@/components/cart/QuoteSelectionDialog";
 import { supabase } from "@/integrations/supabase/client";
+import { formatCurrency } from "@/lib/formatPrice";
 
 interface CartItem {
   id: string;
@@ -118,7 +119,22 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
 
   const handleNavigateToProduct = (item: any) => {
     console.log('Navigate to product:', item);
-    // Implementation for navigating to product page
+    
+    // Extract room and category information from the item
+    if (item.cabinet_type?.room_category && item.cabinet_type?.unified_categories) {
+      const roomCategory = item.cabinet_type.room_category;
+      const category = item.cabinet_type.unified_categories;
+      const productSlug = item.cabinet_type.url_slug || item.cabinet_type.name.toLowerCase().replace(/\s+/g, '-');
+      
+      // Navigate to the product page and close the cart drawer
+      setIsOpen(false);
+      navigate(`/shop/${roomCategory.name}/${category.name}/${productSlug}?cabinet=${item.cabinet_type.id}`);
+    } else {
+      // Fallback navigation to shop if we can't determine the exact path
+      setIsOpen(false);
+      navigate('/shop');
+      toast.error('Could not find product page');
+    }
   };
 
   const handleRequestQuote = async () => {
@@ -293,10 +309,10 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                           )}
                           {item.configuration?.assembly?.enabled && (
                             <span className="block text-primary">
-                              Assembly: {item.configuration.assembly.type === 'carcass_only' 
-                                ? 'Carcass Only' 
-                                : 'Complete Assembly'
-                              } (+${item.configuration.assembly.price?.toFixed(2)})
+                               Assembly: {item.configuration.assembly.type === 'carcass_only' 
+                                 ? 'Carcass Only' 
+                                 : 'Complete Assembly'
+                               } (+{formatCurrency(item.configuration.assembly.price || 0)})
                             </span>
                           )}
                         </div>
@@ -327,7 +343,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                           </div>
                         )}
                         
-                        <p className="text-sm font-medium mt-1">${item.unit_price.toFixed(2)} each</p>
+                        <p className="text-sm font-medium mt-1">{formatCurrency(item.unit_price)} each</p>
                       </div>
                       
                       <div className="flex flex-col items-end space-y-2">
@@ -364,7 +380,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                         </div>
                         
                         <p className="text-sm font-semibold">
-                          ${(item.quantity * item.unit_price).toFixed(2)}
+                          {formatCurrency(item.quantity * item.unit_price)}
                         </p>
                       </div>
                     </div>
@@ -375,7 +391,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
               <div className="border-t pt-4 space-y-4">
                 <div className="flex justify-between text-lg font-semibold">
                   <span>Total</span>
-                  <span>${getTotalPrice().toFixed(2)}</span>
+                  <span>{formatCurrency(getTotalPrice())}</span>
                 </div>
                 
                 {/* Modern 20% Deposit Banner */}
@@ -386,7 +402,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                         <div className="flex flex-col">
                           <span className="text-sm font-medium opacity-90">20% deposit to get all cabinets started</span>
                           <span className="text-lg font-bold">
-                            ${(getTotalPrice() * 0.2).toFixed(2)}
+                            {formatCurrency(getTotalPrice() * 0.2)}
                           </span>
                         </div>
                         <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">

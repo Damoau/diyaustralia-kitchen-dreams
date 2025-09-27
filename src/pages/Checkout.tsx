@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { ShoppingCart, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
+import { formatCurrency } from "@/lib/formatPrice";
 
 interface SequenceStep {
   id: string;
@@ -259,7 +260,7 @@ const Checkout = () => {
                         <span className="truncate">
                           {item.cabinet_type?.name} (×{item.quantity})
                         </span>
-                        <span>${item.total_price.toFixed(2)}</span>
+                        <span>{formatCurrency(item.total_price)}</span>
                       </div>
                     ))}
                     {cart.items.length > 3 && (
@@ -273,7 +274,7 @@ const Checkout = () => {
                   
                   <div className="flex justify-between">
                     <span>Subtotal ({getTotalItems()} items)</span>
-                    <span>${getTotalPrice().toFixed(2)}</span>
+                    <span>{formatCurrency(getTotalPrice())}</span>
                   </div>
                   
                    {/* Modern 20% Deposit Banner */}
@@ -283,7 +284,7 @@ const Checkout = () => {
                          <div className="flex flex-col">
                            <span className="text-sm font-medium opacity-90">20% deposit to get all cabinets started</span>
                            <span className="text-lg font-bold">
-                             ${(getTotalPrice() * 0.2).toFixed(2)}
+                             {formatCurrency(getTotalPrice() * 0.2)}
                            </span>
                          </div>
                          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
