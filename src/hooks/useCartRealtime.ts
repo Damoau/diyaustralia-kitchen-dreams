@@ -3,33 +3,25 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
-// Generate session ID for guest users
-const getSessionId = () => {
-  let sessionId = sessionStorage.getItem('cart_session_id');
-  if (!sessionId) {
-    sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    sessionStorage.setItem('cart_session_id', sessionId);
-  }
-  return sessionId;
-};
-
-export const useCartRealtime = () => {
+export const useCartRealtime = (identifier: string) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const identifier = user?.id || getSessionId();
-    
+    if (!identifier) return;
+
+    console.log('Setting up real-time cart updates for:', identifier);
+
     // Subscribe to cart changes
-    const cartSubscription = supabase
-      .channel(`cart-changes-${identifier}`)
+    const cartChannel = supabase
+      .channel('cart-changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'carts',
-          filter: user?.id ? `user_id=eq.${user.id}` : `session_id=eq.${getSessionId()}`
+          filter: user?.id ? `user_id=eq.${user.id}` : `session_id=eq.${identifier}`
         },
         (payload) => {
           console.log('Cart changed:', payload);
@@ -48,10 +40,13 @@ export const useCartRealtime = () => {
           queryClient.invalidateQueries({ queryKey: ['cart', identifier] });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Cart realtime subscription status:', status);
+      });
 
     return () => {
-      supabase.removeChannel(cartSubscription);
+      console.log('Cleaning up cart realtime subscription');
+      supabase.removeChannel(cartChannel);
     };
-  }, [user?.id, queryClient]);
+  }, [identifier, user?.id, queryClient]);
 };

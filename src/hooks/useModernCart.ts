@@ -68,7 +68,7 @@ export const useModernCart = () => {
   const queryClient = useQueryClient();
 
   // Enable real-time updates
-  useCartRealtime();
+  useCartRealtime(user?.id || getSessionId());
 
   // Query for cart data using TanStack Query with proper deduplication
   const cartQuery = useQuery({

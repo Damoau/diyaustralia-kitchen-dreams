@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useCartRealtime } from './useCartRealtime';
 
 export interface CartItem {
   id: string;
@@ -66,6 +67,9 @@ export const useCartOptimized = () => {
   const queryClient = useQueryClient();
   
   const identifier = user?.id || getSessionId();
+  
+  // Enable real-time updates
+  useCartRealtime(identifier);
   
   // Optimized cart query with proper stale time and caching
   const { data: cart, isLoading, error, refetch } = useQuery({
@@ -270,26 +274,62 @@ export const useCartOptimized = () => {
       configuration?: any;
       notes?: string;
     }) => {
+      console.log('Adding item to cart:', newItem);
+      
       if (!formattedCart?.id) {
-        throw new Error('No active cart found');
+        console.error('No active cart found:', formattedCart);
+        throw new Error('No active cart found - please refresh the page');
       }
 
-      const { error } = await supabase
-        .from('cart_items')
-        .insert({
-          cart_id: formattedCart.id,
-          ...newItem
-        });
+      // Validate required fields
+      if (!newItem.cabinet_type_id || !newItem.door_style_id || !newItem.color_id || !newItem.finish_id) {
+        throw new Error('Missing required item configuration');
+      }
 
-      if (error) throw error;
+      if (!newItem.width_mm || !newItem.height_mm || !newItem.depth_mm) {
+        throw new Error('Invalid item dimensions');
+      }
+
+      const itemData = {
+        cart_id: formattedCart.id,
+        cabinet_type_id: newItem.cabinet_type_id,
+        door_style_id: newItem.door_style_id,
+        color_id: newItem.color_id,
+        finish_id: newItem.finish_id,
+        width_mm: newItem.width_mm,
+        height_mm: newItem.height_mm,
+        depth_mm: newItem.depth_mm,
+        quantity: newItem.quantity,
+        unit_price: newItem.unit_price,
+        total_price: newItem.total_price,
+        configuration: newItem.configuration || {},
+        notes: newItem.notes || ''
+      };
+
+      console.log('Inserting item data:', itemData);
+
+      const { data, error } = await supabase
+        .from('cart_items')
+        .insert(itemData)
+        .select('*');
+
+      if (error) {
+        console.error('Database error adding item:', error);
+        throw new Error(`Failed to add item: ${error.message}`);
+      }
+
+      console.log('Item added successfully:', data);
+      return data;
     },
-    onSuccess: () => {
+    retry: 2,
+    onSuccess: (data) => {
+      console.log('Item add success, invalidating cache');
       queryClient.invalidateQueries({ queryKey: ['cart', identifier] });
-      toast.success('Item added to cart');
+      toast.success('Item added to cart successfully');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error adding item to cart:', error);
-      toast.error('Failed to add item to cart');
+      toast.error(error.message || 'Failed to add item to cart');
     }
   });
 
