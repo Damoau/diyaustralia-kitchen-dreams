@@ -215,7 +215,6 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
         notes: `Added from quote ${quote.quote_number}`,
         item_name: item.item_name,
         job_reference: item.job_reference,
-        enhanced_notes: item.enhanced_notes,
         hardware_selections: item.hardware_selections
       }));
 
@@ -289,6 +288,9 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
         title: "Success",
         description: "Quote name updated successfully"
       });
+
+      // Trigger refresh of quotes list if parent component exists
+      window.dispatchEvent(new CustomEvent('quote-updated'));
     } catch (error) {
       console.error('Error updating quote name:', error);
       toast({

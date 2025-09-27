@@ -20,6 +20,16 @@ export const QuotesList = () => {
     loadQuotes();
   }, [statusFilter, searchTerm]);
 
+  // Listen for quote updates from detail page
+  useEffect(() => {
+    const handleQuoteUpdate = () => {
+      loadQuotes();
+    };
+    
+    window.addEventListener('quote-updated', handleQuoteUpdate);
+    return () => window.removeEventListener('quote-updated', handleQuoteUpdate);
+  }, []);
+
   const loadQuotes = async () => {
     try {
       setLoading(true);
