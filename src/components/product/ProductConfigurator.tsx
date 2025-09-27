@@ -18,9 +18,12 @@ import { useCartPersistence } from '@/hooks/useCartPersistence';
 import { useCartSaveTracking } from '@/hooks/useCartSaveTracking';
 import { useCart } from '@/hooks/useCart';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { Ruler, Palette, Settings, FileText, ShoppingCart, MapPin, AlertCircle, Calculator, Edit2, Plus, Minus } from 'lucide-react';
+import { Ruler, Palette, Settings, FileText, ShoppingCart, MapPin, AlertCircle, Calculator, Edit2, Plus, Minus, Quote } from 'lucide-react';
 import { useCabinetPreferences } from '@/hooks/useCabinetPreferences';
 import { CabinetType, CabinetPart, DoorStyle, Color, Finish, DoorStyleFinish, ColorFinish } from '@/types/cabinet';
+import { ItemNamingDialog } from './ItemNamingDialog';
+import { HardwareSelection } from './HardwareSelection';
+import { useAddToQuote } from '@/hooks/useAddToQuote';
 
 // Input validation schema  
 const postcodeSchema = z.string()
@@ -44,6 +47,15 @@ interface HardwareRequirement {
   hardware_type: {
     name: string;
     category: string;
+  };
+}
+
+interface HardwareProduct {
+  id: string;
+  name: string;
+  cost_per_unit: number;
+  hardware_brand?: {
+    name: string;
   };
 }
 
@@ -91,6 +103,12 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   const [assemblyEstimate, setAssemblyEstimate] = useState<AssemblyEstimate | null>(null);
   const [assemblyEditMode, setAssemblyEditMode] = useState(false);
   const [hasAssemblySelection, setHasAssemblySelection] = useState(false);
+  
+  // Quote-related state
+  const [showItemNamingDialog, setShowItemNamingDialog] = useState(false);
+  const [hardwareSelections, setHardwareSelections] = useState<{ [key: string]: HardwareProduct | null }>({});
+  
+  const { addToQuote, loading: addingToQuote } = useAddToQuote();
   
   const { markAsUnsaved, markAsSaving, markAsSaved, markAsError } = useCartSaveTracking();
   const { addToCart } = useCart();
@@ -810,6 +828,44 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
     }
   };
 
+  const handleAddToQuote = () => {
+    setShowItemNamingDialog(true);
+  };
+
+  const handleItemNamingConfirm = async (namingData: { itemName: string; jobReference?: string; notes?: string }) => {
+    if (!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish) {
+      return;
+    }
+
+    const totalPrice = calculateTotalPrice();
+    
+    const success = await addToQuote({
+      cabinetType: selectedCabinetType,
+      dimensions,
+      selectedDoorStyle,
+      selectedColor,  
+      selectedFinish,
+      quantity,
+      unitPrice: totalPrice,
+      totalPrice: totalPrice * quantity,
+      assemblyOptions: assemblyEnabled ? {
+        enabled: true,
+        type: assemblyType,
+        price: assemblyType === 'carcass_only' ? assemblyEstimate?.carcass_only_price : assemblyEstimate?.with_doors_price,
+        postcode: postcode || undefined
+      } : { enabled: false },
+      hardwareSelections,
+      itemName: namingData.itemName,
+      jobReference: namingData.jobReference,
+      notes: namingData.notes
+    });
+
+    if (success) {
+      setShowItemNamingDialog(false);
+      // Optionally close the configurator or reset form
+    }
+  };
+
   const handleStyleColorFinishSelection = (doorStyleId: string, colorId: string, finishId: string) => {
     setSelectedDoorStyle(doorStyleId);
     setSelectedColor(colorId);
@@ -1339,8 +1395,14 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                       </CardContent>
                     </Card>
 
+                    {/* Hardware Selection */}
+                    <HardwareSelection
+                      cabinetTypeId={selectedCabinetType.id}
+                      onHardwareChange={setHardwareSelections}
+                    />
+
                     {/* Add bottom padding to prevent overlap with sticky add to cart */}
-                    <div className="pb-24"></div>
+                    <div className="pb-32"></div>
                   </>
                 )}
               </div>
@@ -1348,25 +1410,40 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           </div>
         </div>
 
-        {/* Sticky Add to Cart Section */}
+        {/* Sticky Add to Cart/Quote Section */}
         {selectedCabinetType && (
           <div className="sticky bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t shadow-lg p-4 z-50">
             <div className="max-w-md mx-auto space-y-3">
-              <Button
-                onClick={handleAddToCart}
-                className="w-full"
-                size="lg"
-                disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish}
-              >
-                <ShoppingCart className="w-4 h-4 mr-2" />
-                Add to Cart - ${(calculateTotalPrice() * quantity).toFixed(2)}
-              </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  onClick={handleAddToCart}
+                  variant="outline" 
+                  size="lg"
+                  disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish}
+                >
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  Add to Cart
+                </Button>
+                <Button
+                  onClick={handleAddToQuote}
+                  size="lg"
+                  disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish || addingToQuote}
+                >
+                  <Quote className="w-4 h-4 mr-2" />
+                  {addingToQuote ? 'Adding...' : 'Add to Quote'}
+                </Button>
+              </div>
               
-              {(!selectedDoorStyle || !selectedColor || !selectedFinish) && (
-                <div className="text-xs text-muted-foreground text-center font-medium">
-                  Complete all selections to add to cart
+              <div className="text-center">
+                <div className="text-lg font-bold text-foreground">
+                  ${(calculateTotalPrice() * quantity).toFixed(2)}
                 </div>
-              )}
+                {(!selectedDoorStyle || !selectedColor || !selectedFinish) && (
+                  <div className="text-xs text-muted-foreground font-medium">
+                    Complete all selections to proceed
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -1384,6 +1461,14 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           selectedColor={selectedColor || savedPrefs?.preferred_color_id || preferredColorId}
           selectedFinish={selectedFinish || savedPrefs?.preferred_finish_id || preferredFinishId}
           onSelectionComplete={handleStyleColorFinishSelection}
+        />
+
+        {/* Item Naming Dialog */}
+        <ItemNamingDialog
+          open={showItemNamingDialog}
+          onOpenChange={setShowItemNamingDialog}
+          onConfirm={handleItemNamingConfirm}
+          loading={addingToQuote}
         />
 
       </DialogContent>

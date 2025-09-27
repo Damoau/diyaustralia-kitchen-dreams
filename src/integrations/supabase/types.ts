@@ -1907,6 +1907,54 @@ export type Database = {
           },
         ]
       }
+      hardware_selections: {
+        Row: {
+          created_at: string
+          hardware_product_id: string | null
+          hardware_type: string
+          id: string
+          quantity: number
+          quote_item_id: string | null
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          hardware_product_id?: string | null
+          hardware_type: string
+          id?: string
+          quantity?: number
+          quote_item_id?: string | null
+          total_price?: number
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string
+          hardware_product_id?: string | null
+          hardware_type?: string
+          id?: string
+          quantity?: number
+          quote_item_id?: string | null
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hardware_selections_hardware_product_id_fkey"
+            columns: ["hardware_product_id"]
+            isOneToOne: false
+            referencedRelation: "hardware_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hardware_selections_quote_item_id_fkey"
+            columns: ["quote_item_id"]
+            isOneToOne: false
+            referencedRelation: "quote_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hardware_types: {
         Row: {
           active: boolean
@@ -3207,9 +3255,13 @@ export type Database = {
           created_at: string
           depth_mm: number
           door_style_id: string | null
+          enhanced_notes: string | null
           finish_id: string | null
+          hardware_selections: Json | null
           height_mm: number
           id: string
+          item_name: string | null
+          job_reference: string | null
           notes: string | null
           quantity: number
           quote_id: string
@@ -3224,9 +3276,13 @@ export type Database = {
           created_at?: string
           depth_mm: number
           door_style_id?: string | null
+          enhanced_notes?: string | null
           finish_id?: string | null
+          hardware_selections?: Json | null
           height_mm: number
           id?: string
+          item_name?: string | null
+          job_reference?: string | null
           notes?: string | null
           quantity?: number
           quote_id: string
@@ -3241,9 +3297,13 @@ export type Database = {
           created_at?: string
           depth_mm?: number
           door_style_id?: string | null
+          enhanced_notes?: string | null
           finish_id?: string | null
+          hardware_selections?: Json | null
           height_mm?: number
           id?: string
+          item_name?: string | null
+          job_reference?: string | null
           notes?: string | null
           quantity?: number
           quote_id?: string
