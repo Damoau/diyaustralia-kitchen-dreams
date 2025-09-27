@@ -124,11 +124,10 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
     if (item.cabinet_type?.room_category && item.cabinet_type?.unified_categories) {
       const roomCategory = item.cabinet_type.room_category;
       const category = item.cabinet_type.unified_categories;
-      const productSlug = item.cabinet_type.url_slug || item.cabinet_type.name.toLowerCase().replace(/\s+/g, '-');
       
-      // Navigate to the product page and close the cart drawer
+      // Navigate to the category page with cabinet parameter to auto-open popup
       setIsOpen(false);
-      navigate(`/shop/${roomCategory.name}/${category.name}/${productSlug}?cabinet=${item.cabinet_type.id}`);
+      navigate(`/shop/${roomCategory.name}/${category.name}?cabinet=${item.cabinet_type.id}`);
     } else {
       // Fallback navigation to shop if we can't determine the exact path
       setIsOpen(false);
