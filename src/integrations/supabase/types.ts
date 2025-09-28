@@ -557,6 +557,7 @@ export type Database = {
           cabinet_type_id: string
           created_at: string
           description: string | null
+          display_name: string | null
           display_order: number
           id: string
           option_name: string
@@ -569,6 +570,7 @@ export type Database = {
           cabinet_type_id: string
           created_at?: string
           description?: string | null
+          display_name?: string | null
           display_order?: number
           id?: string
           option_name: string
@@ -581,6 +583,7 @@ export type Database = {
           cabinet_type_id?: string
           created_at?: string
           description?: string | null
+          display_name?: string | null
           display_order?: number
           id?: string
           option_name?: string

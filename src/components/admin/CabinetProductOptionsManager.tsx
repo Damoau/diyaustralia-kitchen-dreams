@@ -192,7 +192,7 @@ export const CabinetProductOptionsManager: React.FC<CabinetProductOptionsManager
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <h4 className="font-medium">{option.option_name}</h4>
+                      <h4 className="font-medium">{option.display_name || option.option_name}</h4>
                       <Badge variant={option.active ? 'default' : 'secondary'}>
                         {option.active ? 'Active' : 'Inactive'}
                       </Badge>
