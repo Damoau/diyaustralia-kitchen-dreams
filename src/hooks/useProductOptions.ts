@@ -71,16 +71,16 @@ export const useProductOptions = ({ cabinetTypeId, cabinetTypeName }: UseProduct
           return {
             id: option.id,
             name: option.option_name,
-            type: option.option_type as 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence',
+            type: (option.option_type === 'hinge_side' ? 'select' : option.option_type) as 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence',
             required: option.required,
             description: option.description,
-            options: option.option_type === 'select' && option.cabinet_option_values 
+            options: (option.option_type === 'select' || option.option_type === 'hinge_side') && option.cabinet_option_values 
               ? option.cabinet_option_values
                   .filter((v: any) => v.active)
                   .sort((a: any, b: any) => a.display_order - b.display_order)
                   .map((v: any) => v.display_text)  // Just use display_text as string
               : undefined,
-            priceAdjustments: option.option_type === 'select' && option.cabinet_option_values
+            priceAdjustments: (option.option_type === 'select' || option.option_type === 'hinge_side') && option.cabinet_option_values
               ? option.cabinet_option_values
                   .filter((v: any) => v.active && v.price_adjustment)
                   .reduce((acc: Record<string, number>, v: any) => {

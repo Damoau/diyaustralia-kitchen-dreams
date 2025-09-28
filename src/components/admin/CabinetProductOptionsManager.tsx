@@ -244,6 +244,18 @@ export const CabinetProductOptionsManager: React.FC<CabinetProductOptionsManager
                         Titus plastic legs with configurable quantity and pricing
                       </div>
                     )}
+                    {option.option_type === 'hinge_side' && (
+                      <div className="flex flex-wrap gap-1">
+                        {option.option_values && option.option_values
+                          .filter(v => v.active)
+                          .sort((a, b) => a.display_order - b.display_order)
+                          .map((value) => (
+                            <Badge key={value.id} variant="outline" className="text-xs">
+                              {value.display_text}
+                            </Badge>
+                          ))}
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
@@ -350,6 +362,12 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
     { value: '', display_text: '', price_adjustment: 0 }
   ]);
 
+  // Hinge side configuration state
+  const [hingeSideOptions, setHingeSideOptions] = useState({
+    firstOption: '',
+    secondOption: ''
+  });
+
   // Hardware brand configuration state
   const [hardwareBrands, setHardwareBrands] = useState<Array<{ 
     brandId: string; 
@@ -385,6 +403,16 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
 
       // Reset hardware brands for new option
       setHardwareBrands([]);
+
+      // Load existing hinge side options if they exist
+      if (option.option_type === 'hinge_side' && option.option_values && option.option_values.length >= 2) {
+        setHingeSideOptions({
+          firstOption: option.option_values[0]?.display_text || '',
+          secondOption: option.option_values[1]?.display_text || ''
+        });
+      } else {
+        setHingeSideOptions({ firstOption: '', secondOption: '' });
+      }
       
     } else {
       setFormData({
@@ -398,6 +426,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
       });
       setOptionValues([{ value: '', display_text: '', price_adjustment: 0 }]);
       setHardwareBrands([]);
+      setHingeSideOptions({ firstOption: '', secondOption: '' });
     }
   }, [option]);
 
@@ -405,6 +434,9 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
   useEffect(() => {
     if (formData.option_type !== 'hinge_brand_set' && formData.option_type !== 'runner_brand_set' && formData.option_type !== 'plastic_legs') {
       setHardwareBrands([]);
+    }
+    if (formData.option_type !== 'hinge_side') {
+      setHingeSideOptions({ firstOption: '', secondOption: '' });
     }
   }, [formData.option_type]);
 
@@ -438,6 +470,51 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
         // Update existing option values
         await saveOptionValues(option.id);
       }
+    }
+
+    // If it's a hinge_side option, save the two options
+    if (formData.option_type === 'hinge_side' && hingeSideOptions.firstOption.trim() && hingeSideOptions.secondOption.trim()) {
+      if (option?.id) {
+        await saveHingeSideValues(option.id);
+      }
+    }
+  };
+
+  const saveHingeSideValues = async (optionId: string) => {
+    try {
+      // Delete existing values first
+      await supabase
+        .from('cabinet_option_values')
+        .delete()
+        .eq('cabinet_option_id', optionId);
+
+      // Insert the two hinge side values
+      const valuesToInsert = [
+        {
+          cabinet_option_id: optionId,
+          value: hingeSideOptions.firstOption.toLowerCase().replace(/\s+/g, '_'),
+          display_text: hingeSideOptions.firstOption,
+          price_adjustment: 0,
+          display_order: 0,
+          active: true
+        },
+        {
+          cabinet_option_id: optionId,
+          value: hingeSideOptions.secondOption.toLowerCase().replace(/\s+/g, '_'),
+          display_text: hingeSideOptions.secondOption,
+          price_adjustment: 0,
+          display_order: 1,
+          active: true
+        }
+      ];
+
+      const { error } = await supabase
+        .from('cabinet_option_values')
+        .insert(valuesToInsert);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error saving hinge side values:', error);
     }
   };
 
@@ -523,6 +600,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="select">Select (Dropdown)</SelectItem>
+                <SelectItem value="hinge_side">Hinge Side</SelectItem>
                 <SelectItem value="hinge_brand_set">Hinge Brand</SelectItem>
                 <SelectItem value="runner_brand_set">Runner Brand</SelectItem>
                 <SelectItem value="text">Text Input</SelectItem>
@@ -603,6 +681,44 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
               <p className="text-xs text-muted-foreground">
                 Add options like "Left", "Right", "Center", etc. that customers can choose from.
               </p>
+            </div>
+           )}
+
+          {/* Hinge Side Configuration - Show for hinge_side */}
+          {formData.option_type === 'hinge_side' && (
+            <div className="space-y-3">
+              <Label>Hinge Side Configuration</Label>
+              <div className="p-4 border rounded-lg space-y-3">
+                <div>
+                  <Label htmlFor="first_option">First Option</Label>
+                  <Input
+                    id="first_option"
+                    value={hingeSideOptions.firstOption}
+                    onChange={(e) => setHingeSideOptions(prev => ({ ...prev, firstOption: e.target.value }))}
+                    placeholder="e.g., Left Side, Left-Left Side"
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    First dropdown option shown to customers
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="second_option">Second Option</Label>
+                  <Input
+                    id="second_option"
+                    value={hingeSideOptions.secondOption}
+                    onChange={(e) => setHingeSideOptions(prev => ({ ...prev, secondOption: e.target.value }))}
+                    placeholder="e.g., Right Side, Right-Right-Left"
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Second dropdown option shown to customers
+                  </p>
+                </div>
+                <div className="text-sm text-muted-foreground bg-muted/30 p-2 rounded">
+                  These will become the two options in the hinge side dropdown on the frontend
+                </div>
+              </div>
             </div>
           )}
 
