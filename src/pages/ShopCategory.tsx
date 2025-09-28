@@ -62,6 +62,7 @@ const CategoryPage = () => {
   const [roomCategory, setRoomCategory] = useState<any>(null);
   const [showStickyFilter, setShowStickyFilter] = useState(false);
   const filterSectionRef = useRef<HTMLDivElement>(null);
+  const isScrollingProgrammatically = useRef(false);
 
   // Category display names
   const getCategoryDisplayName = (cat: string) => {
@@ -74,6 +75,9 @@ const CategoryPage = () => {
 
   useEffect(() => {
     const handleScroll = () => {
+      // Skip if we're scrolling programmatically
+      if (isScrollingProgrammatically.current) return;
+      
       if (filterSectionRef.current) {
         const filterRect = filterSectionRef.current.getBoundingClientRect();
         const isFilterPastTop = filterRect.bottom < 0;
@@ -87,6 +91,11 @@ const CategoryPage = () => {
 
   // Scroll to top of products when filter changes
   useEffect(() => {
+    // Don't auto-scroll on initial load
+    if (activeSubcategory === "all") return;
+    
+    isScrollingProgrammatically.current = true;
+    
     if (showStickyFilter) {
       // If sticky filter is active, scroll to just below the header
       window.scrollTo({
@@ -100,7 +109,12 @@ const CategoryPage = () => {
         block: 'start'
       });
     }
-  }, [activeSubcategory]);
+    
+    // Reset the flag after scroll animation completes
+    setTimeout(() => {
+      isScrollingProgrammatically.current = false;
+    }, 500);
+  }, [activeSubcategory, showStickyFilter]);
 
   useEffect(() => {
     const loadData = async () => {
