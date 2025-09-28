@@ -651,26 +651,31 @@ const HardwareBrandConfiguration: React.FC<HardwareBrandConfigurationProps> = ({
   onBrandsChange
 }) => {
   const { getHardwareOptions, calculateHardwareSetCost } = useHardwarePricing();
+  const [selectedBrand, setSelectedBrand] = useState<string>('');
   
-  // Get available hardware options for this category
-  const availableOptions = getHardwareOptions(category) || [];
+  // Get all available hardware options for this category
+  const allHardwareOptions = getHardwareOptions(category) || [];
   
-  const addBrand = () => {
-    if (availableOptions.length === 0) return;
-    
-    // Find first available brand that's not already selected
-    const unusedOption = availableOptions.find(opt => 
-      !brands.some(brand => brand.brandId === opt.id)
-    );
-    
-    if (unusedOption) {
-      const newBrands = [...brands, {
-        brandId: unusedOption.id,
-        quantity: 1,
-        isDefault: brands.length === 0 // First brand is default
-      }];
-      onBrandsChange(newBrands);
+  // Group hardware options by brand
+  const brandGroups = allHardwareOptions.reduce((acc, option) => {
+    // Extract brand name from the option name (assuming format like "Blum Standard Hinge Set")
+    const brandName = option.name.split(' ')[0]; // Gets "Blum" or "Titus"
+    if (!acc[brandName]) {
+      acc[brandName] = [];
     }
+    acc[brandName].push(option);
+    return acc;
+  }, {} as Record<string, typeof allHardwareOptions>);
+  
+  const availableBrands = Object.keys(brandGroups);
+  
+  const addHardwareSet = (setId: string) => {
+    const newBrands = [...brands, {
+      brandId: setId,
+      quantity: 1,
+      isDefault: brands.length === 0 // First set is default
+    }];
+    onBrandsChange(newBrands);
   };
 
   const removeBrand = (index: number) => {
@@ -698,10 +703,10 @@ const HardwareBrandConfiguration: React.FC<HardwareBrandConfigurationProps> = ({
   };
 
   const getHardwareOptionById = (id: string) => {
-    return availableOptions.find(opt => opt.id === id);
+    return allHardwareOptions.find(opt => opt.id === id);
   };
 
-  if (availableOptions.length === 0) {
+  if (availableBrands.length === 0) {
     return (
       <div className="space-y-3">
         <Label>Hardware Brand Configuration</Label>
@@ -714,7 +719,6 @@ const HardwareBrandConfiguration: React.FC<HardwareBrandConfigurationProps> = ({
             size="sm" 
             className="mt-2"
             onClick={() => {
-              // This could trigger opening the hardware set configurator
               console.log('Open hardware set configurator for', category);
             }}
           >
@@ -727,153 +731,197 @@ const HardwareBrandConfiguration: React.FC<HardwareBrandConfigurationProps> = ({
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4">
+      <div className="space-y-3">
         <Label>Hardware Brand Configuration</Label>
-        <Button 
-          type="button" 
-          variant="outline" 
-          size="sm" 
-          onClick={addBrand}
-          disabled={brands.length >= availableOptions.length}
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          Add Brand
-        </Button>
-      </div>
-      
-      {brands.length === 0 ? (
-        <div className="p-4 border-2 border-dashed rounded-lg text-center">
-          <p className="text-sm text-muted-foreground mb-2">
-            No {category} brands configured yet
-          </p>
-          <Button variant="outline" size="sm" onClick={addBrand}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add First Brand
-          </Button>
+        
+        {/* Brand Selection */}
+        <div className="space-y-2">
+          <Label className="text-sm">Select Brand</Label>
+          <Select
+            value={selectedBrand}
+            onValueChange={setSelectedBrand}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={`Choose ${category} brand...`} />
+            </SelectTrigger>
+            <SelectContent className="z-50 bg-background border shadow-lg">
+              {availableBrands.map((brandName) => (
+                <SelectItem key={brandName} value={brandName}>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{brandName}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {brandGroups[brandName].length} sets available
+                    </Badge>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-      ) : (
-        <div className="space-y-3 max-h-64 overflow-y-auto">
-          {brands.map((brand, index) => {
-            const hardwareOption = getHardwareOptionById(brand.brandId);
-            const pricing = hardwareOption?.pricing;
+
+        {/* Hardware Sets for Selected Brand */}
+        {selectedBrand && brandGroups[selectedBrand] && (
+          <div className="space-y-3 p-4 border rounded-lg bg-muted/20">
+            <div className="flex justify-between items-center">
+              <Label className="text-sm font-medium">
+                {selectedBrand} {category === 'hinge' ? 'Hinge' : 'Runner'} Sets
+              </Label>
+            </div>
             
-            return (
-              <div key={index} className="p-3 border rounded-lg bg-background">
-                <div className="grid grid-cols-12 gap-3 items-center">
-                  {/* Brand Selection */}
-                  <div className="col-span-4">
-                    <Label className="text-xs">Brand</Label>
-                    <Select
-                      value={brand.brandId}
-                      onValueChange={(value) => updateBrand(index, 'brandId', value)}
-                    >
-                      <SelectTrigger className="h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="z-50 bg-background border shadow-lg">
-                        {availableOptions.map((option) => (
-                          <SelectItem 
-                            key={option.id} 
-                            value={option.id}
-                            disabled={brands.some(b => b.brandId === option.id && b.brandId !== brand.brandId)}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span>{option.name}</span>
-                              {option.isDefault && (
-                                <Badge variant="secondary" className="text-xs">Global Default</Badge>
-                              )}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Quantity */}
-                  <div className="col-span-2">
-                    <Label className="text-xs">Quantity</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      value={brand.quantity}
-                      onChange={(e) => updateBrand(index, 'quantity', parseInt(e.target.value) || 1)}
-                      className="h-8"
-                    />
-                  </div>
-
-                  {/* Pricing Display */}
-                  <div className="col-span-3">
-                    <Label className="text-xs">Price (Auto)</Label>
-                    <div className="flex items-center gap-1 text-sm">
-                      <DollarSign className="h-3 w-3" />
-                      <span className="font-medium">
-                        {pricing ? (pricing.finalCost * brand.quantity).toFixed(2) : '0.00'}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        (${pricing?.finalCost.toFixed(2) || '0.00'} × {brand.quantity})
-                      </span>
+            <div className="space-y-2">
+              {brandGroups[selectedBrand].map((hardwareSet) => {
+                const isAlreadyAdded = brands.some(b => b.brandId === hardwareSet.id);
+                const pricing = hardwareSet.pricing;
+                
+                return (
+                  <div key={hardwareSet.id} className="flex items-center justify-between p-3 border rounded bg-background">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-sm">{hardwareSet.name}</span>
+                        {hardwareSet.isDefault && (
+                          <Badge variant="secondary" className="text-xs">Global Default</Badge>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Base: ${pricing?.baseCost?.toFixed(2) || '0.00'} • 
+                        Final: ${pricing?.finalCost?.toFixed(2) || '0.00'}
+                        {pricing?.markup > 0 && ` • ${pricing.markup}% markup`}
+                      </div>
                     </div>
+                    
+                    <Button
+                      variant={isAlreadyAdded ? "secondary" : "outline"}
+                      size="sm"
+                      onClick={() => addHardwareSet(hardwareSet.id)}
+                      disabled={isAlreadyAdded}
+                      className="ml-3"
+                    >
+                      {isAlreadyAdded ? (
+                        <>Added</>
+                      ) : (
+                        <>
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add Set
+                        </>
+                      )}
+                    </Button>
                   </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
 
-                  {/* Default Toggle */}
-                  <div className="col-span-2 flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-1">
-                      <Label className="text-xs">Default</Label>
+      {/* Configure Added Hardware Sets */}
+      {brands.length > 0 && (
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Configuration</Label>
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {brands.map((brand, index) => {
+              const hardwareOption = getHardwareOptionById(brand.brandId);
+              const pricing = hardwareOption?.pricing;
+              
+              if (!hardwareOption) return null;
+              
+              return (
+                <div key={index} className="p-3 border rounded-lg bg-background">
+                  <div className="grid grid-cols-12 gap-3 items-center">
+                    {/* Hardware Set Name */}
+                    <div className="col-span-5">
+                      <Label className="text-xs">Hardware Set</Label>
+                      <div className="text-sm font-medium truncate" title={hardwareOption.name}>
+                        {hardwareOption.name}
+                      </div>
+                    </div>
+
+                    {/* Quantity */}
+                    <div className="col-span-2">
+                      <Label className="text-xs">Quantity</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={brand.quantity}
+                        onChange={(e) => updateBrand(index, 'quantity', parseInt(e.target.value) || 1)}
+                        className="h-8"
+                      />
+                    </div>
+
+                    {/* Pricing Display */}
+                    <div className="col-span-3">
+                      <Label className="text-xs">Total Price</Label>
+                      <div className="flex items-center gap-1 text-sm">
+                        <DollarSign className="h-3 w-3" />
+                        <span className="font-medium">
+                          {pricing ? (pricing.finalCost * brand.quantity).toFixed(2) : '0.00'}
+                        </span>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        ${pricing?.finalCost.toFixed(2) || '0.00'} × {brand.quantity}
+                      </div>
+                    </div>
+
+                    {/* Default Toggle */}
+                    <div className="col-span-1 flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <Label className="text-xs">Default</Label>
+                        <Button
+                          type="button"
+                          variant={brand.isDefault ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => updateBrand(index, 'isDefault', true)}
+                          className="h-6 w-6 p-0"
+                        >
+                          <Star className={`h-3 w-3 ${brand.isDefault ? 'fill-current' : ''}`} />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Remove Button */}
+                    <div className="col-span-1 flex justify-center">
                       <Button
                         type="button"
-                        variant={brand.isDefault ? "default" : "outline"}
+                        variant="ghost"
                         size="sm"
-                        onClick={() => updateBrand(index, 'isDefault', true)}
-                        className="h-6 w-6 p-0"
+                        onClick={() => removeBrand(index)}
+                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
                       >
-                        <Star className={`h-3 w-3 ${brand.isDefault ? 'fill-current' : ''}`} />
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
                   </div>
 
-                  {/* Remove Button */}
-                  <div className="col-span-1 flex justify-center">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeBrand(index)}
-                      className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Additional Info */}
-                {hardwareOption && pricing && (
-                  <div className="mt-2 text-xs text-muted-foreground bg-muted/30 p-2 rounded">
-                    <div className="grid grid-cols-2 gap-2">
-                      <span>Base Cost: ${pricing.baseCost.toFixed(2)}</span>
-                      <span>Final Cost: ${pricing.finalCost.toFixed(2)}</span>
-                      {pricing.markup > 0 && (
-                        <span>Markup: {pricing.markup}%</span>
-                      )}
-                      {pricing.discount > 0 && (
-                        <span>Discount: {pricing.discount}%</span>
-                      )}
+                  {/* Additional Pricing Info */}
+                  {pricing && (
+                    <div className="mt-2 text-xs text-muted-foreground bg-muted/30 p-2 rounded">
+                      <div className="grid grid-cols-2 gap-2">
+                        <span>Base Cost: ${pricing.baseCost.toFixed(2)}</span>
+                        <span>Final Cost: ${pricing.finalCost.toFixed(2)}</span>
+                        {pricing.markup > 0 && (
+                          <span>Markup: {pricing.markup}%</span>
+                        )}
+                        {pricing.discount > 0 && (
+                          <span>Discount: {pricing.discount}%</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
       
       <div className="text-xs text-muted-foreground bg-blue-50 p-3 rounded border border-blue-200">
-        <p className="font-medium text-blue-900 mb-1">Hardware Brand Configuration:</p>
+        <p className="font-medium text-blue-900 mb-1">How it works:</p>
         <ul className="space-y-1 text-blue-800">
-          <li>• Pricing is automatically linked to global hardware settings</li>
-          <li>• Quantity multiplies the base price for total cost calculation</li>
-          <li>• Default brand will be pre-selected for customers</li>
-          <li>• Customers can change brands and see updated pricing</li>
+          <li>• Select a brand (Blum, Titus) to see available hardware sets</li>
+          <li>• Add specific hardware sets with custom quantities</li>
+          <li>• Pricing automatically syncs with global hardware settings</li>
+          <li>• Set one option as default for customers</li>
+          <li>• Customers will see these options with live pricing</li>
         </ul>
       </div>
     </div>
