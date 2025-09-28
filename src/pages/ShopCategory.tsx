@@ -91,30 +91,22 @@ const CategoryPage = () => {
 
   // Scroll to top of products when filter changes
   useEffect(() => {
-    // Don't auto-scroll on initial load
+    // Don't auto-scroll on initial load or when "all" is selected
     if (activeSubcategory === "all") return;
     
     isScrollingProgrammatically.current = true;
     
-    if (showStickyFilter) {
-      // If sticky filter is active, scroll to just below the header
-      window.scrollTo({
-        top: 56, // Height of header (h-14 = 56px)
-        behavior: 'smooth'
-      });
-    } else if (filterSectionRef.current) {
-      // If sticky filter is not active, scroll to the filter section
-      filterSectionRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
+    // Always scroll to header level when filter changes
+    window.scrollTo({
+      top: 56, // Height of header (h-14 = 56px)  
+      behavior: 'smooth'
+    });
     
     // Reset the flag after scroll animation completes
     setTimeout(() => {
       isScrollingProgrammatically.current = false;
     }, 500);
-  }, [activeSubcategory, showStickyFilter]);
+  }, [activeSubcategory]); // Removed showStickyFilter dependency
 
   useEffect(() => {
     const loadData = async () => {
