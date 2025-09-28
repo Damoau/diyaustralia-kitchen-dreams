@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import DynamicHeader from "@/components/DynamicHeader";
@@ -9,6 +9,8 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -58,6 +60,8 @@ const CategoryPage = () => {
   const [configuratorOpen, setConfiguratorOpen] = useState(false);
   const [selectedCabinet, setSelectedCabinet] = useState<CabinetType | null>(null);
   const [roomCategory, setRoomCategory] = useState<any>(null);
+  const [showStickyFilter, setShowStickyFilter] = useState(false);
+  const filterSectionRef = useRef<HTMLDivElement>(null);
 
   // Category display names
   const getCategoryDisplayName = (cat: string) => {
@@ -67,6 +71,19 @@ const CategoryPage = () => {
   };
 
   const displayCategory = getCategoryDisplayName(category);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (filterSectionRef.current) {
+        const filterRect = filterSectionRef.current.getBoundingClientRect();
+        const isFilterPastTop = filterRect.bottom < 0;
+        setShowStickyFilter(isFilterPastTop);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -202,7 +219,42 @@ const CategoryPage = () => {
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
         <DynamicHeader />
         
-        <main className="w-full px-6 py-8 mobile-safe-bottom">
+          {/* Sticky Filter Dropdown */}
+          {showStickyFilter && subcategories.length > 0 && (
+            <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b shadow-sm">
+              <div className="max-w-7xl mx-auto px-6 py-3">
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-medium text-muted-foreground">Filter:</span>
+                  <Select
+                    value={activeSubcategory}
+                    onValueChange={setActiveSubcategory}
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue>
+                        {activeSubcategory === "all" 
+                          ? `All ${displayCategory}` 
+                          : subcategories.find(s => s.name === activeSubcategory)?.display_name
+                        }
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All {displayCategory}</SelectItem>
+                      {subcategories.map((subcat) => (
+                        <SelectItem key={subcat.id} value={subcat.name}>
+                          {subcat.display_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Badge variant="secondary" className="ml-auto">
+                    {filteredCabinetTypes.length} products
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          )}
+        
+          <main className="w-full px-6 py-8 mobile-safe-bottom">
           {/* Breadcrumbs */}
           <Breadcrumb className="mb-8">
             <BreadcrumbList>
@@ -241,7 +293,7 @@ const CategoryPage = () => {
 
           {/* Subcategory Filter Buttons */}
           {subcategories.length > 0 && (
-            <div className="mb-8">
+            <div ref={filterSectionRef} className="mb-8">
               <div className="flex flex-wrap gap-3 justify-center">
                 <Button
                   variant={activeSubcategory === "all" ? "default" : "outline"}
