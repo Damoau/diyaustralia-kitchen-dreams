@@ -52,23 +52,25 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           />
         ) : (
           <div className="w-full h-full bg-secondary/50 flex items-center justify-center">
-            <span className="text-muted-foreground">No image available</span>
+            <span className="text-muted-foreground text-xs sm:text-sm">No image available</span>
           </div>
         )}
       </div>
 
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start gap-2">
-          <CardTitle className="text-lg leading-tight">{cabinet.name}</CardTitle>
+      <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6 pt-3 sm:pt-6">
+        <div className="space-y-2">
+          <CardTitle className="text-sm sm:text-lg font-semibold leading-tight line-clamp-2">
+            {cabinet.name}
+          </CardTitle>
           {(cabinet.door_count > 0 || cabinet.drawer_count > 0) && (
-            <div className="flex gap-1 shrink-0">
+            <div className="flex flex-wrap gap-1">
               {cabinet.door_count > 0 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-xs px-2 py-0.5">
                   {cabinet.door_count} Door{cabinet.door_count !== 1 ? 's' : ''}
                 </Badge>
               )}
               {cabinet.drawer_count > 0 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-xs px-2 py-0.5">
                   {cabinet.drawer_count} Drawer{cabinet.drawer_count !== 1 ? 's' : ''}
                 </Badge>
               )}
@@ -77,17 +79,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0 space-y-4">
-        {/* Action Button */}
-        <div className="pt-2">
-          <Button 
-            onClick={handleConfigureClick}
-            className="w-full"
-            size="sm"
-          >
-            Create your cabinet
-          </Button>
-        </div>
+      <CardContent className="pt-0 px-3 sm:px-6 pb-3 sm:pb-6">
+        <Button 
+          onClick={handleConfigureClick}
+          className="w-full text-xs sm:text-sm font-medium py-2 sm:py-2.5"
+          size="sm"
+        >
+          Create your cabinet
+        </Button>
       </CardContent>
     </Card>
   );
