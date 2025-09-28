@@ -1012,61 +1012,61 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
               <div className="lg:col-span-7 xl:col-span-6 2xl:col-span-6 space-y-4">
                 {selectedCabinetType && (
                   <>
-                    {/* Dimensions */}
-                    <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg flex items-center gap-2 font-semibold">
-                          <Ruler className="w-5 h-5 text-primary" />
-                          Dimensions (mm)
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="grid grid-cols-3 gap-3">
-                          <div className="space-y-2">
-                            <Label htmlFor="width" className="text-sm font-medium">Width</Label>
-                            <Input
-                              id="width"
-                              type="number"
-                              value={dimensions.width || ''}
-                              onChange={(e) => handleDimensionChange('width', e.target.value)}
-                              onBlur={() => handleDimensionBlur('width')}
-                              className="text-center font-mono h-12 text-lg font-bold border-2 focus:border-primary/50 bg-background"
-                            />
-                            <div className="text-xs text-muted-foreground text-center font-medium">
-                              {selectedCabinetType.min_width_mm}-{selectedCabinetType.max_width_mm}
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="height" className="text-sm font-medium">Height</Label>
-                            <Input
-                              id="height"
-                              type="number"
-                              value={dimensions.height || ''}
-                              onChange={(e) => handleDimensionChange('height', e.target.value)}
-                              onBlur={() => handleDimensionBlur('height')}
-                              className="text-center font-mono h-12 text-lg font-bold border-2 focus:border-primary/50 bg-background"
-                            />
-                            <div className="text-xs text-muted-foreground text-center font-medium">
-                              {selectedCabinetType.min_height_mm}-{selectedCabinetType.max_height_mm}
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="depth" className="text-sm font-medium">Depth</Label>
-                            <Input
-                              id="depth"
-                              type="number"
-                              value={dimensions.depth || ''}
-                              onChange={(e) => handleDimensionChange('depth', e.target.value)}
-                              onBlur={() => handleDimensionBlur('depth')}
-                              className="text-center font-mono h-12 text-lg font-bold border-2 focus:border-primary/50 bg-background"
-                            />
-                            <div className="text-xs text-muted-foreground text-center font-medium">
-                              {selectedCabinetType.min_depth_mm}-{selectedCabinetType.max_depth_mm}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                     {/* Dimensions */}
+                     <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5 mx-4">
+                       <CardHeader className="pb-3 px-4">
+                         <CardTitle className="text-lg flex items-center gap-2 font-semibold">
+                           <Ruler className="w-5 h-5 text-primary" />
+                           Set your sizes
+                         </CardTitle>
+                       </CardHeader>
+                       <CardContent className="pt-0 px-4">
+                         <div className="grid grid-cols-3 gap-4">
+                           <div className="space-y-2">
+                             <Label htmlFor="width" className="text-sm font-medium text-center block">Width</Label>
+                             <Input
+                               id="width"
+                               type="number"
+                               value={dimensions.width || ''}
+                               onChange={(e) => handleDimensionChange('width', e.target.value)}
+                               onBlur={() => handleDimensionBlur('width')}
+                               className="text-center font-mono h-14 text-lg font-bold border-2 focus:border-primary/50 bg-background"
+                             />
+                             <div className="text-xs text-muted-foreground text-center font-medium">
+                               {selectedCabinetType.min_width_mm}-{selectedCabinetType.max_width_mm}
+                             </div>
+                           </div>
+                           <div className="space-y-2">
+                             <Label htmlFor="height" className="text-sm font-medium text-center block">Height</Label>
+                             <Input
+                               id="height"
+                               type="number"
+                               value={dimensions.height || ''}
+                               onChange={(e) => handleDimensionChange('height', e.target.value)}
+                               onBlur={() => handleDimensionBlur('height')}
+                               className="text-center font-mono h-14 text-lg font-bold border-2 focus:border-primary/50 bg-background"
+                             />
+                             <div className="text-xs text-muted-foreground text-center font-medium">
+                               {selectedCabinetType.min_height_mm}-{selectedCabinetType.max_height_mm}
+                             </div>
+                           </div>
+                           <div className="space-y-2">
+                             <Label htmlFor="depth" className="text-sm font-medium text-center block">Depth</Label>
+                             <Input
+                               id="depth"
+                               type="number"
+                               value={dimensions.depth || ''}
+                               onChange={(e) => handleDimensionChange('depth', e.target.value)}
+                               onBlur={() => handleDimensionBlur('depth')}
+                               className="text-center font-mono h-14 text-lg font-bold border-2 focus:border-primary/50 bg-background"
+                             />
+                             <div className="text-xs text-muted-foreground text-center font-medium">
+                               {selectedCabinetType.min_depth_mm}-{selectedCabinetType.max_depth_mm}
+                             </div>
+                           </div>
+                         </div>
+                       </CardContent>
+                     </Card>
 
                     {/* Door Style, Color & Finish Selector */}
                     <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5">
@@ -1361,7 +1361,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           <div className="sticky bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t shadow-lg p-4 z-50">
             <div className="max-w-md mx-auto space-y-3">
               {/* Quantity and Add to Cart in same row */}
-              <div className="flex gap-3 items-center">
+              <div className="flex gap-2 items-center">
                 <div className="w-[100px] flex items-center border rounded-md h-10">
                   <Button
                     variant="ghost"
@@ -1388,11 +1388,11 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                   <Button
                     onClick={handleAddToCart}
                     size="lg"
-                    className="w-[180px] sm:w-full h-10 sm:max-w-[280px] pl-[15px]"
+                    className="w-full h-10 pl-[15px]"
                     disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish || !validateRequiredOptions()}
                   >
                     <ShoppingCart className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span className="text-sm font-medium truncate">Add to Cart - {formatCurrency(calculateTotalPrice())}</span>
+                    <span className="text-sm font-medium">Add to Cart - {formatCurrency(calculateTotalPrice())}</span>
                   </Button>
                 </div>
               </div>
