@@ -1379,15 +1379,27 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
             <div className="max-w-md mx-auto space-y-3">
               {/* Quantity and Add to Cart in same row */}
               <div className="flex gap-3 items-center">
-                <div className="flex-shrink-0 w-20">
-                  <Label className="text-xs font-medium mb-1 block">Qty</Label>
-                  <Input
-                    type="number"
-                    value={quantity}
-                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    min={1}
-                    className="text-center font-mono h-10 text-sm font-semibold border-2 focus:border-primary/50"
-                  />
+                <div className="flex-shrink-0 flex items-center border rounded-md h-10">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="h-8 w-8 p-0 rounded-none border-0 hover:bg-muted"
+                    disabled={quantity <= 1}
+                  >
+                    -
+                  </Button>
+                  <div className="px-3 text-sm font-semibold min-w-[2rem] text-center">
+                    {quantity}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="h-8 w-8 p-0 rounded-none border-0 hover:bg-muted"
+                  >
+                    +
+                  </Button>
                 </div>
                 <div className="flex-1">
                   <Button
