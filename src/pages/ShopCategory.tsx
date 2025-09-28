@@ -85,6 +85,23 @@ const CategoryPage = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Scroll to top of products when filter changes
+  useEffect(() => {
+    if (showStickyFilter) {
+      // If sticky filter is active, scroll to just below the header
+      window.scrollTo({
+        top: 56, // Height of header (h-14 = 56px)
+        behavior: 'smooth'
+      });
+    } else if (filterSectionRef.current) {
+      // If sticky filter is not active, scroll to the filter section
+      filterSectionRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  }, [activeSubcategory]);
+
   useEffect(() => {
     const loadData = async () => {
       if (!room || !category) {
