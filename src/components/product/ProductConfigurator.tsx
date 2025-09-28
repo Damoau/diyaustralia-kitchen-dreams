@@ -925,27 +925,6 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         )}
         
         <div className="relative">
-          {/* Mobile Sticky Price Bar - Top - Only show cabinet name */}
-          {selectedCabinetType && (
-             <div className="lg:hidden sticky top-0 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground px-4 py-3 z-50 flex items-center justify-between shadow-lg">
-               <div className="flex-1 min-w-0">
-                 <h3 className="font-semibold text-base truncate">
-                   {selectedCabinetType.name}
-                 </h3>
-                 <div className="text-xs opacity-90">
-                   {selectedCabinetType.category}
-                 </div>
-               </div>
-               <button
-                 onClick={() => onOpenChange(false)}
-                 className="p-2 hover:bg-white/20 rounded-lg transition-colors flex items-center justify-center"
-                 aria-label="Close configurator"
-               >
-                 <X className="h-5 w-5" />
-               </button>
-             </div>
-          )}
-
           {/* Header with integrated price display */}
           <div className="px-6 py-4 border-b bg-gradient-to-r from-background to-secondary/5">
             <DialogHeader>
@@ -1413,7 +1392,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                     disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish || !validateRequiredOptions()}
                   >
                     <ShoppingCart className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span className="truncate">Add to Cart - {formatCurrency(calculateTotalPrice() * quantity)}</span>
+                    <span className="truncate">Add to Cart - {formatCurrency(calculateTotalPrice())}</span>
                   </Button>
                 </div>
               </div>
