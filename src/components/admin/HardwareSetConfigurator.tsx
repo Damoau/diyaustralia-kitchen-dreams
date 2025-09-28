@@ -92,7 +92,7 @@ export const HardwareSetConfigurator: React.FC<HardwareSetConfiguratorProps> = (
           hardware_brands (name),
           hardware_types (name, category)
         `)
-        .eq('hardware_types.category', category === 'hinge' ? 'hinges' : 'runners')
+        .eq('hardware_types.category', category)
         .eq('active', true);
       if (error) throw error;
       return data as HardwareProduct[];
