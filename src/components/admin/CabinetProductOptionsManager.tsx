@@ -504,12 +504,6 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
               </SelectTrigger>
               <SelectContent 
                 className="z-[9999] bg-background border shadow-lg max-h-[300px] overflow-y-auto"
-                position="popper"
-                side="bottom"
-                align="start"
-                sideOffset={4}
-                avoidCollisions={true}
-                onCloseAutoFocus={(e) => e.preventDefault()}
               >
                 <SelectItem value="select">Select (Dropdown)</SelectItem>
                 <SelectItem value="hinge_brand_set">Hinge Brand</SelectItem>
