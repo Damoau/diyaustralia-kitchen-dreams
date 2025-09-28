@@ -460,21 +460,6 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
       <DialogContent 
         className="max-w-4xl max-h-[90vh] overflow-y-auto"
         onWheel={(e) => e.stopPropagation()}
-        onInteractOutside={(e) => {
-          // Prevent closing when clicking on select dropdown or portal content
-          const target = e.target as Element;
-          if (target?.closest("[data-radix-select-content]") || 
-              target?.closest("[data-radix-popper-content-wrapper]") ||
-              target?.closest("[data-radix-select-viewport]") ||
-              target?.closest("[data-radix-select-item]") ||
-              target?.closest("[role='listbox']") ||
-              target?.closest("[role='option']") ||
-              target?.closest(".radix-select-content") ||
-              target?.getAttribute('data-radix-select-content') !== null ||
-              target?.getAttribute('data-radix-collection-item') !== null) {
-            e.preventDefault();
-          }
-        }}
       >
         <DialogHeader>
           <DialogTitle>
@@ -518,7 +503,13 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
                 <SelectValue placeholder="Choose option type..." />
               </SelectTrigger>
               <SelectContent 
-                className="z-[9999] bg-popover border shadow-lg max-h-[300px] overflow-y-auto"
+                className="z-[9999] bg-background border shadow-lg max-h-[300px] overflow-y-auto"
+                position="popper"
+                side="bottom"
+                align="start"
+                sideOffset={4}
+                avoidCollisions={true}
+                onCloseAutoFocus={(e) => e.preventDefault()}
               >
                 <SelectItem value="select">Select (Dropdown)</SelectItem>
                 <SelectItem value="hinge_brand_set">Hinge Brand</SelectItem>
