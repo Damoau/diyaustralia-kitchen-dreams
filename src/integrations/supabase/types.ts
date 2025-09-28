@@ -4726,6 +4726,10 @@ export type Database = {
         Args: { p_cart_id: string }
         Returns: undefined
       }
+      setup_door_hinge_options: {
+        Args: { p_cabinet_type_id: string; p_door_count: number }
+        Returns: undefined
+      }
       test_quote_requests_security_final: {
         Args: Record<PropertyKey, never>
         Returns: string
