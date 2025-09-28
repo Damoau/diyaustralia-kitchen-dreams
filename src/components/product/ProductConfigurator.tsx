@@ -17,7 +17,7 @@ import { StyleColorFinishSelector } from './StyleColorFinishSelector';
 import { useCartOptimized } from "@/hooks/useCartOptimized";
 import { useCartSaveTracking } from '@/hooks/useCartSaveTracking';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { Ruler, Palette, Settings, FileText, ShoppingCart, MapPin, AlertCircle, Calculator, Edit2, Plus, Minus, Quote } from 'lucide-react';
+import { Ruler, Palette, Settings, FileText, ShoppingCart, MapPin, AlertCircle, Calculator, Edit2, Plus, Minus, Quote, X } from 'lucide-react';
 import { useCabinetPreferences } from '@/hooks/useCabinetPreferences';
 import { CabinetType, CabinetPart, DoorStyle, Color, Finish, DoorStyleFinish, ColorFinish } from '@/types/cabinet';
 
@@ -927,19 +927,23 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         <div className="relative">
           {/* Mobile Sticky Price Bar - Top - Only show cabinet name */}
           {selectedCabinetType && (
-            <div className="lg:hidden sticky top-0 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground px-4 py-3 z-50 flex items-center justify-between shadow-lg">
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-base truncate">
-                  {selectedCabinetType.name}
-                </h3>
-                <div className="text-xs opacity-90">
-                  {selectedCabinetType.category}
-                </div>
-              </div>
-              <Badge variant="secondary" className="text-xs px-2 py-1 bg-white/20 text-white">
-                {quantity} item{quantity !== 1 ? 's' : ''}
-              </Badge>
-            </div>
+             <div className="lg:hidden sticky top-0 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground px-4 py-3 z-50 flex items-center justify-between shadow-lg">
+               <div className="flex-1 min-w-0">
+                 <h3 className="font-semibold text-base truncate">
+                   {selectedCabinetType.name}
+                 </h3>
+                 <div className="text-xs opacity-90">
+                   {selectedCabinetType.category}
+                 </div>
+               </div>
+               <button
+                 onClick={() => onOpenChange(false)}
+                 className="p-2 hover:bg-white/20 rounded-lg transition-colors flex items-center justify-center"
+                 aria-label="Close configurator"
+               >
+                 <X className="h-5 w-5" />
+               </button>
+             </div>
           )}
 
           {/* Header with integrated price display */}
