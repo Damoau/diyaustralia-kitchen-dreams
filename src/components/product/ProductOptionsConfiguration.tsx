@@ -11,7 +11,7 @@ import { Upload, X, FileText, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Define option types
-export type ProductOptionType = 'select' | 'text' | 'textarea' | 'file_upload';
+export type ProductOptionType = 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence';
 
 export interface ProductOptionConfig {
   id: string;
@@ -23,12 +23,20 @@ export interface ProductOptionConfig {
   fileTypes?: string[]; // For file upload type
   maxFileSize?: number; // In MB
   placeholder?: string;
+  priceAdjustments?: Record<string, number>; // Price adjustments for select options
 }
 
 export interface ProductOptionValue {
   optionId: string;
-  value: string | File | null;
+  value: string | File | BrandModelAttachmentValue | null;
   textValue?: string; // For display purposes
+  priceAdjustment?: number; // Price adjustment for this option
+}
+
+export interface BrandModelAttachmentValue {
+  brand: string;
+  model: string;
+  attachment?: File;
 }
 
 interface ProductOptionsConfigurationProps {
@@ -48,12 +56,13 @@ export const ProductOptionsConfiguration: React.FC<ProductOptionsConfigurationPr
 }) => {
   const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
 
-  const updateOptionValue = useCallback((optionId: string, value: string | File | null, textValue?: string) => {
+  const updateOptionValue = useCallback((optionId: string, value: string | File | BrandModelAttachmentValue | null, textValue?: string, priceAdjustment?: number) => {
     const newValues = values.filter(v => v.optionId !== optionId);
     newValues.push({
       optionId,
       value,
-      textValue
+      textValue,
+      priceAdjustment
     });
     onValuesChange(newValues);
   }, [values, onValuesChange]);
@@ -114,7 +123,10 @@ export const ProductOptionsConfiguration: React.FC<ProductOptionsConfigurationPr
         return (
           <Select
             value={currentValue?.value as string || ''}
-            onValueChange={(value) => updateOptionValue(option.id, value)}
+            onValueChange={(value) => {
+              const priceAdjustment = option.priceAdjustments?.[value] || 0;
+              updateOptionValue(option.id, value, value, priceAdjustment);
+            }}
             disabled={disabled}
           >
             <SelectTrigger>
@@ -123,7 +135,14 @@ export const ProductOptionsConfiguration: React.FC<ProductOptionsConfigurationPr
             <SelectContent>
               {option.options?.map((opt) => (
                 <SelectItem key={opt} value={opt}>
-                  {opt}
+                  <div className="flex justify-between items-center w-full">
+                    <span>{opt}</span>
+                    {option.priceAdjustments?.[opt] && option.priceAdjustments[opt] !== 0 && (
+                      <span className="text-sm text-muted-foreground ml-2">
+                        {option.priceAdjustments[opt] > 0 ? '+' : ''}${option.priceAdjustments[opt]}
+                      </span>
+                    )}
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -200,6 +219,117 @@ export const ProductOptionsConfiguration: React.FC<ProductOptionsConfigurationPr
               </div>
             )}
           </div>
+        );
+
+      case 'brand_model_attachment':
+        const brandModelValue = currentValue?.value as BrandModelAttachmentValue | undefined;
+        return (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor={`brand-${option.id}`}>Brand</Label>
+                <Input
+                  id={`brand-${option.id}`}
+                  value={brandModelValue?.brand || ''}
+                  onChange={(e) => {
+                    const newValue: BrandModelAttachmentValue = {
+                      brand: e.target.value,
+                      model: brandModelValue?.model || '',
+                      attachment: brandModelValue?.attachment
+                    };
+                    updateOptionValue(option.id, newValue, `${newValue.brand} ${newValue.model}`.trim());
+                  }}
+                  placeholder="Enter brand"
+                  disabled={disabled}
+                />
+              </div>
+              <div>
+                <Label htmlFor={`model-${option.id}`}>Model</Label>
+                <Input
+                  id={`model-${option.id}`}
+                  value={brandModelValue?.model || ''}
+                  onChange={(e) => {
+                    const newValue: BrandModelAttachmentValue = {
+                      brand: brandModelValue?.brand || '',
+                      model: e.target.value,
+                      attachment: brandModelValue?.attachment
+                    };
+                    updateOptionValue(option.id, newValue, `${newValue.brand} ${newValue.model}`.trim());
+                  }}
+                  placeholder="Enter model"
+                  disabled={disabled}
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor={`attachment-${option.id}`}>Attachment (Optional)</Label>
+              {brandModelValue?.attachment ? (
+                <div className="flex items-center gap-2 p-2 border rounded">
+                  <FileText className="h-4 w-4" />
+                  <span className="text-sm flex-1">{brandModelValue.attachment.name}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const newValue: BrandModelAttachmentValue = {
+                        brand: brandModelValue.brand,
+                        model: brandModelValue.model
+                      };
+                      updateOptionValue(option.id, newValue, `${newValue.brand} ${newValue.model}`.trim());
+                    }}
+                    disabled={disabled}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                  <input
+                    type="file"
+                    id={`attachment-${option.id}`}
+                    className="hidden"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const newValue: BrandModelAttachmentValue = {
+                          brand: brandModelValue?.brand || '',
+                          model: brandModelValue?.model || '',
+                          attachment: file
+                        };
+                        updateOptionValue(option.id, newValue, `${newValue.brand} ${newValue.model}`.trim());
+                      }
+                    }}
+                    disabled={disabled || isUploading}
+                  />
+                  <label
+                    htmlFor={`attachment-${option.id}`}
+                    className="cursor-pointer flex flex-col items-center gap-2"
+                  >
+                    <Upload className="h-6 w-6 text-gray-400" />
+                    <div className="text-center">
+                      <p className="text-sm font-medium">
+                        {isUploading ? 'Uploading...' : 'Click to upload file'}
+                      </p>
+                      <p className="text-xs text-gray-500">PDF, JPEG, PNG files</p>
+                    </div>
+                  </label>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 'card_sentence':
+        return (
+          <Textarea
+            value={currentValue?.value as string || ''}
+            onChange={(e) => updateOptionValue(option.id, e.target.value)}
+            placeholder="Enter text that will appear on the product card"
+            disabled={disabled}
+            rows={2}
+            className="resize-none"
+          />
         );
 
       default:

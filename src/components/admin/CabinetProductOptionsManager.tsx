@@ -31,6 +31,8 @@ interface CabinetOptionValue {
   display_text: string;
   display_order: number;
   active: boolean;
+  price_adjustment?: number;
+  card_display_position?: number;
 }
 
 interface CabinetProductOptionsManagerProps {
@@ -205,8 +207,23 @@ export const CabinetProductOptionsManager: React.FC<CabinetProductOptionsManager
                           .map((value) => (
                             <Badge key={value.id} variant="outline" className="text-xs">
                               {value.display_text}
+                              {value.price_adjustment && value.price_adjustment !== 0 && (
+                                <span className="ml-1 text-green-600">
+                                  ({value.price_adjustment > 0 ? '+' : ''}${value.price_adjustment})
+                                </span>
+                              )}
                             </Badge>
                           ))}
+                      </div>
+                    )}
+                    {option.option_type === 'brand_model_attachment' && (
+                      <div className="text-sm text-muted-foreground">
+                        Allows customers to specify brand, model, and upload attachments
+                      </div>
+                    )}
+                    {option.option_type === 'card_sentence' && (
+                      <div className="text-sm text-muted-foreground">
+                        Text that appears on the product card
                       </div>
                     )}
                   </div>
@@ -344,6 +361,8 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
                 <SelectItem value="text">Text Input</SelectItem>
                 <SelectItem value="textarea">Text Area</SelectItem>
                 <SelectItem value="file_upload">File Upload</SelectItem>
+                <SelectItem value="brand_model_attachment">Brand/Model/Attachment</SelectItem>
+                <SelectItem value="card_sentence">Product Card Sentence</SelectItem>
               </SelectContent>
             </Select>
           </div>

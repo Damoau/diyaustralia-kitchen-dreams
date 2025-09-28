@@ -458,28 +458,34 @@ export type Database = {
         Row: {
           active: boolean
           cabinet_option_id: string
+          card_display_position: number | null
           created_at: string
           display_order: number
           display_text: string
           id: string
+          price_adjustment: number | null
           value: string
         }
         Insert: {
           active?: boolean
           cabinet_option_id: string
+          card_display_position?: number | null
           created_at?: string
           display_order?: number
           display_text: string
           id?: string
+          price_adjustment?: number | null
           value: string
         }
         Update: {
           active?: boolean
           cabinet_option_id?: string
+          card_display_position?: number | null
           created_at?: string
           display_order?: number
           display_text?: string
           id?: string
+          price_adjustment?: number | null
           value?: string
         }
         Relationships: [

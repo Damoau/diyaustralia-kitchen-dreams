@@ -26,6 +26,10 @@ export const ProductOptionsDisplay: React.FC<ProductOptionsDisplayProps> = ({
     switch (option.type) {
       case 'file_upload':
         return value.textValue || 'File uploaded';
+      case 'brand_model_attachment':
+        return value.textValue || 'Brand/Model specified';
+      case 'card_sentence':
+        return value.value as string || '';
       case 'select':
       case 'text':
       case 'textarea':
@@ -58,15 +62,26 @@ export const ProductOptionsDisplay: React.FC<ProductOptionsDisplayProps> = ({
             <div key={value.optionId} className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 {option.type === 'file_upload' && <FileText className="h-4 w-4 text-muted-foreground" />}
+                {option.type === 'brand_model_attachment' && <Settings className="h-4 w-4 text-muted-foreground" />}
                 <span className="text-sm font-medium">{option.name}:</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">
                   {getDisplayValue(value)}
                 </span>
+                {value.priceAdjustment && value.priceAdjustment !== 0 && (
+                  <Badge variant="outline" className="text-xs">
+                    {value.priceAdjustment > 0 ? '+' : ''}${value.priceAdjustment}
+                  </Badge>
+                )}
                 {option.type === 'file_upload' && value.value && (
                   <Badge variant="secondary" className="text-xs">
                     PDF
+                  </Badge>
+                )}
+                {option.type === 'brand_model_attachment' && value.value && (
+                  <Badge variant="secondary" className="text-xs">
+                    Brand/Model
                   </Badge>
                 )}
               </div>

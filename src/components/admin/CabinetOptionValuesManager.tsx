@@ -16,6 +16,8 @@ interface CabinetOptionValue {
   display_text: string;
   display_order: number;
   active: boolean;
+  price_adjustment?: number;
+  card_display_position?: number;
 }
 
 interface CabinetOptionValuesManagerProps {
@@ -76,7 +78,9 @@ export const CabinetOptionValuesManager: React.FC<CabinetOptionValuesManagerProp
             value: valueData.value,
             display_text: valueData.display_text,
             display_order: valueData.display_order,
-            active: valueData.active
+            active: valueData.active,
+            price_adjustment: valueData.price_adjustment || 0,
+            card_display_position: valueData.card_display_position || null
           })
           .eq('id', editingValue.id);
 
@@ -90,7 +94,9 @@ export const CabinetOptionValuesManager: React.FC<CabinetOptionValuesManagerProp
             value: valueData.value,
             display_text: valueData.display_text,
             display_order: valueData.display_order || 0,
-            active: valueData.active ?? true
+            active: valueData.active ?? true,
+            price_adjustment: valueData.price_adjustment || 0,
+            card_display_position: valueData.card_display_position || null
           });
 
         if (error) throw error;
@@ -174,15 +180,25 @@ export const CabinetOptionValuesManager: React.FC<CabinetOptionValuesManagerProp
                 <div key={value.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <GripVertical className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{value.display_text}</span>
-                        <Badge variant={value.active ? 'default' : 'secondary'}>
-                          {value.active ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </div>
-                      <span className="text-sm text-muted-foreground">Value: {value.value}</span>
-                    </div>
+                     <div>
+                       <div className="flex items-center gap-2">
+                         <span className="font-medium">{value.display_text}</span>
+                         <Badge variant={value.active ? 'default' : 'secondary'}>
+                           {value.active ? 'Active' : 'Inactive'}
+                         </Badge>
+                         {value.price_adjustment && value.price_adjustment !== 0 && (
+                           <Badge variant="outline" className="text-xs">
+                             {value.price_adjustment > 0 ? '+' : ''}${value.price_adjustment}
+                           </Badge>
+                         )}
+                       </div>
+                       <div className="text-sm text-muted-foreground space-y-1">
+                         <div>Value: {value.value}</div>
+                         {value.card_display_position && (
+                           <div>Card Position: {value.card_display_position}</div>
+                         )}
+                       </div>
+                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
@@ -237,7 +253,9 @@ const ValueEditDialog: React.FC<ValueEditDialogProps> = ({
     value: '',
     display_text: '',
     display_order: 0,
-    active: true
+    active: true,
+    price_adjustment: 0,
+    card_display_position: 0
   });
 
   useEffect(() => {
@@ -246,14 +264,18 @@ const ValueEditDialog: React.FC<ValueEditDialogProps> = ({
         value: value.value,
         display_text: value.display_text,
         display_order: value.display_order,
-        active: value.active
+        active: value.active,
+        price_adjustment: value.price_adjustment || 0,
+        card_display_position: value.card_display_position || 0
       });
     } else {
       setFormData({
         value: '',
         display_text: '',
         display_order: 0,
-        active: true
+        active: true,
+        price_adjustment: 0,
+        card_display_position: 0
       });
     }
   }, [value]);
@@ -306,6 +328,35 @@ const ValueEditDialog: React.FC<ValueEditDialogProps> = ({
               value={formData.display_order}
               onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
             />
+          </div>
+
+          <div>
+            <Label htmlFor="price_adjustment">Price Adjustment ($)</Label>
+            <Input
+              id="price_adjustment"
+              type="number"
+              step="0.01"
+              value={formData.price_adjustment}
+              onChange={(e) => setFormData(prev => ({ ...prev, price_adjustment: parseFloat(e.target.value) || 0 }))}
+              placeholder="0.00"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Additional cost/discount for this option (use negative for discounts)
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="card_display_position">Card Display Position</Label>
+            <Input
+              id="card_display_position"
+              type="number"
+              value={formData.card_display_position}
+              onChange={(e) => setFormData(prev => ({ ...prev, card_display_position: parseInt(e.target.value) || 0 }))}
+              placeholder="0"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Position on product card (for card_sentence type options only)
+            </p>
           </div>
 
           <div className="flex items-center space-x-2">

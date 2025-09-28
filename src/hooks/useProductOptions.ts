@@ -47,7 +47,7 @@ export const useProductOptions = ({ cabinetTypeId, cabinetTypeName }: UseProduct
         const convertedOptions = customOptions.map(option => ({
           id: option.id,
           name: option.option_name,
-          type: option.option_type as 'select' | 'text' | 'textarea' | 'file_upload',
+          type: option.option_type as 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence',
           required: option.required,
           description: option.description,
           options: option.option_type === 'select' && option.cabinet_option_values 
@@ -55,6 +55,14 @@ export const useProductOptions = ({ cabinetTypeId, cabinetTypeName }: UseProduct
                 .filter((v: any) => v.active)
                 .sort((a: any, b: any) => a.display_order - b.display_order)
                 .map((v: any) => v.display_text)  // Just use display_text as string
+            : undefined,
+          priceAdjustments: option.option_type === 'select' && option.cabinet_option_values
+            ? option.cabinet_option_values
+                .filter((v: any) => v.active && v.price_adjustment)
+                .reduce((acc: Record<string, number>, v: any) => {
+                  acc[v.display_text] = v.price_adjustment;
+                  return acc;
+                }, {})
             : undefined,
           maxFileSize: option.option_type === 'file_upload' ? 5 : undefined,
           fileTypes: option.option_type === 'file_upload' ? ['image/*', '.pdf'] : undefined
