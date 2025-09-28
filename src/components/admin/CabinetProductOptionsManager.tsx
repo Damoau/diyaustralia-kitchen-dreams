@@ -13,7 +13,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { CabinetOptionValuesManager } from '@/components/admin/CabinetOptionValuesManager';
 import { HardwareSetConfigurator } from '@/components/admin/HardwareSetConfigurator';
-import { Plus, Trash2, Edit2, GripVertical, List, Settings } from 'lucide-react';
+import { Plus, Trash2, Edit2, GripVertical, List, Settings, DollarSign, Star } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { useHardwarePricing } from '@/hooks/useHardwarePricing';
 
 interface CabinetProductOption {
   id: string;
@@ -332,6 +334,15 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
     { value: '', display_text: '', price_adjustment: 0 }
   ]);
 
+  // Hardware brand configuration state
+  const [hardwareBrands, setHardwareBrands] = useState<Array<{ 
+    brandId: string; 
+    quantity: number; 
+    isDefault: boolean; 
+  }>>([]);
+
+  const { getHardwareOptions, calculateHardwareSetCost } = useHardwarePricing();
+
   useEffect(() => {
     if (option) {
       setFormData({
@@ -354,6 +365,10 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
       } else {
         setOptionValues([{ value: '', display_text: '', price_adjustment: 0 }]);
       }
+
+      // Reset hardware brands for new option
+      setHardwareBrands([]);
+      
     } else {
       setFormData({
         option_name: '',
@@ -365,8 +380,16 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
         active: true
       });
       setOptionValues([{ value: '', display_text: '', price_adjustment: 0 }]);
+      setHardwareBrands([]);
     }
   }, [option]);
+
+  // Reset hardware brands when option type changes
+  useEffect(() => {
+    if (formData.option_type !== 'hinge_brand_set' && formData.option_type !== 'runner_brand_set') {
+      setHardwareBrands([]);
+    }
+  }, [formData.option_type]);
 
   const addOptionValue = () => {
     setOptionValues([...optionValues, { value: '', display_text: '', price_adjustment: 0 }]);
@@ -435,7 +458,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="max-w-2xl"
+        className="max-w-4xl max-h-[90vh] overflow-y-auto"
         onWheel={(e) => e.stopPropagation()}
         onInteractOutside={(e) => {
           // Prevent closing when clicking on select dropdown or portal content
@@ -572,6 +595,15 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
             </div>
           )}
 
+          {/* Hardware Brand Configuration - Show for hinge_brand_set and runner_brand_set */}
+          {(formData.option_type === 'hinge_brand_set' || formData.option_type === 'runner_brand_set') && (
+            <HardwareBrandConfiguration
+              category={formData.option_type === 'hinge_brand_set' ? 'hinge' : 'runner'}
+              brands={hardwareBrands}
+              onBrandsChange={setHardwareBrands}
+            />
+          )}
+
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Switch
@@ -603,5 +635,247 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
         </div>
       </DialogContent>
     </Dialog>
+  );
+};
+
+// Hardware Brand Configuration Component
+interface HardwareBrandConfigurationProps {
+  category: 'hinge' | 'runner';
+  brands: Array<{ brandId: string; quantity: number; isDefault: boolean; }>;
+  onBrandsChange: (brands: Array<{ brandId: string; quantity: number; isDefault: boolean; }>) => void;
+}
+
+const HardwareBrandConfiguration: React.FC<HardwareBrandConfigurationProps> = ({
+  category,
+  brands,
+  onBrandsChange
+}) => {
+  const { getHardwareOptions, calculateHardwareSetCost } = useHardwarePricing();
+  
+  // Get available hardware options for this category
+  const availableOptions = getHardwareOptions(category) || [];
+  
+  const addBrand = () => {
+    if (availableOptions.length === 0) return;
+    
+    // Find first available brand that's not already selected
+    const unusedOption = availableOptions.find(opt => 
+      !brands.some(brand => brand.brandId === opt.id)
+    );
+    
+    if (unusedOption) {
+      const newBrands = [...brands, {
+        brandId: unusedOption.id,
+        quantity: 1,
+        isDefault: brands.length === 0 // First brand is default
+      }];
+      onBrandsChange(newBrands);
+    }
+  };
+
+  const removeBrand = (index: number) => {
+    const newBrands = brands.filter((_, i) => i !== index);
+    // If we removed the default brand, make the first remaining brand default
+    if (newBrands.length > 0 && !newBrands.some(b => b.isDefault)) {
+      newBrands[0].isDefault = true;
+    }
+    onBrandsChange(newBrands);
+  };
+
+  const updateBrand = (index: number, field: keyof typeof brands[0], value: any) => {
+    const newBrands = [...brands];
+    
+    if (field === 'isDefault' && value) {
+      // If setting this as default, remove default from others
+      newBrands.forEach((brand, i) => {
+        brand.isDefault = i === index;
+      });
+    } else {
+      newBrands[index] = { ...newBrands[index], [field]: value };
+    }
+    
+    onBrandsChange(newBrands);
+  };
+
+  const getHardwareOptionById = (id: string) => {
+    return availableOptions.find(opt => opt.id === id);
+  };
+
+  if (availableOptions.length === 0) {
+    return (
+      <div className="space-y-3">
+        <Label>Hardware Brand Configuration</Label>
+        <div className="p-4 border rounded-lg bg-muted/30">
+          <p className="text-sm text-muted-foreground">
+            No {category} hardware sets available. Please configure hardware sets first.
+          </p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mt-2"
+            onClick={() => {
+              // This could trigger opening the hardware set configurator
+              console.log('Open hardware set configurator for', category);
+            }}
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Configure Hardware Sets
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-between items-center">
+        <Label>Hardware Brand Configuration</Label>
+        <Button 
+          type="button" 
+          variant="outline" 
+          size="sm" 
+          onClick={addBrand}
+          disabled={brands.length >= availableOptions.length}
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Add Brand
+        </Button>
+      </div>
+      
+      {brands.length === 0 ? (
+        <div className="p-4 border-2 border-dashed rounded-lg text-center">
+          <p className="text-sm text-muted-foreground mb-2">
+            No {category} brands configured yet
+          </p>
+          <Button variant="outline" size="sm" onClick={addBrand}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add First Brand
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-3 max-h-64 overflow-y-auto">
+          {brands.map((brand, index) => {
+            const hardwareOption = getHardwareOptionById(brand.brandId);
+            const pricing = hardwareOption?.pricing;
+            
+            return (
+              <div key={index} className="p-3 border rounded-lg bg-background">
+                <div className="grid grid-cols-12 gap-3 items-center">
+                  {/* Brand Selection */}
+                  <div className="col-span-4">
+                    <Label className="text-xs">Brand</Label>
+                    <Select
+                      value={brand.brandId}
+                      onValueChange={(value) => updateBrand(index, 'brandId', value)}
+                    >
+                      <SelectTrigger className="h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="z-50 bg-background border shadow-lg">
+                        {availableOptions.map((option) => (
+                          <SelectItem 
+                            key={option.id} 
+                            value={option.id}
+                            disabled={brands.some(b => b.brandId === option.id && b.brandId !== brand.brandId)}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>{option.name}</span>
+                              {option.isDefault && (
+                                <Badge variant="secondary" className="text-xs">Global Default</Badge>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Quantity */}
+                  <div className="col-span-2">
+                    <Label className="text-xs">Quantity</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={brand.quantity}
+                      onChange={(e) => updateBrand(index, 'quantity', parseInt(e.target.value) || 1)}
+                      className="h-8"
+                    />
+                  </div>
+
+                  {/* Pricing Display */}
+                  <div className="col-span-3">
+                    <Label className="text-xs">Price (Auto)</Label>
+                    <div className="flex items-center gap-1 text-sm">
+                      <DollarSign className="h-3 w-3" />
+                      <span className="font-medium">
+                        {pricing ? (pricing.finalCost * brand.quantity).toFixed(2) : '0.00'}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        (${pricing?.finalCost.toFixed(2) || '0.00'} × {brand.quantity})
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Default Toggle */}
+                  <div className="col-span-2 flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-1">
+                      <Label className="text-xs">Default</Label>
+                      <Button
+                        type="button"
+                        variant={brand.isDefault ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => updateBrand(index, 'isDefault', true)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <Star className={`h-3 w-3 ${brand.isDefault ? 'fill-current' : ''}`} />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Remove Button */}
+                  <div className="col-span-1 flex justify-center">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeBrand(index)}
+                      className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Additional Info */}
+                {hardwareOption && pricing && (
+                  <div className="mt-2 text-xs text-muted-foreground bg-muted/30 p-2 rounded">
+                    <div className="grid grid-cols-2 gap-2">
+                      <span>Base Cost: ${pricing.baseCost.toFixed(2)}</span>
+                      <span>Final Cost: ${pricing.finalCost.toFixed(2)}</span>
+                      {pricing.markup > 0 && (
+                        <span>Markup: {pricing.markup}%</span>
+                      )}
+                      {pricing.discount > 0 && (
+                        <span>Discount: {pricing.discount}%</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+      
+      <div className="text-xs text-muted-foreground bg-blue-50 p-3 rounded border border-blue-200">
+        <p className="font-medium text-blue-900 mb-1">Hardware Brand Configuration:</p>
+        <ul className="space-y-1 text-blue-800">
+          <li>• Pricing is automatically linked to global hardware settings</li>
+          <li>• Quantity multiplies the base price for total cost calculation</li>
+          <li>• Default brand will be pre-selected for customers</li>
+          <li>• Customers can change brands and see updated pricing</li>
+        </ul>
+      </div>
+    </div>
   );
 };
