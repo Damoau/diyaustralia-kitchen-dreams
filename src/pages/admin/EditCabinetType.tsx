@@ -104,11 +104,11 @@ interface HardwareType {
 }
 
 const defaultCabinetType: CabinetType = {
-  id: "",
+  id: undefined as any, // Will be omitted for new records
   name: "",
   category: "",
   subcategory: "",
-  room_category_id: "",
+  room_category_id: undefined as any,
   cabinet_style: "standard",
   active: true,
   door_count: 0,
@@ -385,18 +385,29 @@ export default function EditCabinetType() {
   // Save cabinet type mutation
   const saveCabinetType = useMutation({
     mutationFn: async (data: CabinetType) => {
+      // Clean data to prevent UUID validation errors
+      const cleanedData = {
+        ...data,
+        // Convert empty strings to null for optional UUID fields
+        room_category_id: data.room_category_id === "" ? null : data.room_category_id,
+        category_id: (data as any).category_id === "" ? null : (data as any).category_id,
+        subcategory_id: (data as any).subcategory_id === "" ? null : (data as any).subcategory_id,
+        range_id: (data as any).range_id === "" ? null : (data as any).range_id,
+      };
+
       if (data.id && id !== 'new') {
         // Update existing
         const { error } = await supabase
           .from('cabinet_types')
-          .update(data)
+          .update(cleanedData)
           .eq('id', data.id);
         if (error) throw error;
       } else {
-        // Create new
+        // Create new - omit the id field
+        const { id: _, ...dataForInsert } = cleanedData;
         const { data: newData, error } = await supabase
           .from('cabinet_types')
-          .insert([data])
+          .insert([dataForInsert])
           .select()
           .single();
         if (error) throw error;
