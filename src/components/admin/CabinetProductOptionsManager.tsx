@@ -378,7 +378,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="z-[100000]">
+              <SelectContent className="z-[999999]" sideOffset={5}>
                 <SelectItem value="select">Select (Dropdown)</SelectItem>
                 <SelectItem value="text">Text Input</SelectItem>
                 <SelectItem value="textarea">Text Area</SelectItem>
