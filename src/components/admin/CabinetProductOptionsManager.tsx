@@ -323,7 +323,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
   const [formData, setFormData] = useState({
     option_name: '',
     display_name: '',
-    option_type: '', // Changed from 'select' to empty string
+    option_type: undefined as string | undefined, // Changed to undefined to ensure proper Select behavior
     display_order: 0,
     required: false,
     description: '',
@@ -373,7 +373,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
       setFormData({
         option_name: '',
         display_name: '',
-        option_type: '', // Changed from 'select' to empty string
+        option_type: undefined, // Changed from empty string to undefined
         display_order: 0,
         required: false,
         description: '',
@@ -456,10 +456,12 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onClose} modal={false}>
       <DialogContent 
         className="max-w-4xl max-h-[90vh] overflow-y-auto"
         onWheel={(e) => e.stopPropagation()}
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
           <DialogTitle>
@@ -496,15 +498,13 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
           <div>
             <Label htmlFor="option_type">Option Type</Label>
             <Select
-              value={formData.option_type}
-              onValueChange={(value: any) => setFormData(prev => ({ ...prev, option_type: value }))}
+              value={formData.option_type || ''}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, option_type: value }))}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Choose option type..." />
               </SelectTrigger>
-              <SelectContent 
-                className="z-[9999] bg-background border shadow-lg max-h-[300px] overflow-y-auto"
-              >
+              <SelectContent>
                 <SelectItem value="select">Select (Dropdown)</SelectItem>
                 <SelectItem value="hinge_brand_set">Hinge Brand</SelectItem>
                 <SelectItem value="runner_brand_set">Runner Brand</SelectItem>
