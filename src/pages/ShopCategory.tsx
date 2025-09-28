@@ -221,8 +221,8 @@ const CategoryPage = () => {
         
           {/* Sticky Filter Dropdown */}
           {showStickyFilter && subcategories.length > 0 && (
-            <div className="fixed top-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b shadow-sm">
-              <div className="max-w-7xl mx-auto px-6 py-3">
+            <div className="fixed top-14 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b shadow-sm">
+              <div className="max-w-7xl mx-auto px-6 py-2">
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-medium text-muted-foreground">Filter:</span>
                   <Select
@@ -254,7 +254,7 @@ const CategoryPage = () => {
             </div>
           )}
         
-          <main className="w-full px-6 py-8 mobile-safe-bottom">
+          <main className={`w-full px-6 py-8 mobile-safe-bottom ${showStickyFilter ? 'pt-20' : ''}`}>
           {/* Breadcrumbs */}
           <Breadcrumb className="mb-8">
             <BreadcrumbList>
