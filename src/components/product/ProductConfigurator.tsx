@@ -1384,18 +1384,15 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                     +
                   </Button>
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1">
                   <Button
                     onClick={handleAddToCart}
                     size="lg"
-                    className="w-full h-10 min-w-0 justify-start text-left overflow-hidden"
+                    className="w-full h-10 min-w-0"
                     disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish || !validateRequiredOptions()}
                   >
                     <ShoppingCart className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <div className="flex-1 min-w-0 truncate">
-                      <span className="block truncate">Add to Cart</span>
-                      <span className="block text-xs opacity-75 truncate">{formatCurrency(calculateTotalPrice())}</span>
-                    </div>
+                    <span className="truncate">Add to Cart - {formatCurrency(calculateTotalPrice())}</span>
                   </Button>
                 </div>
               </div>
