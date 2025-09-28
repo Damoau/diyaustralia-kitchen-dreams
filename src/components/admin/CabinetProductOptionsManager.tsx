@@ -411,7 +411,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl z-[100000]">
         <DialogHeader>
           <DialogTitle>
             {option ? 'Edit Product Option' : 'Add Product Option'}
@@ -453,7 +453,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="z-[999999]" sideOffset={5}>
+              <SelectContent className="z-[100001]" position="popper" side="bottom" align="start">
                 <SelectItem value="select">Select (Dropdown)</SelectItem>
                 <SelectItem value="text">Text Input</SelectItem>
                 <SelectItem value="textarea">Text Area</SelectItem>
