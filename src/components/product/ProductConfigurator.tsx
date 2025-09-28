@@ -1388,7 +1388,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                   <Button
                     onClick={handleAddToCart}
                     size="lg"
-                    className="w-[240px] sm:w-full h-10 sm:max-w-[280px] pl-[15px]"
+                    className="w-[180px] sm:w-full h-10 sm:max-w-[280px] pl-[15px]"
                     disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish || !validateRequiredOptions()}
                   >
                     <ShoppingCart className="w-4 h-4 mr-2 flex-shrink-0" />
