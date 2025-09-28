@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -916,6 +916,11 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="product-configurator-modal mobile-modal-high-z bg-background border shadow-2xl overflow-hidden p-0 !max-w-none w-[95vw]">
+        {/* Custom close button for white color */}
+        <DialogClose className="absolute right-4 top-4 z-10 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-white">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogClose>
         {/* Debug info - Remove after testing */}
         {!selectedCabinetType && open && (
           <div className="p-4 text-center">
@@ -1386,13 +1391,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                     className="w-full h-10 max-w-[280px]"
                     disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish || !validateRequiredOptions()}
                   >
-                    <div className="flex items-center w-full">
-                      <ShoppingCart className="w-4 h-4 mr-2 flex-shrink-0" />
-                      <div className="flex flex-col items-start min-w-0 flex-1">
-                        <span className="text-sm font-medium leading-none">Add to Cart</span>
-                        <span className="text-xs opacity-90 leading-none mt-0.5">{formatCurrency(calculateTotalPrice())}</span>
-                      </div>
-                    </div>
+                    <ShoppingCart className="w-4 h-4 mr-3 flex-shrink-0" />
+                    <span className="text-sm font-medium truncate">Add to Cart - {formatCurrency(calculateTotalPrice())}</span>
                   </Button>
                 </div>
               </div>
