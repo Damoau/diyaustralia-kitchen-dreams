@@ -1362,7 +1362,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
             <div className="max-w-md mx-auto space-y-3">
               {/* Quantity and Add to Cart in same row */}
               <div className="flex gap-3 items-center">
-                <div className="flex-shrink-0 flex items-center border rounded-md h-10">
+                <div className="w-[100px] flex items-center border rounded-md h-10">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -1388,10 +1388,10 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                   <Button
                     onClick={handleAddToCart}
                     size="lg"
-                    className="w-full h-10 max-w-[280px] pl-[15px]"
+                    className="w-[240px] sm:w-full h-10 sm:max-w-[280px] pl-[15px]"
                     disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish || !validateRequiredOptions()}
                   >
-                    <ShoppingCart className="w-4 h-4 mr-3 flex-shrink-0" />
+                    <ShoppingCart className="w-4 h-4 mr-2 flex-shrink-0" />
                     <span className="text-sm font-medium truncate">Add to Cart - {formatCurrency(calculateTotalPrice())}</span>
                   </Button>
                 </div>
