@@ -1133,22 +1133,9 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                       </CardContent>
                     </Card>
 
-                    {/* Hardware & Quantity */}
+                    {/* Quantity */}
                     <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5">
                       <CardContent className="pt-6 space-y-4">
-                        <div>
-                          <Label className="text-sm font-medium mb-2 block">Hardware Brand</Label>
-                          <Select>
-                            <SelectTrigger className="h-10 border-2 focus:border-primary/50">
-                              <SelectValue placeholder="Select brand" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="blum">Blum</SelectItem>
-                              <SelectItem value="hettich">Hettich</SelectItem>
-                              <SelectItem value="hafele">Häfele</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
                         <div>
                           <Label className="text-sm font-medium mb-2 block">Quantity</Label>
                           <Input

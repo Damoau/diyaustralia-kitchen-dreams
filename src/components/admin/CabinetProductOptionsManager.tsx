@@ -411,7 +411,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl z-[100000]">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
             {option ? 'Edit Product Option' : 'Add Product Option'}
