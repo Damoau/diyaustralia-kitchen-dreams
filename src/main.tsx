@@ -4,6 +4,9 @@ import App from './App.tsx'
 import './index.css'
 import { QueryProvider } from './providers/QueryProvider.tsx';
 
+// Import hinge options simulation for testing
+import './utils/hingeOptionsSimulation.ts';
+
 // Only reset user session on specific conditions (not every page load)
 const shouldResetSession = () => {
   // Reset if it's a fresh browser session (no sessionStorage data)
