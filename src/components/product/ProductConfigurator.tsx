@@ -926,27 +926,22 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         
         <div className="relative">
           {/* Header with integrated price display */}
-          <div className="px-6 py-4 border-b bg-gradient-to-r from-background to-secondary/5">
+          <div className="px-6 py-4 border-b bg-primary">
             <DialogHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <DialogTitle className="text-xl">
+                  <DialogTitle className="text-xl text-white">
                     {selectedCabinetType?.name || 'Configure Product'}
                   </DialogTitle>
-                  {selectedCabinetType && (
-                    <Badge variant="outline" className="text-xs font-medium">
-                      {selectedCabinetType.category}
-                    </Badge>
-                  )}
                 </div>
                 {/* Desktop Price Display - Integrated in Header */}
                 {selectedCabinetType && (
                   <div className="hidden lg:flex items-center gap-4">
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-primary">
+                      <div className="text-2xl font-bold text-white">
                         {formatCurrency(calculateTotalPrice())}
                       </div>
-                      <div className="text-xs text-muted-foreground">Total Price</div>
+                      <div className="text-xs text-white/80">Total Price</div>
                     </div>
                     <Badge variant="secondary" className="text-xs px-3 py-1">
                       {quantity} item{quantity !== 1 ? 's' : ''}
@@ -1388,11 +1383,16 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                   <Button
                     onClick={handleAddToCart}
                     size="lg"
-                    className="w-full h-10 min-w-0"
+                    className="w-full h-10 max-w-[280px]"
                     disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish || !validateRequiredOptions()}
                   >
-                    <ShoppingCart className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span className="truncate">Add to Cart - {formatCurrency(calculateTotalPrice())}</span>
+                    <div className="flex items-center w-full">
+                      <ShoppingCart className="w-4 h-4 mr-2 flex-shrink-0" />
+                      <div className="flex flex-col items-start min-w-0 flex-1">
+                        <span className="text-sm font-medium leading-none">Add to Cart</span>
+                        <span className="text-xs opacity-90 leading-none mt-0.5">{formatCurrency(calculateTotalPrice())}</span>
+                      </div>
+                    </div>
                   </Button>
                 </div>
               </div>
