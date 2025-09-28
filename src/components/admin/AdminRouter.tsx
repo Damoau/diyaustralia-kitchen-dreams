@@ -26,6 +26,7 @@ const LazyAdminAnalytics = lazy(() => import('../../pages/admin/AdminAnalytics')
 const CabinetManager = lazy(() => import('./CabinetManager'));
 
 const HardwareManager = lazy(() => import('@/components/admin/HardwareManager'));
+const HardwareSettings = lazy(() => import('@/pages/admin/HardwareSettings'));
 const Discounts = lazy(() => import('@/pages/admin/Discounts'));
 const Users = lazy(() => import('@/pages/admin/Users'));
 const ProductsManager = lazy(() => import('@/components/admin/ProductsManager'));
@@ -63,6 +64,7 @@ export const AdminRouter = () => {
             <Route path="orders" element={<AdminOrders />} />
             <Route path="production" element={<Production />} />
             <Route path="shipping" element={<AdminShipping />} />
+            <Route path="assembly" element={<Assembly />} />
           {/* Configuration */}
           <Route path="categories" element={<UnifiedCategoriesManager />} />
           <Route path="room-categories" element={<RoomCategoriesManager />} />
@@ -76,6 +78,11 @@ export const AdminRouter = () => {
             <Route path="hardware-manager" element={
               <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
                 <HardwareManager />
+              </Suspense>
+            } />
+            <Route path="hardware-settings" element={
+              <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+                <HardwareSettings />
               </Suspense>
             } />
             <Route path="materials" element={<Pricing />} />

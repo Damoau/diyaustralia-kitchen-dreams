@@ -73,8 +73,9 @@ const navigationItems = [
     items: [
       { title: 'Categories', url: 'categories', icon: Home },
       { title: 'Cabinet Management', url: 'cabinets', icon: Package },
-      { title: 'Door Styles & Colors', url: 'door-styles', icon: Palette },
       { title: 'Hardware Manager', url: 'hardware-manager', icon: Wrench },
+      { title: 'Hardware Settings', url: 'hardware-settings', icon: Settings },
+      { title: 'Door Styles & Colors', url: 'door-styles', icon: Palette },
       { title: 'Materials & Pricing', url: 'materials', icon: DollarSign },
       { title: 'Configuration Migration', url: 'configuration-migration', icon: MapPin },
       { title: 'Discounts', url: 'discounts', icon: DollarSign },
