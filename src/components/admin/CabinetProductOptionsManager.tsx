@@ -660,8 +660,8 @@ const HardwareBrandConfiguration: React.FC<HardwareBrandConfigurationProps> = ({
   
   // Group hardware options by brand
   const brandGroups = allHardwareOptions.reduce((acc, option) => {
-    // Extract brand name from the option name (assuming format like "Blum Standard Hinge Set")
-    const brandName = option.name.split(' ')[0]; // Gets "Blum" or "Titus"
+    // Use the brandName property from the hardware set data
+    const brandName = option.brandName;
     if (!acc[brandName]) {
       acc[brandName] = [];
     }
