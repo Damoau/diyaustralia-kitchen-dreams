@@ -747,11 +747,7 @@ const HardwareBrandConfiguration: React.FC<HardwareBrandConfigurationProps> = ({
             <SelectTrigger className="w-full">
               <SelectValue placeholder={`Choose ${category} brand...`} />
             </SelectTrigger>
-            <SelectContent 
-              className="z-[100] bg-background border shadow-lg"
-              position="popper"
-              sideOffset={5}
-            >
+            <SelectContent>
               {availableBrands.map((brandName) => (
                 <SelectItem key={brandName} value={brandName}>
                   <div className="flex items-center gap-2">
