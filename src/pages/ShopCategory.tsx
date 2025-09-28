@@ -271,9 +271,9 @@ const CategoryPage = () => {
             </div>
           )}
         
-          <main className={`w-full px-6 py-8 mobile-safe-bottom ${showStickyFilter ? 'pt-20' : ''}`}>
+          <main className={`w-full px-6 py-8 mobile-safe-bottom ${showStickyFilter ? 'pt-16' : ''}`}>
           {/* Breadcrumbs */}
-          <Breadcrumb className="mb-8">
+          <Breadcrumb className={`mb-8 ${showStickyFilter ? 'hidden' : ''}`}>
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
@@ -300,7 +300,7 @@ const CategoryPage = () => {
           </Breadcrumb>
 
           {/* Category Header */}
-          <div className="text-center mb-12">
+          <div className={`text-center mb-12 ${showStickyFilter ? 'hidden' : ''}`}>
             <h1 className="text-4xl font-bold mb-4">{displayCategory} {roomCategory?.display_name}</h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Discover our premium {displayCategory.toLowerCase()} designed for {roomCategory?.display_name?.toLowerCase() || 'your space'}. 
@@ -310,7 +310,7 @@ const CategoryPage = () => {
 
           {/* Subcategory Filter Buttons */}
           {subcategories.length > 0 && (
-            <div ref={filterSectionRef} className="mb-8">
+            <div ref={filterSectionRef} className={`mb-8 ${showStickyFilter ? 'hidden' : ''}`}>
               <div className="flex flex-wrap gap-3 justify-center">
                 <Button
                   variant={activeSubcategory === "all" ? "default" : "outline"}
