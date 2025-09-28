@@ -343,7 +343,7 @@ export const ProductOptionsConfiguration: React.FC<ProductOptionsConfigurationPr
 
   return (
     <Card>
-      <CardContent className="space-y-6">
+      <CardContent className="p-8 space-y-8">
         {options.map((option, index) => (
           <div key={option.id}>
             <div className="space-y-2">
