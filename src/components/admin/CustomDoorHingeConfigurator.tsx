@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Trash2, DoorOpen, ArrowLeft, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -147,6 +147,9 @@ export const CustomDoorHingeConfigurator: React.FC<CustomDoorHingeConfiguratorPr
             <DoorOpen className="h-5 w-5" />
             Custom Door Hinge Configuration
           </DialogTitle>
+          <DialogDescription>
+            Create a custom hinge configuration for this cabinet type by specifying the hinge side for each door.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6">
@@ -184,16 +187,16 @@ export const CustomDoorHingeConfigurator: React.FC<CustomDoorHingeConfiguratorPr
                     </div>
                     
                     <div className="flex items-center gap-2">
-                      <Select
-                        value={door.hingeSide}
-                        onValueChange={(value: 'Left' | 'Right') => 
-                          handleDoorHingeChange(door.doorNumber, value)
-                        }
-                      >
+                        <Select
+                          value={door.hingeSide}
+                          onValueChange={(value: 'Left' | 'Right') => 
+                            handleDoorHingeChange(door.doorNumber, value)
+                          }
+                        >
                         <SelectTrigger className="w-32">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="z-[1000000]">
                           <SelectItem value="Left">
                             <div className="flex items-center gap-2">
                               <ArrowLeft className="h-4 w-4" />
