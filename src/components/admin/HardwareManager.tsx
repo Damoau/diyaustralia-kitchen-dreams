@@ -159,16 +159,28 @@ export const HardwareManager: React.FC = () => {
   // Save product mutation
   const saveProductMutation = useMutation({
     mutationFn: async (product: HardwareProduct) => {
+      // Filter out nested objects that come from joins
+      const productData = {
+        name: product.name,
+        hardware_brand_id: product.hardware_brand_id,
+        hardware_type_id: product.hardware_type_id,
+        model_number: product.model_number,
+        cost_per_unit: product.cost_per_unit,
+        markup_percentage: product.markup_percentage,
+        description: product.description,
+        active: product.active,
+      };
+
       if (product.id) {
         const { error } = await supabase
           .from('hardware_products')
-          .update(product)
+          .update(productData)
           .eq('id', product.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('hardware_products')
-          .insert(product);
+          .insert(productData);
         if (error) throw error;
       }
     },
