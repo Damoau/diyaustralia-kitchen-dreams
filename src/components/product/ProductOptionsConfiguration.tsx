@@ -377,24 +377,6 @@ export const ProductOptionsConfiguration: React.FC<ProductOptionsConfigurationPr
 export const getDefaultCabinetOptions = (cabinetType: string): ProductOptionConfig[] => {
   const baseOptions: ProductOptionConfig[] = [];
 
-  // Add hinge configuration for door cabinets
-  if (cabinetType.includes('door') || cabinetType.toLowerCase().includes('door')) {
-    baseOptions.push({
-      id: 'hinge_configuration',
-      name: 'Hinge Configuration',
-      type: 'select',
-      required: true,
-      description: 'Select the hinge configuration for your cabinet doors',
-      options: [
-        'Left-handed',
-        'Right-handed', 
-        'Left-Left-Right',
-        'Right-Right-Left',
-        'Both sides (reversible)'
-      ]
-    });
-  }
-
   // Add appliance integration options for kitchen cabinets
   if (cabinetType.toLowerCase().includes('kitchen') || cabinetType.toLowerCase().includes('appliance')) {
     baseOptions.push(

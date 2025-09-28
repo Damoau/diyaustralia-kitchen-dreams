@@ -24,20 +24,6 @@ export const ProductOptionsExample: React.FC = () => {
       name: 'Kitchen Door Cabinet',
       options: [
         {
-          id: 'hinge_configuration',
-          name: 'Hinge Configuration',
-          type: 'select' as const,
-          required: true,
-          description: 'Select the hinge configuration for your cabinet doors',
-          options: [
-            'Left-handed',
-            'Right-handed', 
-            'Left-Left-Right',
-            'Right-Right-Left',
-            'Both sides (reversible)'
-          ]
-        },
-        {
           id: 'appliance_brand',
           name: 'Appliance Brand',
           type: 'text' as const,
