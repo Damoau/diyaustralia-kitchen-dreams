@@ -411,7 +411,17 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent 
+        className="max-w-2xl"
+        onWheel={(e) => e.stopPropagation()}
+        onInteractOutside={(e) => {
+          // Prevent closing when clicking on select dropdown
+          const target = e.target as Element;
+          if (target?.closest("[data-radix-select-content]")) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>
             {option ? 'Edit Product Option' : 'Add Product Option'}
@@ -453,7 +463,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="z-[100001]" position="popper" side="bottom" align="start">
+              <SelectContent>
                 <SelectItem value="select">Select (Dropdown)</SelectItem>
                 <SelectItem value="text">Text Input</SelectItem>
                 <SelectItem value="textarea">Text Area</SelectItem>
