@@ -20,6 +20,7 @@ import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { Ruler, Palette, Settings, FileText, ShoppingCart, MapPin, AlertCircle, Calculator, Edit2, Plus, Minus, Quote } from 'lucide-react';
 import { useCabinetPreferences } from '@/hooks/useCabinetPreferences';
 import { CabinetType, CabinetPart, DoorStyle, Color, Finish, DoorStyleFinish, ColorFinish } from '@/types/cabinet';
+import { HardwareSelector } from './HardwareSelector';
 import { ItemNamingDialog } from './ItemNamingDialog';
 import { useAddToQuote } from '@/hooks/useAddToQuote';
 import { ProductOptionsConfiguration } from './ProductOptionsConfiguration';
