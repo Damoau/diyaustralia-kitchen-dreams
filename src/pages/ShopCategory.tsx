@@ -221,7 +221,7 @@ const CategoryPage = () => {
         
           {/* Sticky Filter Dropdown */}
           {showStickyFilter && subcategories.length > 0 && (
-            <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b shadow-sm">
+            <div className="fixed top-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b shadow-sm">
               <div className="max-w-7xl mx-auto px-6 py-3">
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-medium text-muted-foreground">Filter:</span>
