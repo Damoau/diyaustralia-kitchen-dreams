@@ -915,7 +915,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="product-configurator-modal mobile-modal-high-z bg-background border shadow-2xl overflow-hidden p-0 max-w-7xl w-[95vw]">
+      <DialogContent className="product-configurator-modal mobile-modal-high-z bg-background border shadow-2xl overflow-hidden p-0 !max-w-none w-[95vw]">
         {/* Debug info - Remove after testing */}
         {!selectedCabinetType && open && (
           <div className="p-4 text-center">

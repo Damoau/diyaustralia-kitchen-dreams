@@ -149,21 +149,28 @@ All colors MUST be HSL.
     max-height: min(95vh, 900px) !important;
   }
 
-  /* Product configurator specific styling */
-  .product-configurator-modal {
+  /* Product configurator specific styling - Higher specificity to override base dialog */
+  .product-configurator-modal.mobile-modal-high-z[data-state="open"] {
     width: 95vw !important;
     max-width: 1800px !important;
     min-width: 320px !important;
   }
 
+  /* Override the default max-w-lg from DialogContent base styles */
+  .product-configurator-modal {
+    max-width: 1800px !important;
+  }
+
   /* Ultra-wide screen optimizations */
   @media (min-width: 1400px) {
+    .product-configurator-modal.mobile-modal-high-z[data-state="open"],
     .product-configurator-modal {
       max-width: 2000px !important;
     }
   }
 
   @media (min-width: 1600px) {
+    .product-configurator-modal.mobile-modal-high-z[data-state="open"],
     .product-configurator-modal {
       max-width: 2200px !important;
     }
