@@ -1151,7 +1151,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
                     {/* Product Options Configuration */}
                     <ProductOptionsConfiguration
-                      cabinetTypeId={selectedCabinetType.id}
+                      cabinetType={selectedCabinetType}
                       options={productOptions}
                       values={productOptionValues}
                       onValuesChange={updateProductOptionValues}

@@ -20,6 +20,8 @@ interface MaterialSettings {
   default_weight_multiplier: string;
   thickness_adjustment_factor: string;
   heavy_material_rate: string;
+  hardware_markup_percentage: string;
+  hardware_discount_percentage: string;
 }
 
 export default function Pricing() {
@@ -27,7 +29,9 @@ export default function Pricing() {
     mat_rate_per_sqm: '',
     default_weight_multiplier: '1.20',
     thickness_adjustment_factor: '0.95',
-    heavy_material_rate: '150'
+    heavy_material_rate: '150',
+    hardware_markup_percentage: '35',
+    hardware_discount_percentage: '0'
   });
   const [isLoading, setIsLoading] = useState(false);
   
@@ -44,7 +48,9 @@ export default function Pricing() {
           'mat_rate_per_sqm',
           'default_weight_multiplier', 
           'thickness_adjustment_factor',
-          'heavy_material_rate'
+          'heavy_material_rate',
+          'hardware_markup_percentage',
+          'hardware_discount_percentage'
         ]);
       
       if (error) throw error;
@@ -117,6 +123,16 @@ export default function Pricing() {
           key: 'heavy_material_rate',
           value: materialSettings.heavy_material_rate,
           description: 'Heavy Material Rate (HMR) for dense materials per square meter'
+        },
+        {
+          key: 'hardware_markup_percentage',
+          value: materialSettings.hardware_markup_percentage,
+          description: 'Default markup percentage applied to hardware costs'
+        },
+        {
+          key: 'hardware_discount_percentage',
+          value: materialSettings.hardware_discount_percentage,
+          description: 'Default discount percentage applied to hardware after markup'
         }
       ];
       
@@ -135,9 +151,9 @@ export default function Pricing() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Materials Settings</h1>
+          <h1 className="text-3xl font-bold">Pricing Settings</h1>
           <p className="text-muted-foreground">
-            Configure global material rate for cabinet pricing formulas
+            Configure global material rates and hardware pricing for cabinet formulas
           </p>
         </div>
         <div className="flex gap-2">
@@ -157,7 +173,7 @@ export default function Pricing() {
       </div>
 
       {/* Material Settings Cards */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Standard Material Rate */}
         <Card>
           <CardHeader>
@@ -282,6 +298,70 @@ export default function Pricing() {
             </div>
             <p className="text-xs text-muted-foreground">
               Factor applied for material thickness variations (0.95 = 5% weight reduction)
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Hardware Markup */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Hardware Markup
+            </CardTitle>
+            <CardDescription>
+              Default markup percentage applied to hardware costs before customer pricing
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="hardware_markup">Markup Percentage (%)</Label>
+              <Input
+                id="hardware_markup"
+                type="number"
+                step="0.1"
+                value={materialSettings.hardware_markup_percentage}
+                onChange={(e) => setMaterialSettings({
+                  ...materialSettings,
+                  hardware_markup_percentage: e.target.value
+                })}
+                placeholder="35"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Applied to hardware set base costs (e.g., 35% markup on supplier costs)
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Hardware Discount */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Hardware Discount
+            </CardTitle>
+            <CardDescription>
+              Default discount percentage applied to hardware after markup
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="hardware_discount">Discount Percentage (%)</Label>
+              <Input
+                id="hardware_discount"
+                type="number"
+                step="0.1"
+                value={materialSettings.hardware_discount_percentage}
+                onChange={(e) => setMaterialSettings({
+                  ...materialSettings,
+                  hardware_discount_percentage: e.target.value
+                })}
+                placeholder="0"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Volume or special pricing discounts (0% = no discount)
             </p>
           </CardContent>
         </Card>

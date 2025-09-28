@@ -190,7 +190,8 @@ export class PricingCalculator {
       finishSurcharge?: number;
     } = {},
     hardwareRequirements: HardwareRequirement[] = [],
-    doorStyle?: any
+    doorStyle?: any,
+    selectedHardware: { [category: string]: string } = {}
   ): { 
     totalPrice: number; 
     breakdown: { 
@@ -267,7 +268,8 @@ export class PricingCalculator {
       });
     }
     
-    // Calculate hardware requirements cost
+    // Calculate hardware cost using simplified approach for now
+    // In the future, this can be enhanced with the hardware pricing calculator
     if (hardwareRequirements && hardwareRequirements.length > 0) {
       console.log('Calculating hardware requirements:', hardwareRequirements);
       

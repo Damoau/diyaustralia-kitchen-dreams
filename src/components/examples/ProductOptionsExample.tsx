@@ -179,7 +179,7 @@ export const ProductOptionsExample: React.FC = () => {
         {/* Configuration Panel */}
         <div>
           <ProductOptionsConfiguration
-            cabinetTypeId={selectedCabinetType}
+            cabinetType={selectedCabinetType}
             options={currentCabinet.options}
             values={optionValues}
             onValuesChange={handleValuesChange}

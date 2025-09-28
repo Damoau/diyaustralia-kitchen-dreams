@@ -7,8 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Upload, X, FileText } from 'lucide-react';
+import { Upload, X, FileText, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
+import { useHardwarePricing } from '@/hooks/useHardwarePricing';
 
 // Define option types
 export type ProductOptionType = 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence' | 'hinge_brand_set' | 'runner_brand_set';
@@ -40,7 +41,7 @@ export interface BrandModelAttachmentValue {
 }
 
 interface ProductOptionsConfigurationProps {
-  cabinetTypeId: string;
+  cabinetType?: any;
   options: ProductOptionConfig[];
   values: ProductOptionValue[];
   onValuesChange: (values: ProductOptionValue[]) => void;
@@ -48,12 +49,13 @@ interface ProductOptionsConfigurationProps {
 }
 
 export const ProductOptionsConfiguration: React.FC<ProductOptionsConfigurationProps> = ({
-  cabinetTypeId,
+  cabinetType,
   options,
   values,
   onValuesChange,
   disabled = false
 }) => {
+  const { getHardwareOptions, calculateHardwareSetCost, hardwareSets } = useHardwarePricing();
   const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
 
   const updateOptionValue = useCallback((optionId: string, value: string | File | BrandModelAttachmentValue | null, textValue?: string, priceAdjustment?: number) => {
@@ -120,6 +122,74 @@ export const ProductOptionsConfiguration: React.FC<ProductOptionsConfigurationPr
 
     switch (option.type) {
       case 'select':
+        // Special handling for hardware brand options
+        if (option.name === 'Hinge Brand' || option.name === 'Runner Brand') {
+          const category = option.name === 'Hinge Brand' ? 'hinge' : 'runner';
+          const hardwareOptions = getHardwareOptions(category);
+          
+          return (
+            <div className="space-y-2">
+              <Select
+                value={currentValue?.value as string || ''}
+                onValueChange={(value) => updateOptionValue(option.id, value)}
+                disabled={disabled}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={`Select ${option.name.toLowerCase()}`} />
+                </SelectTrigger>
+                <SelectContent>
+                  {hardwareOptions.map((hwOption) => (
+                    <SelectItem key={hwOption.id} value={hwOption.id}>
+                      <div className="flex justify-between items-center w-full">
+                        <span>{hwOption.name}</span>
+                        <div className="flex items-center gap-2 ml-2">
+                          {hwOption.isDefault && (
+                            <Badge variant="secondary" className="text-xs">Default</Badge>
+                          )}
+                          <span className="text-xs text-muted-foreground flex items-center">
+                            <DollarSign className="h-3 w-3 mr-1" />
+                            {hardwareSets && calculateHardwareSetCost(
+                              hardwareSets.find((set: any) => set.id === hwOption.id)!,
+                              1
+                            ).finalCost.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {/* Show pricing breakdown for selected option */}
+              {currentValue?.value && hardwareSets && (
+                <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                  {(() => {
+                    const selectedSet = hardwareSets.find((set: any) => set.id === currentValue.value);
+                    if (!selectedSet) return null;
+                    
+                    const pricing = calculateHardwareSetCost(selectedSet, 1);
+                    return (
+                      <div className="space-y-1">
+                        <div className="font-medium">{selectedSet.hardware_brands.name} - {selectedSet.set_name}</div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <span>Base Cost: ${pricing.baseCost.toFixed(2)}</span>
+                          <span>Final Cost: ${pricing.finalCost.toFixed(2)}</span>
+                        </div>
+                        {pricing.markup > 0 && (
+                          <div className="text-xs opacity-75">
+                            Includes {pricing.markup}% markup
+                            {pricing.discount > 0 && ` - ${pricing.discount}% discount`}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+          );
+        }
+        
         return (
           <Select
             value={currentValue?.value as string || ''}
