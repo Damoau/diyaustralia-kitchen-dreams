@@ -17,6 +17,7 @@ import { Plus, Trash2, Edit2, GripVertical, List } from 'lucide-react';
 interface CabinetProductOption {
   id: string;
   option_name: string;
+  display_name?: string;
   option_type: string;
   display_order: number;
   required: boolean;
@@ -88,6 +89,7 @@ export const CabinetProductOptionsManager: React.FC<CabinetProductOptionsManager
           .from('cabinet_product_options')
           .update({
             option_name: optionData.option_name,
+            display_name: optionData.display_name,
             option_type: optionData.option_type,
             display_order: optionData.display_order,
             required: optionData.required,
@@ -104,6 +106,7 @@ export const CabinetProductOptionsManager: React.FC<CabinetProductOptionsManager
           .insert({
             cabinet_type_id: cabinetTypeId,
             option_name: optionData.option_name,
+            display_name: optionData.display_name,
             option_type: optionData.option_type,
             display_order: optionData.display_order || 0,
             required: optionData.required || false,
@@ -294,6 +297,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
 }) => {
   const [formData, setFormData] = useState({
     option_name: '',
+    display_name: '',
     option_type: 'select',
     display_order: 0,
     required: false,
@@ -305,6 +309,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
     if (option) {
       setFormData({
         option_name: option.option_name,
+        display_name: option.display_name || option.option_name,
         option_type: option.option_type,
         display_order: option.display_order,
         required: option.required,
@@ -314,6 +319,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
     } else {
       setFormData({
         option_name: '',
+        display_name: '',
         option_type: 'select',
         display_order: 0,
         required: false,
@@ -324,7 +330,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
   }, [option]);
 
   const handleSave = () => {
-    if (!formData.option_name.trim()) return;
+    if (!formData.option_name.trim() || !formData.display_name.trim()) return;
     onSave(formData);
   };
 
@@ -338,13 +344,29 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="option_name">Option Name</Label>
+            <Label htmlFor="option_name">Option Name (Internal)</Label>
             <Input
               id="option_name"
               value={formData.option_name}
               onChange={(e) => setFormData(prev => ({ ...prev, option_name: e.target.value }))}
+              placeholder="e.g., hinge_configuration"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Internal name used in the system (no spaces, lowercase)
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="display_name">Display Name</Label>
+            <Input
+              id="display_name"
+              value={formData.display_name}
+              onChange={(e) => setFormData(prev => ({ ...prev, display_name: e.target.value }))}
               placeholder="e.g., Hinge Configuration"
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              Name shown to customers
+            </p>
           </div>
 
           <div>
@@ -356,7 +378,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[100000]">
                 <SelectItem value="select">Select (Dropdown)</SelectItem>
                 <SelectItem value="text">Text Input</SelectItem>
                 <SelectItem value="textarea">Text Area</SelectItem>
@@ -411,7 +433,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
             <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!formData.option_name.trim()}>
+            <Button onClick={handleSave} disabled={!formData.option_name.trim() || !formData.display_name.trim()}>
               {option ? 'Update' : 'Create'}
             </Button>
           </div>
