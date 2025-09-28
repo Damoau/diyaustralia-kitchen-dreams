@@ -1381,16 +1381,6 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         {selectedCabinetType && (
           <div className="sticky bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t shadow-lg p-4 z-50">
             <div className="max-w-md mx-auto space-y-3">
-              {/* Price Display */}
-              <div className="text-center">
-                <div className="text-lg font-bold text-primary">
-                  {formatCurrency(calculateTotalPrice() * quantity)}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {quantity > 1 && `${formatCurrency(calculateTotalPrice())} each × ${quantity}`}
-                </div>
-              </div>
-              
               {/* Quantity and Add to Cart in same row */}
               <div className="flex gap-3 items-center">
                 <div className="flex-shrink-0 flex items-center border rounded-md h-10">
@@ -1419,11 +1409,11 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                   <Button
                     onClick={handleAddToCart}
                     size="lg"
-                    className="w-full h-10"
+                    className="w-full h-10 min-w-0"
                     disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish || !validateRequiredOptions()}
                   >
-                    <ShoppingCart className="w-4 h-4 mr-2" />
-                    Add to Cart
+                    <ShoppingCart className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">Add to Cart - {formatCurrency(calculateTotalPrice() * quantity)}</span>
                   </Button>
                 </div>
               </div>

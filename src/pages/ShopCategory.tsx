@@ -180,6 +180,26 @@ const CategoryPage = () => {
     ? cabinetTypes 
     : cabinetTypes.filter(cabinet => cabinet.subcategory === activeSubcategory);
 
+  // Handle filter change and scroll to products
+  const handleFilterChange = (subcategory: string) => {
+    setActiveSubcategory(subcategory);
+    
+    // Scroll to products grid when sticky filter is active
+    if (showStickyFilter) {
+      setTimeout(() => {
+        const productsGrid = document.getElementById('products-grid');
+        if (productsGrid) {
+          const headerHeight = 120; // Account for sticky filter height
+          const targetPosition = productsGrid.offsetTop - headerHeight;
+          window.scrollTo({
+            top: targetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
+    }
+  };
+
   const handleConfigureProduct = (cabinet: CabinetType) => {
     setSelectedCabinet(cabinet);
     setConfiguratorOpen(true);
@@ -225,10 +245,10 @@ const CategoryPage = () => {
               <div className="max-w-7xl mx-auto px-6 py-2">
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-medium text-muted-foreground">Filter:</span>
-                  <Select
-                    value={activeSubcategory}
-                    onValueChange={setActiveSubcategory}
-                  >
+                   <Select
+                     value={activeSubcategory}
+                     onValueChange={handleFilterChange}
+                   >
                     <SelectTrigger className="w-48">
                       <SelectValue>
                         {activeSubcategory === "all" 
@@ -299,23 +319,23 @@ const CategoryPage = () => {
           {subcategories.length > 0 && !showStickyFilter && (
             <div ref={filterSectionRef} className="mb-8">
               <div className="flex flex-wrap gap-3 justify-center">
-                <Button
-                  variant={activeSubcategory === "all" ? "default" : "outline"}
-                  onClick={() => setActiveSubcategory("all")}
-                  className="px-6 py-2"
-                >
-                  All {displayCategory}
-                </Button>
-                {subcategories.map((subcat) => (
-                  <Button
-                    key={subcat.id}
-                    variant={activeSubcategory === subcat.name ? "default" : "outline"}
-                    onClick={() => setActiveSubcategory(subcat.name)}
-                    className="px-6 py-2"
-                  >
-                    {subcat.display_name}
-                  </Button>
-                ))}
+                 <Button
+                   variant={activeSubcategory === "all" ? "default" : "outline"}
+                   onClick={() => handleFilterChange("all")}
+                   className="px-6 py-2"
+                 >
+                   All {displayCategory}
+                 </Button>
+                 {subcategories.map((subcat) => (
+                   <Button
+                     key={subcat.id}
+                     variant={activeSubcategory === subcat.name ? "default" : "outline"}
+                     onClick={() => handleFilterChange(subcat.name)}
+                     className="px-6 py-2"
+                   >
+                     {subcat.display_name}
+                   </Button>
+                 ))}
               </div>
             </div>
           )}
@@ -324,26 +344,28 @@ const CategoryPage = () => {
           {showStickyFilter && <div ref={filterSectionRef} className="absolute top-0" />}
 
           {/* Products Grid */}
-          {filteredCabinetTypes.length === 0 ? (
-            <div className="text-center py-12">
-              <h3 className="text-xl font-semibold mb-2">No cabinets available</h3>
-              <p className="text-muted-foreground">Check back later for new products.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
-              {filteredCabinetTypes.map((cabinet) => (
-                <ProductCard
-                  key={cabinet.id}
-                  cabinet={cabinet}
-                  room={room}
-                  displayCategory={displayCategory}
-                  roomCategory={roomCategory}
-                  onViewProduct={handleViewProduct}
-                  onConfigureProduct={handleConfigureProduct}
-                />
-              ))}
-            </div>
-          )}
+          <div id="products-grid">
+            {filteredCabinetTypes.length === 0 ? (
+              <div className="text-center py-12">
+                <h3 className="text-xl font-semibold mb-2">No cabinets available</h3>
+                <p className="text-muted-foreground">Check back later for new products.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
+                {filteredCabinetTypes.map((cabinet) => (
+                  <ProductCard
+                    key={cabinet.id}
+                    cabinet={cabinet}
+                    room={room}
+                    displayCategory={displayCategory}
+                    roomCategory={roomCategory}
+                    onViewProduct={handleViewProduct}
+                    onConfigureProduct={handleConfigureProduct}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </main>
 
         <Footer />
