@@ -62,7 +62,6 @@ const CategoryPage = () => {
   const [roomCategory, setRoomCategory] = useState<any>(null);
   const [showStickyFilter, setShowStickyFilter] = useState(false);
   const filterSectionRef = useRef<HTMLDivElement>(null);
-  const isScrollingProgrammatically = useRef(false);
 
   // Category display names
   const getCategoryDisplayName = (cat: string) => {
@@ -75,9 +74,6 @@ const CategoryPage = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      // Skip if we're scrolling programmatically
-      if (isScrollingProgrammatically.current) return;
-      
       if (filterSectionRef.current) {
         const filterRect = filterSectionRef.current.getBoundingClientRect();
         const isFilterPastTop = filterRect.bottom < 0;
@@ -88,25 +84,6 @@ const CategoryPage = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  // Scroll to top of products when filter changes
-  useEffect(() => {
-    // Don't auto-scroll on initial load or when "all" is selected
-    if (activeSubcategory === "all") return;
-    
-    isScrollingProgrammatically.current = true;
-    
-    // Always scroll to header level when filter changes
-    window.scrollTo({
-      top: 56, // Height of header (h-14 = 56px)  
-      behavior: 'smooth'
-    });
-    
-    // Reset the flag after scroll animation completes
-    setTimeout(() => {
-      isScrollingProgrammatically.current = false;
-    }, 500);
-  }, [activeSubcategory]); // Removed showStickyFilter dependency
 
   useEffect(() => {
     const loadData = async () => {
@@ -277,9 +254,9 @@ const CategoryPage = () => {
             </div>
           )}
         
-          <main className={`w-full px-6 py-8 mobile-safe-bottom ${showStickyFilter ? 'pt-16' : ''}`}>
+          <main className={`w-full px-6 py-8 mobile-safe-bottom ${showStickyFilter ? 'pt-20' : ''}`}>
           {/* Breadcrumbs */}
-          <Breadcrumb className={`mb-8 ${showStickyFilter ? 'hidden' : ''}`}>
+          <Breadcrumb className="mb-8">
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
@@ -306,7 +283,7 @@ const CategoryPage = () => {
           </Breadcrumb>
 
           {/* Category Header */}
-          <div className={`text-center mb-12 ${showStickyFilter ? 'hidden' : ''}`}>
+          <div className="text-center mb-12">
             <h1 className="text-4xl font-bold mb-4">{displayCategory} {roomCategory?.display_name}</h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Discover our premium {displayCategory.toLowerCase()} designed for {roomCategory?.display_name?.toLowerCase() || 'your space'}. 
@@ -316,7 +293,7 @@ const CategoryPage = () => {
 
           {/* Subcategory Filter Buttons */}
           {subcategories.length > 0 && (
-            <div ref={filterSectionRef} className={`mb-8 ${showStickyFilter ? 'hidden' : ''}`}>
+            <div ref={filterSectionRef} className="mb-8">
               <div className="flex flex-wrap gap-3 justify-center">
                 <Button
                   variant={activeSubcategory === "all" ? "default" : "outline"}
