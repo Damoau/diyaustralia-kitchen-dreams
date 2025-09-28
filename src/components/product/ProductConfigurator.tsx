@@ -1026,14 +1026,14 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                           <div className="grid grid-cols-3 gap-[3px]">
                             <div className="space-y-2">
                               <Label htmlFor="width" className="text-sm font-medium text-center block">Width</Label>
-                              <Input
-                                id="width"
-                                type="number"
-                                value={dimensions.width || ''}
-                                onChange={(e) => handleDimensionChange('width', e.target.value)}
-                                onBlur={() => handleDimensionBlur('width')}
-                                className="text-center font-mono h-12 text-xl font-bold border-2 focus:border-primary/50 bg-background"
-                              />
+                               <Input
+                                 id="width"
+                                 type="number"
+                                 value={dimensions.width || ''}
+                                 onChange={(e) => handleDimensionChange('width', e.target.value)}
+                                 onBlur={() => handleDimensionBlur('width')}
+                                 className="text-center font-mono h-12 text-xl md:text-2xl font-bold border-2 focus:border-primary/50 bg-background"
+                               />
                               <div className="text-xs text-muted-foreground text-center font-medium">
                                 {selectedCabinetType.min_width_mm}-{selectedCabinetType.max_width_mm}
                               </div>
@@ -1054,15 +1054,15 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                                   )}
                                 </Button>
                               </Label>
-                              <Input
-                                id="height"
-                                type="number"
-                                value={dimensions.height || ''}
-                                onChange={(e) => !heightLocked && handleDimensionChange('height', e.target.value)}
-                                onBlur={() => handleDimensionBlur('height')}
-                                disabled={heightLocked}
-                                className="text-center font-mono h-12 text-xl font-bold border-2 focus:border-primary/50 bg-background disabled:opacity-50 disabled:cursor-not-allowed"
-                              />
+                               <Input
+                                 id="height"
+                                 type="number"
+                                 value={dimensions.height || ''}
+                                 onChange={(e) => !heightLocked && handleDimensionChange('height', e.target.value)}
+                                 onBlur={() => handleDimensionBlur('height')}
+                                 disabled={heightLocked}
+                                 className="text-center font-mono h-12 text-xl md:text-2xl font-bold border-2 focus:border-primary/50 bg-background disabled:opacity-50 disabled:cursor-not-allowed"
+                               />
                               <div className="text-xs text-muted-foreground text-center font-medium">
                                 {selectedCabinetType.min_height_mm}-{selectedCabinetType.max_height_mm}
                               </div>
@@ -1083,15 +1083,15 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                                   )}
                                 </Button>
                               </Label>
-                              <Input
-                                id="depth"
-                                type="number"
-                                value={dimensions.depth || ''}
-                                onChange={(e) => !depthLocked && handleDimensionChange('depth', e.target.value)}
-                                onBlur={() => handleDimensionBlur('depth')}
-                                disabled={depthLocked}
-                                className="text-center font-mono h-12 text-xl font-bold border-2 focus:border-primary/50 bg-background disabled:opacity-50 disabled:cursor-not-allowed"
-                              />
+                               <Input
+                                 id="depth"
+                                 type="number"
+                                 value={dimensions.depth || ''}
+                                 onChange={(e) => !depthLocked && handleDimensionChange('depth', e.target.value)}
+                                 onBlur={() => handleDimensionBlur('depth')}
+                                 disabled={depthLocked}
+                                 className="text-center font-mono h-12 text-xl md:text-2xl font-bold border-2 focus:border-primary/50 bg-background disabled:opacity-50 disabled:cursor-not-allowed"
+                               />
                               <div className="text-xs text-muted-foreground text-center font-medium">
                                 {selectedCabinetType.min_depth_mm}-{selectedCabinetType.max_depth_mm}
                               </div>
