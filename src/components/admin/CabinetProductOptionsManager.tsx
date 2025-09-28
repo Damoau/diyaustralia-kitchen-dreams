@@ -239,6 +239,11 @@ export const CabinetProductOptionsManager: React.FC<CabinetProductOptionsManager
                         Customer selects from predefined {option.option_type === 'hinge_brand_set' ? 'hinge' : 'runner'} brand sets with pricing
                       </div>
                     )}
+                    {option.option_type === 'plastic_legs' && (
+                      <div className="text-sm text-muted-foreground">
+                        Titus plastic legs with configurable quantity and pricing
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
@@ -263,6 +268,16 @@ export const CabinetProductOptionsManager: React.FC<CabinetProductOptionsManager
                         size="sm"
                         onClick={() => setHardwareSetCategory(option.option_type === 'hinge_brand_set' ? 'hinge' : 'runner')}
                         title="Configure Hardware Sets"
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {option.option_type === 'plastic_legs' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openEditDialog(option)}
+                        title="Configure Plastic Legs"
                       >
                         <Settings className="h-4 w-4" />
                       </Button>
@@ -388,7 +403,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
 
   // Reset hardware brands when option type changes
   useEffect(() => {
-    if (formData.option_type !== 'hinge_brand_set' && formData.option_type !== 'runner_brand_set') {
+    if (formData.option_type !== 'hinge_brand_set' && formData.option_type !== 'runner_brand_set' && formData.option_type !== 'plastic_legs') {
       setHardwareBrands([]);
     }
   }, [formData.option_type]);
@@ -515,6 +530,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
                 <SelectItem value="file_upload">File Upload</SelectItem>
                 <SelectItem value="brand_model_attachment">Brand/Model/Attachment</SelectItem>
                 <SelectItem value="card_sentence">Product Card Sentence</SelectItem>
+                <SelectItem value="plastic_legs">Plastic Legs</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -597,6 +613,35 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
               brands={hardwareBrands}
               onBrandsChange={setHardwareBrands}
             />
+          )}
+
+          {/* Plastic Legs Configuration - Show for plastic_legs */}
+          {formData.option_type === 'plastic_legs' && (
+            <div className="space-y-3">
+              <Label>Plastic Legs Configuration</Label>
+              <div className="p-4 border rounded-lg space-y-3">
+                <div>
+                  <Label htmlFor="legs_quantity">Default Quantity</Label>
+                  <Input
+                    id="legs_quantity"
+                    type="number"
+                    placeholder="4"
+                    min="1"
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Number of plastic legs for this cabinet type
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch id="legs_display" />
+                  <Label htmlFor="legs_display">Display to customers</Label>
+                </div>
+                <div className="text-sm text-muted-foreground bg-muted/30 p-2 rounded">
+                  Uses Titus Plastic Legs pricing from global settings
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Show helpful text when no option type is selected */}

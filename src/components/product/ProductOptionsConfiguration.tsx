@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { useHardwarePricing } from '@/hooks/useHardwarePricing';
 
 // Define option types
-export type ProductOptionType = 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence' | 'hinge_brand_set' | 'runner_brand_set';
+export type ProductOptionType = 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence' | 'hinge_brand_set' | 'runner_brand_set' | 'plastic_legs';
 
 export interface ProductOptionConfig {
   id: string;
@@ -410,6 +410,48 @@ export const ProductOptionsConfiguration: React.FC<ProductOptionsConfigurationPr
             rows={2}
             className="resize-none"
           />
+        );
+
+      case 'plastic_legs':
+        // For plastic legs, we need to get the Titus plastic legs pricing
+        // This should show quantity selection and calculate pricing
+        return (
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor={`legs-quantity-${option.id}`}>Quantity</Label>
+                <Input
+                  id={`legs-quantity-${option.id}`}
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={currentValue?.value as string || '4'}
+                  onChange={(e) => {
+                    const quantity = parseInt(e.target.value) || 4;
+                    // Calculate price: Titus legs cost $1.50 + 60% markup = $2.40 per leg
+                    const pricePerLeg = 2.40; // This should come from global settings
+                    const totalPrice = quantity * pricePerLeg;
+                    updateOptionValue(option.id, quantity.toString(), `${quantity} plastic legs`, totalPrice);
+                  }}
+                  disabled={disabled}
+                />
+              </div>
+              <div>
+                <Label>Total Cost</Label>
+                <div className="flex items-center h-10 px-3 border rounded bg-muted/30">
+                  <span className="text-sm">
+                    ${((parseInt(currentValue?.value as string || '4') || 4) * 2.40).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="text-xs text-muted-foreground bg-blue-50 p-2 rounded border">
+              <div className="flex items-center gap-1">
+                <DollarSign className="h-3 w-3" />
+                Titus Plastic Legs - $2.40 per leg (includes markup)
+              </div>
+            </div>
+          </div>
         );
 
 
