@@ -14,8 +14,9 @@ interface HardwareBrandSelectorProps {
     brandId: string; 
     quantity: number; 
     isDefault: boolean; 
+    manualQuantity?: boolean;
   }>;
-  onBrandsChange: (brands: Array<{ brandId: string; quantity: number; isDefault: boolean; }>) => void;
+  onBrandsChange: (brands: Array<{ brandId: string; quantity: number; isDefault: boolean; manualQuantity?: boolean; }>) => void;
 }
 
 export const HardwareBrandSelector: React.FC<HardwareBrandSelectorProps> = ({
@@ -60,7 +61,8 @@ export const HardwareBrandSelector: React.FC<HardwareBrandSelectorProps> = ({
     const newBrands = [...brands, {
       brandId: selectedHardwareSet,
       quantity: quantity,
-      isDefault: brands.length === 0 // First set is default
+      isDefault: brands.length === 0, // First set is default
+      manualQuantity: true // Always manual for new additions
     }];
     
     onBrandsChange(newBrands);
@@ -188,17 +190,23 @@ export const HardwareBrandSelector: React.FC<HardwareBrandSelectorProps> = ({
                       </div>
                     </div>
 
-                    {/* Quantity */}
-                    <div className="col-span-2">
-                      <Label className="text-xs">Quantity</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={brand.quantity}
-                        onChange={(e) => updateBrand(index, 'quantity', parseInt(e.target.value) || 1)}
-                        className="h-8"
-                      />
-                    </div>
+                     {/* Quantity */}
+                     <div className="col-span-2">
+                       <Label className="text-xs">
+                         Quantity per Cabinet
+                         {category === 'hinge' && (
+                           <span className="text-muted-foreground"> (manual)</span>
+                         )}
+                       </Label>
+                       <Input
+                         type="number"
+                         min="1"
+                         value={brand.quantity}
+                         onChange={(e) => updateBrand(index, 'quantity', parseInt(e.target.value) || 1)}
+                         className="h-8"
+                         placeholder={category === 'hinge' ? 'e.g. 2, 4, 6...' : '1'}
+                       />
+                     </div>
 
                     {/* Pricing Display */}
                     <div className="col-span-3">
@@ -244,21 +252,26 @@ export const HardwareBrandSelector: React.FC<HardwareBrandSelectorProps> = ({
                     </div>
                   </div>
 
-                  {/* Additional Pricing Info */}
-                  {pricing && (
-                    <div className="mt-2 text-xs text-muted-foreground bg-muted/30 p-2 rounded">
-                      <div className="grid grid-cols-2 gap-2">
-                        <span>Base Cost: ${pricing.baseCost.toFixed(2)}</span>
-                        <span>Final Cost: ${pricing.finalCost.toFixed(2)}</span>
-                        {pricing.markup > 0 && (
-                          <span>Markup: {pricing.markup}%</span>
-                        )}
-                        {pricing.discount > 0 && (
-                          <span>Discount: {pricing.discount}%</span>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                   {/* Additional Pricing Info */}
+                   {pricing && (
+                     <div className="mt-2 text-xs text-muted-foreground bg-muted/30 p-2 rounded">
+                       <div className="grid grid-cols-2 gap-2">
+                         <span>Base Cost: ${pricing.baseCost.toFixed(2)}</span>
+                         <span>Final Cost: ${pricing.finalCost.toFixed(2)}</span>
+                         {pricing.markup > 0 && (
+                           <span>Markup: {pricing.markup}%</span>
+                         )}
+                         {pricing.discount > 0 && (
+                           <span>Discount: {pricing.discount}%</span>
+                         )}
+                       </div>
+                       {category === 'hinge' && (
+                         <div className="mt-1 text-blue-700 bg-blue-50 p-1 rounded text-xs">
+                           💡 Manual quantity - not calculated from door count
+                         </div>
+                       )}
+                     </div>
+                   )}
                 </div>
               );
             })}
@@ -369,7 +382,10 @@ export const HardwareBrandSelector: React.FC<HardwareBrandSelectorProps> = ({
         <ul className="space-y-1 text-blue-800">
           <li>• Select a brand (Blum, Titus) from the dropdown</li>
           <li>• Click "Add Hardware" to choose from global hardware settings</li>
-          <li>• Select specific hardware sets and quantities</li>
+          <li>• Select specific hardware sets and quantities per cabinet</li>
+          {category === 'hinge' && (
+            <li>• <strong>Hinge quantities are manual</strong> - specify exactly how many hinges per cabinet</li>
+          )}
           <li>• Save to add them to your configuration</li>
           <li>• Pricing automatically syncs with global settings</li>
         </ul>

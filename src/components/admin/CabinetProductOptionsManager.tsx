@@ -340,6 +340,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
     brandId: string; 
     quantity: number; 
     isDefault: boolean; 
+    manualQuantity?: boolean;
   }>>([]);
 
   const { getHardwareOptions, calculateHardwareSetCost } = useHardwarePricing();

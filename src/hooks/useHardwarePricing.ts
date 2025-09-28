@@ -143,14 +143,16 @@ export const useHardwarePricing = () => {
   // Calculate total hardware cost for cabinet configuration
   const calculateCabinetHardwareCost = (
     cabinetType: any,
-    selectedHardware: { [category: string]: string },
+    selectedHardware: { [category: string]: { setId?: string; quantity?: number } },
     quantity: number = 1
   ) => {
     let totalCost = 0;
     const breakdown: { [category: string]: any } = {};
 
     ['hinge', 'runner'].forEach(category => {
-      const selectedSetId = selectedHardware[category];
+      const hardwareConfig = selectedHardware[category];
+      const selectedSetId = hardwareConfig?.setId;
+      const manualQuantity = hardwareConfig?.quantity;
       let hardwareSet: HardwareSet | null = null;
 
       if (selectedSetId) {
@@ -160,10 +162,12 @@ export const useHardwarePricing = () => {
       }
 
       if (hardwareSet) {
-        // Calculate quantity needed based on cabinet type
+        // Use manual quantity if provided, otherwise calculate based on cabinet type
         let neededQuantity = quantity;
         
-        if (category === 'hinge') {
+        if (manualQuantity !== undefined) {
+          neededQuantity = manualQuantity * quantity;
+        } else if (category === 'hinge') {
           const doorCount = Math.max(cabinetType.door_qty || cabinetType.door_count || 1, 1);
           neededQuantity = doorCount * quantity;
         } else if (category === 'runner') {
@@ -174,7 +178,8 @@ export const useHardwarePricing = () => {
         const setCost = calculateHardwareSetCost(hardwareSet, neededQuantity);
         breakdown[category] = {
           setName: `${hardwareSet.hardware_brands.name} - ${hardwareSet.set_name}`,
-          ...setCost
+          ...setCost,
+          manualQuantity: manualQuantity
         };
         totalCost += setCost.finalCost;
       }

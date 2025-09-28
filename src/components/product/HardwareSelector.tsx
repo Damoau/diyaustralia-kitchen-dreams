@@ -48,7 +48,10 @@ export const HardwareSelector: React.FC<HardwareSelectorProps> = ({
 
   const hardwareCosts = calculateCabinetHardwareCost(
     cabinetType, 
-    selectedHardware, 
+    Object.entries(selectedHardware).reduce((acc, [category, setId]) => {
+      acc[category] = { setId };
+      return acc;
+    }, {} as { [category: string]: { setId?: string; quantity?: number } }),
     quantity
   );
 
