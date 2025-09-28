@@ -1015,7 +1015,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                 {selectedCabinetType && (
                   <>
                      {/* Dimensions */}
-                     <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5">
+                     <Card className="bg-gradient-to-br from-background to-secondary/5">
                        <CardHeader className="pb-3">
                          <CardTitle className="text-lg flex items-center gap-2 font-semibold">
                            <Ruler className="w-5 h-5 text-primary" />
