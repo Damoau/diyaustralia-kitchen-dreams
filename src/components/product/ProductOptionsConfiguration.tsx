@@ -11,7 +11,7 @@ import { Upload, X, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Define option types
-export type ProductOptionType = 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence';
+export type ProductOptionType = 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence' | 'hinge_brand_set' | 'runner_brand_set';
 
 export interface ProductOptionConfig {
   id: string;
@@ -332,7 +332,12 @@ export const ProductOptionsConfiguration: React.FC<ProductOptionsConfigurationPr
           />
         );
 
-      default:
+        case 'hinge_brand_set':
+        case 'runner_brand_set':
+          // These will be handled by the hardware set system
+          return null;
+
+        default:
         return null;
     }
   };

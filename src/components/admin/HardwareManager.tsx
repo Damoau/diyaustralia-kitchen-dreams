@@ -182,6 +182,25 @@ export const HardwareManager: React.FC = () => {
     },
   });
 
+  // Delete product mutation
+  const deleteProductMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const { error } = await supabase
+        .from('hardware_products')
+        .delete()
+        .eq('id', productId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hardware-products'] });
+      toast.success('Hardware product deleted successfully');
+    },
+    onError: (error) => {
+      console.error('Error deleting hardware product:', error);
+      toast.error('Failed to delete hardware product');
+    },
+  });
+
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setEditingBrand(null);
@@ -397,6 +416,13 @@ export const HardwareManager: React.FC = () => {
                             }}
                           >
                             <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => deleteProductMutation.mutate(product.id!)}
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                         <div className="flex gap-2">

@@ -357,6 +357,44 @@ export type Database = {
           },
         ]
       }
+      cabinet_hardware_configurations: {
+        Row: {
+          cabinet_type_id: string | null
+          created_at: string | null
+          display_name: string
+          hardware_category: string
+          id: string
+          is_default: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          cabinet_type_id?: string | null
+          created_at?: string | null
+          display_name: string
+          hardware_category: string
+          id?: string
+          is_default?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          cabinet_type_id?: string | null
+          created_at?: string | null
+          display_name?: string
+          hardware_category?: string
+          id?: string
+          is_default?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cabinet_hardware_configurations_cabinet_type_id_fkey"
+            columns: ["cabinet_type_id"]
+            isOneToOne: false
+            referencedRelation: "cabinet_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cabinet_hardware_options: {
         Row: {
           active: boolean
@@ -1996,6 +2034,44 @@ export type Database = {
         }
         Relationships: []
       }
+      hardware_brand_sets: {
+        Row: {
+          category: string
+          created_at: string | null
+          hardware_brand_id: string | null
+          id: string
+          is_default: boolean | null
+          set_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          hardware_brand_id?: string | null
+          id?: string
+          is_default?: boolean | null
+          set_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          hardware_brand_id?: string | null
+          id?: string
+          is_default?: boolean | null
+          set_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hardware_brand_sets_hardware_brand_id_fkey"
+            columns: ["hardware_brand_id"]
+            isOneToOne: false
+            referencedRelation: "hardware_brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hardware_brands: {
         Row: {
           active: boolean
@@ -2121,6 +2197,48 @@ export type Database = {
             columns: ["quote_item_id"]
             isOneToOne: false
             referencedRelation: "quote_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hardware_set_items: {
+        Row: {
+          created_at: string | null
+          display_name: string | null
+          hardware_product_id: string | null
+          hardware_set_id: string | null
+          id: string
+          quantity: number
+        }
+        Insert: {
+          created_at?: string | null
+          display_name?: string | null
+          hardware_product_id?: string | null
+          hardware_set_id?: string | null
+          id?: string
+          quantity?: number
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: string | null
+          hardware_product_id?: string | null
+          hardware_set_id?: string | null
+          id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hardware_set_items_hardware_product_id_fkey"
+            columns: ["hardware_product_id"]
+            isOneToOne: false
+            referencedRelation: "hardware_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hardware_set_items_hardware_set_id_fkey"
+            columns: ["hardware_set_id"]
+            isOneToOne: false
+            referencedRelation: "hardware_brand_sets"
             referencedColumns: ["id"]
           },
         ]

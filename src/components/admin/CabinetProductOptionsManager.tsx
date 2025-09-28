@@ -12,7 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { CabinetOptionValuesManager } from '@/components/admin/CabinetOptionValuesManager';
-import { Plus, Trash2, Edit2, GripVertical, List } from 'lucide-react';
+import { HardwareSetConfigurator } from '@/components/admin/HardwareSetConfigurator';
+import { Plus, Trash2, Edit2, GripVertical, List, Settings } from 'lucide-react';
 
 interface CabinetProductOption {
   id: string;
@@ -50,6 +51,7 @@ export const CabinetProductOptionsManager: React.FC<CabinetProductOptionsManager
   const [editingOption, setEditingOption] = useState<CabinetProductOption | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [valuesManagerOption, setValuesManagerOption] = useState<{ id: string; name: string } | null>(null);
+  const [hardwareSetCategory, setHardwareSetCategory] = useState<'hinge' | 'runner' | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -229,6 +231,11 @@ export const CabinetProductOptionsManager: React.FC<CabinetProductOptionsManager
                         Text that appears on the product card
                       </div>
                     )}
+                    {(option.option_type === 'hinge_brand_set' || option.option_type === 'runner_brand_set') && (
+                      <div className="text-sm text-muted-foreground">
+                        Customer selects from predefined {option.option_type === 'hinge_brand_set' ? 'hinge' : 'runner'} brand sets with pricing
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
@@ -245,6 +252,16 @@ export const CabinetProductOptionsManager: React.FC<CabinetProductOptionsManager
                         onClick={() => setValuesManagerOption({ id: option.id, name: option.option_name })}
                       >
                         <List className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {(option.option_type === 'hinge_brand_set' || option.option_type === 'runner_brand_set') && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setHardwareSetCategory(option.option_type === 'hinge_brand_set' ? 'hinge' : 'runner')}
+                        title="Configure Hardware Sets"
+                      >
+                        <Settings className="h-4 w-4" />
                       </Button>
                     )}
                     <Button
@@ -276,6 +293,12 @@ export const CabinetProductOptionsManager: React.FC<CabinetProductOptionsManager
           optionName={valuesManagerOption?.name || ''}
           isOpen={!!valuesManagerOption}
           onClose={() => setValuesManagerOption(null)}
+        />
+
+        <HardwareSetConfigurator
+          category={hardwareSetCategory || 'hinge'}
+          isOpen={!!hardwareSetCategory}
+          onClose={() => setHardwareSetCategory(null)}
         />
       </CardContent>
     </Card>
@@ -415,9 +438,11 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
         className="max-w-2xl"
         onWheel={(e) => e.stopPropagation()}
         onInteractOutside={(e) => {
-          // Prevent closing when clicking on select dropdown
+          // Prevent closing when clicking on select dropdown or portal content
           const target = e.target as Element;
-          if (target?.closest("[data-radix-select-content]")) {
+          if (target?.closest("[data-radix-select-content]") || 
+              target?.closest("[data-radix-popper-content-wrapper]") ||
+              target?.closest(".radix-select-content")) {
             e.preventDefault();
           }
         }}
@@ -465,6 +490,8 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="select">Select (Dropdown)</SelectItem>
+                <SelectItem value="hinge_brand_set">Hinge Brand</SelectItem>
+                <SelectItem value="runner_brand_set">Runner Brand</SelectItem>
                 <SelectItem value="text">Text Input</SelectItem>
                 <SelectItem value="textarea">Text Area</SelectItem>
                 <SelectItem value="file_upload">File Upload</SelectItem>
