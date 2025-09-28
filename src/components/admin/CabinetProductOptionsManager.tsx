@@ -465,6 +465,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
           const target = e.target as Element;
           if (target?.closest("[data-radix-select-content]") || 
               target?.closest("[data-radix-popper-content-wrapper]") ||
+              target?.closest("[role='listbox']") ||
               target?.closest(".radix-select-content")) {
             e.preventDefault();
           }
@@ -511,7 +512,11 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent 
+                className="z-[100] bg-background border shadow-lg"
+                position="popper"
+                sideOffset={5}
+              >
                 <SelectItem value="select">Select (Dropdown)</SelectItem>
                 <SelectItem value="hinge_brand_set">Hinge Brand</SelectItem>
                 <SelectItem value="runner_brand_set">Runner Brand</SelectItem>
@@ -745,7 +750,11 @@ const HardwareBrandConfiguration: React.FC<HardwareBrandConfigurationProps> = ({
             <SelectTrigger className="w-full">
               <SelectValue placeholder={`Choose ${category} brand...`} />
             </SelectTrigger>
-            <SelectContent className="z-50 bg-background border shadow-lg">
+            <SelectContent 
+              className="z-[100] bg-background border shadow-lg"
+              position="popper"
+              sideOffset={5}
+            >
               {availableBrands.map((brandName) => (
                 <SelectItem key={brandName} value={brandName}>
                   <div className="flex items-center gap-2">
