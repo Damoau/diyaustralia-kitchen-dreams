@@ -1024,42 +1024,42 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                          <div className="grid grid-cols-3 gap-[3px]">
                            <div className="space-y-2">
                              <Label htmlFor="width" className="text-sm font-medium text-center block">Width</Label>
-                              <Input
-                                id="width"
-                                type="number"
-                                value={dimensions.width || ''}
-                                onChange={(e) => handleDimensionChange('width', e.target.value)}
-                                onBlur={() => handleDimensionBlur('width')}
-                                className="text-center font-mono h-12 text-xl font-bold border-2 focus:border-primary/50 bg-background [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:opacity-100 [&::-webkit-inner-spin-button]:opacity-100 [&::-webkit-outer-spin-button]:cursor-pointer [&::-webkit-inner-spin-button]:cursor-pointer [&::-webkit-outer-spin-button]:text-muted-foreground/40 [&::-webkit-inner-spin-button]:text-muted-foreground/40 [&::-webkit-outer-spin-button]:hover:text-muted-foreground [&::-webkit-inner-spin-button]:hover:text-muted-foreground [&::-webkit-outer-spin-button]:active:text-muted-foreground [&::-webkit-inner-spin-button]:active:text-muted-foreground"
-                              />
+                             <Input
+                               id="width"
+                               type="number"
+                               value={dimensions.width || ''}
+                               onChange={(e) => handleDimensionChange('width', e.target.value)}
+                               onBlur={() => handleDimensionBlur('width')}
+                               className="text-center font-mono h-16 text-xl font-bold border-2 focus:border-primary/50 bg-background"
+                             />
                              <div className="text-xs text-muted-foreground text-center font-medium">
                                {selectedCabinetType.min_width_mm}-{selectedCabinetType.max_width_mm}
                              </div>
                            </div>
                            <div className="space-y-2">
                              <Label htmlFor="height" className="text-sm font-medium text-center block">Height</Label>
-                              <Input
-                                id="height"
-                                type="number"
-                                value={dimensions.height || ''}
-                                onChange={(e) => handleDimensionChange('height', e.target.value)}
-                                onBlur={() => handleDimensionBlur('height')}
-                                className="text-center font-mono h-12 text-xl font-bold border-2 focus:border-primary/50 bg-background [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:opacity-100 [&::-webkit-inner-spin-button]:opacity-100 [&::-webkit-outer-spin-button]:cursor-pointer [&::-webkit-inner-spin-button]:cursor-pointer [&::-webkit-outer-spin-button]:text-muted-foreground/40 [&::-webkit-inner-spin-button]:text-muted-foreground/40 [&::-webkit-outer-spin-button]:hover:text-muted-foreground [&::-webkit-inner-spin-button]:hover:text-muted-foreground [&::-webkit-outer-spin-button]:active:text-muted-foreground [&::-webkit-inner-spin-button]:active:text-muted-foreground"
-                              />
+                             <Input
+                               id="height"
+                               type="number"
+                               value={dimensions.height || ''}
+                               onChange={(e) => handleDimensionChange('height', e.target.value)}
+                               onBlur={() => handleDimensionBlur('height')}
+                               className="text-center font-mono h-16 text-xl font-bold border-2 focus:border-primary/50 bg-background"
+                             />
                              <div className="text-xs text-muted-foreground text-center font-medium">
                                {selectedCabinetType.min_height_mm}-{selectedCabinetType.max_height_mm}
                              </div>
                            </div>
                            <div className="space-y-2">
                              <Label htmlFor="depth" className="text-sm font-medium text-center block">Depth</Label>
-                              <Input
-                                id="depth"
-                                type="number"
-                                value={dimensions.depth || ''}
-                                onChange={(e) => handleDimensionChange('depth', e.target.value)}
-                                onBlur={() => handleDimensionBlur('depth')}
-                                className="text-center font-mono h-12 text-xl font-bold border-2 focus:border-primary/50 bg-background [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:opacity-100 [&::-webkit-inner-spin-button]:opacity-100 [&::-webkit-outer-spin-button]:cursor-pointer [&::-webkit-inner-spin-button]:cursor-pointer [&::-webkit-outer-spin-button]:text-muted-foreground/40 [&::-webkit-inner-spin-button]:text-muted-foreground/40 [&::-webkit-outer-spin-button]:hover:text-muted-foreground [&::-webkit-inner-spin-button]:hover:text-muted-foreground [&::-webkit-outer-spin-button]:active:text-muted-foreground [&::-webkit-inner-spin-button]:active:text-muted-foreground"
-                              />
+                             <Input
+                               id="depth"
+                               type="number"
+                               value={dimensions.depth || ''}
+                               onChange={(e) => handleDimensionChange('depth', e.target.value)}
+                               onBlur={() => handleDimensionBlur('depth')}
+                               className="text-center font-mono h-16 text-xl font-bold border-2 focus:border-primary/50 bg-background"
+                             />
                              <div className="text-xs text-muted-foreground text-center font-medium">
                                {selectedCabinetType.min_depth_mm}-{selectedCabinetType.max_depth_mm}
                              </div>
