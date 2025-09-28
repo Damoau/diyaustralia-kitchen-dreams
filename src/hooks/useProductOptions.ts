@@ -26,16 +26,31 @@ export const useProductOptions = ({ cabinetTypeId, cabinetTypeName }: UseProduct
     setIsLoading(true);
     
     try {
-      // First try to load custom options from database
+      // First try to load custom options from database with proper joins
       const { data: customOptions, error } = await supabase
         .from('cabinet_product_options')
         .select(`
-          *,
-          cabinet_option_values (*)
+          id,
+          option_name,
+          option_type,
+          required,
+          description,
+          display_order,
+          active,
+          cabinet_option_values(
+            id,
+            value,
+            display_text,
+            display_order,
+            active,
+            price_adjustment
+          )
         `)
         .eq('cabinet_type_id', cabinetTypeId)
         .eq('active', true)
         .order('display_order');
+
+      console.log('Debug - Custom options query result:', { customOptions, error, cabinetTypeId });
 
       if (error) {
         console.error('Error loading custom options:', error);
@@ -43,31 +58,42 @@ export const useProductOptions = ({ cabinetTypeId, cabinetTypeName }: UseProduct
         const defaultOptions = getDefaultCabinetOptions(cabinetTypeName);
         setOptions(defaultOptions);
       } else if (customOptions && customOptions.length > 0) {
-        // Convert database options to ProductOptionConfig format
-        const convertedOptions = customOptions.map(option => ({
-          id: option.id,
-          name: option.option_name,
-          type: option.option_type as 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence',
-          required: option.required,
-          description: option.description,
-          options: option.option_type === 'select' && option.cabinet_option_values 
-            ? option.cabinet_option_values
-                .filter((v: any) => v.active)
-                .sort((a: any, b: any) => a.display_order - b.display_order)
-                .map((v: any) => v.display_text)  // Just use display_text as string
-            : undefined,
-          priceAdjustments: option.option_type === 'select' && option.cabinet_option_values
-            ? option.cabinet_option_values
-                .filter((v: any) => v.active && v.price_adjustment)
-                .reduce((acc: Record<string, number>, v: any) => {
-                  acc[v.display_text] = v.price_adjustment;
-                  return acc;
-                }, {})
-            : undefined,
-          maxFileSize: option.option_type === 'file_upload' ? 5 : undefined,
-          fileTypes: option.option_type === 'file_upload' ? ['image/*', '.pdf'] : undefined
-        }));
+        console.log('Debug - Found custom options, converting...', customOptions);
         
+        // Convert database options to ProductOptionConfig format
+        const convertedOptions = customOptions.map(option => {
+          console.log('Debug - Converting option:', option.option_name, {
+            hasValues: !!option.cabinet_option_values,
+            valueCount: option.cabinet_option_values?.length || 0,
+            values: option.cabinet_option_values
+          });
+          
+          return {
+            id: option.id,
+            name: option.option_name,
+            type: option.option_type as 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence',
+            required: option.required,
+            description: option.description,
+            options: option.option_type === 'select' && option.cabinet_option_values 
+              ? option.cabinet_option_values
+                  .filter((v: any) => v.active)
+                  .sort((a: any, b: any) => a.display_order - b.display_order)
+                  .map((v: any) => v.display_text)  // Just use display_text as string
+              : undefined,
+            priceAdjustments: option.option_type === 'select' && option.cabinet_option_values
+              ? option.cabinet_option_values
+                  .filter((v: any) => v.active && v.price_adjustment)
+                  .reduce((acc: Record<string, number>, v: any) => {
+                    acc[v.display_text] = v.price_adjustment;
+                    return acc;
+                  }, {})
+              : undefined,
+            maxFileSize: option.option_type === 'file_upload' ? 5 : undefined,
+            fileTypes: option.option_type === 'file_upload' ? ['image/*', '.pdf'] : undefined
+          };
+        });
+        
+        console.log('Debug - Converted options:', convertedOptions);
         setOptions(convertedOptions);
       } else {
         // No custom options found, use defaults
