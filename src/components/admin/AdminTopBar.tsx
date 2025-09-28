@@ -35,16 +35,18 @@ export const AdminTopBar = () => {
 
   return (
     <header className="h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-full items-center justify-between px-6">
+      <div className="flex h-full items-center justify-between px-3 sm:px-6">
         {/* Left side - Enhanced Breadcrumbs */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
           <MobileNavigation />
-          <EnhancedBreadcrumbs />
+          <div className="hidden sm:block">
+            <EnhancedBreadcrumbs />
+          </div>
         </div>
 
-        {/* Center - Search */}
-        <div className="flex-1 max-w-md mx-8">
-          <div className="relative">
+        {/* Center - Search (Hidden on mobile) */}
+        <div className="hidden md:flex flex-1 max-w-md mx-8">
+          <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input 
               placeholder="Search carts, orders, customers..." 
@@ -54,11 +56,13 @@ export const AdminTopBar = () => {
         </div>
 
         {/* Right side - Actions and User */}
-        <div className="flex items-center space-x-4">
-          {/* Contextual Quick Actions */}
-          <QuickActionsBar />
+        <div className="flex items-center space-x-1 sm:space-x-4">
+          {/* Contextual Quick Actions - Hidden on mobile */}
+          <div className="hidden lg:block">
+            <QuickActionsBar />
+          </div>
 
-          {/* Return to Frontend */}
+          {/* Return to Frontend - Simplified on mobile */}
           <Button variant="outline" size="sm" asChild>
             <a href="/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
               <ExternalLink className="h-4 w-4" />
