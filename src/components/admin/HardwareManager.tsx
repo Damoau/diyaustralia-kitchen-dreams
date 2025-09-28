@@ -40,7 +40,7 @@ interface HardwareProduct {
   name: string;
   hardware_brand_id: string;
   hardware_type_id: string;
-  sku?: string;
+  model_number?: string;
   cost_per_unit: number;
   description?: string;
   active: boolean;
@@ -214,7 +214,7 @@ export const HardwareManager: React.FC = () => {
       name: '',
       hardware_brand_id: brands?.[0]?.id || '',
       hardware_type_id: types?.[0]?.id || '',
-      sku: '',
+      model_number: '',
       cost_per_unit: 0,
       description: '',
       active: true,
@@ -406,10 +406,10 @@ export const HardwareManager: React.FC = () => {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2 text-sm">
-                          {product.sku && (
+                          {product.model_number && (
                             <div className="flex justify-between">
-                              <span className="text-muted-foreground">SKU:</span>
-                              <span>{product.sku}</span>
+                              <span className="text-muted-foreground">Model:</span>
+                              <span>{product.model_number}</span>
                             </div>
                           )}
                           <div className="flex justify-between">
@@ -690,10 +690,10 @@ const ProductEditForm: React.FC<ProductEditFormProps> = ({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>SKU</Label>
+          <Label>Model Number</Label>
           <Input
-            value={formData.sku || ''}
-            onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+            value={formData.model_number || ''}
+            onChange={(e) => setFormData({ ...formData, model_number: e.target.value })}
           />
         </div>
 
