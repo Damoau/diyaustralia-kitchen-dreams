@@ -9,6 +9,7 @@ interface UseProductOptionsProps {
 
 export const useProductOptions = ({ cabinetTypeId, cabinetTypeName }: UseProductOptionsProps = {}) => {
   const [options, setOptions] = useState<ProductOptionConfig[]>([]);
+  const [hiddenOptions, setHiddenOptions] = useState<ProductOptionConfig[]>([]);
   const [values, setValues] = useState<ProductOptionValue[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -37,6 +38,7 @@ export const useProductOptions = ({ cabinetTypeId, cabinetTypeName }: UseProduct
           description,
           display_order,
           active,
+          display_to_customers,
           cabinet_option_values(
             id,
             value,
@@ -60,8 +62,10 @@ export const useProductOptions = ({ cabinetTypeId, cabinetTypeName }: UseProduct
       } else if (customOptions && customOptions.length > 0) {
         console.log('Debug - Found custom options, converting...', customOptions);
         
-        // Convert database options to ProductOptionConfig format
-        const convertedOptions = customOptions.map(option => {
+        // Convert database options to ProductOptionConfig format, filtering by display_to_customers
+        const visibleOptions = customOptions
+          .filter(option => option.display_to_customers !== false) // Only show options that should be displayed to customers
+          .map(option => {
           console.log('Debug - Converting option:', option.option_name, {
             hasValues: !!option.cabinet_option_values,
             valueCount: option.cabinet_option_values?.length || 0,
@@ -92,9 +96,38 @@ export const useProductOptions = ({ cabinetTypeId, cabinetTypeName }: UseProduct
             fileTypes: option.option_type === 'file_upload' ? ['image/*', '.pdf'] : undefined
           };
         });
+
+        // Store hidden options separately for pricing calculations
+        const hiddenOptionsConverted = customOptions
+          .filter(option => option.display_to_customers === false) // Options hidden from customers
+          .map(option => ({
+            id: option.id,
+            name: option.option_name,
+            type: (option.option_type === 'hinge_side' ? 'select' : option.option_type) as 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence',
+            required: option.required,
+            description: option.description,
+            options: (option.option_type === 'select' || option.option_type === 'hinge_side') && option.cabinet_option_values 
+              ? option.cabinet_option_values
+                  .filter((v: any) => v.active)
+                  .sort((a: any, b: any) => a.display_order - b.display_order)
+                  .map((v: any) => v.display_text)
+              : undefined,
+            priceAdjustments: (option.option_type === 'select' || option.option_type === 'hinge_side') && option.cabinet_option_values
+              ? option.cabinet_option_values
+                  .filter((v: any) => v.active && v.price_adjustment)
+                  .reduce((acc: Record<string, number>, v: any) => {
+                    acc[v.display_text] = v.price_adjustment;
+                    return acc;
+                  }, {})
+              : undefined,
+            maxFileSize: option.option_type === 'file_upload' ? 5 : undefined,
+            fileTypes: option.option_type === 'file_upload' ? ['image/*', '.pdf'] : undefined
+          }));
         
-        console.log('Debug - Converted options:', convertedOptions);
-        setOptions(convertedOptions);
+        console.log('Debug - Converted visible options:', visibleOptions);
+        console.log('Debug - Converted hidden options:', hiddenOptionsConverted);
+        setOptions(visibleOptions);
+        setHiddenOptions(hiddenOptionsConverted);
       } else {
         // No custom options found, use defaults
         const defaultOptions = getDefaultCabinetOptions(cabinetTypeName);
@@ -103,6 +136,7 @@ export const useProductOptions = ({ cabinetTypeId, cabinetTypeName }: UseProduct
       
       // Clear existing values when options change
       setValues([]);
+      setHiddenOptions([]);
       
     } catch (error) {
       console.error('Error loading product options:', error);
@@ -162,8 +196,27 @@ export const useProductOptions = ({ cabinetTypeId, cabinetTypeName }: UseProduct
     }, {} as Record<string, any>);
   }, [values, options]);
 
+  const getHiddenOptionsCost = useCallback(() => {
+    let totalCost = 0;
+    
+    hiddenOptions.forEach(option => {
+      if (option.type === 'plastic_legs') {
+        // Default plastic legs cost - this should come from your pricing logic
+        // For now, using a hardcoded value, but this should be calculated based on your pricing rules
+        totalCost += 9.60; // This matches the cost shown in your image
+      } else if (option.priceAdjustments && option.options) {
+        // For other hidden options with price adjustments, add the first option's cost as default
+        const firstOptionCost = option.priceAdjustments[option.options[0]] || 0;
+        totalCost += firstOptionCost;
+      }
+    });
+    
+    return totalCost;
+  }, [hiddenOptions]);
+
   return {
     options,
+    hiddenOptions,
     values,
     isLoading,
     updateValues,
@@ -171,6 +224,7 @@ export const useProductOptions = ({ cabinetTypeId, cabinetTypeName }: UseProduct
     validateRequiredOptions,
     getValidationErrors,
     resetValues,
-    exportValues
+    exportValues,
+    getHiddenOptionsCost
   };
 };

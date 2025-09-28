@@ -27,6 +27,7 @@ interface CabinetProductOption {
   required: boolean;
   description?: string;
   active: boolean;
+  display_to_customers: boolean;
   option_values?: CabinetOptionValue[];
 }
 
@@ -99,7 +100,8 @@ export const CabinetProductOptionsManager: React.FC<CabinetProductOptionsManager
             display_order: optionData.display_order,
             required: optionData.required,
             description: optionData.description,
-            active: optionData.active
+            active: optionData.active,
+            display_to_customers: optionData.display_to_customers
           })
           .eq('id', editingOption.id);
 
@@ -116,7 +118,8 @@ export const CabinetProductOptionsManager: React.FC<CabinetProductOptionsManager
             display_order: optionData.display_order || 0,
             required: optionData.required || false,
             description: optionData.description,
-            active: optionData.active ?? true
+            active: optionData.active ?? true,
+            display_to_customers: optionData.display_to_customers ?? true
           });
 
         if (error) throw error;
@@ -355,7 +358,8 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
     display_order: 0,
     required: false,
     description: '',
-    active: true
+    active: true,
+    display_to_customers: true
   });
 
   const [optionValues, setOptionValues] = useState<Array<{ value: string; display_text: string; price_adjustment: number }>>([
@@ -387,7 +391,8 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
         display_order: option.display_order,
         required: option.required,
         description: option.description || '',
-        active: option.active
+        active: option.active,
+        display_to_customers: option.display_to_customers ?? true
       });
       
       // Load existing option values if they exist
@@ -422,7 +427,8 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
         display_order: 0,
         required: false,
         description: '',
-        active: true
+        active: true,
+        display_to_customers: true
       });
       setOptionValues([{ value: '', display_text: '', price_adjustment: 0 }]);
       setHardwareBrands([]);
@@ -750,7 +756,11 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Switch id="legs_display" />
+                  <Switch 
+                    id="legs_display" 
+                    checked={formData.display_to_customers}
+                    onCheckedChange={(checked) => setFormData(prev => ({...prev, display_to_customers: checked}))}
+                  />
                   <Label htmlFor="legs_display">Display to customers</Label>
                 </div>
                 <div className="text-sm text-muted-foreground bg-muted/30 p-2 rounded">

@@ -597,6 +597,7 @@ export type Database = {
           description: string | null
           display_name: string | null
           display_order: number
+          display_to_customers: boolean
           id: string
           option_name: string
           option_type: string
@@ -610,6 +611,7 @@ export type Database = {
           description?: string | null
           display_name?: string | null
           display_order?: number
+          display_to_customers?: boolean
           id?: string
           option_name: string
           option_type: string
@@ -623,6 +625,7 @@ export type Database = {
           description?: string | null
           display_name?: string | null
           display_order?: number
+          display_to_customers?: boolean
           id?: string
           option_name?: string
           option_type?: string
