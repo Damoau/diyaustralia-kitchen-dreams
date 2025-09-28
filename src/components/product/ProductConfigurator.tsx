@@ -21,7 +21,6 @@ import { Ruler, Palette, Settings, FileText, ShoppingCart, MapPin, AlertCircle, 
 import { useCabinetPreferences } from '@/hooks/useCabinetPreferences';
 import { CabinetType, CabinetPart, DoorStyle, Color, Finish, DoorStyleFinish, ColorFinish } from '@/types/cabinet';
 import { ItemNamingDialog } from './ItemNamingDialog';
-import { HardwareSelection } from './HardwareSelection';
 import { useAddToQuote } from '@/hooks/useAddToQuote';
 import { ProductOptionsConfiguration } from './ProductOptionsConfiguration';
 import { useProductOptions } from '@/hooks/useProductOptions';
@@ -50,15 +49,6 @@ interface HardwareRequirement {
   hardware_type: {
     name: string;
     category: string;
-  };
-}
-
-interface HardwareProduct {
-  id: string;
-  name: string;
-  cost_per_unit: number;
-  hardware_brand?: {
-    name: string;
   };
 }
 
@@ -109,7 +99,6 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
   
   // Quote-related state
   const [showItemNamingDialog, setShowItemNamingDialog] = useState(false);
-  const [hardwareSelections, setHardwareSelections] = useState<{ [key: string]: HardwareProduct | null }>({});
   
   const { addToQuote, loading: addingToQuote } = useAddToQuote();
   
@@ -839,7 +828,6 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
             price: assemblyType === 'carcass_only' ? assemblyEstimate?.carcass_only_price : assemblyEstimate?.with_doors_price,
             postcode: postcode
           } : null,
-          hardware: hardwareSelections,
           productOptions: exportProductOptions()
         },
         notes: assemblyEnabled ? `Assembly: ${assemblyType} (${postcode})` : undefined
@@ -878,7 +866,6 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         price: assemblyType === 'carcass_only' ? assemblyEstimate?.carcass_only_price : assemblyEstimate?.with_doors_price,
         postcode: postcode || undefined
       } : { enabled: false },
-      hardwareSelections,
       productOptions: exportProductOptions(),
       itemName: namingData.itemName,
       jobReference: namingData.jobReference,
@@ -1419,12 +1406,6 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                         </div>
                       </CardContent>
                     </Card>
-
-                    {/* Hardware Selection */}
-                    <HardwareSelection
-                      cabinetTypeId={selectedCabinetType.id}
-                      onHardwareChange={setHardwareSelections}
-                    />
 
                     {/* Product Options Configuration */}
                     <ProductOptionsConfiguration
