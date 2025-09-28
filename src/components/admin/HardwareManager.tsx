@@ -41,7 +41,7 @@ interface HardwareProduct {
   hardware_brand_id: string;
   hardware_type_id: string;
   sku?: string;
-  price_ex_gst: number;
+  cost_per_unit: number;
   description?: string;
   active: boolean;
 }
@@ -215,7 +215,7 @@ export const HardwareManager: React.FC = () => {
       hardware_brand_id: brands?.[0]?.id || '',
       hardware_type_id: types?.[0]?.id || '',
       sku: '',
-      price_ex_gst: 0,
+      cost_per_unit: 0,
       description: '',
       active: true,
     });
@@ -414,7 +414,7 @@ export const HardwareManager: React.FC = () => {
                           )}
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Price (ex GST):</span>
-                            <span className="font-medium">${product.price_ex_gst}</span>
+                            <span className="font-medium">${product.cost_per_unit}</span>
                           </div>
                           {product.description && (
                             <p className="text-muted-foreground">{product.description}</p>
@@ -703,8 +703,8 @@ const ProductEditForm: React.FC<ProductEditFormProps> = ({
             type="number"
             min="0"
             step="0.01"
-            value={formData.price_ex_gst}
-            onChange={(e) => setFormData({ ...formData, price_ex_gst: parseFloat(e.target.value) || 0 })}
+            value={formData.cost_per_unit}
+            onChange={(e) => setFormData({ ...formData, cost_per_unit: parseFloat(e.target.value) || 0 })}
             required
           />
         </div>
