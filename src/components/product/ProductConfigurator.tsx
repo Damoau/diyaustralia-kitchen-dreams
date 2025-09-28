@@ -915,7 +915,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="product-configurator-modal mobile-modal-high-z bg-background border shadow-2xl overflow-hidden p-0 max-w-4xl w-[90vw]">
+      <DialogContent className="product-configurator-modal mobile-modal-high-z bg-background border shadow-2xl overflow-hidden p-0 max-w-7xl w-[95vw]">
         {/* Debug info - Remove after testing */}
         {!selectedCabinetType && open && (
           <div className="p-4 text-center">
@@ -976,14 +976,14 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
           {/* Main Content */}
           <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Left Column - Image */}
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-5 xl:col-span-6 2xl:col-span-6">
                 {selectedCabinetType && (
                   <div className="lg:sticky lg:top-6">
                     <Card className="overflow-hidden shadow-lg border-0 bg-gradient-to-br from-background to-secondary/5">
                       <CardContent className="p-0">
-                        <div className="aspect-[4/3] relative">
+                        <div className="aspect-[4/3] lg:aspect-[3/2] xl:aspect-[4/3] relative">
                           {selectedCabinetType.product_image_url ? (
                             <img
                               src={selectedCabinetType.product_image_url}
@@ -1026,7 +1026,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
               </div>
 
               {/* Right Column - Configuration */}
-              <div className="lg:col-span-3 space-y-4">
+              <div className="lg:col-span-7 xl:col-span-6 2xl:col-span-6 space-y-4">
                 {selectedCabinetType && (
                   <>
                     {/* Dimensions */}

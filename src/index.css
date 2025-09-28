@@ -151,9 +151,22 @@ All colors MUST be HSL.
 
   /* Product configurator specific styling */
   .product-configurator-modal {
-    width: 98vw !important;
-    max-width: 1600px !important;
+    width: 95vw !important;
+    max-width: 1800px !important;
     min-width: 320px !important;
+  }
+
+  /* Ultra-wide screen optimizations */
+  @media (min-width: 1400px) {
+    .product-configurator-modal {
+      max-width: 2000px !important;
+    }
+  }
+
+  @media (min-width: 1600px) {
+    .product-configurator-modal {
+      max-width: 2200px !important;
+    }
   }
 
   /* Better visibility for dimension inputs on mobile */
