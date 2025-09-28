@@ -186,6 +186,28 @@ const Settings = () => {
               <Input id="currency" placeholder="AUD" />
             </div>
           </div>
+          
+          <Separator />
+          
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium">Hardware Pricing</h4>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <Label htmlFor="hardware-markup">Hardware Markup %</Label>
+                <Input id="hardware-markup" placeholder="35" type="number" />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Applied to base hardware costs
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="hardware-discount">Hardware Discount %</Label>
+                <Input id="hardware-discount" placeholder="0" type="number" />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Applied after markup for final pricing
+                </p>
+              </div>
+            </div>
+          </div>
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium">Show Prices Including Tax</p>
