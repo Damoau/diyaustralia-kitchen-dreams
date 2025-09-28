@@ -323,7 +323,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
   const [formData, setFormData] = useState({
     option_name: '',
     display_name: '',
-    option_type: 'select',
+    option_type: '', // Changed from 'select' to empty string
     display_order: 0,
     required: false,
     description: '',
@@ -373,7 +373,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
       setFormData({
         option_name: '',
         display_name: '',
-        option_type: 'select',
+        option_type: '', // Changed from 'select' to empty string
         display_order: 0,
         required: false,
         description: '',
@@ -510,7 +510,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
               onValueChange={(value: any) => setFormData(prev => ({ ...prev, option_type: value }))}
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Choose option type..." />
               </SelectTrigger>
               <SelectContent 
                 className="z-[100] bg-background border shadow-lg"
@@ -602,24 +602,21 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
 
           {/* Hardware Brand Configuration - Show for hinge_brand_set and runner_brand_set */}
           {(formData.option_type === 'hinge_brand_set' || formData.option_type === 'runner_brand_set') && (
-            <div>
-              <div className="mb-2 p-2 bg-blue-100 text-blue-800 text-xs rounded">
-                Debug: Showing hardware config for {formData.option_type}
-              </div>
-              <HardwareBrandConfiguration
-                category={formData.option_type === 'hinge_brand_set' ? 'hinge' : 'runner'}
-                brands={hardwareBrands}
-                onBrandsChange={setHardwareBrands}
-              />
-            </div>
+            <HardwareBrandConfiguration
+              category={formData.option_type === 'hinge_brand_set' ? 'hinge' : 'runner'}
+              brands={hardwareBrands}
+              onBrandsChange={setHardwareBrands}
+            />
           )}
 
-          {/* Debug info */}
-          <div className="text-xs text-muted-foreground p-2 bg-gray-100 rounded">
-            Debug - Current option_type: "{formData.option_type}"
-            <br />
-            Should show hardware config: {(formData.option_type === 'hinge_brand_set' || formData.option_type === 'runner_brand_set').toString()}
-          </div>
+          {/* Show helpful text when no option type is selected */}
+          {!formData.option_type && (
+            <div className="p-4 border-2 border-dashed rounded-lg text-center">
+              <p className="text-sm text-muted-foreground">
+                Select an option type above to configure its settings
+              </p>
+            </div>
+          )}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
