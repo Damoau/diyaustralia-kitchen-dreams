@@ -64,7 +64,7 @@ const DynamicHeader = () => {
   const isInAdminMode = location.pathname.startsWith('/admin');
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-primary text-primary-foreground backdrop-blur supports-[backdrop-filter]:bg-primary/95">
       <div className="container flex h-14 items-center justify-between">
         <div className="flex items-center space-x-4">
           <Link 
@@ -72,7 +72,7 @@ const DynamicHeader = () => {
             className="flex items-center space-x-2 cursor-pointer"
           >
             <div className="w-8 h-8 bg-gradient-to-br from-primary to-blue-dark rounded-lg"></div>
-            <span className="text-xl font-bold text-foreground">DIY Kitchens</span>
+            <span className="text-xl font-bold text-primary-foreground">DIY Kitchens</span>
           </Link>
         </div>
 
@@ -99,8 +99,8 @@ const DynamicHeader = () => {
             <>
               <Link 
                 to="/"
-                className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
-                  location.pathname === '/' ? 'text-foreground' : 'text-foreground/60'
+                className={`text-sm font-medium transition-colors hover:text-primary-foreground/80 ${
+                  location.pathname === '/' ? 'text-primary-foreground' : 'text-primary-foreground/60'
                 }`}
               >
                 Home
@@ -109,8 +109,8 @@ const DynamicHeader = () => {
                 <DropdownMenuTrigger asChild>
                   <Button 
                     variant="ghost" 
-                    className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
-                      location.pathname.startsWith('/shop') ? 'text-foreground' : 'text-foreground/60'
+                    className={`text-sm font-medium transition-colors hover:text-primary-foreground/80 ${
+                      location.pathname.startsWith('/shop') ? 'text-primary-foreground' : 'text-primary-foreground/60'
                     }`}
                   >
                     Shop <ChevronDown className="ml-1 h-3 w-3" />
@@ -133,24 +133,24 @@ const DynamicHeader = () => {
               </DropdownMenu>
               <Link 
                 to="/kitchen-styles"
-                className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
-                  location.pathname === '/kitchen-styles' ? 'text-foreground' : 'text-foreground/60'
+                className={`text-sm font-medium transition-colors hover:text-primary-foreground/80 ${
+                  location.pathname === '/kitchen-styles' ? 'text-primary-foreground' : 'text-primary-foreground/60'
                 }`}
               >
                 Kitchen Styles
               </Link>
               <Link 
                 to="/manufacturing"
-                className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
-                  location.pathname === '/manufacturing' ? 'text-foreground' : 'text-foreground/60'
+                className={`text-sm font-medium transition-colors hover:text-primary-foreground/80 ${
+                  location.pathname === '/manufacturing' ? 'text-primary-foreground' : 'text-primary-foreground/60'
                 }`}
               >
                 Manufacturing
               </Link>
               <Link 
                 to="/price-list"
-                className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
-                  location.pathname === '/price-list' ? 'text-foreground' : 'text-foreground/60'
+                className={`text-sm font-medium transition-colors hover:text-primary-foreground/80 ${
+                  location.pathname === '/price-list' ? 'text-primary-foreground' : 'text-primary-foreground/60'
                 }`}
               >
                 Price List
