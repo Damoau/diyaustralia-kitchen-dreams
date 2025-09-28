@@ -602,12 +602,24 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
 
           {/* Hardware Brand Configuration - Show for hinge_brand_set and runner_brand_set */}
           {(formData.option_type === 'hinge_brand_set' || formData.option_type === 'runner_brand_set') && (
-            <HardwareBrandConfiguration
-              category={formData.option_type === 'hinge_brand_set' ? 'hinge' : 'runner'}
-              brands={hardwareBrands}
-              onBrandsChange={setHardwareBrands}
-            />
+            <div>
+              <div className="mb-2 p-2 bg-blue-100 text-blue-800 text-xs rounded">
+                Debug: Showing hardware config for {formData.option_type}
+              </div>
+              <HardwareBrandConfiguration
+                category={formData.option_type === 'hinge_brand_set' ? 'hinge' : 'runner'}
+                brands={hardwareBrands}
+                onBrandsChange={setHardwareBrands}
+              />
+            </div>
           )}
+
+          {/* Debug info */}
+          <div className="text-xs text-muted-foreground p-2 bg-gray-100 rounded">
+            Debug - Current option_type: "{formData.option_type}"
+            <br />
+            Should show hardware config: {(formData.option_type === 'hinge_brand_set' || formData.option_type === 'runner_brand_set').toString()}
+          </div>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
