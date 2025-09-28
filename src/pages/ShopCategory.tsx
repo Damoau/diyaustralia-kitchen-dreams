@@ -254,45 +254,49 @@ const CategoryPage = () => {
             </div>
           )}
         
-          <main className={`w-full px-6 py-8 mobile-safe-bottom ${showStickyFilter ? 'pt-20' : ''}`}>
+          <main className={`w-full px-6 mobile-safe-bottom ${showStickyFilter ? 'pt-20' : 'py-8'}`}>
           {/* Breadcrumbs */}
-          <Breadcrumb className="mb-8">
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link to="/">Home</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link to="/shop">Shop</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link to={`/shop/${room}`}>{roomCategory?.display_name}</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{displayCategory}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
+          {!showStickyFilter && (
+            <Breadcrumb className="mb-8">
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to="/">Home</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to="/shop">Shop</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to={`/shop/${room}`}>{roomCategory?.display_name}</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{displayCategory}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          )}
 
           {/* Category Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4">{displayCategory} {roomCategory?.display_name}</h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Discover our premium {displayCategory.toLowerCase()} designed for {roomCategory?.display_name?.toLowerCase() || 'your space'}. 
-              Each cabinet is crafted with precision and can be customized to your exact specifications.
-            </p>
-          </div>
+          {!showStickyFilter && (
+            <div className="text-center mb-12">
+              <h1 className="text-4xl font-bold mb-4">{displayCategory} {roomCategory?.display_name}</h1>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Discover our premium {displayCategory.toLowerCase()} designed for {roomCategory?.display_name?.toLowerCase() || 'your space'}. 
+                Each cabinet is crafted with precision and can be customized to your exact specifications.
+              </p>
+            </div>
+          )}
 
           {/* Subcategory Filter Buttons */}
-          {subcategories.length > 0 && (
+          {subcategories.length > 0 && !showStickyFilter && (
             <div ref={filterSectionRef} className="mb-8">
               <div className="flex flex-wrap gap-3 justify-center">
                 <Button
@@ -315,6 +319,9 @@ const CategoryPage = () => {
               </div>
             </div>
           )}
+          
+          {/* Hidden ref element for scroll detection when sticky filter is active */}
+          {showStickyFilter && <div ref={filterSectionRef} className="absolute top-0" />}
 
           {/* Products Grid */}
           {filteredCabinetTypes.length === 0 ? (
