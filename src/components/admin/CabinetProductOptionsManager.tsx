@@ -305,6 +305,10 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
     active: true
   });
 
+  const [optionValues, setOptionValues] = useState<Array<{ value: string; display_text: string; price_adjustment: number }>>([
+    { value: '', display_text: '', price_adjustment: 0 }
+  ]);
+
   useEffect(() => {
     if (option) {
       setFormData({
@@ -316,6 +320,17 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
         description: option.description || '',
         active: option.active
       });
+      
+      // Load existing option values if they exist
+      if (option.option_values && option.option_values.length > 0) {
+        setOptionValues(option.option_values.map(v => ({
+          value: v.value,
+          display_text: v.display_text,
+          price_adjustment: v.price_adjustment || 0
+        })));
+      } else {
+        setOptionValues([{ value: '', display_text: '', price_adjustment: 0 }]);
+      }
     } else {
       setFormData({
         option_name: '',
@@ -326,17 +341,77 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
         description: '',
         active: true
       });
+      setOptionValues([{ value: '', display_text: '', price_adjustment: 0 }]);
     }
   }, [option]);
 
-  const handleSave = () => {
+  const addOptionValue = () => {
+    setOptionValues([...optionValues, { value: '', display_text: '', price_adjustment: 0 }]);
+  };
+
+  const removeOptionValue = (index: number) => {
+    if (optionValues.length > 1) {
+      setOptionValues(optionValues.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateOptionValue = (index: number, field: string, value: string | number) => {
+    const updated = [...optionValues];
+    updated[index] = { ...updated[index], [field]: value };
+    setOptionValues(updated);
+  };
+
+  const handleSave = async () => {
     if (!formData.option_name.trim() || !formData.display_name.trim()) return;
-    onSave(formData);
+    
+    // First save the option
+    await onSave(formData);
+    
+    // If it's a select option and we have values, we need to save those too
+    if (formData.option_type === 'select' && optionValues.some(v => v.value.trim() && v.display_text.trim())) {
+      // The parent component will need to handle saving option values
+      // For now, we'll include them in a callback
+      if (option?.id) {
+        // Update existing option values
+        await saveOptionValues(option.id);
+      }
+    }
+  };
+
+  const saveOptionValues = async (optionId: string) => {
+    try {
+      // Delete existing values first
+      await supabase
+        .from('cabinet_option_values')
+        .delete()
+        .eq('cabinet_option_id', optionId);
+
+      // Insert new values
+      const validValues = optionValues.filter(v => v.value.trim() && v.display_text.trim());
+      if (validValues.length > 0) {
+        const valuesToInsert = validValues.map((value, index) => ({
+          cabinet_option_id: optionId,
+          value: value.value,
+          display_text: value.display_text,
+          price_adjustment: value.price_adjustment || 0,
+          display_order: index,
+          active: true
+        }));
+
+        const { error } = await supabase
+          .from('cabinet_option_values')
+          .insert(valuesToInsert);
+
+        if (error) throw error;
+      }
+    } catch (error) {
+      console.error('Error saving option values:', error);
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
             {option ? 'Edit Product Option' : 'Add Product Option'}
@@ -408,6 +483,57 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
               placeholder="Help text for customers"
             />
           </div>
+
+          {/* Option Values - Only show for select type */}
+          {formData.option_type === 'select' && (
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <Label>Option Values</Label>
+                <Button type="button" variant="outline" size="sm" onClick={addOptionValue}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Value
+                </Button>
+              </div>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {optionValues.map((value, index) => (
+                  <div key={index} className="grid grid-cols-5 gap-2 items-center p-2 border rounded">
+                    <Input
+                      placeholder="Value"
+                      value={value.value}
+                      onChange={(e) => updateOptionValue(index, 'value', e.target.value)}
+                      className="text-xs"
+                    />
+                    <Input
+                      placeholder="Display Text"
+                      value={value.display_text}
+                      onChange={(e) => updateOptionValue(index, 'display_text', e.target.value)}
+                      className="text-xs"
+                    />
+                    <Input
+                      type="number"
+                      placeholder="$0"
+                      value={value.price_adjustment}
+                      onChange={(e) => updateOptionValue(index, 'price_adjustment', parseFloat(e.target.value) || 0)}
+                      className="text-xs"
+                      step="0.01"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeOptionValue(index)}
+                      disabled={optionValues.length === 1}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Add options like "Left", "Right", "Center", etc. that customers can choose from.
+              </p>
+            </div>
+          )}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
