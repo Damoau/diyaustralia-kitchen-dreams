@@ -281,10 +281,10 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         with_doors_price: cabinetAssemblyData?.with_doors_price
       });
     } else if (postcode.length === 4) {
-      // Show loading state while checking
-      console.log('Postcode entered but no data yet, setting loading estimate');
+      // Show assembly options immediately while loading
+      console.log('Postcode entered, showing options immediately while loading');
       setAssemblyEstimate({
-        eligible: true, // Default to eligible while loading
+        eligible: true, // Optimistically show as eligible
         carcass_only_price: 50,
         with_doors_price: 100,
         lead_time_days: 8,
@@ -295,10 +295,12 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           '12-month warranty'
         ]
       });
+      // Show all options for selection immediately
+      setAssemblyEditMode(true);
+      setHasAssemblySelection(false);
     }
   }, [postcodeData, selectedCabinetType, postcode]);
 
-  // Handle postcode input with validation
   const handlePostcodeChange = (value: string) => {
     setPostcode(value);
     setPostcodeError("");
@@ -311,9 +313,23 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
       setAssemblyEditMode(false);
       setHasAssemblySelection(false);
     } else {
-      // When a 4-digit postcode is entered, always show all options for selection
+      // When a 4-digit postcode is entered, immediately show all options
       setAssemblyEditMode(true);
       setHasAssemblySelection(false); // Reset selection to show all options
+      
+      // Immediately show assembly options optimistically
+      setAssemblyEstimate({
+        eligible: true, // Optimistically show as available
+        carcass_only_price: 50,
+        with_doors_price: 100,
+        lead_time_days: 8,
+        includes: [
+          'Professional installation',
+          'Hardware attachment', 
+          'Adjustment and alignment',
+          '12-month warranty'
+        ]
+      });
     }
 
     // Validate postcode format
@@ -1134,21 +1150,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                       </CardContent>
                     </Card>
 
-                    {/* Quantity */}
-                    <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5">
-                      <CardContent className="pt-6 space-y-4">
-                        <div>
-                          <Label className="text-sm font-medium mb-2 block">Quantity</Label>
-                          <Input
-                            type="number"
-                            value={quantity}
-                            onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                            min={1}
-                            className="text-center font-mono h-10 text-base font-semibold border-2 focus:border-primary/50"
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
+                    {/* Quantity - Remove from main form */}
 
                     {/* Product Options Configuration */}
                     <ProductOptionsConfiguration
@@ -1375,31 +1377,41 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
         {selectedCabinetType && (
           <div className="sticky bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t shadow-lg p-4 z-50">
             <div className="max-w-md mx-auto space-y-3">
-              <div className="grid grid-cols-1 gap-3">
-                <Button
-                  onClick={handleAddToCart}
-                  size="lg"
-                  className="w-full"
-                  disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish || !validateRequiredOptions()}
-                >
-                  <ShoppingCart className="w-4 h-4 mr-2" />
-                  Add to Cart
-                </Button>
+              {/* Quantity and Add to Cart in same row */}
+              <div className="flex gap-3 items-center">
+                <div className="flex-shrink-0 w-20">
+                  <Label className="text-xs font-medium mb-1 block">Qty</Label>
+                  <Input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                    min={1}
+                    className="text-center font-mono h-10 text-sm font-semibold border-2 focus:border-primary/50"
+                  />
+                </div>
+                <div className="flex-1">
+                  <Button
+                    onClick={handleAddToCart}
+                    size="lg"
+                    className="w-full h-10"
+                    disabled={!selectedCabinetType || !selectedDoorStyle || !selectedColor || !selectedFinish || !validateRequiredOptions()}
+                  >
+                    <ShoppingCart className="w-4 h-4 mr-2" />
+                    Add to Cart - {formatCurrency(calculateTotalPrice() * quantity)}
+                  </Button>
+                </div>
               </div>
               
-              <div className="text-center">
-                <div className="text-lg font-bold text-foreground">
-                  {formatCurrency(calculateTotalPrice() * quantity)}
-                </div>
-                {(!selectedDoorStyle || !selectedColor || !selectedFinish || !validateRequiredOptions()) && (
+              {(!selectedDoorStyle || !selectedColor || !selectedFinish || !validateRequiredOptions()) && (
+                <div className="text-center">
                   <div className="text-xs text-muted-foreground font-medium">
                     {!selectedDoorStyle || !selectedColor || !selectedFinish 
                       ? "Complete all selections to proceed"
                       : getValidationErrors().join(", ")
                     }
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         )}
