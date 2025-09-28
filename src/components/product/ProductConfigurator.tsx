@@ -1013,15 +1013,15 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                 {selectedCabinetType && (
                   <>
                      {/* Dimensions */}
-                     <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5 mx-4">
-                       <CardHeader className="pb-3 px-4">
+                     <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5">
+                       <CardHeader className="pb-3">
                          <CardTitle className="text-lg flex items-center gap-2 font-semibold">
                            <Ruler className="w-5 h-5 text-primary" />
                            Set your sizes
                          </CardTitle>
                        </CardHeader>
-                       <CardContent className="pt-0 px-4">
-                         <div className="grid grid-cols-3 gap-4">
+                       <CardContent className="pt-0">
+                         <div className="grid grid-cols-3 gap-6">
                            <div className="space-y-2">
                              <Label htmlFor="width" className="text-sm font-medium text-center block">Width</Label>
                              <Input
@@ -1030,7 +1030,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                                value={dimensions.width || ''}
                                onChange={(e) => handleDimensionChange('width', e.target.value)}
                                onBlur={() => handleDimensionBlur('width')}
-                               className="text-center font-mono h-14 text-lg font-bold border-2 focus:border-primary/50 bg-background"
+                               className="text-center font-mono h-16 text-xl font-bold border-2 focus:border-primary/50 bg-background"
                              />
                              <div className="text-xs text-muted-foreground text-center font-medium">
                                {selectedCabinetType.min_width_mm}-{selectedCabinetType.max_width_mm}
@@ -1044,7 +1044,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                                value={dimensions.height || ''}
                                onChange={(e) => handleDimensionChange('height', e.target.value)}
                                onBlur={() => handleDimensionBlur('height')}
-                               className="text-center font-mono h-14 text-lg font-bold border-2 focus:border-primary/50 bg-background"
+                               className="text-center font-mono h-16 text-xl font-bold border-2 focus:border-primary/50 bg-background"
                              />
                              <div className="text-xs text-muted-foreground text-center font-medium">
                                {selectedCabinetType.min_height_mm}-{selectedCabinetType.max_height_mm}
@@ -1058,7 +1058,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                                value={dimensions.depth || ''}
                                onChange={(e) => handleDimensionChange('depth', e.target.value)}
                                onBlur={() => handleDimensionBlur('depth')}
-                               className="text-center font-mono h-14 text-lg font-bold border-2 focus:border-primary/50 bg-background"
+                               className="text-center font-mono h-16 text-xl font-bold border-2 focus:border-primary/50 bg-background"
                              />
                              <div className="text-xs text-muted-foreground text-center font-medium">
                                {selectedCabinetType.min_depth_mm}-{selectedCabinetType.max_depth_mm}
