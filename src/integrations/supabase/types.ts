@@ -2108,6 +2108,7 @@ export type Database = {
           hardware_brand_id: string
           hardware_type_id: string
           id: string
+          markup_percentage: number | null
           model_number: string | null
           name: string
           specifications: Json | null
@@ -2120,6 +2121,7 @@ export type Database = {
           hardware_brand_id: string
           hardware_type_id: string
           id?: string
+          markup_percentage?: number | null
           model_number?: string | null
           name: string
           specifications?: Json | null
@@ -2132,6 +2134,7 @@ export type Database = {
           hardware_brand_id?: string
           hardware_type_id?: string
           id?: string
+          markup_percentage?: number | null
           model_number?: string | null
           name?: string
           specifications?: Json | null

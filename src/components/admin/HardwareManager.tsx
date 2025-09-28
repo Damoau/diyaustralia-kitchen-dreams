@@ -42,6 +42,7 @@ interface HardwareProduct {
   hardware_type_id: string;
   model_number?: string;
   cost_per_unit: number;
+  markup_percentage?: number;
   description?: string;
   active: boolean;
 }
@@ -235,6 +236,7 @@ export const HardwareManager: React.FC = () => {
       hardware_type_id: types?.[0]?.id || '',
       model_number: '',
       cost_per_unit: 0,
+      markup_percentage: 0,
       description: '',
       active: true,
     });
@@ -407,23 +409,25 @@ export const HardwareManager: React.FC = () => {
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-lg">{product.name}</CardTitle>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingProduct(product);
-                              setDialogOpen(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => deleteProductMutation.mutate(product.id!)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingProduct(product);
+                                setDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => deleteProductMutation.mutate(product.id!)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                         <div className="flex gap-2">
                           <Badge variant="outline">{product.hardware_brands?.name}</Badge>
@@ -442,6 +446,12 @@ export const HardwareManager: React.FC = () => {
                             <span className="text-muted-foreground">Price (ex GST):</span>
                             <span className="font-medium">${product.cost_per_unit}</span>
                           </div>
+                          {product.markup_percentage !== undefined && product.markup_percentage > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Markup:</span>
+                              <span className="font-medium">{product.markup_percentage}%</span>
+                            </div>
+                          )}
                           {product.description && (
                             <p className="text-muted-foreground">{product.description}</p>
                           )}
@@ -734,6 +744,25 @@ const ProductEditForm: React.FC<ProductEditFormProps> = ({
             required
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="flex items-center gap-2">
+          <DollarSign className="h-4 w-4" />
+          Markup Percentage
+        </Label>
+        <Input
+          type="number"
+          min="0"
+          max="100"
+          step="0.1"
+          value={formData.markup_percentage || 0}
+          onChange={(e) => setFormData({ ...formData, markup_percentage: parseFloat(e.target.value) || 0 })}
+          placeholder="0"
+        />
+        <p className="text-sm text-muted-foreground">
+          Individual markup percentage for this product (overrides global settings)
+        </p>
       </div>
 
       <div className="space-y-2">
