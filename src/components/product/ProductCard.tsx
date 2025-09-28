@@ -78,22 +78,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </CardHeader>
 
       <CardContent className="pt-0 space-y-4">
-        {/* Action Buttons */}
-        <div className="flex gap-2 pt-2">
-          <Button 
-            onClick={() => onViewProduct(cabinet)}
-            variant="outline"
-            className="flex-1"
-            size="sm"
-          >
-            View Details
-          </Button>
+        {/* Action Button */}
+        <div className="pt-2">
           <Button 
             onClick={handleConfigureClick}
-            className="flex-1"
+            className="w-full"
             size="sm"
           >
-            Configure
+            Create your cabinet
           </Button>
         </div>
       </CardContent>

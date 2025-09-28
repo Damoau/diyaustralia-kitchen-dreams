@@ -271,7 +271,7 @@ const CategoryPage = () => {
               <p className="text-muted-foreground">Check back later for new products.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredCabinetTypes.map((cabinet) => (
                 <ProductCard
                   key={cabinet.id}
