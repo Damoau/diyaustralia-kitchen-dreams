@@ -1020,8 +1020,8 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                            Set your sizes
                          </CardTitle>
                        </CardHeader>
-                       <CardContent className="pt-0">
-                         <div className="grid grid-cols-3 gap-6">
+                       <CardContent className="px-0.5 pt-0">
+                         <div className="grid grid-cols-3 gap-0.5">
                            <div className="space-y-2">
                              <Label htmlFor="width" className="text-sm font-medium text-center block">Width</Label>
                              <Input
