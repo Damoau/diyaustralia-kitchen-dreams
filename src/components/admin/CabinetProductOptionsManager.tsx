@@ -465,8 +465,13 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
           const target = e.target as Element;
           if (target?.closest("[data-radix-select-content]") || 
               target?.closest("[data-radix-popper-content-wrapper]") ||
+              target?.closest("[data-radix-select-viewport]") ||
+              target?.closest("[data-radix-select-item]") ||
               target?.closest("[role='listbox']") ||
-              target?.closest(".radix-select-content")) {
+              target?.closest("[role='option']") ||
+              target?.closest(".radix-select-content") ||
+              target?.getAttribute('data-radix-select-content') !== null ||
+              target?.getAttribute('data-radix-collection-item') !== null) {
             e.preventDefault();
           }
         }}
@@ -509,13 +514,11 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
               value={formData.option_type}
               onValueChange={(value: any) => setFormData(prev => ({ ...prev, option_type: value }))}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Choose option type..." />
               </SelectTrigger>
               <SelectContent 
-                className="z-[100] bg-background border shadow-lg"
-                position="popper"
-                sideOffset={5}
+                className="z-[9999] bg-popover border shadow-lg max-h-[300px] overflow-y-auto"
               >
                 <SelectItem value="select">Select (Dropdown)</SelectItem>
                 <SelectItem value="hinge_brand_set">Hinge Brand</SelectItem>
