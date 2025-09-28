@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/admin/shared/DataTable";
 import { CabinetComponentsTab } from "@/components/admin/CabinetComponentsTab";
-import { CustomDoorHingeConfigurator } from "@/components/admin/CustomDoorHingeConfigurator";
+import { CabinetProductOptionsManager } from "@/components/admin/CabinetProductOptionsManager";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -1530,88 +1530,25 @@ export default function EditCabinetType() {
             <TabsContent value="product-options" className="space-y-6 m-0">
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <Sparkles className="h-5 w-5" />
-                        Product Options
-                      </CardTitle>
-                      <CardDescription>
-                        Configure customer-selectable options like door hinge configurations
-                      </CardDescription>
-                    </div>
-                    {id !== 'new' && cabinetType.door_count > 0 && (
-                      <CustomDoorHingeConfigurator
-                        cabinetTypeId={id}
-                        doorCount={cabinetType.door_count}
-                        onConfigurationAdded={() => {
-                          // Refresh the page to show new options
-                          window.location.reload();
-                        }}
-                      />
-                    )}
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5" />
+                      Product Options
+                    </CardTitle>
+                    <CardDescription>
+                      Configure customer-selectable options like door hinge configurations, pricing, and more
+                    </CardDescription>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {id === 'new' ? (
+                  {id !== 'new' ? (
+                    <CabinetProductOptionsManager
+                      cabinetTypeId={id}
+                      cabinetTypeName={cabinetType.name}
+                    />
+                  ) : (
                     <div className="text-center py-8 text-muted-foreground">
                       Save the cabinet type first to configure product options.
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {/* Show existing product options */}
-                      {cabinetType.door_count > 0 ? (
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <DoorOpen className="h-4 w-4" />
-                            <span>Door Hinge Configurations for {cabinetType.door_count}-door cabinet</span>
-                          </div>
-                          
-                          <div className="p-4 bg-muted/50 rounded-lg">
-                            <h4 className="font-medium mb-2">Available Configurations:</h4>
-                            <div className="text-sm text-muted-foreground">
-                              The system has automatically generated door hinge configurations for this {cabinetType.door_count}-door cabinet.
-                              Use the "Add Custom Configuration" button to create additional combinations.
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium">Example Configurations:</Label>
-                            <div className="flex flex-wrap gap-2">
-                              {cabinetType.door_count === 2 && (
-                                <>
-                                  <Badge variant="outline">Left-Left</Badge>
-                                  <Badge variant="outline">Left-Right</Badge>
-                                  <Badge variant="outline">Right-Left</Badge>
-                                  <Badge variant="outline">Right-Right</Badge>
-                                </>
-                              )}
-                              {cabinetType.door_count === 3 && (
-                                <>
-                                  <Badge variant="outline">Left-Left-Left</Badge>
-                                  <Badge variant="outline">Left-Right-Left</Badge>
-                                  <Badge variant="outline">Right-Right-Right</Badge>
-                                  <Badge variant="outline">Custom...</Badge>
-                                </>
-                              )}
-                              {cabinetType.door_count >= 4 && (
-                                <>
-                                  <Badge variant="outline">All Left</Badge>
-                                  <Badge variant="outline">All Right</Badge>
-                                  <Badge variant="outline">Alternating</Badge>
-                                  <Badge variant="outline">Custom...</Badge>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-center py-8 text-muted-foreground">
-                          <DoorOpen className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                          <p>This cabinet has no doors.</p>
-                          <p className="text-sm">Update the door count in the "Door Options" tab to configure hinge options.</p>
-                        </div>
-                      )}
                     </div>
                   )}
                 </CardContent>
