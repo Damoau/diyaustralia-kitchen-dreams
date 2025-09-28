@@ -1135,13 +1135,7 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
 
                     {/* Hardware & Quantity */}
                     <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg flex items-center gap-2 font-semibold">
-                          <Settings className="w-5 h-5 text-primary" />
-                          Options
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-0 space-y-4">
+                      <CardContent className="pt-6 space-y-4">
                         <div>
                           <Label className="text-sm font-medium mb-2 block">Hardware Brand</Label>
                           <Select>
@@ -1165,6 +1159,20 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                             className="text-center font-mono h-10 text-base font-semibold border-2 focus:border-primary/50"
                           />
                         </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Product Options Configuration */}
+                    <ProductOptionsConfiguration
+                      cabinetTypeId={selectedCabinetType.id}
+                      options={productOptions}
+                      values={productOptionValues}
+                      onValuesChange={updateProductOptionValues}
+                    />
+
+                    {/* Postcode for Assembly */}
+                    <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5">
+                      <CardContent className="pt-6 space-y-4">
                         <div>
                           <Label className="text-sm font-medium mb-2 block flex items-center gap-2">
                             <MapPin className="h-3 w-3" />
@@ -1365,55 +1373,6 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
                         />
                       </CardContent>
                     </Card>
-
-                    {/* Quantity - Separate section */}
-                    <Card className="shadow-md border-0 bg-gradient-to-br from-background to-secondary/5">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg flex items-center gap-2 font-semibold">
-                          <Calculator className="w-5 h-5 text-primary" />
-                          Quantity
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="flex items-center justify-center">
-                          <div className="flex items-center space-x-3">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                              className="h-10 w-10 p-0"
-                            >
-                              <Minus className="h-4 w-4" />
-                            </Button>
-                            <Input
-                              type="number"
-                              value={quantity}
-                              onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                              min={1}
-                              className="text-center font-mono h-10 w-20 text-lg font-bold border-2 focus:border-primary/50"
-                            />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setQuantity(quantity + 1)}
-                              className="h-10 w-10 p-0"
-                            >
-                              <Plus className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Product Options Configuration */}
-                    <ProductOptionsConfiguration
-                      cabinetTypeId={selectedCabinetType.id}
-                      options={productOptions}
-                      values={productOptionValues}
-                      onValuesChange={updateProductOptionValues}
-                    />
 
                     {/* Add bottom padding to prevent overlap with sticky add to cart */}
                     <div className="pb-32"></div>

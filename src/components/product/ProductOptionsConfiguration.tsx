@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Upload, X, FileText, Settings } from 'lucide-react';
+import { Upload, X, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Define option types
@@ -343,12 +343,6 @@ export const ProductOptionsConfiguration: React.FC<ProductOptionsConfigurationPr
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings className="h-5 w-5" />
-          Product Options
-        </CardTitle>
-      </CardHeader>
       <CardContent className="space-y-6">
         {options.map((option, index) => (
           <div key={option.id}>
