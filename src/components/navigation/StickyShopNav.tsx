@@ -95,13 +95,13 @@ export const StickyShopNav = ({
                 >
                   <SelectTrigger className="w-40">
                     <SelectValue>
-                      {mainCategories.find(c => c.name === activeMainCategory)?.display_name || displayCategory}
+                      {mainCategories.find(c => c.name === activeMainCategory)?.display_name?.replace(/^(Base|Wall|Tall|Pantry)\s+/i, '') || cleanDisplayCategory}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="bg-background border shadow-lg z-[60]">
                     {mainCategories.map((mainCat) => (
                       <SelectItem key={mainCat.id} value={mainCat.name}>
-                        {mainCat.display_name}
+                        {mainCat.display_name?.replace(/^(Base|Wall|Tall|Pantry)\s+/i, '')}
                       </SelectItem>
                     ))}
                   </SelectContent>
