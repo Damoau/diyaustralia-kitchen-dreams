@@ -18,6 +18,7 @@ interface CabinetOptionValue {
   active: boolean;
   price_adjustment?: number;
   card_display_position?: number;
+  is_default?: boolean;
 }
 
 interface CabinetOptionValuesManagerProps {
@@ -80,7 +81,8 @@ export const CabinetOptionValuesManager: React.FC<CabinetOptionValuesManagerProp
             display_order: valueData.display_order,
             active: valueData.active,
             price_adjustment: valueData.price_adjustment || 0,
-            card_display_position: valueData.card_display_position || null
+            card_display_position: valueData.card_display_position || null,
+            is_default: valueData.is_default || false
           })
           .eq('id', editingValue.id);
 
@@ -96,7 +98,8 @@ export const CabinetOptionValuesManager: React.FC<CabinetOptionValuesManagerProp
             display_order: valueData.display_order || 0,
             active: valueData.active ?? true,
             price_adjustment: valueData.price_adjustment || 0,
-            card_display_position: valueData.card_display_position || null
+            card_display_position: valueData.card_display_position || null,
+            is_default: valueData.is_default || false
           });
 
         if (error) throw error;
@@ -255,7 +258,8 @@ const ValueEditDialog: React.FC<ValueEditDialogProps> = ({
     display_order: 0,
     active: true,
     price_adjustment: 0,
-    card_display_position: 0
+    card_display_position: 0,
+    is_default: false
   });
 
   useEffect(() => {
@@ -266,7 +270,8 @@ const ValueEditDialog: React.FC<ValueEditDialogProps> = ({
         display_order: value.display_order,
         active: value.active,
         price_adjustment: value.price_adjustment || 0,
-        card_display_position: value.card_display_position || 0
+        card_display_position: value.card_display_position || 0,
+        is_default: (value as any).is_default || false
       });
     } else {
       setFormData({
@@ -275,7 +280,8 @@ const ValueEditDialog: React.FC<ValueEditDialogProps> = ({
         display_order: 0,
         active: true,
         price_adjustment: 0,
-        card_display_position: 0
+        card_display_position: 0,
+        is_default: false
       });
     }
   }, [value]);
@@ -366,6 +372,15 @@ const ValueEditDialog: React.FC<ValueEditDialogProps> = ({
               onCheckedChange={(checked) => setFormData(prev => ({ ...prev, active: checked }))}
             />
             <Label htmlFor="active">Active</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="is_default"
+              checked={formData.is_default}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_default: checked }))}
+            />
+            <Label htmlFor="is_default">Default Option</Label>
           </div>
 
           <div className="flex justify-end space-x-2">

@@ -359,7 +359,8 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
     required: false,
     description: '',
     active: true,
-    display_to_customers: true
+    display_to_customers: true,
+    display_type: 'select' as 'select' | 'buttons'
   });
 
   const [optionValues, setOptionValues] = useState<Array<{ value: string; display_text: string; price_adjustment: number }>>([
@@ -392,7 +393,8 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
         required: option.required,
         description: option.description || '',
         active: option.active,
-        display_to_customers: option.display_to_customers ?? true
+        display_to_customers: option.display_to_customers ?? true,
+        display_type: (option as any).display_type || 'select'
       });
       
       // Load existing option values if they exist
@@ -428,7 +430,8 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
         required: false,
         description: '',
         active: true,
-        display_to_customers: true
+        display_to_customers: true,
+        display_type: 'select'
       });
       setOptionValues([{ value: '', display_text: '', price_adjustment: 0 }]);
       setHardwareBrands([]);
@@ -695,6 +698,28 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
             <div className="space-y-3">
               <Label>Hinge Side Configuration</Label>
               <div className="p-4 border rounded-lg space-y-3">
+                {/* Display Type Selection */}
+                <div>
+                  <Label htmlFor="display_type">Display Type</Label>
+                  <Select
+                    value={formData.display_type}
+                    onValueChange={(value: 'select' | 'buttons') => 
+                      setFormData(prev => ({ ...prev, display_type: value }))
+                    }
+                  >
+                    <SelectTrigger id="display_type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="select">Dropdown</SelectItem>
+                      <SelectItem value="buttons">Buttons</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Choose how this option appears on the frontend
+                  </p>
+                </div>
+
                 <div>
                   <Label htmlFor="first_option">First Option</Label>
                   <Input
@@ -705,7 +730,7 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
                     className="w-full"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    First dropdown option shown to customers
+                    First option shown to customers
                   </p>
                 </div>
                 <div>
@@ -718,11 +743,14 @@ const OptionEditDialog: React.FC<OptionEditDialogProps> = ({
                     className="w-full"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Second dropdown option shown to customers
+                    Second option shown to customers
                   </p>
                 </div>
                 <div className="text-sm text-muted-foreground bg-muted/30 p-2 rounded">
-                  These will become the two options in the hinge side dropdown on the frontend
+                  {formData.display_type === 'buttons' 
+                    ? 'These will appear as two buttons on the frontend'
+                    : 'These will become the two options in the hinge side dropdown on the frontend'
+                  }
                 </div>
               </div>
             </div>

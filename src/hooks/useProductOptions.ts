@@ -75,9 +75,10 @@ export const useProductOptions = ({ cabinetTypeId, cabinetTypeName }: UseProduct
           return {
             id: option.id,
             name: option.option_name,
-            type: (option.option_type === 'hinge_side' ? 'select' : option.option_type) as 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence',
+            type: option.option_type as 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence' | 'hinge_side',
             required: option.required,
             description: option.description,
+            displayType: (option as any).display_type || 'select',
             options: (option.option_type === 'select' || option.option_type === 'hinge_side') && option.cabinet_option_values 
               ? option.cabinet_option_values
                   .filter((v: any) => v.active)
@@ -92,6 +93,9 @@ export const useProductOptions = ({ cabinetTypeId, cabinetTypeName }: UseProduct
                     return acc;
                   }, {})
               : undefined,
+            defaultValue: (option.option_type === 'select' || option.option_type === 'hinge_side') && option.cabinet_option_values
+              ? option.cabinet_option_values.find((v: any) => v.is_default)?.display_text
+              : undefined,
             maxFileSize: option.option_type === 'file_upload' ? 5 : undefined,
             fileTypes: option.option_type === 'file_upload' ? ['image/*', '.pdf'] : undefined
           };
@@ -103,9 +107,10 @@ export const useProductOptions = ({ cabinetTypeId, cabinetTypeName }: UseProduct
           .map(option => ({
             id: option.id,
             name: option.option_name,
-            type: (option.option_type === 'hinge_side' ? 'select' : option.option_type) as 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence',
+            type: option.option_type as 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence' | 'hinge_side',
             required: option.required,
             description: option.description,
+            displayType: (option as any).display_type || 'select',
             options: (option.option_type === 'select' || option.option_type === 'hinge_side') && option.cabinet_option_values 
               ? option.cabinet_option_values
                   .filter((v: any) => v.active)

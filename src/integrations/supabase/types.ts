@@ -501,6 +501,7 @@ export type Database = {
           display_order: number
           display_text: string
           id: string
+          is_default: boolean | null
           price_adjustment: number | null
           value: string
         }
@@ -512,6 +513,7 @@ export type Database = {
           display_order?: number
           display_text: string
           id?: string
+          is_default?: boolean | null
           price_adjustment?: number | null
           value: string
         }
@@ -523,6 +525,7 @@ export type Database = {
           display_order?: number
           display_text?: string
           id?: string
+          is_default?: boolean | null
           price_adjustment?: number | null
           value?: string
         }
@@ -598,6 +601,7 @@ export type Database = {
           display_name: string | null
           display_order: number
           display_to_customers: boolean
+          display_type: string | null
           id: string
           option_name: string
           option_type: string
@@ -612,6 +616,7 @@ export type Database = {
           display_name?: string | null
           display_order?: number
           display_to_customers?: boolean
+          display_type?: string | null
           id?: string
           option_name: string
           option_type: string
@@ -626,6 +631,7 @@ export type Database = {
           display_name?: string | null
           display_order?: number
           display_to_customers?: boolean
+          display_type?: string | null
           id?: string
           option_name?: string
           option_type?: string

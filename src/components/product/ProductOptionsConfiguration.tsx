@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { useHardwarePricing } from '@/hooks/useHardwarePricing';
 
 // Define option types
-export type ProductOptionType = 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence' | 'hinge_brand_set' | 'runner_brand_set' | 'plastic_legs';
+export type ProductOptionType = 'select' | 'text' | 'textarea' | 'file_upload' | 'brand_model_attachment' | 'card_sentence' | 'hinge_brand_set' | 'runner_brand_set' | 'plastic_legs' | 'hinge_side';
 
 export interface ProductOptionConfig {
   id: string;
@@ -25,6 +25,8 @@ export interface ProductOptionConfig {
   maxFileSize?: number; // In MB
   placeholder?: string;
   priceAdjustments?: Record<string, number>; // Price adjustments for select options
+  displayType?: 'select' | 'buttons'; // For hinge_side type - controls display style
+  defaultValue?: string; // Default value to highlight
 }
 
 export interface ProductOptionValue {
@@ -121,6 +123,81 @@ export const ProductOptionsConfiguration: React.FC<ProductOptionsConfigurationPr
     const isUploading = uploadingFiles.has(option.id);
 
     switch (option.type) {
+      case 'hinge_side':
+        const displayType = option.displayType || 'select';
+        const defaultVal = option.defaultValue;
+        
+        if (displayType === 'buttons') {
+          return (
+            <div className="flex gap-3">
+              {option.options?.map((opt) => {
+                const isSelected = currentValue?.value === opt;
+                const isDefault = opt === defaultVal;
+                const priceAdjustment = option.priceAdjustments?.[opt] || 0;
+                
+                return (
+                  <Button
+                    key={opt}
+                    type="button"
+                    variant={isSelected ? 'default' : 'outline'}
+                    className={`flex-1 ${isDefault && !isSelected ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                    onClick={() => updateOptionValue(option.id, opt, opt, priceAdjustment)}
+                    disabled={disabled}
+                  >
+                    <div className="flex flex-col items-center gap-1">
+                      <span>{opt}</span>
+                      {isDefault && !isSelected && (
+                        <Badge variant="secondary" className="text-xs">Recommended</Badge>
+                      )}
+                      {priceAdjustment !== 0 && (
+                        <span className="text-xs opacity-75">
+                          {priceAdjustment > 0 ? '+' : ''}${priceAdjustment}
+                        </span>
+                      )}
+                    </div>
+                  </Button>
+                );
+              })}
+            </div>
+          );
+        } else {
+          // Dropdown rendering
+          return (
+            <Select
+              value={currentValue?.value as string || defaultVal || ''}
+              onValueChange={(value) => {
+                const priceAdjustment = option.priceAdjustments?.[value] || 0;
+                updateOptionValue(option.id, value, value, priceAdjustment);
+              }}
+              disabled={disabled}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={option.placeholder || `Select ${option.name.toLowerCase()}`} />
+              </SelectTrigger>
+              <SelectContent>
+                {option.options?.map((opt) => {
+                  const isDefault = opt === defaultVal;
+                  return (
+                    <SelectItem key={opt} value={opt}>
+                      <div className="flex justify-between items-center w-full">
+                        <span className="flex items-center gap-2">
+                          {opt}
+                          {isDefault && <Badge variant="secondary" className="text-xs">Recommended</Badge>}
+                        </span>
+                        {option.priceAdjustments?.[opt] && option.priceAdjustments[opt] !== 0 && (
+                          <span className="text-sm text-muted-foreground ml-2">
+                            {option.priceAdjustments[opt] > 0 ? '+' : ''}${option.priceAdjustments[opt]}
+                          </span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          );
+        }
+
       case 'hinge_brand_set':
       case 'runner_brand_set':
         const category = option.type === 'hinge_brand_set' ? 'hinge' : 'runner';
