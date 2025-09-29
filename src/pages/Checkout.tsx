@@ -26,7 +26,7 @@ interface SequenceStep {
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { cart, getTotalItems, getTotalPrice } = useOptimizedCart();
+  const { cart, isLoading: cartLoading, getTotalItems, getTotalPrice } = useOptimizedCart();
   const { startCheckout } = useCheckout();
   
   const [currentStep, setCurrentStep] = useState('identity');
@@ -63,29 +63,31 @@ const Checkout = () => {
   useEffect(() => {
     // Initialize checkout when component mounts
     const initCheckout = async () => {
-      console.log('Initializing checkout with cart:', cart);
-      console.log('Cart total_amount:', cart?.total_amount, 'Items count:', cart?.items?.length);
+      console.log('Initializing checkout - cartLoading:', cartLoading, 'cart:', cart);
       
-      // Wait for cart to fully load before validation
-      if (cart === null) {
-        console.log('Waiting for cart to load...');
+      // Wait for cart to finish loading
+      if (cartLoading) {
+        console.log('Cart is still loading, waiting...');
         return;
       }
       
-      if (!cart?.id) {
-        console.error('No cart ID found:', cart);
+      // Now that loading is done, validate cart
+      if (!cart || !cart.id) {
+        console.error('No cart found after loading:', cart);
         toast.error("No cart found. Please add items to your cart first.");
         navigate('/cart');
         return;
       }
 
       // Validate cart has items
-      if (!cart?.items || cart.items.length === 0) {
+      if (!cart.items || cart.items.length === 0) {
         console.error('Cart is empty:', { items: cart.items });
         toast.error("Your cart is empty. Please add items to continue.");
         navigate('/cart');
         return;
       }
+
+      console.log('Cart validated successfully. Items:', cart.items.length);
 
       try {
         console.log('Starting checkout for cart ID:', cart.id);
@@ -96,7 +98,7 @@ const Checkout = () => {
           setCheckoutId(checkout.id);
           console.log('Checkout ID set:', checkout.id);
         } else {
-          throw new Error('Failed to create checkout session - no checkout ID returned');
+          throw new Error('Failed to create checkout session');
         }
       } catch (error) {
         console.error('Failed to initialize checkout:', error);
@@ -106,7 +108,7 @@ const Checkout = () => {
     };
 
     initCheckout();
-  }, [cart, startCheckout, navigate]);
+  }, [cart, cartLoading, startCheckout, navigate]);
 
   const handleStepComplete = (stepId: string, data?: any) => {
     console.log(`Step ${stepId} completed with data:`, data);
@@ -179,6 +181,26 @@ const Checkout = () => {
         return <div>Unknown step</div>;
     }
   };
+
+  // Show loading state while cart is loading
+  if (cartLoading) {
+    return (
+      <ImpersonationLayout>
+        <div className="min-h-screen bg-background">
+          <DynamicHeader />
+          <main className="container mx-auto px-4 py-8 mobile-safe-bottom">
+            <Card className="text-center py-12">
+              <CardContent>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading your cart...</p>
+              </CardContent>
+            </Card>
+          </main>
+          <Footer />
+        </div>
+      </ImpersonationLayout>
+    );
+  }
 
   if (!cart?.items?.length) {
     return (
