@@ -54,8 +54,8 @@ export const StickyShopNav = ({
     return null;
   }
 
-  // Always show the sticky filter on category pages for better UX
-  // Remove the scroll dependency to make it always visible
+  // Clean up category display name - remove "Base", "Wall", etc.
+  const cleanDisplayCategory = displayCategory?.replace(/^(Base|Wall|Tall|Pantry)\s+/i, '') || 'Cabinets';
 
   return (
     <div className="sticky top-14 z-50 w-full bg-background border-b border-border">
@@ -80,56 +80,88 @@ export const StickyShopNav = ({
             <span>Back</span>
           </Button>
           
-          {/* Center - Category name */}
-          <h2 className="text-lg font-medium">{displayCategory}</h2>
+          {/* Center - Category name (desktop only) */}
+          <h2 className="text-lg font-medium hidden md:block">{cleanDisplayCategory}</h2>
           
           {/* Right - Filters */}
           <div className="flex items-center gap-3">
-            {/* Main Category Dropdown */}
-            {mainCategories.length > 0 && (
-              <Select
-                value={activeMainCategory}
-                onValueChange={onMainCategoryChange}
-              >
-                <SelectTrigger className="w-40">
-                  <SelectValue>
-                    {mainCategories.find(c => c.name === activeMainCategory)?.display_name || displayCategory}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="bg-background border shadow-lg z-[60]">
-                  {mainCategories.map((mainCat) => (
-                    <SelectItem key={mainCat.id} value={mainCat.name}>
-                      {mainCat.display_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-            
-            {/* Subcategory Filter */}
-            {subcategories.length > 0 && (
-              <Select
-                value={activeSubcategory}
-                onValueChange={onFilterChange}
-              >
-                <SelectTrigger className="w-48">
-                  <SelectValue>
-                    {activeSubcategory === "all" 
-                      ? `All ${displayCategory}` 
-                      : subcategories.find(s => s.name === activeSubcategory)?.display_name
-                    }
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="bg-background border shadow-lg z-[60]">
-                  <SelectItem value="all">All {displayCategory}</SelectItem>
-                  {subcategories.map((subcat) => (
-                    <SelectItem key={subcat.id} value={subcat.name}>
-                      {subcat.display_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+            {/* Desktop: Both dropdowns */}
+            <div className="hidden md:flex items-center gap-3">
+              {/* Main Category Dropdown */}
+              {mainCategories.length > 0 && (
+                <Select
+                  value={activeMainCategory}
+                  onValueChange={onMainCategoryChange}
+                >
+                  <SelectTrigger className="w-40">
+                    <SelectValue>
+                      {mainCategories.find(c => c.name === activeMainCategory)?.display_name || displayCategory}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border shadow-lg z-[60]">
+                    {mainCategories.map((mainCat) => (
+                      <SelectItem key={mainCat.id} value={mainCat.name}>
+                        {mainCat.display_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              
+              {/* Subcategory Filter */}
+              {subcategories.length > 0 && (
+                <Select
+                  value={activeSubcategory}
+                  onValueChange={onFilterChange}
+                >
+                  <SelectTrigger className="w-48">
+                    <SelectValue>
+                      {activeSubcategory === "all" 
+                        ? `All ${cleanDisplayCategory}` 
+                        : subcategories.find(s => s.name === activeSubcategory)?.display_name
+                      }
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border shadow-lg z-[60]">
+                    <SelectItem value="all">All {cleanDisplayCategory}</SelectItem>
+                    {subcategories.map((subcat) => (
+                      <SelectItem key={subcat.id} value={subcat.name}>
+                        {subcat.display_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            {/* Mobile: Only subcategory filter */}
+            <div className="md:hidden">
+              {subcategories.length > 0 ? (
+                <Select
+                  value={activeSubcategory}
+                  onValueChange={onFilterChange}
+                >
+                  <SelectTrigger className="w-48">
+                    <SelectValue>
+                      {activeSubcategory === "all" 
+                        ? `All ${cleanDisplayCategory}` 
+                        : subcategories.find(s => s.name === activeSubcategory)?.display_name
+                      }
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border shadow-lg z-[60]">
+                    <SelectItem value="all">All {cleanDisplayCategory}</SelectItem>
+                    {subcategories.map((subcat) => (
+                      <SelectItem key={subcat.id} value={subcat.name}>
+                        {subcat.display_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <span className="text-sm font-medium">{cleanDisplayCategory}</span>
+              )}
+            </div>
           </div>
         </div>
       </div>
