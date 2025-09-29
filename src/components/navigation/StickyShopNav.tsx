@@ -80,8 +80,8 @@ export const StickyShopNav = ({
             <span>Back</span>
           </Button>
           
-          {/* Center - Category name (desktop only) */}
-          <h2 className="text-lg font-medium hidden md:block">{cleanDisplayCategory}</h2>
+          {/* Center - Empty space (removed category title) */}
+          <div className="hidden md:block"></div>
           
           {/* Right - Filters */}
           <div className="flex items-center gap-3">
