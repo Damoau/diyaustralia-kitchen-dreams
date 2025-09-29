@@ -22,7 +22,7 @@ interface MainCategory {
   active: boolean;
 }
 
-interface StickyKitchenNavProps {
+interface StickyShopNavProps {
   showStickyFilter?: boolean;
   subcategories?: Subcategory[];
   activeSubcategory?: string;
@@ -34,7 +34,7 @@ interface StickyKitchenNavProps {
   room?: string;
 }
 
-export const StickyKitchenNav = ({
+export const StickyShopNav = ({
   showStickyFilter = false,
   subcategories = [],
   activeSubcategory = 'all',
@@ -44,12 +44,13 @@ export const StickyKitchenNav = ({
   activeMainCategory = '',
   onMainCategoryChange,
   room = ''
-}: StickyKitchenNavProps) => {
+}: StickyShopNavProps) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Only show on kitchen shop pages
-  if (!location.pathname.startsWith('/shop/kitchen')) {
+  // Only show on shop category pages (any room type)
+  const shopCategoryPattern = /^\/shop\/[^\/]+\/[^\/]+/;
+  if (!shopCategoryPattern.test(location.pathname)) {
     return null;
   }
 
@@ -65,7 +66,15 @@ export const StickyKitchenNav = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/shop/kitchen')}
+            onClick={() => {
+              const pathParts = location.pathname.split('/');
+              if (pathParts.length >= 3) {
+                const roomName = pathParts[2];
+                navigate(`/shop/${roomName}`);
+              } else {
+                navigate('/shop');
+              }
+            }}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
           >
             <ChevronLeft className="h-4 w-4" />

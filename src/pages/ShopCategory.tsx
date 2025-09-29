@@ -4,7 +4,7 @@ import { Helmet } from "react-helmet-async";
 import DynamicHeader from "@/components/DynamicHeader";
 import Footer from "@/components/Footer";
 import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
-import { StickyKitchenNav } from "@/components/navigation/StickyKitchenNav";
+import { StickyShopNav } from "@/components/navigation/StickyShopNav";
 import { ProductConfigurator } from "@/components/product/ProductConfigurator";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -326,7 +326,7 @@ const CategoryPage = () => {
 
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
         <DynamicHeader />
-        <StickyKitchenNav 
+        <StickyShopNav 
           showStickyFilter={showStickyFilter}
           subcategories={subcategories}
           activeSubcategory={activeSubcategory}
