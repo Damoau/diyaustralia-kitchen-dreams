@@ -185,8 +185,8 @@ const ProductPage = () => {
         <StickyShopNav />
         
         <main className="container mx-auto px-4 py-8 mobile-safe-bottom">
-          {/* Breadcrumbs */}
-          <Breadcrumb className="mb-8">
+          {/* SEO-Hidden Breadcrumbs - Always present for search engines */}
+          <Breadcrumb className="seo-hidden" aria-hidden="true">
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink href="/shop">Shop</BreadcrumbLink>

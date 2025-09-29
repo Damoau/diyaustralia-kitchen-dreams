@@ -358,4 +358,25 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /* SEO-friendly hidden breadcrumbs */
+  .seo-hidden {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  /* Alternative approach - transparent breadcrumbs */
+  .seo-transparent {
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: -1;
+  }
 }
