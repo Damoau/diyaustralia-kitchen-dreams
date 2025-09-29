@@ -100,18 +100,26 @@ export const UnifiedCategoriesManager: React.FC = () => {
   });
 
   // Get flat list for parent selection
-  const { data: flatCategories } = useQuery({
+  const { data: flatCategories, refetch: refetchFlatCategories } = useQuery({
     queryKey: ['admin-flat-categories'],
     queryFn: async () => {
+      console.log('Fetching flat categories...');
       const { data, error } = await (supabase as any)
         .from('unified_categories')
         .select('*')
+        .eq('active', true)
         .order('level')
         .order('sort_order');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching flat categories:', error);
+        throw error;
+      }
+      console.log('Fetched flat categories:', data?.length || 0, 'items');
       return (data || []) as Category[];
     },
+    staleTime: 0, // Always consider data stale
+    refetchOnWindowFocus: true,
   });
 
   // Create mutation
@@ -123,9 +131,11 @@ export const UnifiedCategoriesManager: React.FC = () => {
       
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['admin-unified-categories'] });
       queryClient.invalidateQueries({ queryKey: ['admin-flat-categories'] });
+      // Force refetch the flat categories to ensure dropdown updates immediately
+      await refetchFlatCategories();
       toast.success('Category created successfully');
       handleCloseDialog();
     },
@@ -147,6 +157,8 @@ export const UnifiedCategoriesManager: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-unified-categories'] });
       queryClient.invalidateQueries({ queryKey: ['admin-flat-categories'] });
+      // Force refetch the flat categories to ensure dropdown updates
+      queryClient.refetchQueries({ queryKey: ['admin-flat-categories'] });
       toast.success('Category updated successfully');
       handleCloseDialog();
     },
@@ -192,6 +204,8 @@ export const UnifiedCategoriesManager: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-unified-categories'] });
       queryClient.invalidateQueries({ queryKey: ['admin-flat-categories'] });
+      // Force refetch the flat categories to ensure dropdown updates
+      queryClient.refetchQueries({ queryKey: ['admin-flat-categories'] });
       toast.success('Category deleted successfully');
     },
     onError: (error) => {
