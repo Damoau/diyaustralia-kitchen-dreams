@@ -74,19 +74,32 @@ const CategoryPage = () => {
   const displayCategory = getCategoryDisplayName(category);
 
   
-  // Simple scroll detection for sticky filter
+  // Fixed scroll detection for sticky filter - no more flashing!
   useEffect(() => {
     if (subcategories.length === 0) return;
 
+    let ticking = false;
+    
     const handleScroll = () => {
-      if (filterSectionRef.current) {
-        const rect = filterSectionRef.current.getBoundingClientRect();
-        const headerHeight = 56; // Main header height
-        const shouldShow = rect.top < headerHeight;
-        
-        if (shouldShow !== showStickyFilter) {
-          setShowStickyFilter(shouldShow);
-        }
+      if (!ticking && filterSectionRef.current) {
+        requestAnimationFrame(() => {
+          const rect = filterSectionRef.current?.getBoundingClientRect();
+          if (rect) {
+            const headerHeight = 56;
+            const buffer = 5; // Add buffer to prevent rapid toggling
+            const shouldShow = rect.top < (headerHeight - buffer);
+            
+            // Only update if there's a clear change to prevent rapid toggling
+            setShowStickyFilter(prev => {
+              if (prev !== shouldShow) {
+                return shouldShow;
+              }
+              return prev;
+            });
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
@@ -97,9 +110,8 @@ const CategoryPage = () => {
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      setShowStickyFilter(false);
     };
-  }, [subcategories.length, showStickyFilter]);
+  }, [subcategories.length]); // Removed showStickyFilter from deps - this was causing the infinite loop!
 
   useEffect(() => {
     const loadData = async () => {
