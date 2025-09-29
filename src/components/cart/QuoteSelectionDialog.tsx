@@ -317,22 +317,25 @@ export const QuoteSelectionDialog = ({
                     quotes.map((quote) => (
                       <Card 
                         key={quote.id}
-                        className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
+                        className={`transition-all duration-200 ${
                           selectedQuoteId === quote.id 
                             ? 'ring-2 ring-primary border-primary bg-primary/5 shadow-md' 
-                            : 'hover:border-primary/30'
+                            : 'hover:border-primary/30 hover:shadow-lg cursor-pointer'
                         }`}
-                        onClick={() => {
-                          setSelectedQuoteId(quote.id);
-                          setSelectedQuoteName(`${quote.quote_number} - ${quote.customer_name || 'Unnamed Quote'}`);
-                          // Clear any validation errors when selecting existing quote
-                          setValidationErrors({});
-                          setNewQuoteName("");
-                        }}
                       >
                         <CardContent className="p-4">
-                          <div className="space-y-3">
-                            <div className="flex items-start justify-between">
+                          <div 
+                            className={`space-y-3 ${selectedQuoteId !== quote.id ? 'cursor-pointer' : ''}`}
+                            onClick={() => {
+                              if (selectedQuoteId !== quote.id) {
+                                setSelectedQuoteId(quote.id);
+                                setSelectedQuoteName(`${quote.quote_number} - ${quote.customer_name || 'Unnamed Quote'}`);
+                                setValidationErrors({});
+                                setNewQuoteName("");
+                              }
+                            }}
+                          >
+                            <div className="flex items-start justify-between gap-3">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-2">
                                   <h3 className="font-semibold text-base">{quote.quote_number}</h3>
@@ -363,6 +366,33 @@ export const QuoteSelectionDialog = ({
                                 </p>
                               </div>
                             </div>
+                            
+                            {/* Action button appears within card when selected */}
+                            {selectedQuoteId === quote.id && (
+                              <div className="pt-3 mt-3 border-t border-primary/20">
+                                <Button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSelectExisting();
+                                  }}
+                                  disabled={isLoading}
+                                  className="w-full h-11 font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all"
+                                  size="lg"
+                                >
+                                  {isLoading ? (
+                                    <>
+                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                      Updating Quote...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <FileText className="w-4 h-4 mr-2" />
+                                      Update This Quote
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
@@ -370,34 +400,6 @@ export const QuoteSelectionDialog = ({
                   )}
                 </div>
               </ScrollArea>
-              
-              {/* Update Quote Button - Always visible at bottom when quote is selected */}
-              {selectedQuoteId && (
-                <div className="mt-4 p-3 rounded-lg bg-primary/10 border-2 border-primary/30 shadow-sm">
-                  <div className="mb-3">
-                    <p className="text-sm font-semibold text-primary">✓ Selected Quote:</p>
-                    <p className="text-xs text-muted-foreground font-medium">{selectedQuoteName}</p>
-                  </div>
-                  <Button 
-                    onClick={handleSelectExisting}
-                    disabled={isLoading}
-                    className="w-full h-12 font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all"
-                    size="lg"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Updating Quote...
-                      </>
-                    ) : (
-                      <>
-                        <FileText className="w-4 h-4 mr-2" />
-                        Update Selected Quote
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
               
               {/* Debug info for development */}
               {process.env.NODE_ENV === 'development' && (
