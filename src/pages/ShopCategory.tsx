@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import DynamicHeader from "@/components/DynamicHeader";
@@ -148,9 +148,10 @@ const CategoryPage = () => {
 
           if (subcatsError) {
             console.error('Error loading subcategories:', subcatsError);
-          } else {
-            setSubcategories(subcatsData || []);
-          }
+        } else {
+          setSubcategories(subcatsData || []);
+          console.log('Loaded subcategories:', subcatsData);
+        }
         }
 
         // Load cabinet types for this room and category
@@ -164,6 +165,7 @@ const CategoryPage = () => {
 
         if (error) throw error;
         setCabinetTypes(data || []);
+        console.log('Loaded cabinet types with subcategories:', data?.map(ct => ({ name: ct.name, subcategory: ct.subcategory })));
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -194,9 +196,34 @@ const CategoryPage = () => {
   }, [searchParams, cabinetTypes, room, category, navigate]);
 
   // Filter cabinet types by active subcategory
-  const filteredCabinetTypes = activeSubcategory === "all" 
-    ? cabinetTypes 
-    : cabinetTypes.filter(cabinet => cabinet.subcategory === activeSubcategory);
+  const filteredCabinetTypes = useMemo(() => {
+    if (activeSubcategory === "all") {
+      return cabinetTypes;
+    }
+    
+    // Handle subcategory filtering with flexible matching
+    return cabinetTypes.filter(cabinet => {
+      if (!cabinet.subcategory) return false;
+      
+      // Find matching subcategory with flexible matching
+      const selectedSubcat = subcategories.find(s => s.name === activeSubcategory);
+      if (!selectedSubcat) return false;
+      
+      const cabinetSubcat = cabinet.subcategory.toLowerCase().trim();
+      const subcatName = selectedSubcat.name.toLowerCase().trim();
+      const subcatDisplay = selectedSubcat.display_name.toLowerCase().trim();
+      
+      // Multiple matching strategies
+      return cabinetSubcat === subcatName || 
+             cabinetSubcat === subcatDisplay ||
+             cabinetSubcat.includes(subcatDisplay) ||
+             subcatDisplay.includes(cabinetSubcat) ||
+             // Handle variations like "Base Doors" vs "doors" 
+             (subcatDisplay === "doors" && cabinetSubcat.includes("door")) ||
+             (subcatDisplay === "drawers" && cabinetSubcat.includes("drawer")) ||
+             (subcatDisplay === "corners" && cabinetSubcat.includes("corner"));
+    });
+  }, [cabinetTypes, activeSubcategory, subcategories]);
 
   // Handle filter change and scroll to products
   const handleFilterChange = (subcategory: string) => {
