@@ -54,7 +54,8 @@ export const StickyShopNav = ({
     return null;
   }
 
-  // Clean up category display name - remove "Base", "Wall", etc.
+  // Don't clean category names for main category dropdown - show full names
+  // Only clean for the center title and subcategory filters
   const cleanDisplayCategory = displayCategory?.replace(/^(Base|Wall|Tall|Pantry)\s+/i, '') || 'Cabinets';
 
   return (
@@ -95,13 +96,13 @@ export const StickyShopNav = ({
                 >
                   <SelectTrigger className="w-40">
                     <SelectValue>
-                      {mainCategories.find(c => c.name === activeMainCategory)?.display_name?.replace(/^(Base|Wall|Tall|Pantry)\s+/i, '') || cleanDisplayCategory}
+                      {mainCategories.find(c => c.name === activeMainCategory)?.display_name || displayCategory}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="bg-background border shadow-lg z-[60]">
                     {mainCategories.map((mainCat) => (
                       <SelectItem key={mainCat.id} value={mainCat.name}>
-                        {mainCat.display_name?.replace(/^(Base|Wall|Tall|Pantry)\s+/i, '')}
+                        {mainCat.display_name}
                       </SelectItem>
                     ))}
                   </SelectContent>
