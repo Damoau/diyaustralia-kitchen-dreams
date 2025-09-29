@@ -25,6 +25,8 @@ const Manufacturing = lazy(() => import("./pages/Manufacturing"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Cart = lazy(() => import("./pages/Cart"));
 const Checkout = lazy(() => import("./pages/Checkout"));
+const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
+const CheckoutCancelled = lazy(() => import("./pages/CheckoutCancelled"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const PriceList = lazy(() => import("./pages/PriceList"));
 
@@ -89,6 +91,8 @@ const App = () => (
                   <Route path="/kitchen-styles" element={<KitchenStyles />} />
                   <Route path="/cart" element={<Cart />} />
                    <Route path="/checkout" element={<Checkout />} />
+                   <Route path="/checkout/success" element={<CheckoutSuccess />} />
+                   <Route path="/checkout/cancelled" element={<CheckoutCancelled />} />
                    <Route path="/auth" element={<Auth />} />
                    {/* Redirect cart-system-health to admin version */}
                    <Route path="/cart-system-health" element={<Navigate to="/admin/cart-system-health" replace />} />

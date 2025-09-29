@@ -22,6 +22,7 @@ interface PaymentMethod {
 
 interface PaymentStepProps {
   checkoutId: string;
+  customerData: any;
   onComplete: (data: any) => void;
   orderSummary: {
     subtotal: number;
@@ -31,7 +32,7 @@ interface PaymentStepProps {
   };
 }
 
-export const PaymentStep = ({ checkoutId, onComplete, orderSummary }: PaymentStepProps) => {
+export const PaymentStep = ({ checkoutId, customerData, onComplete, orderSummary }: PaymentStepProps) => {
   const [selectedPayment, setSelectedPayment] = useState<string>('');
   const [billingAddress, setBillingAddress] = useState({
     firstName: '',
@@ -178,10 +179,10 @@ export const PaymentStep = ({ checkoutId, onComplete, orderSummary }: PaymentSte
                           checkoutId={checkoutId}
                           totalAmount={orderSummary.finalTotal}
                           customerInfo={{
-                            email: '', // This should come from checkout context
-                            firstName: '',
-                            lastName: '',
-                            phone: '',
+                            email: customerData?.email || '',
+                            firstName: customerData?.firstName || '',
+                            lastName: customerData?.lastName || '',
+                            phone: customerData?.phone || '',
                           }}
                           onPaymentSuccess={(paymentData) => {
                             console.log('Stripe payment success:', paymentData);

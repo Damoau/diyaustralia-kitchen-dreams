@@ -66,6 +66,12 @@ const Checkout = () => {
       console.log('Initializing checkout with cart:', cart);
       console.log('Cart total_amount:', cart?.total_amount, 'Items count:', cart?.items?.length);
       
+      // Wait for cart to fully load before validation
+      if (cart === null) {
+        console.log('Waiting for cart to load...');
+        return;
+      }
+      
       if (!cart?.id) {
         console.error('No cart ID found:', cart);
         toast.error("No cart found. Please add items to your cart first.");
@@ -73,18 +79,10 @@ const Checkout = () => {
         return;
       }
 
-      // Check both items array and total amount for proper validation
-      if (!cart?.items?.length && cart?.total_amount <= 0) {
-        console.error('Cart is completely empty:', { items: cart.items, total: cart.total_amount });
+      // Validate cart has items
+      if (!cart?.items || cart.items.length === 0) {
+        console.error('Cart is empty:', { items: cart.items });
         toast.error("Your cart is empty. Please add items to continue.");
-        navigate('/cart');
-        return;
-      }
-      
-      // If cart has total but no items, there's a data inconsistency - try to refresh
-      if (cart?.total_amount > 0 && (!cart?.items || cart.items.length === 0)) {
-        console.warn('Cart data inconsistency detected - refreshing cart data');
-        toast.error("Cart data needs refresh. Please return to cart and try again.");
         navigate('/cart');
         return;
       }
@@ -107,9 +105,7 @@ const Checkout = () => {
       }
     };
 
-    if (cart !== null) { // Only initialize when cart data is loaded (not null)
-      initCheckout();
-    }
+    initCheckout();
   }, [cart, startCheckout, navigate]);
 
   const handleStepComplete = (stepId: string, data?: any) => {
@@ -174,6 +170,7 @@ const Checkout = () => {
         return (
           <PaymentStep
             checkoutId={checkoutId}
+            customerData={customerData}
             orderSummary={orderSummary}
             onComplete={(data) => handleStepComplete('payment', data)}
           />
