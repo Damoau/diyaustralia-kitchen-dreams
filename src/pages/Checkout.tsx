@@ -9,7 +9,7 @@ import { CheckoutSequence } from "@/components/checkout/CheckoutSequence";
 import { CustomerIdentify } from "@/components/checkout/CustomerIdentify";
 import { ShippingDelivery } from "@/components/checkout/ShippingDelivery";
 import { PaymentStep } from "@/components/checkout/PaymentStep";
-import { useOptimizedCart } from "@/hooks/useOptimizedCart";
+import { useCartOptimized } from "@/hooks/useCartOptimized";
 import { useCheckout } from "@/hooks/useCheckout";
 import { useNavigate } from "react-router-dom";
 import { ShoppingCart, ArrowLeft } from "lucide-react";
@@ -26,7 +26,7 @@ interface SequenceStep {
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { cart, isLoading: cartLoading, getTotalItems, getTotalPrice } = useOptimizedCart();
+  const { cart, isLoading: cartLoading, getTotalItems, getTotalPrice } = useCartOptimized();
   const { startCheckout } = useCheckout();
   
   const [currentStep, setCurrentStep] = useState('identity');
