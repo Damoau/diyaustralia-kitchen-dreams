@@ -204,11 +204,11 @@ export const useCartOptimized = () => {
       
       return data;
     },
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 10 * 1000, // 10 seconds - reduced for better checkout reliability
     gcTime: 5 * 60 * 1000, // 5 minutes
     enabled: true,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: 'always', // Always refetch on mount to ensure fresh data for checkout
     refetchOnReconnect: true,
   });
 
