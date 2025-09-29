@@ -25,6 +25,15 @@ interface Subcategory {
   active: boolean;
 }
 
+interface MainCategory {
+  id: string;
+  name: string;
+  display_name: string;
+  description?: string;
+  sort_order: number;
+  active: boolean;
+}
+
 interface CabinetType {
   id: string;
   name: string;
@@ -56,6 +65,7 @@ const CategoryPage = () => {
   const navigate = useNavigate();
   const [cabinetTypes, setCabinetTypes] = useState<CabinetType[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [mainCategories, setMainCategories] = useState<MainCategory[]>([]);
   const [activeSubcategory, setActiveSubcategory] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [configuratorOpen, setConfiguratorOpen] = useState(false);
@@ -132,6 +142,22 @@ const CategoryPage = () => {
 
         if (roomError) throw roomError;
         setRoomCategory(roomData);
+
+        // Load all Level 2 categories for this room (for main category dropdown)
+        const { data: mainCatsData, error: mainCatsError } = await supabase
+          .from('unified_categories')
+          .select('*')
+          .eq('level', 2)
+          .eq('parent_id', roomData.id)
+          .eq('active', true)
+          .order('sort_order', { ascending: true });
+
+        if (mainCatsError) {
+          console.error('Error loading main categories:', mainCatsError);
+        } else {
+          setMainCategories(mainCatsData || []);
+          console.log('Loaded main categories:', mainCatsData);
+        }
 
         // Load Level 3 subcategories for this specific room/category combination
         // First get the Level 2 category ID that belongs to this room
@@ -235,6 +261,13 @@ const CategoryPage = () => {
     });
   }, [cabinetTypes, activeSubcategory, subcategories]);
 
+  // Handle main category change
+  const handleMainCategoryChange = (newCategory: string) => {
+    // Navigate to new category and reset subcategory filter
+    navigate(`/shop/${room}/${newCategory}`);
+    setActiveSubcategory("all");
+  };
+
   // Handle filter change and scroll to products
   const handleFilterChange = (subcategory: string) => {
     setActiveSubcategory(subcategory);
@@ -299,6 +332,10 @@ const CategoryPage = () => {
           activeSubcategory={activeSubcategory}
           onFilterChange={handleFilterChange}
           displayCategory={displayCategory}
+          mainCategories={mainCategories}
+          activeMainCategory={category}
+          onMainCategoryChange={handleMainCategoryChange}
+          room={room}
         />
         
         

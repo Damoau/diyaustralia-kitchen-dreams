@@ -13,12 +13,25 @@ interface Subcategory {
   active: boolean;
 }
 
+interface MainCategory {
+  id: string;
+  name: string;
+  display_name: string;
+  description?: string;
+  sort_order: number;
+  active: boolean;
+}
+
 interface StickyKitchenNavProps {
   showStickyFilter?: boolean;
   subcategories?: Subcategory[];
   activeSubcategory?: string;
   onFilterChange?: (subcategory: string) => void;
   displayCategory?: string;
+  mainCategories?: MainCategory[];
+  activeMainCategory?: string;
+  onMainCategoryChange?: (category: string) => void;
+  room?: string;
 }
 
 export const StickyKitchenNav = ({
@@ -26,7 +39,11 @@ export const StickyKitchenNav = ({
   subcategories = [],
   activeSubcategory = 'all',
   onFilterChange,
-  displayCategory = 'Kitchen Cabinets'
+  displayCategory = 'Kitchen Cabinets',
+  mainCategories = [],
+  activeMainCategory = '',
+  onMainCategoryChange,
+  room = ''
 }: StickyKitchenNavProps) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -57,27 +74,81 @@ export const StickyKitchenNav = ({
           
           <div className="h-4 w-px bg-border" />
           
-          <Select
-            value={activeSubcategory}
-            onValueChange={onFilterChange}
-          >
-            <SelectTrigger className="w-56">
-              <SelectValue>
-                {activeSubcategory === "all" 
-                  ? `All ${displayCategory}` 
-                  : subcategories.find(s => s.name === activeSubcategory)?.display_name
-                }
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent className="bg-background border shadow-lg">
-              <SelectItem value="all">All {displayCategory}</SelectItem>
-              {subcategories.map((subcat) => (
-                <SelectItem key={subcat.id} value={subcat.name}>
-                  {subcat.display_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Desktop: Two-level navigation with main categories */}
+          <div className="hidden md:flex items-center gap-4">
+            {/* Main Category Dropdown */}
+            {mainCategories.length > 0 && (
+              <>
+                <Select
+                  value={activeMainCategory}
+                  onValueChange={onMainCategoryChange}
+                >
+                  <SelectTrigger className="w-48">
+                    <SelectValue>
+                      {mainCategories.find(c => c.name === activeMainCategory)?.display_name || displayCategory}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border shadow-lg z-50">
+                    {mainCategories.map((mainCat) => (
+                      <SelectItem key={mainCat.id} value={mainCat.name}>
+                        {mainCat.display_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <div className="h-4 w-px bg-border" />
+              </>
+            )}
+            
+            {/* Subcategory Dropdown */}
+            <Select
+              value={activeSubcategory}
+              onValueChange={onFilterChange}
+            >
+              <SelectTrigger className="w-56">
+                <SelectValue>
+                  {activeSubcategory === "all" 
+                    ? `All ${displayCategory}` 
+                    : subcategories.find(s => s.name === activeSubcategory)?.display_name
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg z-50">
+                <SelectItem value="all">All {displayCategory}</SelectItem>
+                {subcategories.map((subcat) => (
+                  <SelectItem key={subcat.id} value={subcat.name}>
+                    {subcat.display_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Mobile: Single subcategory dropdown */}
+          <div className="md:hidden">
+            <Select
+              value={activeSubcategory}
+              onValueChange={onFilterChange}
+            >
+              <SelectTrigger className="w-56">
+                <SelectValue>
+                  {activeSubcategory === "all" 
+                    ? `All ${displayCategory}` 
+                    : subcategories.find(s => s.name === activeSubcategory)?.display_name
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg z-50">
+                <SelectItem value="all">All {displayCategory}</SelectItem>
+                {subcategories.map((subcat) => (
+                  <SelectItem key={subcat.id} value={subcat.name}>
+                    {subcat.display_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
     </div>
