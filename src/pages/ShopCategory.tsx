@@ -239,44 +239,17 @@ const CategoryPage = () => {
 
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
         <DynamicHeader />
-        <StickyKitchenNav />
+        <StickyKitchenNav 
+          showStickyFilter={showStickyFilter}
+          subcategories={subcategories}
+          activeSubcategory={activeSubcategory}
+          onFilterChange={handleFilterChange}
+          displayCategory={displayCategory}
+          filteredCount={filteredCabinetTypes.length}
+        />
         
-          {/* Sticky Filter Dropdown */}
-          {showStickyFilter && subcategories.length > 0 && (
-            <div className="fixed top-14 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b shadow-sm">
-              <div className="max-w-7xl mx-auto px-6 py-2">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium text-muted-foreground">Filter:</span>
-                   <Select
-                     value={activeSubcategory}
-                     onValueChange={handleFilterChange}
-                   >
-                    <SelectTrigger className="w-48">
-                      <SelectValue>
-                        {activeSubcategory === "all" 
-                          ? `All ${displayCategory}` 
-                          : subcategories.find(s => s.name === activeSubcategory)?.display_name
-                        }
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All {displayCategory}</SelectItem>
-                      {subcategories.map((subcat) => (
-                        <SelectItem key={subcat.id} value={subcat.name}>
-                          {subcat.display_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Badge variant="secondary" className="ml-auto">
-                    {filteredCabinetTypes.length} products
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          )}
         
-          <main className={`w-full px-6 mobile-safe-bottom ${showStickyFilter ? 'pt-20' : 'py-8'}`}>
+          <main className="w-full px-6 mobile-safe-bottom py-8">
           {/* Breadcrumbs */}
           {!showStickyFilter && (
             <Breadcrumb className="mb-8">

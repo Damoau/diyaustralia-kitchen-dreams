@@ -1,41 +1,36 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, ChevronLeft } from 'lucide-react';
-import { CartDrawer } from '@/components/ui/cart-drawer';
+import { ChevronLeft } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 
-interface KitchenCategory {
+interface Subcategory {
+  id: string;
   name: string;
-  path: string;
-  description: string;
+  display_name: string;
+  description?: string;
+  sort_order: number;
+  active: boolean;
 }
 
-const kitchenCategories: KitchenCategory[] = [
-  {
-    name: 'Base Cabinets',
-    path: '/shop/kitchen/base-cabinets',
-    description: 'Floor-mounted storage solutions'
-  },
-  {
-    name: 'Top Cabinets',
-    path: '/shop/kitchen/top-cabinets',
-    description: 'Wall-mounted upper storage'
-  },
-  {
-    name: 'Pantry Cabinets',
-    path: '/shop/kitchen/pantry-cabinets',
-    description: 'Tall storage solutions'
-  },
-  {
-    name: 'Dress Panels & Fillers',
-    path: '/shop/kitchen/dress-panels-fillers',
-    description: 'Finishing panels and fillers'
-  }
-];
+interface StickyKitchenNavProps {
+  showStickyFilter?: boolean;
+  subcategories?: Subcategory[];
+  activeSubcategory?: string;
+  onFilterChange?: (subcategory: string) => void;
+  displayCategory?: string;
+  filteredCount?: number;
+}
 
-export const StickyKitchenNav = () => {
-  const [sheetOpen, setSheetOpen] = useState(false);
+export const StickyKitchenNav = ({
+  showStickyFilter = false,
+  subcategories = [],
+  activeSubcategory = 'all',
+  onFilterChange,
+  displayCategory = 'Kitchen Cabinets',
+  filteredCount = 0
+}: StickyKitchenNavProps) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -44,20 +39,20 @@ export const StickyKitchenNav = () => {
     return null;
   }
 
-  const handleNavigation = (path: string) => {
-    navigate(path);
-    setSheetOpen(false);
-  };
-
   const getCurrentCategory = () => {
-    const category = kitchenCategories.find(cat => 
-      location.pathname.includes(cat.path.split('/').pop() || '')
-    );
-    return category?.name || 'Kitchen Cabinets';
+    // Extract category from pathname
+    const pathParts = location.pathname.split('/');
+    if (pathParts[3]) {
+      return pathParts[3].split('-').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ');
+    }
+    return displayCategory;
   };
 
   return (
     <div className="sticky top-14 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {/* Main Navigation Row */}
       <div className="container flex h-12 items-center justify-between px-4">
         {/* Left side - Back and current category */}
         <div className="flex items-center space-x-3">
@@ -75,59 +70,42 @@ export const StickyKitchenNav = () => {
             {getCurrentCategory()}
           </span>
         </div>
-
-        {/* Right side - Cart and hamburger menu */}
-        <div className="flex items-center space-x-2">
-          <CartDrawer>
-            <Button variant="outline" size="sm" className="relative">
-              <span className="text-xs font-medium">Cart</span>
-            </Button>
-          </CartDrawer>
-
-          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Menu className="h-4 w-4" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-80 bg-white">
-              <div className="flex flex-col h-full">
-                <div className="flex items-center space-x-3 mb-6 pt-4">
-                  <span className="text-lg font-bold text-foreground">Kitchen Categories</span>
-                </div>
-                
-                <div className="flex-1 overflow-y-auto">
-                  <nav className="space-y-3">
-                    {kitchenCategories.map((category) => (
-                      <Button
-                        key={category.path}
-                        variant="ghost"
-                        onClick={() => handleNavigation(category.path)}
-                        className="w-full justify-start h-auto p-4 flex flex-col items-start space-y-1"
-                      >
-                        <span className="font-medium text-left">{category.name}</span>
-                        <span className="text-xs text-muted-foreground text-left">
-                          {category.description}
-                        </span>
-                      </Button>
-                    ))}
-                  </nav>
-                  
-                  <div className="mt-6 pt-6 border-t">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleNavigation('/shop/kitchen')}
-                      className="w-full"
-                    >
-                      View All Kitchen Products
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
-        </div>
       </div>
+
+      {/* Sticky Filter Row */}
+      {showStickyFilter && subcategories.length > 0 && (
+        <div className="border-t bg-background/98 backdrop-blur-sm">
+          <div className="container px-4 py-2">
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium text-muted-foreground">Filter:</span>
+              <Select
+                value={activeSubcategory}
+                onValueChange={onFilterChange}
+              >
+                <SelectTrigger className="w-48 h-8">
+                  <SelectValue>
+                    {activeSubcategory === "all" 
+                      ? `All ${displayCategory}` 
+                      : subcategories.find(s => s.name === activeSubcategory)?.display_name
+                    }
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All {displayCategory}</SelectItem>
+                  {subcategories.map((subcat) => (
+                    <SelectItem key={subcat.id} value={subcat.name}>
+                      {subcat.display_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Badge variant="secondary" className="ml-auto text-xs">
+                {filteredCount} products
+              </Badge>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
