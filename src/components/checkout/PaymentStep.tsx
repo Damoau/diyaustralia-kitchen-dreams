@@ -5,11 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building, FileText, Lock, Info } from 'lucide-react';
+import { Building, FileText, Lock, Info, CreditCard } from 'lucide-react';
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { StripePaymentForm } from './StripePaymentForm';
 
 interface PaymentMethod {
   id: string;
@@ -47,17 +48,10 @@ export const PaymentStep = ({ checkoutId, onComplete, orderSummary }: PaymentSte
 
   const paymentMethods: PaymentMethod[] = [
     {
-      id: 'bank_transfer',
-      name: 'Bank Transfer',
-      description: 'Direct bank transfer - Invoice will be sent after order confirmation',
-      icon: <Building className="h-5 w-5" />,
-      requiresDetails: false,
-    },
-    {
-      id: 'quote_request',
-      name: 'Request Custom Quote',
-      description: 'Get a detailed quote with custom pricing and payment terms',
-      icon: <FileText className="h-5 w-5" />,
+      id: 'stripe',
+      name: 'Credit Card',
+      description: 'Pay securely with your credit or debit card',
+      icon: <CreditCard className="h-5 w-5" />,
       requiresDetails: false,
     },
     {
@@ -70,6 +64,20 @@ export const PaymentStep = ({ checkoutId, onComplete, orderSummary }: PaymentSte
         </svg>
       ),
       requiresDetails: true,
+    },
+    {
+      id: 'bank_transfer',
+      name: 'Bank Transfer',
+      description: 'Direct bank transfer - Invoice will be sent after order confirmation',
+      icon: <Building className="h-5 w-5" />,
+      requiresDetails: false,
+    },
+    {
+      id: 'quote_request',
+      name: 'Request Custom Quote',
+      description: 'Get a detailed quote with custom pricing and payment terms',
+      icon: <FileText className="h-5 w-5" />,
+      requiresDetails: false,
     },
   ];
 
@@ -165,6 +173,46 @@ export const PaymentStep = ({ checkoutId, onComplete, orderSummary }: PaymentSte
                   {/* Payment Method Specific Content */}
                   {selectedPayment === method.id && (
                     <div className="ml-6 p-4 bg-muted rounded-md">
+                      {method.id === 'stripe' && (
+                        <StripePaymentForm
+                          checkoutId={checkoutId}
+                          totalAmount={orderSummary.finalTotal}
+                          customerInfo={{
+                            email: '', // This should come from checkout context
+                            firstName: '',
+                            lastName: '',
+                            phone: '',
+                          }}
+                          onPaymentSuccess={(paymentData) => {
+                            console.log('Stripe payment success:', paymentData);
+                            onComplete({
+                              paymentMethod: selectedPayment,
+                              billingAddress: sameAsShipping ? null : billingAddress,
+                              paymentReference: paymentData.reference,
+                            });
+                          }}
+                        />
+                      )}
+
+                      {method.id === 'paypal' && (
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <Lock className="h-4 w-4 text-green-500" />
+                            <span className="text-sm font-medium">Secure PayPal Payment</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            Pay instantly with your PayPal account or credit card. Your payment information is encrypted and secure.
+                          </p>
+                          <Alert>
+                            <Info className="h-4 w-4" />
+                            <AlertDescription>
+                              PayPal payments are available for orders under $5,000. 
+                              For larger orders, please choose bank transfer or request a quote.
+                            </AlertDescription>
+                          </Alert>
+                        </div>
+                      )}
+
                       {method.id === 'bank_transfer' && (
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
@@ -201,25 +249,6 @@ export const PaymentStep = ({ checkoutId, onComplete, orderSummary }: PaymentSte
                             <p><strong>Response Time:</strong> 1-2 business days</p>
                             <p><strong>Quote Validity:</strong> 30 days</p>
                           </div>
-                        </div>
-                      )}
-
-                      {method.id === 'paypal' && (
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <Lock className="h-4 w-4 text-green-500" />
-                            <span className="text-sm font-medium">Secure PayPal Payment</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            Pay instantly with your PayPal account or credit card. Your payment information is encrypted and secure.
-                          </p>
-                          <Alert>
-                            <Info className="h-4 w-4" />
-                            <AlertDescription>
-                              PayPal payments are available for orders under $5,000. 
-                              For larger orders, please choose bank transfer or request a quote.
-                            </AlertDescription>
-                          </Alert>
                         </div>
                       )}
                     </div>
@@ -379,9 +408,11 @@ export const PaymentStep = ({ checkoutId, onComplete, orderSummary }: PaymentSte
             </div>
           </div>
 
-          <Button type="submit" className="w-full">
-            Continue to Review Order
-          </Button>
+          {selectedPayment !== 'stripe' && (
+            <Button type="submit" className="w-full">
+              Continue to Review Order
+            </Button>
+          )}
         </form>
       </CardContent>
     </Card>

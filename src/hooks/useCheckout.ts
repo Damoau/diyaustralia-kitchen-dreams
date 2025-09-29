@@ -22,6 +22,10 @@ export interface CheckoutData {
   accept_terms: boolean;
   accept_privacy: boolean;
   marketing_opt_in: boolean;
+  payment_method?: string;
+  payment_reference?: string;
+  stripe_session_id?: string;
+  stripe_customer_id?: string;
   started_at: string;
   updated_at: string;
   expires_at: string;
