@@ -71,10 +71,7 @@ const Checkout = () => {
         return;
       }
       
-      // Give a small delay to ensure cart data is fully populated after loading completes
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Now that loading is done, validate cart
+      // Validate cart exists and has an ID
       if (!cart || !cart.id) {
         console.error('No cart found after loading:', cart);
         toast.error("No cart found. Please add items to your cart first.");
@@ -82,16 +79,18 @@ const Checkout = () => {
         return;
       }
 
-      // Validate cart has items
+      // Validate cart has items - check both items array and length
       const items = cart.items || [];
+      console.log('Cart items check:', { hasItems: items.length > 0, itemsCount: items.length, items });
+      
       if (items.length === 0) {
-        console.error('Cart is empty:', { items });
+        console.error('Cart is empty:', { cartId: cart.id, items });
         toast.error("Your cart is empty. Please add items to continue.");
         navigate('/cart');
         return;
       }
 
-      console.log('Cart validated successfully. Items:', items.length);
+      console.log('✅ Cart validated successfully. Items:', items.length, 'Cart ID:', cart.id);
 
       try {
         console.log('Starting checkout for cart ID:', cart.id);
