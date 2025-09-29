@@ -54,8 +54,8 @@ export const StickyShopNav = ({
     return null;
   }
 
-  // Only show the sticky menu when showStickyFilter is true
-  if (!showStickyFilter || subcategories.length === 0) {
+  // Always show when on category pages, even if no subcategories
+  if (!showStickyFilter) {
     return null;
   }
 
@@ -110,53 +110,59 @@ export const StickyShopNav = ({
               </>
             )}
             
-            {/* Subcategory Dropdown */}
-            <Select
-              value={activeSubcategory}
-              onValueChange={onFilterChange}
-            >
-              <SelectTrigger className="w-56">
-                <SelectValue>
-                  {activeSubcategory === "all" 
-                    ? `All ${displayCategory}` 
-                    : subcategories.find(s => s.name === activeSubcategory)?.display_name
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent className="bg-background border shadow-lg z-50">
-                <SelectItem value="all">All {displayCategory}</SelectItem>
-                {subcategories.map((subcat) => (
-                  <SelectItem key={subcat.id} value={subcat.name}>
-                    {subcat.display_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Subcategory Dropdown - only show if subcategories exist */}
+            {subcategories.length > 0 && (
+              <Select
+                value={activeSubcategory}
+                onValueChange={onFilterChange}
+              >
+                <SelectTrigger className="w-56">
+                  <SelectValue>
+                    {activeSubcategory === "all" 
+                      ? `All ${displayCategory}` 
+                      : subcategories.find(s => s.name === activeSubcategory)?.display_name
+                    }
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="bg-background border shadow-lg z-50">
+                  <SelectItem value="all">All {displayCategory}</SelectItem>
+                  {subcategories.map((subcat) => (
+                    <SelectItem key={subcat.id} value={subcat.name}>
+                      {subcat.display_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
           
-          {/* Mobile: Single subcategory dropdown */}
+          {/* Mobile: Single subcategory dropdown - only show if subcategories exist */}
           <div className="md:hidden">
-            <Select
-              value={activeSubcategory}
-              onValueChange={onFilterChange}
-            >
-              <SelectTrigger className="w-56">
-                <SelectValue>
-                  {activeSubcategory === "all" 
-                    ? `All ${displayCategory}` 
-                    : subcategories.find(s => s.name === activeSubcategory)?.display_name
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent className="bg-background border shadow-lg z-50">
-                <SelectItem value="all">All {displayCategory}</SelectItem>
-                {subcategories.map((subcat) => (
-                  <SelectItem key={subcat.id} value={subcat.name}>
-                    {subcat.display_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {subcategories.length > 0 ? (
+              <Select
+                value={activeSubcategory}
+                onValueChange={onFilterChange}
+              >
+                <SelectTrigger className="w-56">
+                  <SelectValue>
+                    {activeSubcategory === "all" 
+                      ? `All ${displayCategory}` 
+                      : subcategories.find(s => s.name === activeSubcategory)?.display_name
+                    }
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="bg-background border shadow-lg z-50">
+                  <SelectItem value="all">All {displayCategory}</SelectItem>
+                  {subcategories.map((subcat) => (
+                    <SelectItem key={subcat.id} value={subcat.name}>
+                      {subcat.display_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <span className="text-sm text-muted-foreground">{displayCategory}</span>
+            )}
           </div>
         </div>
       </div>
