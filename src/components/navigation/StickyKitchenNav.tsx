@@ -78,8 +78,15 @@ export const StickyKitchenNav = ({
       {showStickyFilter && subcategories.length > 0 && (
         <div className="sticky top-14 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container px-4 py-2">
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium text-muted-foreground">Filter:</span>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/shop/kitchen')}
+                className="flex items-center space-x-1 text-muted-foreground hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
               <Select
                 value={activeSubcategory}
                 onValueChange={onFilterChange}
@@ -101,9 +108,6 @@ export const StickyKitchenNav = ({
                   ))}
                 </SelectContent>
               </Select>
-              <Badge variant="secondary" className="ml-auto text-xs">
-                {filteredCount} products
-              </Badge>
             </div>
           </div>
         </div>
