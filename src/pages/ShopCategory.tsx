@@ -77,31 +77,43 @@ const CategoryPage = () => {
   // Reset sticky filter on component mount and route changes
   useEffect(() => {
     setShowStickyFilter(false);
+    
+    // Force reset scroll position tracking
+    return () => {
+      setShowStickyFilter(false);
+    };
   }, [room, category]);
 
   useEffect(() => {
+    let scrollTimeout: NodeJS.Timeout;
+    
     const handleScroll = () => {
-      if (filterSectionRef.current && subcategories.length > 0) {
-        const filterRect = filterSectionRef.current.getBoundingClientRect();
-        // Show sticky filter when filter section starts to go behind the header (56px is the header height)
-        const headerHeight = 56; // Main header height
-        const stickyNavHeight = 48; // StickyKitchenNav height
-        const totalHeaderHeight = headerHeight + stickyNavHeight;
-        const isFilterBehindHeader = filterRect.top <= totalHeaderHeight;
-        setShowStickyFilter(isFilterBehindHeader);
-      } else {
-        setShowStickyFilter(false);
-      }
+      // Clear any pending scroll updates to debounce
+      clearTimeout(scrollTimeout);
+      
+      scrollTimeout = setTimeout(() => {
+        if (filterSectionRef.current && subcategories.length > 0 && !showStickyFilter) {
+          const filterRect = filterSectionRef.current.getBoundingClientRect();
+          const headerHeight = 56;
+          const stickyNavHeight = 48;
+          const totalHeaderHeight = headerHeight + stickyNavHeight;
+          const shouldShow = filterRect.top <= totalHeaderHeight;
+          
+          if (shouldShow !== showStickyFilter) {
+            setShowStickyFilter(shouldShow);
+          }
+        }
+      }, 10); // Small debounce
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     
-    // Cleanup function to reset state when component unmounts
     return () => {
+      clearTimeout(scrollTimeout);
       window.removeEventListener('scroll', handleScroll);
       setShowStickyFilter(false);
     };
-  }, [subcategories.length]);
+  }, [subcategories.length, showStickyFilter]);
 
   useEffect(() => {
     const loadData = async () => {

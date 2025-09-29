@@ -64,6 +64,7 @@ const Checkout = () => {
     // Initialize checkout when component mounts
     const initCheckout = async () => {
       console.log('Initializing checkout with cart:', cart);
+      console.log('Cart total_amount:', cart?.total_amount, 'Items count:', cart?.items?.length);
       
       if (!cart?.id) {
         console.error('No cart ID found:', cart);
@@ -72,9 +73,18 @@ const Checkout = () => {
         return;
       }
 
-      if (!cart?.items?.length) {
-        console.error('Cart has no items:', cart.items);
+      // Check both items array and total amount for proper validation
+      if (!cart?.items?.length && cart?.total_amount <= 0) {
+        console.error('Cart is completely empty:', { items: cart.items, total: cart.total_amount });
         toast.error("Your cart is empty. Please add items to continue.");
+        navigate('/cart');
+        return;
+      }
+      
+      // If cart has total but no items, there's a data inconsistency - try to refresh
+      if (cart?.total_amount > 0 && (!cart?.items || cart.items.length === 0)) {
+        console.warn('Cart data inconsistency detected - refreshing cart data');
+        toast.error("Cart data needs refresh. Please return to cart and try again.");
         navigate('/cart');
         return;
       }
