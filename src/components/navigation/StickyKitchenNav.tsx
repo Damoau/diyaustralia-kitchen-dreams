@@ -51,30 +51,32 @@ export const StickyKitchenNav = ({
   };
 
   return (
-    <div className="sticky top-14 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      {/* Main Navigation Row */}
-      <div className="container flex h-12 items-center justify-between px-4">
-        {/* Left side - Back and current category */}
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/shop/kitchen')}
-            className="flex items-center space-x-1 text-muted-foreground hover:text-foreground"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="text-sm">Back</span>
-          </Button>
-          <div className="h-4 w-px bg-border" />
-          <span className="text-sm font-medium text-foreground">
-            {getCurrentCategory()}
-          </span>
+    <>
+      {/* Regular Navigation Row - Not Sticky */}
+      <div className="w-full border-b bg-background">
+        <div className="container flex h-12 items-center justify-between px-4">
+          {/* Left side - Back and current category */}
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/shop/kitchen')}
+              className="flex items-center space-x-1 text-muted-foreground hover:text-foreground"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span className="text-sm">Back</span>
+            </Button>
+            <div className="h-4 w-px bg-border" />
+            <span className="text-sm font-medium text-foreground">
+              {getCurrentCategory()}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Sticky Filter Row */}
+      {/* Sticky Filter Row Only */}
       {showStickyFilter && subcategories.length > 0 && (
-        <div className="border-t bg-background/98 backdrop-blur-sm">
+        <div className="sticky top-14 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container px-4 py-2">
             <div className="flex items-center gap-4">
               <span className="text-sm font-medium text-muted-foreground">Filter:</span>
@@ -106,6 +108,6 @@ export const StickyKitchenNav = ({
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
