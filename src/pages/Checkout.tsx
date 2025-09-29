@@ -71,6 +71,9 @@ const Checkout = () => {
         return;
       }
       
+      // Give a small delay to ensure cart data is fully populated after loading completes
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Now that loading is done, validate cart
       if (!cart || !cart.id) {
         console.error('No cart found after loading:', cart);
@@ -80,14 +83,15 @@ const Checkout = () => {
       }
 
       // Validate cart has items
-      if (!cart.items || cart.items.length === 0) {
-        console.error('Cart is empty:', { items: cart.items });
+      const items = cart.items || [];
+      if (items.length === 0) {
+        console.error('Cart is empty:', { items });
         toast.error("Your cart is empty. Please add items to continue.");
         navigate('/cart');
         return;
       }
 
-      console.log('Cart validated successfully. Items:', cart.items.length);
+      console.log('Cart validated successfully. Items:', items.length);
 
       try {
         console.log('Starting checkout for cart ID:', cart.id);
@@ -117,17 +121,22 @@ const Checkout = () => {
     if (stepId === 'identity') {
       setCustomerData(data);
     } else if (stepId === 'shipping') {
-      // Update order summary with shipping costs
-      const subtotal = getTotalPrice();
-      const deliveryTotal = data?.deliveryOption?.price || 0;
-      const taxAmount = (subtotal + deliveryTotal) * 0.1; // 10% GST
-      const finalTotal = subtotal + deliveryTotal + taxAmount;
+      // Calculate order summary with GST EXTRACTION (not addition)
+      // All product prices already include GST, so we extract it for display
+      const subtotalIncGST = getTotalPrice();
+      const deliveryTotalIncGST = data?.deliveryOption?.price || 0;
+      const totalIncGST = subtotalIncGST + deliveryTotalIncGST;
+      
+      // Extract GST from GST-inclusive price (GST = total - (total / 1.1))
+      const taxAmount = totalIncGST - (totalIncGST / 1.1);
+      const subtotalExGST = subtotalIncGST / 1.1;
+      const deliveryExGST = deliveryTotalIncGST / 1.1;
       
       setOrderSummary({
-        subtotal,
-        deliveryTotal,
-        taxAmount,
-        finalTotal
+        subtotal: subtotalExGST,
+        deliveryTotal: deliveryExGST,
+        taxAmount: taxAmount,
+        finalTotal: totalIncGST
       });
     }
     
