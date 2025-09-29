@@ -74,42 +74,28 @@ const CategoryPage = () => {
   const displayCategory = getCategoryDisplayName(category);
 
   
-  // Reset sticky filter on component mount and route changes
+  // Simple scroll detection for sticky filter
   useEffect(() => {
+    if (subcategories.length === 0) return;
+
+    const handleScroll = () => {
+      if (filterSectionRef.current) {
+        const rect = filterSectionRef.current.getBoundingClientRect();
+        const headerHeight = 56; // Main header height
+        const shouldShow = rect.top < headerHeight;
+        
+        if (shouldShow !== showStickyFilter) {
+          setShowStickyFilter(shouldShow);
+        }
+      }
+    };
+
+    // Reset on mount
     setShowStickyFilter(false);
     
-    // Force reset scroll position tracking
-    return () => {
-      setShowStickyFilter(false);
-    };
-  }, [room, category]);
-
-  useEffect(() => {
-    let scrollTimeout: NodeJS.Timeout;
-    
-    const handleScroll = () => {
-      // Clear any pending scroll updates to debounce
-      clearTimeout(scrollTimeout);
-      
-      scrollTimeout = setTimeout(() => {
-        if (filterSectionRef.current && subcategories.length > 0 && !showStickyFilter) {
-          const filterRect = filterSectionRef.current.getBoundingClientRect();
-          const headerHeight = 56;
-          const stickyNavHeight = 48;
-          const totalHeaderHeight = headerHeight + stickyNavHeight;
-          const shouldShow = filterRect.top <= totalHeaderHeight;
-          
-          if (shouldShow !== showStickyFilter) {
-            setShowStickyFilter(shouldShow);
-          }
-        }
-      }, 10); // Small debounce
-    };
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     
     return () => {
-      clearTimeout(scrollTimeout);
       window.removeEventListener('scroll', handleScroll);
       setShowStickyFilter(false);
     };
@@ -301,7 +287,6 @@ const CategoryPage = () => {
           activeSubcategory={activeSubcategory}
           onFilterChange={handleFilterChange}
           displayCategory={displayCategory}
-          filteredCount={filteredCabinetTypes.length}
         />
         
         

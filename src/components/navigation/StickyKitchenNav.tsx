@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 
 interface Subcategory {
   id: string;
@@ -20,7 +19,6 @@ interface StickyKitchenNavProps {
   activeSubcategory?: string;
   onFilterChange?: (subcategory: string) => void;
   displayCategory?: string;
-  filteredCount?: number;
 }
 
 export const StickyKitchenNav = ({
@@ -28,8 +26,7 @@ export const StickyKitchenNav = ({
   subcategories = [],
   activeSubcategory = 'all',
   onFilterChange,
-  displayCategory = 'Kitchen Cabinets',
-  filteredCount = 0
+  displayCategory = 'Kitchen Cabinets'
 }: StickyKitchenNavProps) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -39,80 +36,50 @@ export const StickyKitchenNav = ({
     return null;
   }
 
-  const getCurrentCategory = () => {
-    // Extract category from pathname
-    const pathParts = location.pathname.split('/');
-    if (pathParts[3]) {
-      return pathParts[3].split('-').map(word => 
-        word.charAt(0).toUpperCase() + word.slice(1)
-      ).join(' ');
-    }
-    return displayCategory;
-  };
+  // Only show the sticky menu when showStickyFilter is true
+  if (!showStickyFilter || subcategories.length === 0) {
+    return null;
+  }
 
   return (
-    <>
-      {/* Regular Navigation Row - Not Sticky */}
-      <div className="w-full border-b bg-background">
-        <div className="container flex h-12 items-center justify-between px-4">
-          {/* Left side - Back and current category */}
-          <div className="flex items-center space-x-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/shop/kitchen')}
-              className="flex items-center space-x-1 text-muted-foreground hover:text-foreground"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              <span className="text-sm">Back</span>
-            </Button>
-            <div className="h-4 w-px bg-border" />
-            <span className="text-sm font-medium text-foreground">
-              {getCurrentCategory()}
-            </span>
-          </div>
+    <div className="sticky top-14 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container px-4 py-3">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/shop/kitchen')}
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span>Back</span>
+          </Button>
+          
+          <div className="h-4 w-px bg-border" />
+          
+          <Select
+            value={activeSubcategory}
+            onValueChange={onFilterChange}
+          >
+            <SelectTrigger className="w-56">
+              <SelectValue>
+                {activeSubcategory === "all" 
+                  ? `All ${displayCategory}` 
+                  : subcategories.find(s => s.name === activeSubcategory)?.display_name
+                }
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="bg-background border shadow-lg">
+              <SelectItem value="all">All {displayCategory}</SelectItem>
+              {subcategories.map((subcat) => (
+                <SelectItem key={subcat.id} value={subcat.name}>
+                  {subcat.display_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
-
-      {/* Sticky Filter Row Only */}
-      {showStickyFilter && subcategories.length > 0 && (
-        <div className="sticky top-14 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container px-4 py-2">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/shop/kitchen')}
-                className="flex items-center space-x-1 text-muted-foreground hover:text-foreground"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                <span className="text-sm">Back</span>
-              </Button>
-              <Select
-                value={activeSubcategory}
-                onValueChange={onFilterChange}
-              >
-                <SelectTrigger className="w-48 h-8">
-                  <SelectValue>
-                    {activeSubcategory === "all" 
-                      ? `All ${displayCategory}` 
-                      : subcategories.find(s => s.name === activeSubcategory)?.display_name
-                    }
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All {displayCategory}</SelectItem>
-                  {subcategories.map((subcat) => (
-                    <SelectItem key={subcat.id} value={subcat.name}>
-                      {subcat.display_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+    </div>
   );
 };
