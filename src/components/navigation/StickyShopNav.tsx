@@ -54,15 +54,14 @@ export const StickyShopNav = ({
     return null;
   }
 
-  // Always show when on category pages, even if no subcategories
-  if (!showStickyFilter) {
-    return null;
-  }
+  // Always show the sticky filter on category pages for better UX
+  // Remove the scroll dependency to make it always visible
 
   return (
-    <div className="sticky top-14 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container px-4 py-3">
-        <div className="flex items-center gap-4">
+    <div className="sticky top-14 z-50 w-full bg-gradient-to-r from-background via-background/95 to-background backdrop-blur-md border-b border-border/50 shadow-sm">
+      <div className="container px-4 py-4">
+        <div className="flex items-center justify-between gap-4">
+          {/* Left side - Back button */}
           <Button
             variant="ghost"
             size="sm"
@@ -75,94 +74,137 @@ export const StickyShopNav = ({
                 navigate('/shop');
               }
             }}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
-            <span>Back</span>
+            <span className="hidden sm:inline">Back to Categories</span>
+            <span className="sm:hidden">Back</span>
           </Button>
           
-          <div className="h-4 w-px bg-border" />
-          
-          {/* Desktop: Two-level navigation with main categories */}
-          <div className="hidden md:flex items-center gap-4">
-            {/* Main Category Dropdown */}
-            {mainCategories.length > 0 && (
-              <>
-                <Select
-                  value={activeMainCategory}
-                  onValueChange={onMainCategoryChange}
-                >
-                  <SelectTrigger className="w-48">
-                    <SelectValue>
-                      {mainCategories.find(c => c.name === activeMainCategory)?.display_name || displayCategory}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border shadow-lg z-50">
-                    {mainCategories.map((mainCat) => (
-                      <SelectItem key={mainCat.id} value={mainCat.name}>
-                        {mainCat.display_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                <div className="h-4 w-px bg-border" />
-              </>
-            )}
-            
-            {/* Subcategory Dropdown - only show if subcategories exist */}
-            {subcategories.length > 0 && (
-              <Select
-                value={activeSubcategory}
-                onValueChange={onFilterChange}
-              >
-                <SelectTrigger className="w-56">
-                  <SelectValue>
-                    {activeSubcategory === "all" 
-                      ? `All ${displayCategory}` 
-                      : subcategories.find(s => s.name === activeSubcategory)?.display_name
-                    }
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="bg-background border shadow-lg z-50">
-                  <SelectItem value="all">All {displayCategory}</SelectItem>
-                  {subcategories.map((subcat) => (
-                    <SelectItem key={subcat.id} value={subcat.name}>
-                      {subcat.display_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+          {/* Center - Category Title */}
+          <div className="flex items-center gap-3">
+            <div className="h-5 w-px bg-border/60" />
+            <h2 className="text-lg font-semibold text-foreground hidden md:block">
+              {displayCategory}
+            </h2>
+            <div className="h-5 w-px bg-border/60 hidden md:block" />
           </div>
           
-          {/* Mobile: Single subcategory dropdown - only show if subcategories exist */}
-          <div className="md:hidden">
-            {subcategories.length > 0 ? (
-              <Select
-                value={activeSubcategory}
-                onValueChange={onFilterChange}
-              >
-                <SelectTrigger className="w-56">
-                  <SelectValue>
-                    {activeSubcategory === "all" 
-                      ? `All ${displayCategory}` 
-                      : subcategories.find(s => s.name === activeSubcategory)?.display_name
-                    }
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="bg-background border shadow-lg z-50">
-                  <SelectItem value="all">All {displayCategory}</SelectItem>
-                  {subcategories.map((subcat) => (
-                    <SelectItem key={subcat.id} value={subcat.name}>
-                      {subcat.display_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <span className="text-sm text-muted-foreground">{displayCategory}</span>
-            )}
+          {/* Right side - Filter Controls */}
+          <div className="flex items-center gap-3">
+            {/* Desktop: Two-level navigation */}
+            <div className="hidden md:flex items-center gap-3">
+              {/* Main Category Dropdown */}
+              {mainCategories.length > 0 && (
+                <>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-muted-foreground font-medium">Category</label>
+                    <Select
+                      value={activeMainCategory}
+                      onValueChange={onMainCategoryChange}
+                    >
+                      <SelectTrigger className="w-48 bg-card border-border/60 hover:border-border hover:bg-secondary/30 transition-colors">
+                        <SelectValue>
+                          {mainCategories.find(c => c.name === activeMainCategory)?.display_name || displayCategory}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="bg-background/95 backdrop-blur-md border border-border/60 shadow-xl z-[60] rounded-lg">
+                        {mainCategories.map((mainCat) => (
+                          <SelectItem 
+                            key={mainCat.id} 
+                            value={mainCat.name}
+                            className="hover:bg-secondary/50 focus:bg-secondary/50 transition-colors"
+                          >
+                            {mainCat.display_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+              
+              {/* Subcategory Dropdown - only show if subcategories exist */}
+              {subcategories.length > 0 && (
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-muted-foreground font-medium">Filter</label>
+                  <Select
+                    value={activeSubcategory}
+                    onValueChange={onFilterChange}
+                  >
+                    <SelectTrigger className="w-56 bg-card border-border/60 hover:border-border hover:bg-secondary/30 transition-colors">
+                      <SelectValue>
+                        {activeSubcategory === "all" 
+                          ? `All ${displayCategory}` 
+                          : subcategories.find(s => s.name === activeSubcategory)?.display_name
+                        }
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="bg-background/95 backdrop-blur-md border border-border/60 shadow-xl z-[60] rounded-lg">
+                      <SelectItem 
+                        value="all"
+                        className="hover:bg-secondary/50 focus:bg-secondary/50 transition-colors"
+                      >
+                        All {displayCategory}
+                      </SelectItem>
+                      {subcategories.map((subcat) => (
+                        <SelectItem 
+                          key={subcat.id} 
+                          value={subcat.name}
+                          className="hover:bg-secondary/50 focus:bg-secondary/50 transition-colors"
+                        >
+                          {subcat.display_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+            
+            {/* Mobile: Compact layout */}
+            <div className="md:hidden flex items-center gap-2">
+              {subcategories.length > 0 ? (
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-muted-foreground font-medium">Filter</label>
+                  <Select
+                    value={activeSubcategory}
+                    onValueChange={onFilterChange}
+                  >
+                    <SelectTrigger className="w-48 bg-card border-border/60 hover:border-border hover:bg-secondary/30 transition-colors">
+                      <SelectValue>
+                        {activeSubcategory === "all" 
+                          ? `All ${displayCategory}` 
+                          : subcategories.find(s => s.name === activeSubcategory)?.display_name
+                        }
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="bg-background/95 backdrop-blur-md border border-border/60 shadow-xl z-[60] rounded-lg">
+                      <SelectItem 
+                        value="all"
+                        className="hover:bg-secondary/50 focus:bg-secondary/50 transition-colors"
+                      >
+                        All {displayCategory}
+                      </SelectItem>
+                      {subcategories.map((subcat) => (
+                        <SelectItem 
+                          key={subcat.id} 
+                          value={subcat.name}
+                          className="hover:bg-secondary/50 focus:bg-secondary/50 transition-colors"
+                        >
+                          {subcat.display_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <span className="text-sm font-medium text-foreground">{displayCategory}</span>
+                  <div className="text-xs text-muted-foreground">Browse all products</div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

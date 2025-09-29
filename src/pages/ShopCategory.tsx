@@ -84,44 +84,11 @@ const CategoryPage = () => {
   const displayCategory = getCategoryDisplayName(category);
 
   
-  // Fixed scroll detection for sticky filter - no more flashing!
+  // Always show sticky filter for better UX
   useEffect(() => {
-    if (subcategories.length === 0) return;
-
-    let ticking = false;
-    
-    const handleScroll = () => {
-      if (!ticking && filterSectionRef.current) {
-        requestAnimationFrame(() => {
-          const rect = filterSectionRef.current?.getBoundingClientRect();
-          if (rect) {
-            const headerHeight = 56;
-            const buffer = 5; // Add buffer to prevent rapid toggling
-            const shouldShow = rect.top < (headerHeight - buffer);
-            
-            // Only update if there's a clear change to prevent rapid toggling
-            setShowStickyFilter(prev => {
-              if (prev !== shouldShow) {
-                return shouldShow;
-              }
-              return prev;
-            });
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    // Reset on mount
-    setShowStickyFilter(false);
-    
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [subcategories.length]); // Removed showStickyFilter from deps - this was causing the infinite loop!
+    // Always show the sticky filter on category pages
+    setShowStickyFilter(true);
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -367,41 +334,41 @@ const CategoryPage = () => {
             </BreadcrumbList>
           </Breadcrumb>
 
-          {/* Category Header */}
-          {!showStickyFilter && (
-            <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold mb-4">{displayCategory} {roomCategory?.display_name}</h1>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Discover our premium {displayCategory.toLowerCase()} designed for {roomCategory?.display_name?.toLowerCase() || 'your space'}. 
-                Each cabinet is crafted with precision and can be customized to your exact specifications.
-              </p>
-            </div>
-          )}
+          {/* Category Header - Hide when sticky filter is active */}
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold mb-4">{displayCategory} {roomCategory?.display_name}</h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Discover our premium {displayCategory.toLowerCase()} designed for {roomCategory?.display_name?.toLowerCase() || 'your space'}. 
+              Each cabinet is crafted with precision and can be customized to your exact specifications.
+            </p>
+          </div>
 
-          {/* Subcategory Filter Buttons */}
-          {subcategories.length > 0 && !showStickyFilter && (
-            <div ref={filterSectionRef} className="mb-8">
-              <div className="flex flex-wrap gap-3 justify-center">
-                 <Button
-                   variant={activeSubcategory === "all" ? "default" : "outline"}
-                   onClick={() => handleFilterChange("all")}
-                   className="px-6 py-2"
-                 >
-                   All {displayCategory}
-                 </Button>
-                 {subcategories.map((subcat) => (
+          {/* Hide original filter buttons since we now have sticky filter */}
+          <div className="sr-only">
+            {subcategories.length > 0 && (
+              <div ref={filterSectionRef} className="mb-8">
+                <div className="flex flex-wrap gap-3 justify-center">
                    <Button
-                     key={subcat.id}
-                     variant={activeSubcategory === subcat.name ? "default" : "outline"}
-                     onClick={() => handleFilterChange(subcat.name)}
+                     variant={activeSubcategory === "all" ? "default" : "outline"}
+                     onClick={() => handleFilterChange("all")}
                      className="px-6 py-2"
                    >
-                     {subcat.display_name}
+                     All {displayCategory}
                    </Button>
-                 ))}
+                   {subcategories.map((subcat) => (
+                     <Button
+                       key={subcat.id}
+                       variant={activeSubcategory === subcat.name ? "default" : "outline"}
+                       onClick={() => handleFilterChange(subcat.name)}
+                       className="px-6 py-2"
+                     >
+                       {subcat.display_name}
+                     </Button>
+                   ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
           
           {/* Hidden ref element for scroll detection when sticky filter is active */}
           {showStickyFilter && <div ref={filterSectionRef} className="absolute top-0" />}
