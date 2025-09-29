@@ -95,13 +95,13 @@ export const StickyShopNav = ({
                   onValueChange={onMainCategoryChange}
                 >
                   <SelectTrigger className="w-40">
-                    <SelectValue>
+                    <SelectValue className="text-center">
                       {mainCategories.find(c => c.name === activeMainCategory)?.display_name || displayCategory}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="bg-background border shadow-lg z-[60]">
                     {mainCategories.map((mainCat) => (
-                      <SelectItem key={mainCat.id} value={mainCat.name}>
+                      <SelectItem key={mainCat.id} value={mainCat.name} className="text-center">
                         {mainCat.display_name}
                       </SelectItem>
                     ))}
@@ -116,17 +116,17 @@ export const StickyShopNav = ({
                   onValueChange={onFilterChange}
                 >
                   <SelectTrigger className="w-48">
-                    <SelectValue>
+                    <SelectValue className="text-center">
                       {activeSubcategory === "all" 
-                        ? `All ${cleanDisplayCategory}` 
+                        ? "All" 
                         : subcategories.find(s => s.name === activeSubcategory)?.display_name
                       }
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="bg-background border shadow-lg z-[60]">
-                    <SelectItem value="all">All {cleanDisplayCategory}</SelectItem>
+                    <SelectItem value="all" className="text-center">All</SelectItem>
                     {subcategories.map((subcat) => (
-                      <SelectItem key={subcat.id} value={subcat.name}>
+                      <SelectItem key={subcat.id} value={subcat.name} className="text-center">
                         {subcat.display_name}
                       </SelectItem>
                     ))}
@@ -143,17 +143,17 @@ export const StickyShopNav = ({
                   onValueChange={onFilterChange}
                 >
                   <SelectTrigger className="w-48">
-                    <SelectValue>
+                    <SelectValue className="text-center">
                       {activeSubcategory === "all" 
-                        ? `All ${cleanDisplayCategory}` 
+                        ? "All" 
                         : subcategories.find(s => s.name === activeSubcategory)?.display_name
                       }
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="bg-background border shadow-lg z-[60]">
-                    <SelectItem value="all">All {cleanDisplayCategory}</SelectItem>
+                    <SelectItem value="all" className="text-center">All</SelectItem>
                     {subcategories.map((subcat) => (
-                      <SelectItem key={subcat.id} value={subcat.name}>
+                      <SelectItem key={subcat.id} value={subcat.name} className="text-center">
                         {subcat.display_name}
                       </SelectItem>
                     ))}
