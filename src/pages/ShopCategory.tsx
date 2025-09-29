@@ -73,6 +73,12 @@ const CategoryPage = () => {
 
   const displayCategory = getCategoryDisplayName(category);
 
+  
+  // Reset sticky filter on component mount and route changes
+  useEffect(() => {
+    setShowStickyFilter(false);
+  }, [room, category]);
+
   useEffect(() => {
     const handleScroll = () => {
       if (filterSectionRef.current && subcategories.length > 0) {
@@ -89,7 +95,12 @@ const CategoryPage = () => {
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    
+    // Cleanup function to reset state when component unmounts
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      setShowStickyFilter(false);
+    };
   }, [subcategories.length]);
 
   useEffect(() => {

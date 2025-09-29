@@ -86,6 +86,7 @@ export const StickyKitchenNav = ({
                 className="flex items-center space-x-1 text-muted-foreground hover:text-foreground"
               >
                 <ChevronLeft className="h-4 w-4" />
+                <span className="text-sm">Back</span>
               </Button>
               <Select
                 value={activeSubcategory}
