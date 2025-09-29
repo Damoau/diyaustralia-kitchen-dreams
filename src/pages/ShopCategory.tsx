@@ -98,16 +98,30 @@ const CategoryPage = () => {
       }
 
       try {
+        // Decode and clean URL parameters
+        const decodedRoom = decodeURIComponent(room).trim();
+        const decodedCategory = decodeURIComponent(category).trim();
+        
+        console.log('Loading data for:', { 
+          originalRoom: room, 
+          originalCategory: category,
+          decodedRoom, 
+          decodedCategory 
+        });
+
         // Load room category from unified_categories (Level 1)
         const { data: roomData, error: roomError } = await supabase
           .from('unified_categories')
           .select('*')
-          .eq('name', room)
+          .eq('name', decodedRoom)
           .eq('level', 1)
           .eq('active', true)
           .single();
 
-        if (roomError) throw roomError;
+        if (roomError) {
+          console.error('Room not found:', roomError);
+          throw roomError;
+        }
         setRoomCategory(roomData);
 
         // Load all Level 2 categories for this room (for main category dropdown)
@@ -121,6 +135,7 @@ const CategoryPage = () => {
 
         if (mainCatsError) {
           console.error('Error loading main categories:', mainCatsError);
+          setMainCategories([]);
         } else {
           setMainCategories(mainCatsData || []);
           console.log('Loaded main categories:', mainCatsData);
@@ -128,18 +143,44 @@ const CategoryPage = () => {
 
         // Load Level 3 subcategories for this specific room/category combination
         // First get the Level 2 category ID that belongs to this room
-        const { data: level2Data, error: level2Error } = await supabase
+        // Try multiple lookup strategies for better matching
+        let level2Data = null;
+        
+        // Strategy 1: Exact match with decoded category
+        const { data: level2Exact, error: level2ExactError } = await supabase
           .from('unified_categories')
-          .select('id')
+          .select('id, name, display_name')
           .eq('level', 2)
-          .eq('name', category)
+          .eq('name', decodedCategory)
           .eq('parent_id', roomData.id)
           .eq('active', true)
-          .single();
+          .maybeSingle();
+          
+        if (level2Exact) {
+          level2Data = level2Exact;
+          console.log('Found exact match for category:', level2Data);
+        } else {
+          // Strategy 2: Fuzzy match by display_name or partial name
+          const { data: allLevel2, error: allLevel2Error } = await supabase
+            .from('unified_categories')
+            .select('id, name, display_name')
+            .eq('level', 2)
+            .eq('parent_id', roomData.id)
+            .eq('active', true);
+            
+          if (allLevel2) {
+            level2Data = allLevel2.find(cat => 
+              cat.name.toLowerCase().trim() === decodedCategory.toLowerCase().trim() ||
+              cat.display_name.toLowerCase().trim() === decodedCategory.toLowerCase().trim() ||
+              cat.name.toLowerCase().includes(decodedCategory.toLowerCase().trim()) ||
+              cat.display_name.toLowerCase().includes(decodedCategory.toLowerCase().trim())
+            );
+            console.log('Fuzzy match result:', { decodedCategory, allLevel2, found: level2Data });
+          }
+        }
 
-        if (level2Error) {
-          console.error('Error loading level 2 category:', level2Error);
-        } else if (level2Data) {
+        if (level2Data) {
+          console.log('Found level 2 category:', level2Data);
           // Now get Level 3 subcategories for this specific room/category
           const { data: subcatsData, error: subcatsError } = await supabase
             .from('unified_categories')
@@ -151,26 +192,57 @@ const CategoryPage = () => {
 
           if (subcatsError) {
             console.error('Error loading subcategories:', subcatsError);
+            setSubcategories([]);
+          } else {
+            setSubcategories(subcatsData || []);
+            console.log('Loaded subcategories for', level2Data.name, ':', subcatsData);
+          }
         } else {
-          setSubcategories(subcatsData || []);
-          console.log('Loaded subcategories:', subcatsData);
-        }
+          console.error('Level 2 category not found for:', decodedCategory, 'in room:', decodedRoom);
+          setSubcategories([]);
         }
 
         // Load cabinet types for this room and category
+        // Map unified category names to cabinet_types category values
+        const categoryMap: Record<string, string> = {
+          'Base Cabinets': 'base',
+          'Wall Cabinets': 'wall', 
+          'Pantry Cabinets': 'tall',
+          'Specialty Cabinets': 'specialty',
+          'Broom Cabinets': 'broom',
+          'Mirror Cabinets': 'mirrors',
+          'Storage Cabinets': 'storage',
+          'Storage Solutions': 'storage',
+          'Weather Resistant': 'weatherproof',
+          'Specialty Units': 'specialty',
+          'Hanging Systems': 'hanging',
+          'Dress Panels & Fillers': 'dress_panels' // New category mapping
+        };
+        
+        const mappedCategory = categoryMap[decodedCategory] || decodedCategory.toLowerCase().replace(/\s+/g, '_');
+        console.log('Category mapping:', { decodedCategory, mappedCategory });
+        
         const { data, error } = await supabase
           .from('cabinet_types')
           .select('*')
           .eq('active', true)
-          .eq('category', category)
+          .eq('category', mappedCategory)
           .eq('room_category_id', roomData.id)
           .order('display_order', { ascending: true });
 
-        if (error) throw error;
-        setCabinetTypes(data || []);
-        console.log('Loaded cabinet types with subcategories:', data?.map(ct => ({ name: ct.name, subcategory: ct.subcategory })));
+        if (error) {
+          console.error('Error loading cabinet types:', error);
+          setCabinetTypes([]);
+        } else {
+          setCabinetTypes(data || []);
+          console.log('Loaded cabinet types for', decodedCategory, ':', data?.map(ct => ({ name: ct.name, subcategory: ct.subcategory })));
+        }
       } catch (error) {
         console.error('Error loading data:', error);
+        // Reset state on error to prevent stale data
+        setCabinetTypes([]);
+        setSubcategories([]);
+        setMainCategories([]);
       } finally {
         setLoading(false);
       }
@@ -230,9 +302,13 @@ const CategoryPage = () => {
 
   // Handle main category change
   const handleMainCategoryChange = (newCategory: string) => {
-    // Navigate to new category and reset subcategory filter
-    navigate(`/shop/${room}/${newCategory}`);
+    // Clear current state to prevent cross-contamination
+    setCabinetTypes([]);
+    setSubcategories([]);
     setActiveSubcategory("all");
+    
+    // Navigate to new category
+    navigate(`/shop/${room}/${encodeURIComponent(newCategory)}`);
   };
 
   // Handle filter change and scroll to products
