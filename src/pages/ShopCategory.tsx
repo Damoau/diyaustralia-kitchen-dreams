@@ -75,16 +75,22 @@ const CategoryPage = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (filterSectionRef.current) {
+      if (filterSectionRef.current && subcategories.length > 0) {
         const filterRect = filterSectionRef.current.getBoundingClientRect();
-        const isFilterPastTop = filterRect.bottom < 0;
-        setShowStickyFilter(isFilterPastTop);
+        // Show sticky filter when filter section starts to go behind the header (56px is the header height)
+        const headerHeight = 56; // Main header height
+        const stickyNavHeight = 48; // StickyKitchenNav height
+        const totalHeaderHeight = headerHeight + stickyNavHeight;
+        const isFilterBehindHeader = filterRect.top <= totalHeaderHeight;
+        setShowStickyFilter(isFilterBehindHeader);
+      } else {
+        setShowStickyFilter(false);
       }
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [subcategories.length]);
 
   useEffect(() => {
     const loadData = async () => {
