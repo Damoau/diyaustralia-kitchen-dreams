@@ -122,11 +122,17 @@ const defaultCabinetType: CabinetType = {
   height_increment: 50,
   depth_increment: 50,
   display_order: 0,
-// Default cabinet type structure
-const defaultCabinetType: CabinetType = {
+};
+
+export default function EditCabinetType() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [cabinetType, setCabinetType] = useState<CabinetType>(defaultCabinetType);
+  const [editingDoorStyle, setEditingDoorStyle] = useState<string | null>(null);
   const [generatedSizes, setGeneratedSizes] = useState<number[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch cabinet type data
@@ -232,44 +238,6 @@ const defaultCabinetType: CabinetType = {
       return data as any;
     },
     enabled: id !== 'new',
-  });
-
-  // Fetch hardware requirements for this cabinet type
-  const { data: hardwareRequirements, isLoading: loadingHardware } = useQuery({
-    queryKey: ['cabinet-hardware-requirements', id],
-    queryFn: async () => {
-      if (id === 'new') return [];
-      const { data, error } = await supabase
-        .from('cabinet_hardware_requirements')
-        .select(`
-          *,
-          hardware_types (
-            name,
-            category
-          )
-        `)
-        .eq('cabinet_type_id', id)
-        .order('hardware_type_id');
-      
-      if (error) throw error;
-      return data as any;
-    },
-    enabled: id !== 'new',
-  });
-
-  // Fetch hardware types for dropdown
-  const { data: hardwareTypes } = useQuery({
-    queryKey: ['hardware-types'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('hardware_types')
-        .select('*')
-        .eq('active', true)
-        .order('name');
-      
-      if (error) throw error;
-      return data as HardwareType[];
-    },
   });
 
   // Save cabinet type mutation
