@@ -17,6 +17,7 @@ import { ShoppingCart, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
 import { formatCurrency } from "@/lib/formatPrice";
+import { SEOTags } from "@/components/SEOTags";
 
 interface SequenceStep {
   id: string;
@@ -221,6 +222,7 @@ const Checkout = () => {
   if (cartLoading) {
     return (
       <ImpersonationLayout>
+        <SEOTags pageType="static" pageIdentifier="/checkout" />
         <div className="min-h-screen bg-background">
           <DynamicHeader />
           <main className="container mx-auto px-4 py-8 mobile-safe-bottom">
@@ -240,6 +242,7 @@ const Checkout = () => {
   if (!cart?.items?.length) {
     return (
       <ImpersonationLayout>
+        <SEOTags pageType="static" pageIdentifier="/checkout" />
         <div className="min-h-screen bg-background">
           <DynamicHeader />
           <main className="container mx-auto px-4 py-8 mobile-safe-bottom">
@@ -264,6 +267,7 @@ const Checkout = () => {
 
   return (
     <ImpersonationLayout>
+      <SEOTags pageType="static" pageIdentifier="/checkout" />
       <Helmet>
         <title>Checkout - DIY Kitchens</title>
         <meta name="description" content="Complete your kitchen cabinet order with secure checkout." />

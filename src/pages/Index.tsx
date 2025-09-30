@@ -6,10 +6,12 @@ import About from "@/components/About";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
+import { SEOTags } from "@/components/SEOTags";
 
 const Index = () => {
   return (
     <ImpersonationLayout>
+      <SEOTags pageType="static" pageIdentifier="/" />
       <div className="min-h-screen">
         <DynamicHeader />
         <Hero />

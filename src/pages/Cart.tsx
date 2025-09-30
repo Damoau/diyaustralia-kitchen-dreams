@@ -18,6 +18,7 @@ import { CartLoadingSkeleton } from "@/components/ui/cart-loading-skeleton";
 import { QuoteSelectionDialog } from "@/components/cart/QuoteSelectionDialog";
 import { CartStatusIndicator } from "@/components/cart/CartStatusIndicator";
 import { formatCurrency } from "@/lib/formatPrice";
+import { SEOTags } from "@/components/SEOTags";
 
 interface CartItem {
   id: string;
@@ -208,6 +209,7 @@ const Cart = () => {
 
   return (
     <ImpersonationLayout>
+      <SEOTags pageType="static" pageIdentifier="/cart" />
       <Helmet>
         <title>Shopping Cart - DIY Kitchens</title>
         <meta name="description" content="Review your selected kitchen cabinets and hardware before requesting a quote." />

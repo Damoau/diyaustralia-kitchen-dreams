@@ -40,6 +40,7 @@ const DoorStyles = lazy(() => import('@/pages/admin/DoorStyles'));
 const ConfigurationMigrationPlaceholder = lazy(() => import('@/components/admin/ConfigurationMigrationPlaceholder'));
 const TestingPlaceholder = lazy(() => import('@/components/admin/TestingPlaceholder'));
 const CartActivity = lazy(() => import('@/pages/admin/CartActivity'));
+const LazySEOManagement = lazy(() => import('@/pages/admin/SEOManagement'));
 import CartSystemHealth from "@/pages/admin/CartSystemHealth";
 import UserBehaviorAnalytics from "@/pages/admin/UserBehaviorAnalytics";
 
@@ -84,6 +85,7 @@ export const AdminRouter = () => {
             <Route path="configuration-migration" element={<ConfigurationMigrationPlaceholder />} />
             <Route path="pricing" element={<Pricing />} />
             <Route path="discounts" element={<Discounts />} />
+            <Route path="seo-management" element={<Suspense fallback={<PageLoader />}><LazySEOManagement /></Suspense>} />
             <Route path="users" element={<Users />} />
             <Route path="order-management" element={<Suspense fallback={<PageLoader />}><LazyOrderManagement /></Suspense>} />
             <Route path="production-management" element={<Suspense fallback={<PageLoader />}><LazyProductionManagement /></Suspense>} />

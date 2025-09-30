@@ -8,6 +8,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import DynamicHeader from "@/components/DynamicHeader";
 import Footer from "@/components/Footer";
 import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
+import { SEOTags } from "@/components/SEOTags";
 
 interface RoomCategory {
   id: string;
@@ -80,6 +81,7 @@ export default function RoomCategories() {
 
   return (
     <ImpersonationLayout>
+      <SEOTags pageType="static" pageIdentifier="/room-categories" />
       <Helmet>
         <title>Shop Cabinet Collections | Kitchen, Laundry, Vanity & More</title>
         <meta name="description" content="Browse our complete range of cabinet collections for kitchen, laundry, vanity, wardrobe and outdoor kitchen spaces. Premium quality cabinets for every room." />

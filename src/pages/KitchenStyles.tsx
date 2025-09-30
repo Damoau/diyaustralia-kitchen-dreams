@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import shadowlineImage from "@/assets/shadowline-kitchen.jpg";
+import { SEOTags } from "@/components/SEOTags";
 
 const KitchenStyles = () => {
   const styles = [
@@ -52,6 +53,7 @@ const KitchenStyles = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOTags pageType="static" pageIdentifier="/kitchen-styles" />
       <Header />
       
       {/* Hero Section */}

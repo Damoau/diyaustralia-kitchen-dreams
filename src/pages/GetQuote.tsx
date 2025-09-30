@@ -10,8 +10,11 @@ import logoBlum from "@/assets/logo-blum.png";
 import logoTitus from "@/assets/logo-titus.png";
 import logoPolytec from "@/assets/logo-polytec.png";
 import logoLaminex from "@/assets/logo-laminex.png";
+import { SEOTags } from "@/components/SEOTags";
+
 const GetQuote = () => {
   const [isSticky, setIsSticky] = useState(false);
+  
   useEffect(() => {
     const handleScroll = () => {
       setIsSticky(window.scrollY > 200);

@@ -4,7 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { 
+import { SEOTags } from "@/components/SEOTags";
+import {
   Factory, 
   Settings, 
   Tag, 
@@ -124,6 +125,7 @@ const Manufacturing = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-hidden">
+      <SEOTags pageType="static" pageIdentifier="/manufacturing" />
       <Header />
       
       <main className="pt-20">
