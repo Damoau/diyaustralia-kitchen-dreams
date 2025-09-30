@@ -14,13 +14,19 @@ interface StripePaymentFormProps {
     lastName: string;
     phone?: string;
   };
+  paymentType?: 'full' | 'deposit';
+  depositAmount?: number;
+  balanceAmount?: number;
   onPaymentSuccess: (paymentData: any) => void;
 }
 
 export const StripePaymentForm = ({ 
   checkoutId, 
   totalAmount, 
-  customerInfo, 
+  customerInfo,
+  paymentType = 'full',
+  depositAmount,
+  balanceAmount,
   onPaymentSuccess 
 }: StripePaymentFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -34,6 +40,9 @@ export const StripePaymentForm = ({
         body: {
           checkoutId,
           totalAmount,
+          paymentType,
+          depositAmount,
+          balanceAmount,
           customerInfo
         }
       });
@@ -128,18 +137,26 @@ export const StripePaymentForm = ({
           <p>• Immediate payment confirmation</p>
         </div>
         
-        <div className="pt-4 border-t">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-lg font-medium">Total Amount:</span>
+        <div className="pt-4 border-t space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-lg font-medium">
+              {paymentType === 'deposit' ? 'Deposit Amount:' : 'Total Amount:'}
+            </span>
             <span className="text-xl font-bold text-primary">
               ${totalAmount.toFixed(2)} AUD
             </span>
           </div>
+          {paymentType === 'deposit' && balanceAmount && (
+            <div className="flex justify-between items-center text-sm text-muted-foreground">
+              <span>Balance due later:</span>
+              <span>${balanceAmount.toFixed(2)} AUD</span>
+            </div>
+          )}
           
           <Button 
             onClick={handleStripePayment}
             disabled={isLoading}
-            className="w-full"
+            className="w-full mt-4"
             size="lg"
           >
             {isLoading ? (
@@ -150,7 +167,9 @@ export const StripePaymentForm = ({
             ) : (
               <>
                 <CreditCard className="mr-2 h-4 w-4" />
-                Pay with Credit Card
+                {paymentType === 'deposit' 
+                  ? `Pay Deposit ($${totalAmount.toFixed(2)})` 
+                  : `Pay with Credit Card ($${totalAmount.toFixed(2)})`}
               </>
             )}
           </Button>

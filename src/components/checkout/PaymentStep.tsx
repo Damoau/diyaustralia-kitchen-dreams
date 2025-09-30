@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { StripePaymentForm } from './StripePaymentForm';
+import { formatCurrency } from '@/lib/formatPrice';
 
 interface PaymentMethod {
   id: string;
@@ -34,6 +35,7 @@ interface PaymentStepProps {
 
 export const PaymentStep = ({ checkoutId, customerData, onComplete, orderSummary }: PaymentStepProps) => {
   const [selectedPayment, setSelectedPayment] = useState<string>('');
+  const [paymentType, setPaymentType] = useState<'full' | 'deposit'>('full');
   const [billingAddress, setBillingAddress] = useState({
     firstName: '',
     lastName: '',
@@ -46,6 +48,11 @@ export const PaymentStep = ({ checkoutId, customerData, onComplete, orderSummary
   });
   const [sameAsShipping, setSameAsShipping] = useState<boolean>(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Calculate deposit and balance amounts
+  const depositAmount = Math.round(orderSummary.finalTotal * 0.20 * 100) / 100;
+  const balanceAmount = Math.round((orderSummary.finalTotal - depositAmount) * 100) / 100;
+  const paymentAmount = paymentType === 'deposit' ? depositAmount : orderSummary.finalTotal;
 
   const paymentMethods: PaymentMethod[] = [
     {
@@ -128,6 +135,10 @@ export const PaymentStep = ({ checkoutId, customerData, onComplete, orderSummary
 
     const paymentData = {
       paymentMethod: selectedPayment,
+      paymentType,
+      paymentAmount,
+      depositAmount: paymentType === 'deposit' ? depositAmount : null,
+      balanceAmount: paymentType === 'deposit' ? balanceAmount : null,
       billingAddress: sameAsShipping ? null : billingAddress,
       sameAsShipping,
       orderSummary,
@@ -148,6 +159,71 @@ export const PaymentStep = ({ checkoutId, customerData, onComplete, orderSummary
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Payment Amount Selection */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Payment Amount</h3>
+            <RadioGroup value={paymentType} onValueChange={(value: 'full' | 'deposit') => setPaymentType(value)}>
+              <div className="space-y-3">
+                {/* Full Payment Option */}
+                <div className="flex items-start space-x-3 p-4 border rounded-lg hover:border-primary transition-colors">
+                  <RadioGroupItem value="full" id="payment-full" />
+                  <div className="flex-1">
+                    <Label htmlFor="payment-full" className="font-medium cursor-pointer">
+                      Pay Full Amount
+                    </Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Pay the complete order total now
+                    </p>
+                    <p className="text-lg font-bold text-primary mt-2">
+                      {formatCurrency(orderSummary.finalTotal)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Deposit Option */}
+                <div className="flex items-start space-x-3 p-4 border rounded-lg hover:border-primary transition-colors bg-primary/5">
+                  <RadioGroupItem value="deposit" id="payment-deposit" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="payment-deposit" className="font-medium cursor-pointer">
+                        Pay 20% Deposit
+                      </Label>
+                      <Badge variant="secondary">Recommended</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Secure your order with a 20% deposit. Balance due before delivery.
+                    </p>
+                    <div className="mt-3 space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Deposit (20%):</span>
+                        <span className="font-bold text-primary text-base">
+                          {formatCurrency(depositAmount)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Balance (80%):</span>
+                        <span className="font-medium">
+                          {formatCurrency(balanceAmount)}
+                        </span>
+                      </div>
+                      <Separator className="my-2" />
+                      <div className="flex justify-between text-sm font-medium">
+                        <span>Total Order:</span>
+                        <span>{formatCurrency(orderSummary.finalTotal)}</span>
+                      </div>
+                    </div>
+                    <Alert className="mt-3 bg-background">
+                      <Info className="h-4 w-4" />
+                      <AlertDescription className="text-xs">
+                        Balance payment will be required before your order ships (typically 30 days from now)
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                </div>
+              </div>
+            </RadioGroup>
+          </div>
+
           {/* Payment Methods */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Choose Payment Method</h3>
@@ -177,17 +253,24 @@ export const PaymentStep = ({ checkoutId, customerData, onComplete, orderSummary
                       {method.id === 'stripe' && (
                         <StripePaymentForm
                           checkoutId={checkoutId}
-                          totalAmount={orderSummary.finalTotal}
+                          totalAmount={paymentAmount}
                           customerInfo={{
                             email: customerData?.email || '',
                             firstName: customerData?.firstName || '',
                             lastName: customerData?.lastName || '',
                             phone: customerData?.phone || '',
                           }}
+                          paymentType={paymentType}
+                          depositAmount={paymentType === 'deposit' ? depositAmount : undefined}
+                          balanceAmount={paymentType === 'deposit' ? balanceAmount : undefined}
                           onPaymentSuccess={(paymentData) => {
                             console.log('Stripe payment success:', paymentData);
                             onComplete({
                               paymentMethod: selectedPayment,
+                              paymentType,
+                              paymentAmount,
+                              depositAmount: paymentType === 'deposit' ? depositAmount : null,
+                              balanceAmount: paymentType === 'deposit' ? balanceAmount : null,
                               billingAddress: sameAsShipping ? null : billingAddress,
                               paymentReference: paymentData.reference,
                             });
@@ -387,25 +470,34 @@ export const PaymentStep = ({ checkoutId, customerData, onComplete, orderSummary
 
           {/* Order Summary */}
           <div className="space-y-4 p-4 bg-muted rounded-lg">
-            <h3 className="text-lg font-medium">Order Total</h3>
+            <h3 className="text-lg font-medium">Payment Summary</h3>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>${orderSummary.subtotal.toLocaleString()}</span>
+                <span>{formatCurrency(orderSummary.subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Delivery & Assembly</span>
-                <span>${orderSummary.deliveryTotal.toLocaleString()}</span>
+                <span>{formatCurrency(orderSummary.deliveryTotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span>GST (10%)</span>
-                <span>${orderSummary.taxAmount.toLocaleString()}</span>
+                <span>{formatCurrency(orderSummary.taxAmount)}</span>
               </div>
               <Separator />
               <div className="flex justify-between font-semibold text-lg">
-                <span>Total</span>
-                <span>${orderSummary.finalTotal.toLocaleString()}</span>
+                <span>Order Total</span>
+                <span>{formatCurrency(orderSummary.finalTotal)}</span>
               </div>
+              {paymentType === 'deposit' && (
+                <>
+                  <Separator />
+                  <div className="flex justify-between font-bold text-primary text-xl">
+                    <span>Amount Due Now</span>
+                    <span>{formatCurrency(depositAmount)}</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

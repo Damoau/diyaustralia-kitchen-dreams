@@ -11,12 +11,13 @@ import { useCartToQuote } from "@/hooks/useCartToQuote";
 import { useAdminImpersonation } from "@/contexts/AdminImpersonationContext";
 import { useNavigate } from "react-router-dom";
 import { withPerformanceMonitoring } from "@/components/performance/PerformanceOptimizer";
-import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCartConsolidation } from "@/hooks/useCartConsolidation";
 import { CartConsolidationButton } from "./CartConsolidationButton";
 import { formatCurrency } from "@/lib/formatPrice";
 import { toast } from "sonner";
+import { EnhancedCartItem } from "./EnhancedCartItem";
 
 interface OptimizedCartDrawerProps {
   children: React.ReactNode;
@@ -192,11 +193,11 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
               <ScrollArea className="flex-1 -mx-6 px-6">
                 <div className="space-y-4 py-2">
                   {cart.items.map((item) => (
-                    <OptimizedCartItem
+                    <EnhancedCartItem
                       key={item.id}
                       item={item}
                       onNavigateToProduct={handleNavigateToProduct}
-                       onUpdateQuantity={async (quantity) => {
+                      onUpdateQuantity={async (quantity) => {
                         try {
                           // Optimistic update first
                           updateItemOptimistically(item.id, quantity);
@@ -332,107 +333,6 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
   );
 });
 
-// Optimized cart item component
-interface OptimizedCartItemProps {
-  item: any;
-  onUpdateQuantity: (quantity: number) => void;
-  onRemove: () => void;
-  onNavigateToProduct: (item: any) => void;
-}
-
-const OptimizedCartItem = memo(({ item, onUpdateQuantity, onRemove, onNavigateToProduct }: OptimizedCartItemProps) => {
-  const [quantity, setQuantity] = useState(item.quantity);
-
-  const handleQuantityChange = useCallback((newQuantity: number) => {
-    if (newQuantity > 0) {
-      setQuantity(newQuantity);
-      onUpdateQuantity(newQuantity);
-    }
-  }, [onUpdateQuantity]);
-
-  // Calculate real-time total price based on current quantity
-  const calculatedTotal = quantity * item.unit_price;
-
-  return (
-    <div className="flex gap-3 p-3 border rounded-lg bg-card">
-      <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
-        {item.cabinet_type?.product_image_url ? (
-          <img 
-            src={item.cabinet_type.product_image_url} 
-            alt={item.cabinet_type?.name || 'Cabinet'}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <ShoppingCart className="w-6 h-6 text-muted-foreground" />
-        )}
-      </div>
-      
-      <div className="flex-1 min-w-0 space-y-1">
-        <button 
-          onClick={() => onNavigateToProduct(item)}
-          className="font-medium text-sm leading-tight hover:text-primary cursor-pointer text-left w-full"
-        >
-          {item.cabinet_type?.name || 'Cabinet'}
-        </button>
-        
-        <div className="text-xs text-muted-foreground space-y-0.5">
-          {item.door_style && (
-            <p>Door: {item.door_style.name}</p>
-          )}
-          {item.color && (
-            <p>Color: {item.color.name}</p>
-          )}
-          <p>Size: {item.width_mm}×{item.height_mm}×{item.depth_mm}mm</p>
-        </div>
-        
-        <div className="flex items-center justify-between pt-1">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleQuantityChange(quantity - 1)}
-              disabled={quantity <= 1}
-              className="h-7 w-7 p-0"
-            >
-              <Minus className="h-3 w-3" />
-            </Button>
-            
-            <span className="text-sm font-medium w-8 text-center">
-              {quantity}
-            </span>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleQuantityChange(quantity + 1)}
-              className="h-7 w-7 p-0"
-            >
-              <Plus className="h-3 w-3" />
-            </Button>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold">
-              {formatCurrency(calculatedTotal)}
-            </span>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onRemove}
-              className="h-7 w-7 p-0 text-destructive hover:text-destructive"
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-});
-
 OptimizedCartDrawer.displayName = 'OptimizedCartDrawer';
-OptimizedCartItem.displayName = 'OptimizedCartItem';
 
 export default withPerformanceMonitoring(OptimizedCartDrawer, 'OptimizedCartDrawer');

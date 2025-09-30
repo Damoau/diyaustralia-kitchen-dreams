@@ -135,6 +135,18 @@ export const useCartOptimized = () => {
             ),
             finishes (
               name
+            ),
+            hardware_selections (
+              id,
+              hardware_type,
+              quantity,
+              unit_price,
+              total_price,
+              hardware_products (
+                id,
+                name,
+                model_number
+              )
             )
           )
         `)
@@ -191,6 +203,18 @@ export const useCartOptimized = () => {
               ),
               finishes (
                 name
+              ),
+              hardware_selections (
+                id,
+                hardware_type,
+                quantity,
+                unit_price,
+                total_price,
+                hardware_products (
+                  id,
+                  name,
+                  model_number
+                )
               )
             )
           `)
@@ -276,6 +300,18 @@ export const useCartOptimized = () => {
               ),
               finishes (
                 name
+              ),
+              hardware_selections (
+                id,
+                hardware_type,
+                quantity,
+                unit_price,
+                total_price,
+                hardware_products (
+                  id,
+                  name,
+                  model_number
+                )
               )
             )
           `)
