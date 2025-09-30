@@ -9,6 +9,7 @@ import { CheckoutSequence } from "@/components/checkout/CheckoutSequence";
 import { CustomerIdentify } from "@/components/checkout/CustomerIdentify";
 import { ShippingDelivery } from "@/components/checkout/ShippingDelivery";
 import { PaymentStep } from "@/components/checkout/PaymentStep";
+import { DetailedCheckoutOrderSummary } from "@/components/checkout/DetailedCheckoutOrderSummary";
 import { useCartOptimized } from "@/hooks/useCartOptimized";
 import { useCheckout } from "@/hooks/useCheckout";
 import { useNavigate } from "react-router-dom";
@@ -316,22 +317,8 @@ const Checkout = () => {
                   <CardTitle>Order Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Cart Items Preview */}
-                  <div className="space-y-2">
-                    {cart.items.slice(0, 3).map((item) => (
-                      <div key={item.id} className="flex justify-between text-sm">
-                        <span className="truncate">
-                          {item.cabinet_type?.name} (×{item.quantity})
-                        </span>
-                        <span>{formatCurrency(item.total_price)}</span>
-                      </div>
-                    ))}
-                    {cart.items.length > 3 && (
-                      <div className="text-sm text-muted-foreground">
-                        +{cart.items.length - 3} more items
-                      </div>
-                    )}
-                  </div>
+                  {/* Detailed Cart Items with All Options */}
+                  <DetailedCheckoutOrderSummary items={cart.items} />
                   
                   <hr />
                   

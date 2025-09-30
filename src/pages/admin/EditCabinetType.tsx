@@ -85,17 +85,8 @@ interface CabinetDoorStyle {
   door_styles: DoorStyle;
 }
 
-interface CabinetHardwareRequirement {
-  id?: string;
-  cabinet_type_id?: string;
-  hardware_type_id: string;
-  quantity_formula: string;
-  notes?: string;
-  hardware_types?: {
-    name: string;
-    category: string;
-  };
-}
+// Hardware requirements are now managed via Product Options tab
+// The cabinet_hardware_requirements table is still used for pricing calculations on the frontend
 
 interface HardwareType {
   id: string;
@@ -131,110 +122,8 @@ const defaultCabinetType: CabinetType = {
   height_increment: 50,
   depth_increment: 50,
   display_order: 0,
-};
-
-// Hardware requirement form component
-const HardwareRequirementForm: React.FC<{
-  requirement: CabinetHardwareRequirement | null;
-  onSave: (data: CabinetHardwareRequirement) => void;
-  onCancel: () => void;
-  loading: boolean;
-  hardwareTypes: HardwareType[];
-}> = ({ requirement, onSave, onCancel, loading, hardwareTypes }) => {
-  const [formData, setFormData] = useState({
-    hardware_type_id: '',
-    quantity_formula: '',
-    notes: '',
-  });
-
-  useEffect(() => {
-    if (requirement) {
-      setFormData({
-        hardware_type_id: requirement.hardware_type_id,
-        quantity_formula: requirement.quantity_formula,
-        notes: requirement.notes || '',
-      });
-    } else {
-      setFormData({
-        hardware_type_id: '',
-        quantity_formula: '',
-        notes: '',
-      });
-    }
-  }, [requirement]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave({
-      ...formData,
-      id: requirement?.id,
-      cabinet_type_id: requirement?.cabinet_type_id,
-    });
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="hardware_type">Hardware Type *</Label>
-          <Select 
-            value={formData.hardware_type_id} 
-            onValueChange={(value) => setFormData(prev => ({ ...prev, hardware_type_id: value }))}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select hardware type" />
-            </SelectTrigger>
-            <SelectContent>
-              {hardwareTypes.map((type) => (
-                <SelectItem key={type.id} value={type.id}>
-                  {type.name} ({type.category})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="quantity_formula">Quantity Formula *</Label>
-          <Input
-            id="quantity_formula"
-            value={formData.quantity_formula}
-            onChange={(e) => setFormData(prev => ({ ...prev, quantity_formula: e.target.value }))}
-            placeholder="e.g., DOOR_COUNT * 2"
-            required
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="notes">Notes</Label>
-        <Textarea
-          id="notes"
-          value={formData.notes}
-          onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-          placeholder="Additional notes or instructions"
-          rows={2}
-        />
-      </div>
-
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={loading || !formData.hardware_type_id || !formData.quantity_formula}>
-          {loading ? 'Saving...' : 'Save'}
-        </Button>
-      </div>
-    </form>
-  );
-};
-
-export default function EditCabinetType() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [cabinetType, setCabinetType] = useState<CabinetType>(defaultCabinetType);
-  const [editingHardware, setEditingHardware] = useState<CabinetHardwareRequirement | null>(null);
-  const [showHardwareForm, setShowHardwareForm] = useState(false);
+// Default cabinet type structure
+const defaultCabinetType: CabinetType = {
   const [generatedSizes, setGeneratedSizes] = useState<number[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -477,54 +366,6 @@ export default function EditCabinetType() {
     },
   });
 
-  // Save hardware requirement mutation
-  const saveHardwareRequirement = useMutation({
-    mutationFn: async (data: CabinetHardwareRequirement) => {
-      const hardwareData = { ...data, cabinet_type_id: id };
-      if (data.id) {
-        const { error } = await supabase
-          .from('cabinet_hardware_requirements')
-          .update(hardwareData)
-          .eq('id', data.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('cabinet_hardware_requirements')
-          .insert([{...hardwareData, unit_scope: 'each', units_per_scope: 1}]);
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cabinet-hardware-requirements', id] });
-      toast.success('Hardware requirement saved successfully');
-      setEditingHardware(null);
-      setShowHardwareForm(false);
-    },
-    onError: (error) => {
-      toast.error('Failed to save hardware requirement');
-      console.error(error);
-    },
-  });
-
-  // Delete hardware requirement mutation
-  const deleteHardwareRequirement = useMutation({
-    mutationFn: async (hwId: string) => {
-      const { error } = await supabase
-        .from('cabinet_hardware_requirements')
-        .delete()
-        .eq('id', hwId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cabinet-hardware-requirements', id] });
-      toast.success('Hardware requirement deleted successfully');
-    },
-    onError: (error) => {
-      toast.error('Failed to delete hardware requirement');
-      console.error(error);
-    },
-  });
-
   // Initialize cabinet type data - only set once to avoid overriding user changes
   useEffect(() => {
     if (existingCabinetType && !isInitialized) {
@@ -678,53 +519,6 @@ export default function EditCabinetType() {
       removeCabinetDoorStyle.mutate(doorStyleId);
     }
   };
-
-  const hardwareColumns: any[] = [
-    {
-      key: 'hardware_types' as keyof CabinetHardwareRequirement,
-      label: 'Hardware Type',
-      render: (value: any) => value?.name || 'Unknown',
-    },
-    {
-      key: 'hardware_types' as keyof CabinetHardwareRequirement,
-      label: 'Category',
-      render: (value: any) => value?.category || 'Unknown',
-    },
-    {
-      key: 'quantity_formula' as keyof CabinetHardwareRequirement,
-      label: 'Quantity Formula',
-    },
-    {
-      key: 'notes' as keyof CabinetHardwareRequirement,
-      label: 'Notes',
-      render: (value: string) => value || '-',
-    },
-    {
-      key: 'id' as keyof CabinetHardwareRequirement,
-      label: 'Actions',
-      render: (value: string, item: CabinetHardwareRequirement) => (
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setEditingHardware(item);
-              setShowHardwareForm(true);
-            }}
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => deleteHardwareRequirement.mutate(value)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      ),
-    },
-  ];
 
   if (loadingCabinetType && id !== 'new') {
     return (
@@ -1567,76 +1361,6 @@ export default function EditCabinetType() {
                   onAssemblyChange={handleInputChange}
                 />
               </div>
-            </TabsContent>
-
-            <TabsContent value="hardware" className="space-y-6 m-0">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <Wrench className="h-5 w-5" />
-                        Hardware Requirements
-                      </CardTitle>
-                      <CardDescription>
-                        Define hardware requirements for this cabinet type
-                      </CardDescription>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setEditingHardware(null);
-                        setShowHardwareForm(true);
-                      }}
-                      disabled={id === 'new'}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Hardware
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {id === 'new' && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Save the cabinet type first to manage hardware requirements.
-                    </div>
-                  )}
-                  
-                  {id !== 'new' && showHardwareForm && (
-                    <Card className="border-dashed">
-                      <CardHeader>
-                        <CardTitle className="text-sm">
-                          {editingHardware ? 'Edit Hardware Requirement' : 'Add New Hardware Requirement'}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <HardwareRequirementForm
-                          requirement={editingHardware}
-                          onSave={(hardwareData) => saveHardwareRequirement.mutate(hardwareData)}
-                          onCancel={() => {
-                            setEditingHardware(null);
-                            setShowHardwareForm(false);
-                          }}
-                          loading={saveHardwareRequirement.isPending}
-                          hardwareTypes={hardwareTypes || []}
-                        />
-                      </CardContent>
-                    </Card>
-                  )}
-                  
-                  {id !== 'new' && (
-                    <DataTable
-                      columns={hardwareColumns}
-                      data={(hardwareRequirements || []).filter(hw => hw.id).map(hw => ({ 
-                        ...hw, 
-                        id: hw.id as string 
-                      }))}
-                      loading={loadingHardware}
-                    />
-                  )}
-                </CardContent>
-              </Card>
             </TabsContent>
 
           </ScrollArea>

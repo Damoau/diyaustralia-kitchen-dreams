@@ -225,19 +225,46 @@ export const EnhancedCartItem = memo(({ item, onUpdateQuantity, onRemove, onNavi
               </div>
             )}
 
-            {/* Product Options */}
+            {/* Product Options (Enhanced Display) */}
             {hasOptions && (
               <div>
-                <h4 className="font-semibold mb-2">Additional Options</h4>
-                <div className="pl-5 space-y-1 text-muted-foreground">
-                  {Object.entries(item.configuration.productOptions).map(([key, value]: [string, any]) => (
-                    <div key={key} className="flex justify-between">
-                      <span>{key}: {typeof value === 'object' ? value.label || value.value : value}</span>
-                      {value.price && value.price > 0 && (
-                        <span className="font-medium">+{formatCurrency(value.price)}</span>
-                      )}
-                    </div>
-                  ))}
+                <h4 className="font-semibold mb-2">Product Options</h4>
+                <div className="pl-5 space-y-1.5">
+                  {Object.entries(item.configuration.productOptions).map(([key, value]: [string, any]) => {
+                    // Format display based on value type
+                    let displayValue = '';
+                    let priceAdjustment = null;
+                    let isHidden = false;
+
+                    if (typeof value === 'object') {
+                      displayValue = value.label || value.value || JSON.stringify(value);
+                      priceAdjustment = value.price;
+                      isHidden = value.hidden;
+                    } else {
+                      displayValue = String(value);
+                    }
+
+                    return (
+                      <div key={key} className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <span className="text-muted-foreground">
+                            {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:{' '}
+                            <span className="text-foreground font-medium">{displayValue}</span>
+                          </span>
+                          {isHidden && (
+                            <Badge variant="outline" className="ml-2 text-xs">
+                              Included
+                            </Badge>
+                          )}
+                        </div>
+                        {priceAdjustment && priceAdjustment > 0 && (
+                          <span className="font-medium text-primary ml-2">
+                            +{formatCurrency(priceAdjustment)}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

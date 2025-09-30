@@ -92,32 +92,8 @@ interface DoorStyle {
   active: boolean;
 }
 
-interface CabinetHardwareRequirement {
-  id: string;
-  cabinet_type_id?: string;
-  hardware_type_id: string;
-  unit_scope: string;
-  units_per_scope: number;
-  notes?: string;
-  active: boolean;
-  hardware_types?: {
-    name: string;
-    category: string;
-  };
-}
-
-interface HardwareRequirementFormProps {
-  requirement: CabinetHardwareRequirement | null;
-  onSave: (requirement: CabinetHardwareRequirement) => void;
-  onCancel: () => void;
-  loading: boolean;
-  hardwareTypes: any[];
-}
-
-const HardwareRequirementForm: React.FC<HardwareRequirementFormProps> = ({ 
-  requirement, 
-  onSave, 
-  onCancel, 
+// Hardware requirements are now managed via Product Options tab
+// The cabinet_hardware_requirements table is still used for frontend pricing calculations
   loading,
   hardwareTypes 
 }) => {
