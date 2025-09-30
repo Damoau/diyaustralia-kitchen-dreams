@@ -52,12 +52,16 @@ export interface Cart {
   updated_at: string;
 }
 
-// Generate session ID for guest users
+// Generate stable session ID for guest users
+// CRITICAL: Use localStorage (not sessionStorage) so ID persists across page loads
 const getSessionId = () => {
-  let sessionId = sessionStorage.getItem('cart_session_id');
+  let sessionId = localStorage.getItem('cart_session_id');
   if (!sessionId) {
     sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    sessionStorage.setItem('cart_session_id', sessionId);
+    localStorage.setItem('cart_session_id', sessionId);
+    console.log('🆕 Created new session ID:', sessionId);
+  } else {
+    console.log('♻️ Reusing existing session ID:', sessionId);
   }
   return sessionId;
 };
@@ -75,11 +79,20 @@ export const useCartOptimized = () => {
   const { data: cart, isLoading, error, refetch } = useQuery({
     queryKey: ['cart', identifier],
     queryFn: async () => {
+      const sessionId = getSessionId();
       const filter = user?.id 
         ? { user_id: user.id }
-        : { session_id: getSessionId() };
+        : { session_id: sessionId };
       
-      const { data, error } = await supabase
+      console.log('🛒 Cart query:', { 
+        filter, 
+        userId: user?.id, 
+        sessionId: !user?.id ? sessionId : 'N/A (authenticated)' 
+      });
+      
+      // CRITICAL FIX: First try to find cart WITH items (total_amount > 0)
+      // This prevents selecting empty carts that were created during navigation
+      let { data, error } = await supabase
         .from('carts')
         .select(`
           id,
@@ -127,13 +140,81 @@ export const useCartOptimized = () => {
         `)
         .match(filter)
         .eq('status', 'active')
-        .order('created_at', { ascending: false })
+        .gt('total_amount', 0)  // PRIORITY: Carts with items
+        .order('updated_at', { ascending: false })  // Most recently used
         .limit(1)
         .maybeSingle();
+      
+      // If no cart with items found, fallback to any active cart
+      if (!data && !error) {
+        console.log('⚠️ No cart with items found, checking for empty carts');
+        const fallbackResult = await supabase
+          .from('carts')
+          .select(`
+            id,
+            user_id,
+            session_id,
+            name,
+            total_amount,
+            status,
+            created_at,
+            updated_at,
+            cart_items (
+              id,
+              cart_id,
+              cabinet_type_id,
+              door_style_id,
+              color_id,
+              finish_id,
+              width_mm,
+              height_mm,
+              depth_mm,
+              quantity,
+              unit_price,
+              total_price,
+              notes,
+              configuration,
+              created_at,
+              updated_at,
+              cabinet_types (
+                name,
+                category,
+                product_image_url
+              ),
+              door_styles (
+                name,
+                image_url
+              ),
+              colors (
+                name,
+                hex_code
+              ),
+              finishes (
+                name
+              )
+            )
+          `)
+          .match(filter)
+          .eq('status', 'active')
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        data = fallbackResult.data;
+        error = fallbackResult.error;
+      }
+      
+      console.log('📦 Cart query result:', { 
+        cartId: data?.id, 
+        itemCount: data?.cart_items?.length || 0,
+        totalAmount: data?.total_amount || 0,
+        error: error?.message 
+      });
 
       if (error) throw error;
       
       if (!data) {
+        console.log('🆕 Creating new cart');
         // Create new cart
         const cartData = user 
           ? { 
@@ -143,11 +224,13 @@ export const useCartOptimized = () => {
               total_amount: 0
             }
           : {
-              session_id: getSessionId(),
+              session_id: sessionId,
               name: 'My Cabinet Quote', 
               status: 'active',
               total_amount: 0
             };
+        
+        console.log('💾 Cart data to insert:', cartData);
 
         const { data: newCart, error: createError } = await supabase
           .from('carts')
