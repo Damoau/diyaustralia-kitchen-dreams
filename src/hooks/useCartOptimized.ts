@@ -67,7 +67,7 @@ const getSessionId = () => {
 };
 
 export const useCartOptimized = () => {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   
   const identifier = user?.id || getSessionId();
@@ -289,7 +289,7 @@ export const useCartOptimized = () => {
     },
     staleTime: 10 * 1000, // 10 seconds - reduced for better checkout reliability
     gcTime: 5 * 60 * 1000, // 5 minutes
-    enabled: true,
+    enabled: !authLoading, // CRITICAL: Wait for auth to load before querying cart
     refetchOnWindowFocus: false,
     refetchOnMount: 'always', // Always refetch on mount to ensure fresh data for checkout
     refetchOnReconnect: true,
@@ -437,7 +437,7 @@ export const useCartOptimized = () => {
 
   return {
     cart: formattedCart,
-    isLoading,
+    isLoading: isLoading || authLoading,
     error: error?.message || null,
     getTotalItems,
     getTotalPrice,
