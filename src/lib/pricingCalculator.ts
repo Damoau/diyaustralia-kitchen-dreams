@@ -90,8 +90,10 @@ export class PricingCalculator {
     const cleanExpression = expression.replace(/[^0-9+\-*/().]/g, '');
     
     try {
-      // Use Function constructor for safe evaluation
-      return new Function(`return ${cleanExpression}`)();
+      // Use expr-eval for safe expression evaluation
+      const { Parser } = require('expr-eval');
+      const parser = new Parser();
+      return parser.evaluate(cleanExpression);
     } catch (error) {
       console.error('Safe evaluation failed:', cleanExpression, error);
       return 0;

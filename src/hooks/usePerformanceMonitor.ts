@@ -138,19 +138,6 @@ export const useBundleAnalytics = () => {
       );
       
       console.log('[Bundle Analytics] Loaded modules:', modules.length);
-      
-      // Track dynamic imports
-      const originalImport = window.eval('import');
-      if (originalImport) {
-        window.eval(`
-          window.__dynamicImports = window.__dynamicImports || [];
-          const originalImport = window.import;
-          window.import = function(...args) {
-            window.__dynamicImports.push(args[0]);
-            return originalImport.apply(this, args);
-          };
-        `);
-      }
     }
   }, []);
 };

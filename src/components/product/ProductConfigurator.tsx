@@ -636,8 +636,10 @@ export const ProductConfigurator: React.FC<ProductConfiguratorProps> = ({
           .replace(/H/g, height.toString())
           .replace(/D/g, depth.toString());
         
-        // Simple evaluation (in production, use a proper expression parser)
-        return eval(processedFormula);
+        // Use expr-eval for safe expression evaluation
+        const { Parser } = require('expr-eval');
+        const parser = new Parser();
+        return parser.evaluate(processedFormula);
       } catch (error) {
         console.error('Error calculating dimension:', error);
         return defaultValue;

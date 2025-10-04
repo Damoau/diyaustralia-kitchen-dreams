@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -351,7 +352,7 @@ export const EmailPreviewDialog: React.FC<EmailPreviewDialogProps> = ({
               <CardContent>
                 <div 
                   className="border rounded-lg p-4 bg-white max-h-[400px] overflow-y-auto"
-                  dangerouslySetInnerHTML={{ __html: customContent }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(customContent) }}
                 />
               </CardContent>
             </Card>

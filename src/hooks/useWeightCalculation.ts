@@ -144,8 +144,10 @@ function calculateDimension(formula: string | null, width: number, height: numbe
     .replace(/depth/g, depth.toString());
   
   try {
-    // Simple expression evaluation (only allow basic math)
-    return Function('"use strict"; return (' + expression + ')')();
+    // Use expr-eval for safe expression evaluation
+    const { Parser } = require('expr-eval');
+    const parser = new Parser();
+    return parser.evaluate(expression);
   } catch {
     return 0;
   }
