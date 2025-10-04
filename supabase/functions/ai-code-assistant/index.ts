@@ -18,7 +18,14 @@ serve(async (req) => {
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not set');
+      console.error('LOVABLE_API_KEY not found in environment');
+      return new Response(JSON.stringify({ 
+        error: 'LOVABLE_API_KEY is not configured',
+        details: 'Please ensure Lovable AI is enabled in project settings and edge functions are redeployed. Go to Settings > Features > AI and toggle it on, then wait 2-3 minutes for deployment.'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     let systemPrompt = '';
