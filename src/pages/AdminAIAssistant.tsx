@@ -20,8 +20,22 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Scan,
+  Zap
 } from 'lucide-react';
+import {
+  SECURITY_SCAN_FILES,
+  CODE_QUALITY_SCAN_FILES,
+  DATABASE_SCAN_FILES,
+  categorizeFile,
+  type FileInfo
+} from '@/utils/fileScanner';
+import {
+  createSecurityAnalysisPrompt,
+  createCodeQualityPrompt,
+  createDatabaseAnalysisPrompt
+} from '@/utils/codeAnalysisHelper';
 
 interface Message {
   id: string;
@@ -75,6 +89,69 @@ const AdminAIAssistant = () => {
     setMessages(prev => [...prev, newMessage]);
   };
 
+  const runBatchAnalysis = async (fileList: string[], type: typeof analysisType, customPrompt?: string) => {
+    setIsLoading(true);
+    
+    const scanName = type === 'security_analysis' ? 'Security Audit' :
+                     type === 'code_quality' ? 'Code Quality Review' :
+                     'Database Analysis';
+    
+    addMessage({
+      type: 'user',
+      content: `Running ${scanName} on ${fileList.length} files...`
+    });
+
+    try {
+      const categorizedFiles = fileList
+        .map(categorizeFile)
+        .filter((f): f is FileInfo => f !== null);
+
+      let prompt = customPrompt;
+      if (!prompt) {
+        if (type === 'security_analysis') {
+          prompt = createSecurityAnalysisPrompt(categorizedFiles);
+        } else if (type === 'code_quality') {
+          prompt = createCodeQualityPrompt(categorizedFiles);
+        }
+      }
+
+      const { data, error } = await supabase.functions.invoke('ai-code-assistant', {
+        body: {
+          type,
+          content: prompt || fileList.join('\n'),
+          files: []
+        }
+      });
+
+      if (error) throw error;
+
+      addMessage({
+        type: 'assistant',
+        content: data.analysis,
+        analysisType: type
+      });
+
+      toast({
+        title: "Analysis Complete",
+        description: `${scanName} finished successfully`,
+      });
+    } catch (error: any) {
+      console.error('Error running batch analysis:', error);
+      toast({
+        title: "Analysis Failed",
+        description: error.message || `Failed to run ${scanName}`,
+        variant: "destructive",
+      });
+      addMessage({
+        type: 'assistant',
+        content: `❌ ${scanName} failed: ${error.message || 'Unknown error'}`,
+        analysisType: type
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const runAnalysis = async () => {
     if (!input.trim() && analysisType === 'chat') return;
     
@@ -88,12 +165,7 @@ const AdminAIAssistant = () => {
         userMessage = input.trim();
         addMessage({ type: 'user', content: userMessage });
       } else {
-        // For code analysis, we'll simulate file reading
-        // In a real implementation, you'd read actual files
-        analysisContent = `// Sample code analysis for ${analysisType}
-// This would contain the actual code from selected files
-// Files: ${selectedFiles.join(', ')}`;
-        
+        analysisContent = `// Selected files: ${selectedFiles.join(', ')}`;
         userMessage = `Running ${analysisType.replace('_', ' ')} analysis${selectedFiles.length > 0 ? ` on: ${selectedFiles.join(', ')}` : ''}`;
         addMessage({ 
           type: 'user', 
@@ -132,13 +204,13 @@ const AdminAIAssistant = () => {
       console.error('AI Assistant error:', error);
       toast({
         title: "Analysis Failed",
-        description: error.message || "Failed to get AI analysis. Check if OpenAI API key is configured.",
+        description: error.message || "Failed to get AI analysis",
         variant: "destructive",
       });
       
       addMessage({ 
         type: 'assistant', 
-        content: `❌ Analysis failed: ${error.message || 'Unknown error'}. Make sure the OpenAI API key is configured in Supabase Edge Function Secrets.`
+        content: `❌ Analysis failed: ${error.message || 'Unknown error'}`
       });
     } finally {
       setIsLoading(false);
@@ -206,35 +278,71 @@ const AdminAIAssistant = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="space-y-2">
-                  <Button
-                    variant={analysisType === 'security_analysis' ? 'default' : 'outline'}
-                    size="sm"
-                    className="w-full justify-start"
-                    onClick={() => setAnalysisType('security_analysis')}
-                  >
-                    <Shield className="h-4 w-4 mr-2" />
-                    Security Analysis
-                  </Button>
+                  <div className="space-y-1">
+                    <Button
+                      variant={analysisType === 'security_analysis' ? 'default' : 'outline'}
+                      size="sm"
+                      className="w-full justify-start"
+                      onClick={() => setAnalysisType('security_analysis')}
+                    >
+                      <Shield className="h-4 w-4 mr-2" />
+                      Security Analysis
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-xs h-7"
+                      onClick={() => runBatchAnalysis(SECURITY_SCAN_FILES, 'security_analysis')}
+                      disabled={isLoading}
+                    >
+                      <Scan className="h-3 w-3 mr-2" />
+                      Full Security Audit
+                    </Button>
+                  </div>
                   
-                  <Button
-                    variant={analysisType === 'code_quality' ? 'default' : 'outline'}
-                    size="sm"
-                    className="w-full justify-start"
-                    onClick={() => setAnalysisType('code_quality')}
-                  >
-                    <Code className="h-4 w-4 mr-2" />
-                    Code Quality
-                  </Button>
+                  <div className="space-y-1">
+                    <Button
+                      variant={analysisType === 'code_quality' ? 'default' : 'outline'}
+                      size="sm"
+                      className="w-full justify-start"
+                      onClick={() => setAnalysisType('code_quality')}
+                    >
+                      <Code className="h-4 w-4 mr-2" />
+                      Code Quality
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-xs h-7"
+                      onClick={() => runBatchAnalysis(CODE_QUALITY_SCAN_FILES, 'code_quality')}
+                      disabled={isLoading}
+                    >
+                      <Zap className="h-3 w-3 mr-2" />
+                      Complete Code Review
+                    </Button>
+                  </div>
                   
-                  <Button
-                    variant={analysisType === 'database_analysis' ? 'default' : 'outline'}
-                    size="sm"
-                    className="w-full justify-start"
-                    onClick={() => setAnalysisType('database_analysis')}
-                  >
-                    <Database className="h-4 w-4 mr-2" />
-                    Database Analysis
-                  </Button>
+                  <div className="space-y-1">
+                    <Button
+                      variant={analysisType === 'database_analysis' ? 'default' : 'outline'}
+                      size="sm"
+                      className="w-full justify-start"
+                      onClick={() => setAnalysisType('database_analysis')}
+                    >
+                      <Database className="h-4 w-4 mr-2" />
+                      Database Analysis
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-xs h-7"
+                      onClick={() => runBatchAnalysis(DATABASE_SCAN_FILES, 'database_analysis')}
+                      disabled={isLoading}
+                    >
+                      <Database className="h-3 w-3 mr-2" />
+                      Database Security Check
+                    </Button>
+                  </div>
                   
                   <Button
                     variant={analysisType === 'chat' ? 'default' : 'outline'}
