@@ -46,13 +46,15 @@ const Checkout = () => {
       id: 'identity',
       title: 'Customer Information',
       description: 'Provide your contact details',
-      status: currentStep === 'identity' ? 'current' : 'pending'
+      status: currentStep === 'identity' ? 'current' : 
+              (currentStep === 'shipping' || currentStep === 'payment') ? 'completed' : 'pending'
     },
     {
       id: 'shipping',
       title: 'Shipping & Delivery',
       description: 'Choose delivery options',
-      status: currentStep === 'shipping' ? 'current' : currentStep === 'identity' ? 'pending' : 'completed'
+      status: currentStep === 'shipping' ? 'current' : 
+              currentStep === 'payment' ? 'completed' : 'pending'
     },
     {
       id: 'payment',
@@ -142,16 +144,32 @@ const Checkout = () => {
   }, [cart, cartLoading, startCheckout, navigate]);
 
   const handleStepComplete = (stepId: string, data?: any) => {
-    console.log(`Step ${stepId} completed with data:`, data);
+    console.log(`✅ Step ${stepId} completed with data:`, data);
     
-    // Store step data
+    // Store step data and update step status
     if (stepId === 'identity') {
+      console.log('🔐 Identity step complete, storing customer data...');
       setCustomerData(data);
+      
+      // Update step statuses
+      const updatedSteps = steps.map(step => {
+        if (step.id === 'identity') return { ...step, status: 'completed' as const };
+        if (step.id === 'shipping') return { ...step, status: 'current' as const };
+        return step;
+      });
+      
+      // Move to shipping step
+      console.log('🚚 Transitioning to shipping step...');
+      setCurrentStep('shipping');
+      toast.success('Contact information saved! Now let\'s set up delivery.');
+      
     } else if (stepId === 'shipping') {
+      console.log('🚚 Shipping step complete, calculating totals...');
+      
       // Calculate order summary with GST EXTRACTION (not addition)
       // All product prices already include GST, so we extract it for display
       const subtotalIncGST = getTotalPrice();
-      const deliveryTotalIncGST = data?.deliveryOption?.price || 0;
+      const deliveryTotalIncGST = data?.delivery?.totalCost || 0;
       const totalIncGST = subtotalIncGST + deliveryTotalIncGST;
       
       // Extract GST from GST-inclusive price (GST = total - (total / 1.1))
@@ -165,13 +183,20 @@ const Checkout = () => {
         taxAmount: taxAmount,
         finalTotal: totalIncGST
       });
-    }
-    
-    // Update step status and move to next step
-    const stepIndex = steps.findIndex(step => step.id === stepId);
-    if (stepIndex < steps.length - 1) {
-      const nextStep = steps[stepIndex + 1];
-      setCurrentStep(nextStep.id);
+      
+      // Update step statuses
+      const updatedSteps = steps.map(step => {
+        if (step.id === 'identity' || step.id === 'shipping') {
+          return { ...step, status: 'completed' as const };
+        }
+        if (step.id === 'payment') return { ...step, status: 'current' as const };
+        return step;
+      });
+      
+      // Move to payment step
+      console.log('💳 Transitioning to payment step...');
+      setCurrentStep('payment');
+      toast.success('Delivery options saved! Ready for payment.');
     }
   };
 

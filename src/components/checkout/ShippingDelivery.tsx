@@ -255,8 +255,10 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
         totalCost: deliveryTotal,
       },
       estimatedDelivery: selectedOption?.estimatedDays,
+      checkoutId, // Include checkout ID for tracking
     };
 
+    console.log('🚚 Shipping data submitted:', shippingData);
     onComplete(shippingData);
   };
 

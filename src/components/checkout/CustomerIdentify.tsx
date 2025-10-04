@@ -38,6 +38,7 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
   // Skip identify step if already signed in
   React.useEffect(() => {
     if (user) {
+      console.log('🔐 User already authenticated, auto-proceeding...');
       // Auto-populate and proceed for signed-in users
       const payload: IdentifyPayload = {
         mode: 'guest', // Treat as guest but with auth
@@ -52,7 +53,10 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
         },
       };
 
-      identifyCustomer(checkoutId, payload).then(onComplete);
+      identifyCustomer(checkoutId, payload).then((result) => {
+        console.log('✅ Auto-identify complete:', result);
+        onComplete(result);
+      });
     }
   }, [user, checkoutId]);
 
