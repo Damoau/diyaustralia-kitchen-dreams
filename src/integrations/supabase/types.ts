@@ -4796,6 +4796,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_old_anonymous_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       create_simulation_report: {
         Args: {
           p_avg_duration: number
