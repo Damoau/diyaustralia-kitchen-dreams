@@ -13,6 +13,7 @@ const AdminOrders = lazy(() => import('@/components/admin/AdminOrders'));
 const AdminShipping = lazy(() => import('@/components/admin/AdminShipping'));
 const SecurityDashboard = lazy(() => import('@/components/admin/SecurityDashboard'));
 const EnhancedRoleManagement = lazy(() => import('@/components/admin/EnhancedRoleManagement'));
+const AdminAIAssistant = lazy(() => import('@/pages/AdminAIAssistant'));
 
 // Create placeholder components for missing pages
 const QuotesList = lazy(() => import('@/pages/admin/QuotesList'));
@@ -102,6 +103,7 @@ export const AdminRouter = () => {
             
             {/* System */}
             <Route path="security" element={<SecurityDashboard />} />
+            <Route path="ai-assistant" element={<AdminAIAssistant />} />
             <Route path="testing" element={<TestingPlaceholder />} />
             <Route path="cart-system-health" element={<CartSystemHealth />} />
             <Route path="user-behavior-analytics" element={<UserBehaviorAnalytics />} />
