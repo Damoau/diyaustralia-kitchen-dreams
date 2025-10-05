@@ -554,7 +554,22 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
                     Checkout All Items
                   </Button>
                   
-                  <QuoteToCartConverter 
+                  <div className="space-y-2">
+                    <Button 
+                      onClick={handleAcceptQuote}
+                      variant="outline"
+                      className="w-full"
+                      size="lg"
+                    >
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      Checkout with 20% Deposit
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center px-2">
+                      Pay a 20% deposit today to get your order started. Balance due before delivery.
+                    </p>
+                  </div>
+                  
+                  <QuoteToCartConverter
                     quoteId={quoteDisplay.id}
                     items={quoteDisplay.items}
                     buttonText="Add Selected Items to Cart"
