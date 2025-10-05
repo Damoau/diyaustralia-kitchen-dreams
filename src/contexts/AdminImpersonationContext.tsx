@@ -28,8 +28,9 @@ export function AdminImpersonationProvider({ children }: { children: React.React
   const { toast } = useToast();
 
   // Check for existing impersonation session on mount
+  // Using sessionStorage for better security (cleared on tab/browser close)
   useEffect(() => {
-    const storedSession = localStorage.getItem('admin_impersonation_session');
+    const storedSession = sessionStorage.getItem('admin_impersonation_session');
     if (storedSession) {
       try {
         const session = JSON.parse(storedSession);
@@ -39,11 +40,11 @@ export function AdminImpersonationProvider({ children }: { children: React.React
           setCurrentQuoteId(session.quoteId);
           setSessionToken(session.token);
         } else {
-          localStorage.removeItem('admin_impersonation_session');
+          sessionStorage.removeItem('admin_impersonation_session');
         }
       } catch (error) {
         console.error('Error parsing impersonation session:', error);
-        localStorage.removeItem('admin_impersonation_session');
+        sessionStorage.removeItem('admin_impersonation_session');
       }
     }
   }, []);
@@ -72,8 +73,15 @@ export function AdminImpersonationProvider({ children }: { children: React.React
       const sessionToken = `imp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours from now
 
-      // Create impersonation session record
+      // Create impersonation session record with IP logging
       const { data: { user } } = await supabase.auth.getUser();
+      
+      // Get client IP from headers if available (in production)
+      const ipAddress = await fetch('https://api.ipify.org?format=json')
+        .then(res => res.json())
+        .then(data => data.ip)
+        .catch(() => null);
+
       const { error } = await supabase
         .from('admin_impersonation_sessions')
         .insert({
@@ -81,7 +89,8 @@ export function AdminImpersonationProvider({ children }: { children: React.React
           impersonated_customer_email: customerEmail,
           quote_id: quoteId,
           session_token: sessionToken,
-          expires_at: expiresAt.toISOString()
+          expires_at: expiresAt.toISOString(),
+          ip_address: ipAddress
         });
 
       if (error) {
@@ -89,7 +98,20 @@ export function AdminImpersonationProvider({ children }: { children: React.React
         return false;
       }
 
-      // Store session locally
+      // Log security event
+      await supabase.rpc('log_audit_event', {
+        p_actor_id: user?.id,
+        p_scope: 'admin_impersonation',
+        p_action: 'started',
+        p_after_data: JSON.stringify({
+          customer_email: customerEmail,
+          quote_id: quoteId,
+          ip_address: ipAddress,
+          timestamp: new Date().toISOString()
+        })
+      });
+
+      // Store session in sessionStorage (cleared on tab/browser close)
       const sessionData = {
         customerEmail,
         quoteId,
@@ -97,7 +119,7 @@ export function AdminImpersonationProvider({ children }: { children: React.React
         expiresAt: expiresAt.toISOString()
       };
       
-      localStorage.setItem('admin_impersonation_session', JSON.stringify(sessionData));
+      sessionStorage.setItem('admin_impersonation_session', JSON.stringify(sessionData));
       
       setIsImpersonating(true);
       setImpersonatedCustomerEmail(customerEmail);
@@ -129,14 +151,35 @@ export function AdminImpersonationProvider({ children }: { children: React.React
 
     try {
       if (sessionToken) {
+        // Get IP for logging
+        const ipAddress = await fetch('https://api.ipify.org?format=json')
+          .then(res => res.json())
+          .then(data => data.ip)
+          .catch(() => null);
+
         // Mark session as ended
         await supabase
           .from('admin_impersonation_sessions')
           .update({ ended_at: new Date().toISOString() })
           .eq('session_token', sessionToken);
+
+        // Log security event
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase.rpc('log_audit_event', {
+          p_actor_id: user?.id,
+          p_scope: 'admin_impersonation',
+          p_action: 'ended',
+          p_after_data: JSON.stringify({
+            customer_email: impersonatedCustomerEmail,
+            quote_id: currentQuoteId,
+            ip_address: ipAddress,
+            forced: force,
+            timestamp: new Date().toISOString()
+          })
+        });
       }
 
-      localStorage.removeItem('admin_impersonation_session');
+      sessionStorage.removeItem('admin_impersonation_session');
       
       setIsImpersonating(false);
       setImpersonatedCustomerEmail(null);

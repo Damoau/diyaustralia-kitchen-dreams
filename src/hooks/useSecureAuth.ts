@@ -17,45 +17,15 @@ export const useSecureAuth = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [roleKnown, setRoleKnown] = useState(false);
-  const [loginAttempts, setLoginAttempts] = useState(0);
-  const [isBlocked, setIsBlocked] = useState(false);
   const { toast } = useToast();
 
-  // Rate limiting configuration
-  const MAX_LOGIN_ATTEMPTS = 5;
-  const BLOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
-
   useEffect(() => {
-    // Check for existing blocks
-    const blockData = localStorage.getItem('auth_block');
-    if (blockData) {
-      const { until, attempts } = JSON.parse(blockData);
-      if (Date.now() < until) {
-        setIsBlocked(true);
-        setLoginAttempts(attempts);
-        const remainingTime = Math.ceil((until - Date.now()) / 1000 / 60);
-        toast({
-          variant: "destructive",
-          title: "Account Temporarily Locked",
-          description: `Too many failed attempts. Try again in ${remainingTime} minutes.`,
-        });
-      } else {
-        localStorage.removeItem('auth_block');
-      }
-    }
-
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
 
       if (event === 'SIGNED_IN' && session?.user) {
-        // Reset login attempts on successful login
-        localStorage.removeItem('auth_block');
-        localStorage.removeItem('login_attempts');
-        setLoginAttempts(0);
-        setIsBlocked(false);
-        
         // Log successful login
         logSecurityEvent('login_attempt', {
           success: true,
@@ -133,23 +103,24 @@ export const useSecureAuth = () => {
   };
 
   const secureSignIn = async (email: string, password: string) => {
-    if (isBlocked) {
-      toast({
-        variant: "destructive",
-        title: "Account Locked",
-        description: "Too many failed attempts. Please wait before trying again.",
-      });
-      return { error: { message: "Account temporarily locked" } };
-    }
-
     // Input validation
     if (!email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Email and password are required"
+      });
       return { error: { message: "Email and password are required" } };
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Email",
+        description: "Please enter a valid email address"
+      });
       return { error: { message: "Invalid email format" } };
     }
 
@@ -160,41 +131,17 @@ export const useSecureAuth = () => {
       });
 
       if (error) {
-        // Handle failed login attempt
-        const newAttempts = loginAttempts + 1;
-        setLoginAttempts(newAttempts);
-        
-        localStorage.setItem('login_attempts', newAttempts.toString());
-        
-        // Log failed attempt
+        // Log failed attempt (server-side rate limiting via Supabase Auth)
         logSecurityEvent('login_failure', {
           email,
-          attempts: newAttempts,
           timestamp: new Date().toISOString()
         });
 
-        if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
-          const blockUntil = Date.now() + BLOCK_DURATION_MS;
-          localStorage.setItem('auth_block', JSON.stringify({
-            until: blockUntil,
-            attempts: newAttempts
-          }));
-          setIsBlocked(true);
-          
-          toast({
-            variant: "destructive",
-            title: "Account Locked",
-            description: `Too many failed attempts. Account locked for 15 minutes.`,
-          });
-
-          // Log account lock
-          logSecurityEvent('suspicious_activity', {
-            action: 'account_locked',
-            email,
-            attempts: newAttempts,
-            timestamp: new Date().toISOString()
-          });
-        }
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: "Invalid credentials. Please try again."
+        });
         
         return { error };
       }
@@ -266,8 +213,6 @@ export const useSecureAuth = () => {
     await supabase.auth.signOut();
     setIsAdmin(false);
     setUserRoles([]);
-    localStorage.removeItem('login_attempts');
-    localStorage.removeItem('auth_block');
   };
 
   const hasRole = (role: UserRole): boolean => {
@@ -281,8 +226,6 @@ export const useSecureAuth = () => {
     isAdmin,
     userRoles,
     roleKnown,
-    loginAttempts,
-    isBlocked,
     signOut,
     secureSignIn,
     secureSignUp,

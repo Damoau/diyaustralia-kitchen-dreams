@@ -3,6 +3,7 @@
 
 export const securityHeaders = {
   // Content Security Policy - Prevents XSS attacks
+  // Now with report-uri for monitoring violations
   'Content-Security-Policy': [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paypal.com https://www.paypal.com",
@@ -15,7 +16,8 @@ export const securityHeaders = {
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self' https://www.paypal.com https://www.sandbox.paypal.com",
-    "frame-ancestors 'none'"
+    "frame-ancestors 'none'",
+    "report-uri https://nqxsfmnvdfdfvndrodvs.supabase.co/functions/v1/csp-report"
   ].join('; '),
 
   // Strict Transport Security - Forces HTTPS
