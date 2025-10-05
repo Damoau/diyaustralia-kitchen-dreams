@@ -291,14 +291,14 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
                           Create Quote for Customer
                         </Button>
                       ) : (
-                        <Button 
-                          onClick={handleRequestQuote}
-                          variant="outline"
-                          className="w-full h-12 text-base bg-white border-2 border-primary/20 hover:bg-primary/5 hover:border-primary/40 text-foreground"
-                          size="lg"
-                        >
-                          Save as Quote
-                        </Button>
+                      <Button 
+                        onClick={handleRequestQuote}
+                        variant="outline"
+                        className="w-full h-12 text-base bg-white border-2 border-primary/20 hover:bg-primary/5 hover:border-primary/40 text-foreground"
+                        size="lg"
+                      >
+                        Save Cart as Quote for later
+                      </Button>
                       )}
                       
                       <Button 

@@ -789,7 +789,7 @@ export const useCart = () => {
     }
   };
 
-  // Save cart for later
+  // Save cart as quote for later
   const saveCart = async (reason?: string) => {
     if (!cart) return;
 

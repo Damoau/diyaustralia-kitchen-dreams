@@ -411,7 +411,7 @@ const Cart = () => {
                            size="lg"
                            disabled={isLoading || isConverting}
                          >
-                           {isConverting ? "Saving as Quote..." : "Save as Quote"}
+                           {isConverting ? "Saving Cart as Quote for later..." : "Save Cart as Quote for later"}
                          </Button>
                          
                          <Button 
@@ -424,18 +424,6 @@ const Cart = () => {
                          </Button>
                        </>
                      )}
-                    
-                    {!isImpersonating && (
-                      <Button 
-                        variant="outline" 
-                        onClick={handleSaveCart}
-                        className="w-full"
-                        disabled={isLoading}
-                      >
-                        <BookmarkIcon className="mr-2 h-4 w-4" />
-                        Save Cart for Later
-                      </Button>
-                    )}
                     
                     <Button 
                       variant="outline" 

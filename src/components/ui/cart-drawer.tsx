@@ -440,7 +440,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                         size="lg"
                         disabled={isLoading || isConverting}
                       >
-                        {isConverting ? "Saving as Quote..." : "Save as Quote"}
+                        {isConverting ? "Saving Cart as Quote for later..." : "Save Cart as Quote for later"}
                       </Button>
                     </>
                   )}
