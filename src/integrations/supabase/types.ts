@@ -73,6 +73,7 @@ export type Database = {
           expires_at: string
           id: string
           impersonated_customer_email: string
+          ip_address: string | null
           quote_id: string | null
           session_token: string
         }
@@ -83,6 +84,7 @@ export type Database = {
           expires_at?: string
           id?: string
           impersonated_customer_email: string
+          ip_address?: string | null
           quote_id?: string | null
           session_token: string
         }
@@ -93,6 +95,7 @@ export type Database = {
           expires_at?: string
           id?: string
           impersonated_customer_email?: string
+          ip_address?: string | null
           quote_id?: string | null
           session_token?: string
         }
@@ -4064,6 +4067,36 @@ export type Database = {
           name?: string
           sort_order?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      security_events: {
+        Row: {
+          created_at: string | null
+          details: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          severity: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          details?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          severity: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          details?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          severity?: string
+          user_agent?: string | null
         }
         Relationships: []
       }
