@@ -32,7 +32,7 @@ export interface CheckoutData {
 }
 
 export interface IdentifyPayload {
-  mode: 'guest' | 'login' | 'register';
+  mode: 'login' | 'register' | 'confirm';
   email: string;
   phone?: string;
   first_name?: string;
@@ -150,6 +150,10 @@ export const useCheckout = () => {
             phone: payload.phone,
           });
         }
+      } else if (payload.mode === 'confirm') {
+        // For already logged-in users, just get current session
+        const { data } = await supabase.auth.getSession();
+        authResult = data.session ? { user: data.session.user, session: data.session } : null;
       }
 
       // Update checkout with customer information

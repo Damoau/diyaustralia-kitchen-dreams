@@ -17,7 +17,7 @@ interface CustomerIdentifyProps {
 }
 
 export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyProps) => {
-  const [activeTab, setActiveTab] = useState<'guest' | 'login' | 'register'>('guest');
+  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -111,8 +111,8 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
       newErrors.email = 'Please enter a valid email address';
     }
 
-    // Password validation for login/register
-    if ((activeTab === 'login' || activeTab === 'register') && !formData.password) {
+    // Password validation only for login/register when not logged in
+    if (!user && !formData.password) {
       newErrors.password = 'Password is required';
     }
 
@@ -149,7 +149,7 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
     if (!validateForm()) return;
 
     const payload: IdentifyPayload = {
-      mode: activeTab,
+      mode: user ? 'confirm' : activeTab,
       email: formData.email,
       phone: formData.phone,
       first_name: formData.first_name,
@@ -157,7 +157,7 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
       company: formData.company,
       abn: formData.abn,
       how_heard: formData.how_heard,
-      password: activeTab !== 'guest' ? formData.password : undefined,
+      password: !user ? formData.password : undefined,
       consents: {
         terms: formData.accept_terms,
         privacy: formData.accept_privacy,
@@ -174,107 +174,185 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
   };
 
 
+  // Logged-in user: Show confirmation form
+  if (user) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">Confirm Your Details</CardTitle>
+          <p className="text-muted-foreground text-center">
+            Please verify your information before continuing
+          </p>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* First Name + Last Name side by side */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="first_name">First Name *</Label>
+                <Input
+                  id="first_name"
+                  value={formData.first_name}
+                  onChange={(e) => handleInputChange('first_name', e.target.value)}
+                  placeholder="John"
+                  className={errors.first_name ? 'border-red-500' : ''}
+                />
+                {errors.first_name && <p className="text-sm text-red-500 mt-1">{errors.first_name}</p>}
+              </div>
+              <div>
+                <Label htmlFor="last_name">Last Name *</Label>
+                <Input
+                  id="last_name"
+                  value={formData.last_name}
+                  onChange={(e) => handleInputChange('last_name', e.target.value)}
+                  placeholder="Smith"
+                  className={errors.last_name ? 'border-red-500' : ''}
+                />
+                {errors.last_name && <p className="text-sm text-red-500 mt-1">{errors.last_name}</p>}
+              </div>
+            </div>
+
+            {/* Email full width under names */}
+            <div>
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                placeholder="your.email@example.com"
+                className={errors.email ? 'border-red-500' : ''}
+              />
+              {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="phone">Phone Number *</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                placeholder="0400 000 000"
+                className={errors.phone ? 'border-red-500' : ''}
+              />
+              {errors.phone && <p className="text-sm text-red-500 mt-1">{errors.phone}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="company">Company (Optional)</Label>
+              <Input
+                id="company"
+                value={formData.company}
+                onChange={(e) => handleInputChange('company', e.target.value)}
+                placeholder="Your Company Name"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="how_heard">How did you hear about us?</Label>
+              <Select value={formData.how_heard} onValueChange={(value) => handleInputChange('how_heard', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Please select..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="search">Google/Search Engine</SelectItem>
+                  <SelectItem value="social">Social Media</SelectItem>
+                  <SelectItem value="referral">Friend/Family Referral</SelectItem>
+                  <SelectItem value="advertisement">Advertisement</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Consents Section */}
+            <div className="space-y-3 pt-4 border-t">
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="accept_terms"
+                  checked={formData.accept_terms}
+                  onCheckedChange={(checked) => handleInputChange('accept_terms', checked)}
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <Label htmlFor="accept_terms" className="text-sm font-normal">
+                    I accept the{' '}
+                    <a href="/terms" target="_blank" className="text-primary hover:underline">
+                      Terms & Conditions
+                    </a>
+                    {' '}*
+                  </Label>
+                </div>
+              </div>
+              {errors.accept_terms && <p className="text-sm text-red-500">{errors.accept_terms}</p>}
+
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="accept_privacy"
+                  checked={formData.accept_privacy}
+                  onCheckedChange={(checked) => handleInputChange('accept_privacy', checked)}
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <Label htmlFor="accept_privacy" className="text-sm font-normal">
+                    I accept the{' '}
+                    <a href="/privacy" target="_blank" className="text-primary hover:underline">
+                      Privacy Policy
+                    </a>
+                    {' '}*
+                  </Label>
+                </div>
+              </div>
+              {errors.accept_privacy && <p className="text-sm text-red-500">{errors.accept_privacy}</p>}
+
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="marketing_opt_in"
+                  checked={formData.marketing_opt_in}
+                  onCheckedChange={(checked) => handleInputChange('marketing_opt_in', checked)}
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <Label htmlFor="marketing_opt_in" className="text-sm font-normal">
+                    I'd like to receive marketing communications and special offers
+                  </Label>
+                </div>
+              </div>
+            </div>
+
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Continue to Shipping'
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Not logged-in: Show login/register tabs
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl text-center">Who's checking out?</CardTitle>
+        <CardTitle className="text-2xl text-center">Sign In or Create Account</CardTitle>
         <p className="text-muted-foreground text-center">
-          Use guest checkout or sign in to find your saved quotes.
+          Sign in to access your saved quotes and order history
         </p>
       </CardHeader>
       <CardContent>
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="guest">Continue as Guest</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'login' | 'register')}>
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">Sign In</TabsTrigger>
             <TabsTrigger value="register">Create Account</TabsTrigger>
           </TabsList>
 
           <form onSubmit={handleSubmit} className="space-y-6 mt-6">
-            <TabsContent value="guest" className="space-y-4">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="your.email@example.com"
-                    className={errors.email ? 'border-red-500' : ''}
-                  />
-                  {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
-                </div>
-
-                <div>
-                  <Label htmlFor="phone">Phone Number *</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder="0400 000 000"
-                    className={errors.phone ? 'border-red-500' : ''}
-                  />
-                  {errors.phone && <p className="text-sm text-red-500 mt-1">{errors.phone}</p>}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="first_name">First Name *</Label>
-                    <Input
-                      id="first_name"
-                      value={formData.first_name}
-                      onChange={(e) => handleInputChange('first_name', e.target.value)}
-                      placeholder="John"
-                      className={errors.first_name ? 'border-red-500' : ''}
-                    />
-                    {errors.first_name && <p className="text-sm text-red-500 mt-1">{errors.first_name}</p>}
-                  </div>
-                  <div>
-                    <Label htmlFor="last_name">Last Name *</Label>
-                    <Input
-                      id="last_name"
-                      value={formData.last_name}
-                      onChange={(e) => handleInputChange('last_name', e.target.value)}
-                      placeholder="Smith"
-                      className={errors.last_name ? 'border-red-500' : ''}
-                    />
-                    {errors.last_name && <p className="text-sm text-red-500 mt-1">{errors.last_name}</p>}
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="company">Company (Optional)</Label>
-                  <Input
-                    id="company"
-                    value={formData.company}
-                    onChange={(e) => handleInputChange('company', e.target.value)}
-                    placeholder="Your Company Name"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="how_heard">How did you hear about us?</Label>
-                  <Select value={formData.how_heard} onValueChange={(value) => handleInputChange('how_heard', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Please select..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="search">Google/Search Engine</SelectItem>
-                      <SelectItem value="social">Social Media</SelectItem>
-                      <SelectItem value="referral">Friend/Family Referral</SelectItem>
-                      <SelectItem value="advertisement">Advertisement</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </TabsContent>
-
             <TabsContent value="login" className="space-y-4">
               <div>
-                <Label htmlFor="login-email">Email</Label>
+                <Label htmlFor="login-email">Email *</Label>
                 <Input
                   id="login-email"
                   type="email"
@@ -287,7 +365,7 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
               </div>
 
               <div>
-                <Label htmlFor="login-password">Password</Label>
+                <Label htmlFor="login-password">Password *</Label>
                 <Input
                   id="login-password"
                   type="password"
@@ -301,6 +379,33 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
             </TabsContent>
 
             <TabsContent value="register" className="space-y-4">
+              {/* First Name + Last Name side by side */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="register-first-name">First Name *</Label>
+                  <Input
+                    id="register-first-name"
+                    value={formData.first_name}
+                    onChange={(e) => handleInputChange('first_name', e.target.value)}
+                    placeholder="John"
+                    className={errors.first_name ? 'border-red-500' : ''}
+                  />
+                  {errors.first_name && <p className="text-sm text-red-500 mt-1">{errors.first_name}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="register-last-name">Last Name *</Label>
+                  <Input
+                    id="register-last-name"
+                    value={formData.last_name}
+                    onChange={(e) => handleInputChange('last_name', e.target.value)}
+                    placeholder="Smith"
+                    className={errors.last_name ? 'border-red-500' : ''}
+                  />
+                  {errors.last_name && <p className="text-sm text-red-500 mt-1">{errors.last_name}</p>}
+                </div>
+              </div>
+
+              {/* Email full width under names */}
               <div>
                 <Label htmlFor="register-email">Email *</Label>
                 <Input
@@ -325,31 +430,6 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
                   className={errors.password ? 'border-red-500' : ''}
                 />
                 {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="register-first-name">First Name *</Label>
-                  <Input
-                    id="register-first-name"
-                    value={formData.first_name}
-                    onChange={(e) => handleInputChange('first_name', e.target.value)}
-                    placeholder="John"
-                    className={errors.first_name ? 'border-red-500' : ''}
-                  />
-                  {errors.first_name && <p className="text-sm text-red-500 mt-1">{errors.first_name}</p>}
-                </div>
-                <div>
-                  <Label htmlFor="register-last-name">Last Name *</Label>
-                  <Input
-                    id="register-last-name"
-                    value={formData.last_name}
-                    onChange={(e) => handleInputChange('last_name', e.target.value)}
-                    placeholder="Smith"
-                    className={errors.last_name ? 'border-red-500' : ''}
-                  />
-                  {errors.last_name && <p className="text-sm text-red-500 mt-1">{errors.last_name}</p>}
-                </div>
               </div>
 
               <div>
@@ -425,7 +505,7 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
                   Processing...
                 </>
               ) : (
-                'Continue to Shipping'
+                activeTab === 'login' ? 'Sign In & Continue' : 'Create Account & Continue'
               )}
             </Button>
           </form>
