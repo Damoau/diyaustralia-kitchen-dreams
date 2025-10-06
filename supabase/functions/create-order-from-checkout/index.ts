@@ -62,6 +62,26 @@ serve(async (req) => {
     const gstAmount = subtotal * 0.10;
     const totalAmount = subtotal + gstAmount;
 
+    // 4a. Calculate default due date (4 weeks from now, excluding weekends)
+    const calculateDueDate = (weeksFromNow: number): string => {
+      const now = new Date();
+      const dueDate = new Date(now);
+      dueDate.setDate(dueDate.getDate() + (weeksFromNow * 7));
+      
+      // If it's Saturday (6), move to Monday
+      if (dueDate.getDay() === 6) {
+        dueDate.setDate(dueDate.getDate() + 2);
+      }
+      // If it's Sunday (0), move to Monday
+      else if (dueDate.getDay() === 0) {
+        dueDate.setDate(dueDate.getDate() + 1);
+      }
+      
+      return dueDate.toISOString().split('T')[0]; // Return YYYY-MM-DD
+    };
+
+    const defaultDueDate = calculateDueDate(4);
+
     // 5. Create order
     const { data: order, error: orderError } = await supabase
       .from('orders')
@@ -81,6 +101,7 @@ serve(async (req) => {
         customer_company: checkout.customer_company,
         customer_abn: checkout.customer_abn,
         shipping_method: 'standard',
+        target_completion: defaultDueDate,
         notes: checkout.how_heard ? `How they heard about us: ${checkout.how_heard}` : null,
       })
       .select()
