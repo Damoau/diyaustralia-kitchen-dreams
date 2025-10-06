@@ -7,8 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Package, Truck, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Package, Truck, Clock, CheckCircle, AlertCircle, Eye } from 'lucide-react';
+import { OrderDetailView } from './OrderDetailView';
 
 interface Order {
   id: string;
@@ -25,6 +27,7 @@ interface Order {
 export const OrderManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -150,17 +153,26 @@ export const OrderManagement = () => {
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {new Date(order.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-semibold">
-                    ${order.total_amount?.toFixed(2) || '0.00'}
-                  </p>
-                  <Badge className={`${getStatusColor(order.status)} flex items-center gap-1`}>
-                    {getStatusIcon(order.status)}
-                    {order.status.replace('_', ' ')}
-                  </Badge>
-                </div>
+                   </p>
+                 </div>
+                 <div className="text-right space-y-2">
+                   <p className="text-lg font-semibold">
+                     ${order.total_amount?.toFixed(2) || '0.00'}
+                   </p>
+                   <Badge className={`${getStatusColor(order.status)} flex items-center gap-1`}>
+                     {getStatusIcon(order.status)}
+                     {order.status.replace('_', ' ')}
+                   </Badge>
+                   <Button
+                     size="sm"
+                     variant="outline"
+                     onClick={() => setSelectedOrderId(order.id)}
+                     className="w-full"
+                   >
+                     <Eye className="h-4 w-4 mr-2" />
+                     View Details
+                   </Button>
+                 </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -250,6 +262,16 @@ export const OrderManagement = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Order Detail Dialog */}
+      <Dialog open={!!selectedOrderId} onOpenChange={(open) => !open && setSelectedOrderId(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Order Details</DialogTitle>
+          </DialogHeader>
+          {selectedOrderId && <OrderDetailView orderId={selectedOrderId} />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

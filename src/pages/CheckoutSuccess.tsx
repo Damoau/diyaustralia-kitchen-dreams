@@ -15,10 +15,24 @@ const CheckoutSuccess = () => {
   const [searchParams] = useSearchParams();
   const [isVerifying, setIsVerifying] = useState(true);
   const [orderNumber, setOrderNumber] = useState<string>("");
+  const [orderId, setOrderId] = useState<string>("");
   const sessionId = searchParams.get("session_id");
   const checkoutId = searchParams.get("checkout_id");
+  const orderIdParam = searchParams.get("order_id");
+  const orderNumberParam = searchParams.get("order_number");
+  const paymentMethod = searchParams.get("method");
 
   useEffect(() => {
+    // If order already created (non-Stripe payments), skip verification
+    if (orderIdParam && orderNumberParam) {
+      setOrderNumber(orderNumberParam);
+      setOrderId(orderIdParam);
+      setIsVerifying(false);
+      toast.success("Order confirmed!");
+      return;
+    }
+
+    // Stripe payment verification
     const verifyPayment = async () => {
       if (!sessionId || !checkoutId) {
         toast.error("Invalid payment session");
@@ -44,8 +58,9 @@ const CheckoutSuccess = () => {
         if (data.success && data.paymentStatus === "paid") {
           toast.success("Payment confirmed! Your order has been placed.");
           
-          // Generate a temporary order number (in production, this would come from the database)
-          setOrderNumber(`ORD-${Date.now().toString().slice(-8)}`);
+          // Set real order data from verification
+          if (data.orderId) setOrderId(data.orderId);
+          if (data.orderNumber) setOrderNumber(data.orderNumber);
         } else {
           toast.error("Payment verification failed");
           navigate("/checkout");
@@ -140,7 +155,7 @@ const CheckoutSuccess = () => {
 
               <div className="pt-6 space-y-3">
                 <Button
-                  onClick={() => navigate("/portal/orders")}
+                  onClick={() => navigate(orderId ? `/portal/orders/${orderId}` : "/portal/orders")}
                   className="w-full"
                   size="lg"
                 >

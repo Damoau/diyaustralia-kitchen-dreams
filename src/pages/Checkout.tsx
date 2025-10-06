@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { ImpersonationLayout } from "@/components/layout/ImpersonationLayout";
 import { formatCurrency } from "@/lib/formatPrice";
 import { SEOTags } from "@/components/SEOTags";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SequenceStep {
   id: string;
@@ -220,20 +221,34 @@ const Checkout = () => {
           return step;
         });
         
-        // For bank transfer and quote requests, create order and show confirmation
-        if (data.paymentMethod === 'bank_transfer' || data.paymentMethod === 'quote_request') {
-          toast.success('Order submitted! Redirecting to confirmation...');
+        // For non-Stripe payments, create order
+        if (data.paymentMethod !== 'stripe') {
+          console.log('Creating order for payment method:', data.paymentMethod);
           
-          // TODO: Create order in database here
-          // For now, just redirect to success page with checkout info
+          const { data: orderData, error: orderError } = await supabase.functions.invoke(
+            'create-order-from-checkout',
+            {
+              body: {
+                checkoutId,
+                paymentMethod: data.paymentMethod,
+                paymentReference: null,
+              }
+            }
+          );
+
+          if (orderError) throw orderError;
+
+          console.log('Order created successfully:', orderData);
+          toast.success('Order created! Redirecting to confirmation...');
+          
           setTimeout(() => {
-            navigate(`/checkout/success?checkout_id=${checkoutId}&method=${data.paymentMethod}`);
+            navigate(`/checkout/success?order_id=${orderData.orderId}&order_number=${orderData.orderNumber}&method=${data.paymentMethod}`);
           }, 1000);
         }
         
       } catch (error) {
         console.error('Error processing payment:', error);
-        toast.error('Failed to process payment. Please try again.');
+        toast.error('Failed to create order. Please try again or contact support.');
       }
     }
   };
