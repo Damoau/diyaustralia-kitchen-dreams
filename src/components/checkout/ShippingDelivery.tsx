@@ -131,7 +131,7 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
     }
   };
 
-  // AI Address Search with Mapbox
+  // AI Address Search with Mapbox via Edge Function
   const searchAddress = async (query: string) => {
     if (query.length < 3) {
       setAddressSuggestions([]);
@@ -140,18 +140,22 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
 
     setSearchingAddress(true);
     try {
-      // Using Mapbox public token - replace with your token in production
-      const mapboxToken = 'pk.eyJ1IjoibGF1cmVubmV2ZSIsImEiOiJjbThjZTdsYWQwZGc5MmpwdmoyM2diaTRwIn0.hANZgSe5aTG8O8AhzWSp5A';
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` +
-        `country=AU&types=address&limit=5&access_token=${mapboxToken}`
-      );
+      const { data, error } = await supabase.functions.invoke('geocode-postcode', {
+        body: { searchQuery: query }
+      });
       
-      const data = await response.json();
+      if (error) {
+        console.error('Address search error:', error);
+        toast.error('Failed to search addresses. Please enter manually.');
+        return;
+      }
+
+      console.log('Address search results:', data);
       setAddressSuggestions(data.features || []);
-      setShowSuggestions(true);
+      setShowSuggestions(data.features && data.features.length > 0);
     } catch (error) {
       console.error('Address search error:', error);
+      toast.error('Failed to search addresses. Please enter manually.');
     } finally {
       setSearchingAddress(false);
     }

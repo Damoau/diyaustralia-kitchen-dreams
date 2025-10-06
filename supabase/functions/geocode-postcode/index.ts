@@ -9,6 +9,7 @@ interface GeocodeRequest {
   address?: string;
   postcode?: string;
   postcodes?: string[];
+  searchQuery?: string; // For address autocomplete
 }
 
 interface GeocodeResponse {
@@ -39,6 +40,44 @@ serve(async (req) => {
     }
 
     const body: GeocodeRequest = await req.json()
+
+    // Address search/autocomplete
+    if (body.searchQuery) {
+      if (body.searchQuery.length < 3) {
+        return new Response(
+          JSON.stringify({ features: [] }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        )
+      }
+
+      const query = encodeURIComponent(body.searchQuery)
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?` +
+        `access_token=${MAPBOX_TOKEN}&country=AU&types=address&limit=5`
+      )
+      
+      if (!response.ok) {
+        return new Response(
+          JSON.stringify({ error: 'Address search service unavailable' }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        )
+      }
+
+      const data = await response.json()
+      return new Response(
+        JSON.stringify({ features: data.features || [] }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
 
     if (body.postcodes) {
       // Batch geocoding for multiple postcodes
