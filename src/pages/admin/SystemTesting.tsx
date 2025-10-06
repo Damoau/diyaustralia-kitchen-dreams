@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { QuoteWorkflowSimulator } from '@/components/admin/QuoteWorkflowSimulator';
 import { EnhancedCartSystem } from '@/components/admin/EnhancedCartSystem';
 import { CartWorkflowTester } from '@/components/testing/CartWorkflowTester';
-import { TestTube, Database, Play, BarChart3 } from 'lucide-react';
+import { DocuSealSimulationRunner } from '@/components/testing/DocuSealSimulationRunner';
+import { TestTube, Database, Play, BarChart3, FileSignature } from 'lucide-react';
 
 const SystemTesting: React.FC = () => {
   return (
@@ -24,7 +25,7 @@ const SystemTesting: React.FC = () => {
         </div>
 
         <Tabs defaultValue="workflow-simulation" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="workflow-simulation" className="flex items-center gap-2">
               <Play className="w-4 h-4" />
               Workflow Simulation
@@ -32,6 +33,10 @@ const SystemTesting: React.FC = () => {
             <TabsTrigger value="cart-system" className="flex items-center gap-2">
               <Database className="w-4 h-4" />
               Cart System
+            </TabsTrigger>
+            <TabsTrigger value="docuseal" className="flex items-center gap-2">
+              <FileSignature className="w-4 h-4" />
+              DocuSeal
             </TabsTrigger>
             <TabsTrigger value="automated-tests" className="flex items-center gap-2">
               <TestTube className="w-4 h-4" />
@@ -67,6 +72,20 @@ const SystemTesting: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <EnhancedCartSystem />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="docuseal">
+            <Card>
+              <CardHeader>
+                <CardTitle>DocuSeal Integration Testing</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  50 comprehensive tests across edge functions, webhooks, admin dashboard, and customer portal
+                </p>
+              </CardHeader>
+              <CardContent>
+                <DocuSealSimulationRunner />
               </CardContent>
             </Card>
           </TabsContent>
