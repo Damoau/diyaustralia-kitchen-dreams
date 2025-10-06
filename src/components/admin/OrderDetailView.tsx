@@ -32,7 +32,7 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({ orderId }) => 
           *,
           order_items (
             *,
-            cabinet_types (name, image_url),
+            cabinet_types (name),
             door_styles (name),
             colors (name),
             finishes (name)
@@ -273,31 +273,16 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({ orderId }) => 
                 const config = item.configuration || {};
                 return (
                   <div key={item.id} className="border rounded-lg p-4">
-                    <div className="flex gap-4 mb-3">
-                      {/* Product Image */}
-                      {item.cabinet_types?.image_url && (
-                        <div className="flex-shrink-0">
-                          <img 
-                            src={item.cabinet_types.image_url} 
-                            alt={item.cabinet_types.name}
-                            className="w-24 h-24 object-cover rounded"
-                          />
-                        </div>
-                      )}
-                      
+                    <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-lg">{item.cabinet_types?.name || 'Cabinet'}</h4>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-lg">${item.total_price?.toFixed(2) || '0.00'}</p>
-                            <p className="text-sm text-muted-foreground">
-                              ${item.unit_price?.toFixed(2) || '0.00'} each
-                            </p>
-                            <p className="text-sm font-medium mt-1">Qty: {item.quantity}</p>
-                          </div>
-                        </div>
+                        <h4 className="font-semibold text-lg">{item.cabinet_types?.name || 'Cabinet'}</h4>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-lg">${item.total_price?.toFixed(2) || '0.00'}</p>
+                        <p className="text-sm text-muted-foreground">
+                          ${item.unit_price?.toFixed(2) || '0.00'} each
+                        </p>
+                        <p className="text-sm font-medium mt-1">Qty: {item.quantity}</p>
                       </div>
                     </div>
                     
