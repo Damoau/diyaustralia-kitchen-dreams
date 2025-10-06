@@ -112,7 +112,7 @@ export const EnhancedCartItem = memo(({ item, onUpdateQuantity, onRemove, onNavi
 
           {/* Unit Price */}
           <p className="text-sm font-medium mt-2 text-muted-foreground">
-            {formatCurrency(item.unit_price)} each
+            {formatCurrency(item.unit_price, true)}
           </p>
         </div>
         
@@ -153,7 +153,7 @@ export const EnhancedCartItem = memo(({ item, onUpdateQuantity, onRemove, onNavi
           </div>
           
           <p className="text-base font-bold">
-            {formatCurrency(calculatedTotal)}
+            {formatCurrency(calculatedTotal, true)}
           </p>
         </div>
       </div>

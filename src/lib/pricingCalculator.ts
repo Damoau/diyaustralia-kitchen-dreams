@@ -305,18 +305,23 @@ export class PricingCalculator {
       });
     }
     
-    const totalPrice = carcassPrice + doorPrice + hardwarePrice + surcharges;
+    // Calculate subtotal (ex GST)
+    const subtotalExGST = carcassPrice + doorPrice + hardwarePrice + surcharges;
+    
+    // Apply GST (10% for Australia)
+    const GST_RATE = 0.10;
+    const totalPrice = subtotalExGST * (1 + GST_RATE);
     
     // Calculate weight information
     const weightInfo = this.calculateCabinetWeight(cabinetType, dimensions, quantity, doorStyle);
     
     return {
-      totalPrice: Math.round(totalPrice * 100) / 100, // Round to 2 decimal places
+      totalPrice: Math.round(totalPrice * 100) / 100, // Round to 2 decimal places - INCLUDES GST
       breakdown: {
-        carcass: Math.round(carcassPrice * 100) / 100,
-        doors: Math.round(doorPrice * 100) / 100,
-        hardware: Math.round(hardwarePrice * 100) / 100,
-        surcharges: Math.round(surcharges * 100) / 100,
+        carcass: Math.round(carcassPrice * (1 + GST_RATE) * 100) / 100,
+        doors: Math.round(doorPrice * (1 + GST_RATE) * 100) / 100,
+        hardware: Math.round(hardwarePrice * (1 + GST_RATE) * 100) / 100,
+        surcharges: Math.round(surcharges * (1 + GST_RATE) * 100) / 100,
       },
       weight: weightInfo,
     };

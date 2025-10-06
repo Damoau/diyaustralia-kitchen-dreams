@@ -64,10 +64,12 @@ export const AdminQuoteCreator = ({ onQuoteCreated }: AdminQuoteCreatorProps) =>
   const { startImpersonation, redirectToFrontend } = useAdminImpersonation();
 
   const calculateTotals = () => {
-    const subtotal = quoteItems.reduce((sum, item) => sum + item.total_price, 0);
-    const taxAmount = subtotal * 0.1; // 10% GST
-    const total = subtotal + taxAmount;
-    return { subtotal, taxAmount, total };
+    // All prices from the pricing calculator already include GST
+    // So we need to extract the GST, not add it
+    const totalIncGST = quoteItems.reduce((sum, item) => sum + item.total_price, 0);
+    const subtotal = totalIncGST / 1.1; // Extract GST (ex GST)
+    const taxAmount = totalIncGST - subtotal; // Calculate GST amount
+    return { subtotal, taxAmount, total: totalIncGST };
   };
 
   const handleAddItem = (configuredItem: any) => {

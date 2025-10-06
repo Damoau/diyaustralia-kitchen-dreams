@@ -466,7 +466,7 @@ export const QuoteDetail = ({ quoteId }: QuoteDetailProps) => {
 
                       {/* Price Section */}
                       <div className="text-right ml-4">
-                        <p className="text-2xl font-bold">${item.total_price.toLocaleString()}</p>
+                        <p className="text-2xl font-bold">${item.total_price.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">inc GST</span></p>
                         <p className="text-sm text-muted-foreground">${item.unit_price.toLocaleString()} ea.</p>
                         {item.configuration?.assembly?.enabled && item.configuration.assembly.price && (
                           <p className="text-xs text-muted-foreground mt-1">

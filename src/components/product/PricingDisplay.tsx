@@ -129,6 +129,7 @@ export const PricingDisplay: React.FC<PricingDisplayProps> = ({
         <CardTitle className="flex items-center gap-2 text-lg">
           <DollarSign className="h-5 w-5" />
           Pricing Breakdown
+          <Badge variant="outline" className="ml-auto text-xs">Prices inc GST</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -176,6 +177,7 @@ export const PricingDisplay: React.FC<PricingDisplayProps> = ({
         )}
 
         <div className="text-xs text-muted-foreground">
+          <p><strong>Note:</strong> All prices include 10% GST</p>
           <p><strong>Calculation Method:</strong> {cabinetType.price_calculation_method || 'formula'}</p>
           <p><strong>Dimensions:</strong> {dimensions.width}mm × {dimensions.height}mm × {dimensions.depth}mm</p>
           {quantity > 1 && <p><strong>Quantity:</strong> {quantity}</p>}

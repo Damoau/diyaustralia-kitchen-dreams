@@ -222,7 +222,7 @@ export const OrderDetail = ({ orderId }: OrderDetailProps) => {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">${item.total_price?.toLocaleString() || 0}</p>
+                      <p className="font-semibold">${item.total_price?.toLocaleString() || 0} inc GST</p>
                       <p className="text-sm text-muted-foreground">${item.unit_price?.toLocaleString() || 0} ea.</p>
                     </div>
                   </div>

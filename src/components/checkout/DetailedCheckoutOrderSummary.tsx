@@ -68,7 +68,7 @@ export const DetailedCheckoutOrderSummary: React.FC<DetailedCheckoutOrderSummary
               
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">×{item.quantity}</p>
-                <p className="text-sm font-semibold">{formatCurrency(item.total_price)}</p>
+                <p className="text-sm font-semibold">{formatCurrency(item.total_price, true)}</p>
               </div>
             </div>
 
