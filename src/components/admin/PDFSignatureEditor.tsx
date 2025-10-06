@@ -45,27 +45,34 @@ export function PDFSignatureEditor({ documentId, orderId, documentUrl, onClose, 
   const drawingRectRef = useRef<Rect | null>(null);
   const { toast } = useToast();
 
+  // Initialize canvas after PDF loads
   useEffect(() => {
     if (!canvasRef.current || !pageRef.current) return;
 
-    const fabricCanvas = new FabricCanvas(canvasRef.current, {
-      width: pageRef.current.offsetWidth,
-      height: pageRef.current.offsetHeight,
-      selection: tool === 'select',
-    });
+    // Wait a bit for PDF to fully render
+    const timer = setTimeout(() => {
+      const fabricCanvas = new FabricCanvas(canvasRef.current!, {
+        width: pageRef.current!.offsetWidth,
+        height: pageRef.current!.offsetHeight,
+        selection: true,
+      });
 
-    setCanvas(fabricCanvas);
+      setCanvas(fabricCanvas);
+    }, 100);
 
     return () => {
-      fabricCanvas.dispose();
+      clearTimeout(timer);
+      if (canvas) {
+        canvas.dispose();
+      }
     };
-  }, [currentPage]);
+  }, [currentPage, scale]);
 
   useEffect(() => {
     if (!canvas) return;
     canvas.isDrawingMode = false;
     canvas.selection = tool === 'select';
-
+    
     // Handle drag-to-create for signature tools
     if (tool !== 'select') {
       canvas.defaultCursor = 'crosshair';
@@ -74,10 +81,6 @@ export function PDFSignatureEditor({ documentId, orderId, documentUrl, onClose, 
         if (!e.pointer) return;
         setIsDrawing(true);
         setDrawingStartPos({ x: e.pointer.x, y: e.pointer.y });
-
-        // Create temporary rectangle
-        const width = tool === 'signature' ? 200 : tool === 'date' ? 100 : 150;
-        const height = tool === 'signature' ? 60 : 30;
 
         const rect = new Rect({
           left: e.pointer.x,
@@ -133,25 +136,41 @@ export function PDFSignatureEditor({ documentId, orderId, documentUrl, onClose, 
             width,
             height,
             strokeDashArray: [5, 5],
+            selectable: true,
+            hasControls: true,
+            hasBorders: true,
+            lockRotation: true,
           });
 
           const text = new FabricText(label, {
             left: left + 5,
-            top: top + 10,
+            top: top + (height / 2) - 7,
             fontSize: 14,
             fill: '#1e40af',
             selectable: false,
+            evented: false,
           });
 
           canvas.add(finalRect);
           canvas.add(text);
+          canvas.setActiveObject(finalRect);
 
-          // Link text to rect movement
+          // Link text to rect movement and scaling
           finalRect.on('moving', () => {
             text.set({
               left: (finalRect.left || 0) + 5,
-              top: (finalRect.top || 0) + 10,
+              top: (finalRect.top || 0) + ((finalRect.height || height) / 2) - 7,
             });
+          });
+
+          finalRect.on('scaling', () => {
+            text.set({
+              left: (finalRect.left || 0) + 5,
+              top: (finalRect.top || 0) + ((finalRect.height || height) * (finalRect.scaleY || 1) / 2) - 7,
+            });
+          });
+
+          canvas.on('object:modified', () => {
             canvas.renderAll();
           });
 
@@ -185,6 +204,8 @@ export function PDFSignatureEditor({ documentId, orderId, documentUrl, onClose, 
       canvas.on('mouse:move', handleMouseMove);
       canvas.on('mouse:up', handleMouseUp);
 
+      console.log(`Canvas in ${tool.toUpperCase()} mode - drag to create field`);
+
       return () => {
         canvas.off('mouse:down', handleMouseDown);
         canvas.off('mouse:move', handleMouseMove);
@@ -192,8 +213,18 @@ export function PDFSignatureEditor({ documentId, orderId, documentUrl, onClose, 
       };
     } else {
       canvas.defaultCursor = 'default';
+      canvas.hoverCursor = 'move';
+      // Make sure all objects are selectable in select mode
+      canvas.forEachObject((obj) => {
+        if (obj.type === 'rect') {
+          obj.selectable = true;
+          obj.evented = true;
+        }
+      });
+      console.log('Canvas in SELECT mode - objects should be draggable');
     }
-  }, [tool, canvas, isDrawing, drawingStartPos, currentPage]);
+    canvas.renderAll();
+  }, [tool, canvas, isDrawing, drawingStartPos, currentPage, toast]);
 
   const clearCanvas = () => {
     if (!canvas) return;
