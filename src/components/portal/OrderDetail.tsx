@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { PaymentScheduleWidget } from "./PaymentScheduleWidget";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -286,14 +287,18 @@ export const OrderDetail = ({ orderId }: OrderDetailProps) => {
                   <Download className="w-4 h-4 mr-2" />
                   Download Invoice
                 </Button>
-                
-                <Button variant="outline" className="w-full">
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Make Payment
-                </Button>
               </div>
             </CardContent>
           </Card>
+
+          {/* Payment Schedule Widget */}
+          {order.payment_schedules && order.payment_schedules.length > 0 && (
+            <PaymentScheduleWidget
+              orderId={order.id}
+              schedule={order.payment_schedules}
+              onPaymentComplete={fetchOrderData}
+            />
+          )}
         </div>
       </div>
     </div>
