@@ -6,10 +6,9 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Truck, MapPin, Home, Building, Clock, Info } from 'lucide-react';
+import { Truck, MapPin, Home, Building, Clock, Info, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { EnhancedShippingCalculator } from './EnhancedShippingCalculator';
 import { useCartMigration } from "@/hooks/useCartMigration";
 import { supabase } from '@/integrations/supabase/client';
 
@@ -62,9 +61,10 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
   const [addAssembly, setAddAssembly] = useState<boolean>(false);
   const [postcodeChecked, setPostcodeChecked] = useState<boolean>(false);
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [assemblyLoading, setAssemblyLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [calculatedShippingCost, setCalculatedShippingCost] = useState<number>(0);
+  const [debouncedPostcode, setDebouncedPostcode] = useState<string>('');
 
   // Default delivery options (would typically come from API)
   const baseDeliveryOptions: DeliveryOption[] = [
@@ -118,84 +118,112 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
   // Cache for postcode checks to avoid repeated API calls
   const [postcodeCache, setPostcodeCache] = useState<Map<string, any>>(new Map());
 
-  const checkPostcodeEligibility = async (postcode: string) => {
-    if (!postcode || postcode.length !== 4) return;
+  // Show delivery options immediately based on postcode rules
+  const showOptionsImmediately = (postcode: string) => {
+    const postcodeNum = parseInt(postcode);
+    const isMetropolitan = (
+      (postcodeNum >= 2000 && postcodeNum <= 2249) || // Sydney
+      (postcodeNum >= 3000 && postcodeNum <= 3211) || // Melbourne
+      (postcodeNum >= 4000 && postcodeNum <= 4179) || // Brisbane
+      (postcodeNum >= 5000 && postcodeNum <= 5199) || // Adelaide
+      (postcodeNum >= 6000 && postcodeNum <= 6199) || // Perth
+      (postcodeNum >= 7000 && postcodeNum <= 7199)    // Hobart
+    );
 
-    // Check cache first
-    if (postcodeCache.has(postcode)) {
-      const cached = postcodeCache.get(postcode);
-      setDeliveryOptions(cached.options);
-      setPostcodeChecked(true);
-      return;
-    }
+    const immediateOptions = baseDeliveryOptions.map(option => ({
+      ...option,
+      availableForPostcode: option.id === 'express' ? isMetropolitan : true,
+    }));
 
-    setIsLoading(true);
+    setDeliveryOptions(immediateOptions);
+    setPostcodeChecked(true);
+  };
+
+  // Check assembly eligibility in background (only for white glove)
+  const checkAssemblyEligibility = async (postcode: string) => {
+    setAssemblyLoading(true);
     try {
-      // Simplified delivery rules based on postcode prefix
-      const postcodeNum = parseInt(postcode);
-      const isMetropolitan = (
-        (postcodeNum >= 2000 && postcodeNum <= 2249) || // Sydney
-        (postcodeNum >= 3000 && postcodeNum <= 3211) || // Melbourne
-        (postcodeNum >= 4000 && postcodeNum <= 4179) || // Brisbane
-        (postcodeNum >= 5000 && postcodeNum <= 5199) || // Adelaide
-        (postcodeNum >= 6000 && postcodeNum <= 6199) || // Perth
-        (postcodeNum >= 7000 && postcodeNum <= 7199)    // Hobart
-      );
-
-      // Only check assembly if needed (for white glove)
-      let assemblyCheck = null;
-      try {
-        const { data, error } = await supabase.functions.invoke('check-assembly-eligibility', {
-          body: { postcode }
-        });
-        if (!error) assemblyCheck = data;
-      } catch (error) {
-        console.log('Assembly check skipped:', error);
-      }
-
-      const assemblyEligible = assemblyCheck?.eligible || false;
-      const assemblySurcharges = assemblyCheck?.surcharges || { carcass: 0, doors: 0 };
-
-      const updatedOptions = baseDeliveryOptions.map(option => {
-        let updatedOption = {
-          ...option,
-          availableForPostcode: option.id === 'express' ? isMetropolitan : true,
-        };
-
-        // Update assembly availability and pricing
-        if (option.assemblyAvailable) {
-          updatedOption.assemblyAvailable = assemblyEligible;
-          if (assemblyEligible && option.assemblyPrice) {
-            const surchargeAmount = (assemblySurcharges.carcass + assemblySurcharges.doors) / 100 * option.assemblyPrice;
-            updatedOption.assemblyPrice = option.assemblyPrice + surchargeAmount;
-          }
-        }
-
-        return updatedOption;
+      const { data, error } = await supabase.functions.invoke('check-assembly-eligibility', {
+        body: { postcode }
       });
-
-      // Cache the result
-      setPostcodeCache(prev => new Map(prev).set(postcode, { options: updatedOptions }));
       
-      setDeliveryOptions(updatedOptions);
-      setPostcodeChecked(true);
+      if (!error && data) {
+        const assemblyEligible = data.eligible || false;
+        const assemblySurcharges = data.surcharges || { carcass: 0, doors: 0 };
+
+        setDeliveryOptions(prev => prev.map(option => {
+          if (option.assemblyAvailable) {
+            let assemblyPrice = option.assemblyPrice;
+            if (assemblyEligible && assemblyPrice) {
+              const surchargeAmount = (assemblySurcharges.carcass + assemblySurcharges.doors) / 100 * assemblyPrice;
+              assemblyPrice = assemblyPrice + surchargeAmount;
+            }
+            return {
+              ...option,
+              assemblyAvailable: assemblyEligible,
+              assemblyPrice,
+            };
+          }
+          return option;
+        }));
+
+        // Cache the result
+        setPostcodeCache(prev => new Map(prev).set(postcode, { 
+          assemblyEligible, 
+          assemblySurcharges 
+        }));
+      }
     } catch (error) {
-      console.error('Error checking postcode:', error);
-      setDeliveryOptions(baseDeliveryOptions);
-      setPostcodeChecked(true);
+      console.log('Assembly check failed:', error);
     } finally {
-      setIsLoading(false);
+      setAssemblyLoading(false);
     }
   };
 
+  // Debounce postcode input
   useEffect(() => {
-    if (shippingAddress.postcode.length === 4) {
-      checkPostcodeEligibility(shippingAddress.postcode);
+    const timer = setTimeout(() => {
+      setDebouncedPostcode(shippingAddress.postcode);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [shippingAddress.postcode]);
+
+  // Show delivery options immediately when postcode is valid
+  useEffect(() => {
+    if (debouncedPostcode.length === 4) {
+      // Check cache first
+      if (postcodeCache.has(debouncedPostcode)) {
+        const cached = postcodeCache.get(debouncedPostcode);
+        showOptionsImmediately(debouncedPostcode);
+        // Apply cached assembly data if available
+        if (cached.assemblyEligible !== undefined) {
+          setDeliveryOptions(prev => prev.map(option => {
+            if (option.assemblyAvailable) {
+              return {
+                ...option,
+                assemblyAvailable: cached.assemblyEligible,
+              };
+            }
+            return option;
+          }));
+        }
+      } else {
+        showOptionsImmediately(debouncedPostcode);
+      }
     } else {
       setPostcodeChecked(false);
       setDeliveryOptions([]);
     }
-  }, [shippingAddress.postcode]);
+  }, [debouncedPostcode]);
+
+  // Only check assembly when white glove is selected
+  useEffect(() => {
+    if (selectedDelivery === 'white-glove' && debouncedPostcode.length === 4) {
+      if (!postcodeCache.has(debouncedPostcode)) {
+        checkAssemblyEligibility(debouncedPostcode);
+      }
+    }
+  }, [selectedDelivery, debouncedPostcode]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -407,30 +435,7 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
             </div>
           </div>
 
-          {/* Material Sheet Optimization and Shipping Calculator */}
-          {cart?.items && cart.items.length > 0 && (
-            <div className="space-y-4 mb-6">
-              <h3 className="text-lg font-medium flex items-center space-x-2">
-                <Truck className="h-4 w-4" />
-                <span>Shipping Calculator & Material Optimization</span>
-              </h3>
-              
-              <EnhancedShippingCalculator
-                items={cart.items.map(item => ({
-                  id: item.id,
-                  cabinetTypeId: item.cabinet_type_id,
-                  width_mm: item.width_mm,
-                  height_mm: item.height_mm,
-                  depth_mm: item.depth_mm,
-                  doorStyleId: item.door_style_id,
-                  quantity: item.quantity,
-                  name: item.cabinet_type?.name || 'Cabinet'
-                }))}
-                onShippingCalculated={handleShippingCalculated}
-                enableMaterialOptimization={true}
-              />
-            </div>
-          )}
+          {/* Removed redundant EnhancedShippingCalculator for performance */}
 
           {/* Delivery Options */}
           {postcodeChecked && deliveryOptions.length > 0 && (
@@ -455,6 +460,12 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
                             {option.name}
                             {!option.availableForPostcode && (
                               <Badge variant="secondary" className="ml-2">Not Available</Badge>
+                            )}
+                            {option.id === 'white-glove' && assemblyLoading && (
+                              <Badge variant="secondary" className="ml-2">
+                                <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                Checking availability...
+                              </Badge>
                             )}
                           </Label>
                           <span className="font-semibold">${option.price}</span>
@@ -506,16 +517,6 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
               </Alert>
               )}
             </div>
-          )}
-
-          {/* Loading State */}
-          {isLoading && (
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                Checking delivery options for your postcode...
-              </AlertDescription>
-            </Alert>
           )}
 
           {/* No Postcode Checked */}
