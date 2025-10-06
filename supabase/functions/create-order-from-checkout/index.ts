@@ -104,7 +104,6 @@ serve(async (req) => {
         tax_amount: gstAmount,
         total_amount: totalAmount,
         shipping_address: customerInfo,
-        target_completion: defaultDueDate,
         drawings_status: paymentType === 'deposit' ? 'pending_upload' : 'not_required',
         notes: checkout.how_heard ? `How they heard about us: ${checkout.how_heard}` : null,
       })
