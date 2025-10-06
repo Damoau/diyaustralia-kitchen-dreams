@@ -225,9 +225,9 @@ const Checkout = () => {
           toast.success('Order submitted! Redirecting to confirmation...');
           
           // TODO: Create order in database here
-          // For now, just redirect to success page
+          // For now, just redirect to success page with checkout info
           setTimeout(() => {
-            navigate('/checkout/success?method=' + data.paymentMethod);
+            navigate(`/checkout/success?checkout_id=${checkoutId}&method=${data.paymentMethod}`);
           }, 1000);
         }
         
