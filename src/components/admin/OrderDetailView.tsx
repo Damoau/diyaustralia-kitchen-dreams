@@ -75,7 +75,13 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({ orderId }) => 
   // Parse shipping address from JSONB
   const shippingAddress = order.shipping_address as any;
   const billingAddress = order.billing_address as any;
-  const orderData = order as any; // Type assertion for customer fields
+  const orderData = order as any; // Type assertion for accessing all fields
+  
+  // Extract customer info from shipping address or order fields
+  const customerName = shippingAddress?.name || orderData.customer_name || 'N/A';
+  const customerEmail = shippingAddress?.email || orderData.customer_email || 'N/A';
+  const customerPhone = shippingAddress?.phone || orderData.customer_phone || null;
+  const customerCompany = shippingAddress?.company || orderData.customer_company || null;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -141,28 +147,22 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({ orderId }) => 
           <CardContent className="space-y-3">
             <div>
               <p className="text-sm text-muted-foreground">Name</p>
-              <p className="font-medium">{orderData.customer_name || 'N/A'}</p>
+              <p className="font-medium">{customerName}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Email</p>
-              <p className="font-medium">{orderData.customer_email || 'N/A'}</p>
+              <p className="font-medium">{customerEmail}</p>
             </div>
-            {orderData.customer_phone && (
+            {customerPhone && (
               <div>
                 <p className="text-sm text-muted-foreground">Phone</p>
-                <p className="font-medium">{orderData.customer_phone}</p>
+                <p className="font-medium">{customerPhone}</p>
               </div>
             )}
-            {orderData.customer_company && (
+            {customerCompany && (
               <div>
                 <p className="text-sm text-muted-foreground">Company</p>
-                <p className="font-medium">{orderData.customer_company}</p>
-              </div>
-            )}
-            {orderData.customer_abn && (
-              <div>
-                <p className="text-sm text-muted-foreground">ABN</p>
-                <p className="font-medium">{orderData.customer_abn}</p>
+                <p className="font-medium">{customerCompany}</p>
               </div>
             )}
           </CardContent>
@@ -342,26 +342,43 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({ orderId }) => 
                     </div>
                     
                     {/* Assembly Services */}
-                    {config.assembly_service && (
+                    {config.assembly?.enabled && (
                       <>
                         <Separator className="my-3" />
                         <div>
-                          <p className="text-sm font-medium mb-2">Assembly Services:</p>
-                          <div className="bg-muted p-3 rounded space-y-1">
-                            {config.assembly_service.carcass && (
-                              <p className="text-sm">
-                                <span className="font-medium">Carcass Assembly:</span> ${config.assembly_service.carcass.toFixed(2)}
-                              </p>
+                          <p className="text-sm font-medium mb-2">Assembly Service:</p>
+                          <div className="bg-muted p-3 rounded space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium">Type:</span>
+                              <span className="text-sm">{config.assembly.type === 'with_doors' ? 'With Doors & Hardware' : 'Carcass Only'}</span>
+                            </div>
+                            {config.assembly.price && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium">Price:</span>
+                                <span className="text-sm font-semibold">${config.assembly.price.toFixed(2)}</span>
+                              </div>
                             )}
-                            {config.assembly_service.doors && (
-                              <p className="text-sm">
-                                <span className="font-medium">Doors & Hardware:</span> ${config.assembly_service.doors.toFixed(2)}
-                              </p>
+                            {config.assembly.postcode && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium">Postcode:</span>
+                                <span className="text-sm">{config.assembly.postcode}</span>
+                              </div>
                             )}
-                            {config.assembly_service.total && (
-                              <p className="text-sm font-semibold border-t pt-1 mt-1">
-                                Total Assembly: ${config.assembly_service.total.toFixed(2)}
-                              </p>
+                            {config.assembly.lead_time_days && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium">Lead Time:</span>
+                                <span className="text-sm">{config.assembly.lead_time_days} days</span>
+                              </div>
+                            )}
+                            {config.assembly.includes && config.assembly.includes.length > 0 && (
+                              <div className="pt-2 border-t">
+                                <p className="text-sm font-medium mb-1">Includes:</p>
+                                <ul className="text-sm space-y-1 ml-4 list-disc">
+                                  {config.assembly.includes.map((item: string, idx: number) => (
+                                    <li key={idx}>{item}</li>
+                                  ))}
+                                </ul>
+                              </div>
                             )}
                           </div>
                         </div>
