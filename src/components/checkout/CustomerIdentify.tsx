@@ -31,14 +31,17 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
     marketing_opt_in: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [hasAutoIdentified, setHasAutoIdentified] = useState(false);
   
   const { identifyCustomer, isLoading, validateEmail, validatePhone } = useCheckout();
   const { user } = useAuth();
 
   // Skip identify step if already signed in
   React.useEffect(() => {
-    if (user) {
+    if (user && !hasAutoIdentified) {
+      setHasAutoIdentified(true);
       console.log('🔐 User already authenticated, auto-proceeding...');
+      
       // Auto-populate and proceed for signed-in users
       const payload: IdentifyPayload = {
         mode: 'guest', // Treat as guest but with auth
@@ -58,7 +61,7 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
         onComplete(result);
       });
     }
-  }, [user, checkoutId]);
+  }, [user, checkoutId, hasAutoIdentified, identifyCustomer, onComplete]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));

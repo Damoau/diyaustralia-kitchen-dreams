@@ -136,17 +136,9 @@ const Checkout = () => {
       console.log('🔐 Identity step complete, storing customer data...');
       setCustomerData(data);
       
-      // Update step statuses
-      const updatedSteps = steps.map(step => {
-        if (step.id === 'identity') return { ...step, status: 'completed' as const };
-        if (step.id === 'shipping') return { ...step, status: 'current' as const };
-        return step;
-      });
-      
       // Move to shipping step
       console.log('🚚 Transitioning to shipping step...');
       setCurrentStep('shipping');
-      toast.success('Contact information saved! Now let\'s set up delivery.');
       
     } else if (stepId === 'shipping') {
       console.log('🚚 Shipping step complete, calculating totals...');
