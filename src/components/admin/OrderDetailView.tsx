@@ -32,7 +32,7 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({ orderId }) => 
           *,
           order_items (
             *,
-            cabinet_types (name, description),
+            cabinet_types (name),
             door_styles (name),
             colors (name),
             finishes (name)
@@ -276,7 +276,6 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({ orderId }) => 
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
                         <h4 className="font-semibold text-lg">{item.cabinet_types?.name || 'Cabinet'}</h4>
-                        <p className="text-sm text-muted-foreground">{item.cabinet_types?.description}</p>
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-lg">${item.total_price?.toFixed(2) || '0.00'}</p>
