@@ -6,11 +6,15 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Truck, MapPin, Clock, Info, Loader2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Truck, MapPin, Clock, Info, Loader2, Search } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useCartMigration } from "@/hooks/useCartMigration";
 import { usePostcodeServices } from "@/hooks/usePostcodeServices";
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface ShippingAddress {
   firstName: string;
@@ -45,6 +49,7 @@ interface ShippingDeliveryProps {
 export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: ShippingDeliveryProps) => {
   const { cart } = useCartMigration();
   const { checkPostcodeServices, loading: postcodeLoading } = usePostcodeServices();
+  const { user } = useAuth();
   
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     firstName: customerData?.identity?.first_name || customerData?.customer_first_name || '',
@@ -71,6 +76,11 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
     hasMismatch: boolean;
     cartAssemblyPostcodes: string[];
   }>({ hasMismatch: false, cartAssemblyPostcodes: [] });
+  const [saveAddress, setSaveAddress] = useState<boolean>(false);
+  const [addressSearchQuery, setAddressSearchQuery] = useState<string>('');
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const [searchingAddress, setSearchingAddress] = useState<boolean>(false);
+  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
 
   // Default delivery options (would typically come from API)
   const baseDeliveryOptions: DeliveryOption[] = [
@@ -119,6 +129,66 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
+  };
+
+  // AI Address Search with Mapbox
+  const searchAddress = async (query: string) => {
+    if (query.length < 3) {
+      setAddressSuggestions([]);
+      return;
+    }
+
+    setSearchingAddress(true);
+    try {
+      // Using Mapbox public token - replace with your token in production
+      const mapboxToken = 'pk.eyJ1IjoibGF1cmVubmV2ZSIsImEiOiJjbThjZTdsYWQwZGc5MmpwdmoyM2diaTRwIn0.hANZgSe5aTG8O8AhzWSp5A';
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` +
+        `country=AU&types=address&limit=5&access_token=${mapboxToken}`
+      );
+      
+      const data = await response.json();
+      setAddressSuggestions(data.features || []);
+      setShowSuggestions(true);
+    } catch (error) {
+      console.error('Address search error:', error);
+    } finally {
+      setSearchingAddress(false);
+    }
+  };
+
+  // Debounce address search
+  useEffect(() => {
+    if (!addressSearchQuery) {
+      setAddressSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      searchAddress(addressSearchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [addressSearchQuery]);
+
+  const selectAddressSuggestion = (suggestion: any) => {
+    // Parse Mapbox address components
+    const context = suggestion.context || [];
+    const postcode = context.find((c: any) => c.id.startsWith('postcode'))?.text || '';
+    const suburb = context.find((c: any) => c.id.startsWith('place'))?.text || '';
+    const state = context.find((c: any) => c.id.startsWith('region'))?.short_code?.split('-')[1] || 'NSW';
+
+    setShippingAddress(prev => ({
+      ...prev,
+      address: suggestion.address ? `${suggestion.address} ${suggestion.text}` : suggestion.place_name.split(',')[0],
+      suburb: suburb,
+      state: state.toUpperCase(),
+      postcode: postcode,
+    }));
+
+    setAddressSearchQuery('');
+    setShowSuggestions(false);
+    setAddressSuggestions([]);
   };
 
   // Cache for postcode checks to avoid repeated API calls
@@ -319,10 +389,40 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
     return total;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) return;
+
+    // Save address if user is logged in and checkbox is checked
+    if (user && saveAddress) {
+      try {
+        const { error } = await supabase
+          .from('addresses')
+          .insert({
+            user_id: user.id,
+            name: `${shippingAddress.firstName} ${shippingAddress.lastName}`.trim(),
+            line1: shippingAddress.address,
+            line2: shippingAddress.company || null,
+            suburb: shippingAddress.suburb,
+            state: shippingAddress.state,
+            postcode: shippingAddress.postcode,
+            country: shippingAddress.country,
+            phone: shippingAddress.phone,
+            is_default: false,
+            type: 'shipping',
+          });
+
+        if (error) {
+          console.error('Error saving address:', error);
+          toast.error('Address saved to checkout but failed to save for future use');
+        } else {
+          toast.success('Address saved for future orders!');
+        }
+      } catch (error) {
+        console.error('Error saving address:', error);
+      }
+    }
 
     const selectedOption = deliveryOptions.find(opt => opt.id === selectedDelivery);
     const deliveryTotal = calculateDeliveryTotal();
@@ -369,6 +469,41 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
               />
             </div>
 
+            {/* AI Address Search */}
+            <div className="relative">
+              <Label htmlFor="addressSearch">Search Address *</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="addressSearch"
+                  value={addressSearchQuery}
+                  onChange={(e) => setAddressSearchQuery(e.target.value)}
+                  placeholder="Start typing your address..."
+                  className="pl-10"
+                />
+                {searchingAddress && (
+                  <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                )}
+              </div>
+              
+              {/* Address Suggestions Dropdown */}
+              {showSuggestions && addressSuggestions.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto">
+                  {addressSuggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className="w-full text-left px-4 py-2 hover:bg-accent hover:text-accent-foreground transition-colors"
+                      onClick={() => selectAddressSuggestion(suggestion)}
+                    >
+                      <div className="text-sm font-medium">{suggestion.text}</div>
+                      <div className="text-xs text-muted-foreground">{suggestion.place_name}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div>
               <Label htmlFor="address">Street Address *</Label>
               <Input
@@ -379,6 +514,7 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
                 className={errors.address ? 'border-red-500' : ''}
               />
               {errors.address && <p className="text-sm text-red-500 mt-1">{errors.address}</p>}
+              <p className="text-xs text-muted-foreground mt-1">Or use the search above to auto-fill</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -445,6 +581,28 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
                 rows={2}
               />
             </div>
+
+            {/* Save Address Checkbox (only for logged-in users) */}
+            {user && (
+              <div className="flex items-start space-x-2 p-4 border rounded-md bg-accent/10">
+                <Checkbox
+                  id="saveAddress"
+                  checked={saveAddress}
+                  onCheckedChange={(checked) => setSaveAddress(checked as boolean)}
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <Label 
+                    htmlFor="saveAddress" 
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    Save this address for future orders
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    We'll securely store this address in your account for faster checkout next time.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Assembly Postcode Mismatch Warning */}

@@ -1,6 +1,5 @@
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 
 interface SequenceStep {
@@ -29,9 +28,31 @@ export const CheckoutSequence = ({ currentStep, steps }: CheckoutSequenceProps) 
     }
   };
 
+  const currentStepIndex = steps.findIndex(s => s.status === 'current');
+  const completedSteps = steps.filter(s => s.status === 'completed').length;
+  const totalSteps = steps.length;
+
   return (
     <Card>
       <CardContent className="pt-6">
+        {/* Progress Bar */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <div className="text-sm font-medium">
+              Step {currentStepIndex + 1} of {totalSteps}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              ~{3 - completedSteps} min remaining
+            </div>
+          </div>
+          <div className="w-full bg-muted rounded-full h-2">
+            <div 
+              className="bg-primary h-2 rounded-full transition-all duration-300"
+              style={{ width: `${((currentStepIndex + 1) / totalSteps) * 100}%` }}
+            />
+          </div>
+        </div>
+
         {/* Desktop: Horizontal layout */}
         <div className="hidden md:flex items-center justify-between gap-4">
           {steps.map((step, index) => (
