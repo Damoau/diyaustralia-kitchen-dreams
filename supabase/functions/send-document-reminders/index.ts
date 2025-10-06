@@ -35,9 +35,7 @@ serve(async (req) => {
           id,
           order_number,
           user_id,
-          profiles!inner (
-            email
-          )
+          shipping_address
         )
       `)
       .in('status', ['sent', 'viewed'])
@@ -105,7 +103,19 @@ serve(async (req) => {
       }
 
       if (shouldSendReminder) {
-        const customerEmail = doc.orders.profiles.email;
+        // Get customer email from shipping address or user auth
+        let customerEmail = doc.orders.shipping_address?.email;
+        
+        if (!customerEmail && doc.orders.user_id) {
+          const { data: userData } = await supabaseClient.auth.admin.getUserById(doc.orders.user_id);
+          customerEmail = userData?.user?.email;
+        }
+        
+        if (!customerEmail) {
+          console.log(`[SEND-DOCUMENT-REMINDERS] No email found for order ${doc.order_id}, skipping`);
+          continue;
+        }
+        
         const orderNumber = doc.orders.order_number;
         const portalLink = `${Deno.env.get("SITE_URL")}/portal/orders/${doc.order_id}`;
         

@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Send, Eye, Clock, CheckCircle, AlertTriangle, Upload, ChevronDown, ChevronUp } from 'lucide-react';
+import { FileText, Send, Eye, Clock, CheckCircle, AlertTriangle, Upload, ChevronDown, ChevronUp, Edit } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { OrderDetailView } from './OrderDetailView';
 import { OrderDocumentManager } from './OrderDocumentManager';
@@ -235,7 +235,7 @@ export function DocumentApprovalDashboard() {
                                      daysWaiting > 3 ? 'hsl(var(--warning))' : 
                                      'hsl(var(--muted))'
                   }}>
-                    <CardContent className="p-3">
+        <CardContent className="p-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-1 flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -295,6 +295,15 @@ export function DocumentApprovalDashboard() {
                             >
                               <Upload className="h-3 w-3 mr-1" />
                               Upload
+                            </Button>
+                          ) : pendingDocs.length > 0 && pendingDocs[0].status === 'pending' ? (
+                            <Button
+                              size="sm"
+                              className="h-7 px-2 text-xs"
+                              onClick={() => setUploadDialogOrderId(order.id)}
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              Add Signatures
                             </Button>
                           ) : (
                             <>
