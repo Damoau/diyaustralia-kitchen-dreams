@@ -39,6 +39,7 @@ const Pricing = lazy(() => import('@/pages/admin/Pricing'));
 const DoorStyles = lazy(() => import('@/pages/admin/DoorStyles'));
 const ConfigurationMigrationPlaceholder = lazy(() => import('@/components/admin/ConfigurationMigrationPlaceholder'));
 const TestingPlaceholder = lazy(() => import('@/components/admin/TestingPlaceholder'));
+const SystemTesting = lazy(() => import('@/pages/admin/SystemTesting'));
 const CartActivity = lazy(() => import('@/pages/admin/CartActivity'));
 const LazySEOManagement = lazy(() => import('@/pages/admin/SEOManagement'));
 import CartSystemHealth from "@/pages/admin/CartSystemHealth";
@@ -107,7 +108,7 @@ export const AdminRouter = () => {
             <Route path="security" element={<SecurityDashboard />} />
             <Route path="ai-assistant" element={<AdminAIAssistant />} />
             <Route path="ai-analyzer" element={<AIWorkflowAnalyzer />} />
-            <Route path="testing" element={<TestingPlaceholder />} />
+            <Route path="testing" element={<SystemTesting />} />
             <Route path="cart-system-health" element={<CartSystemHealth />} />
             <Route path="user-behavior-analytics" element={<UserBehaviorAnalytics />} />
             <Route path="notifications" element={<Notifications />} />
