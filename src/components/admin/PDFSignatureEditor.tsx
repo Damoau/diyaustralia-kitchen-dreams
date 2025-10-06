@@ -38,8 +38,11 @@ export function PDFSignatureEditor({ documentId, orderId, documentUrl, onClose, 
   const [signatureBoxes, setSignatureBoxes] = useState<SignatureBox[]>([]);
   const [loading, setLoading] = useState(false);
   const [scale, setScale] = useState(1);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [drawingStartPos, setDrawingStartPos] = useState<{ x: number; y: number } | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pageRef = useRef<HTMLDivElement>(null);
+  const drawingRectRef = useRef<Rect | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -62,58 +65,135 @@ export function PDFSignatureEditor({ documentId, orderId, documentUrl, onClose, 
     if (!canvas) return;
     canvas.isDrawingMode = false;
     canvas.selection = tool === 'select';
-  }, [tool, canvas]);
 
-  const addSignatureBox = (type: 'signature' | 'date' | 'text') => {
-    if (!canvas) return;
+    // Handle drag-to-create for signature tools
+    if (tool !== 'select') {
+      canvas.defaultCursor = 'crosshair';
+      
+      const handleMouseDown = (e: any) => {
+        if (!e.pointer) return;
+        setIsDrawing(true);
+        setDrawingStartPos({ x: e.pointer.x, y: e.pointer.y });
 
-    const label = type === 'signature' ? 'Sign Here' : type === 'date' ? 'Date' : 'Text Field';
-    const width = type === 'signature' ? 200 : type === 'date' ? 100 : 150;
-    const height = type === 'signature' ? 60 : 30;
+        // Create temporary rectangle
+        const width = tool === 'signature' ? 200 : tool === 'date' ? 100 : 150;
+        const height = tool === 'signature' ? 60 : 30;
 
-    const rect = new Rect({
-      left: 100,
-      top: 100,
-      fill: 'rgba(59, 130, 246, 0.2)',
-      stroke: '#3b82f6',
-      strokeWidth: 2,
-      width,
-      height,
-      strokeDashArray: [5, 5],
-    });
+        const rect = new Rect({
+          left: e.pointer.x,
+          top: e.pointer.y,
+          fill: 'rgba(59, 130, 246, 0.2)',
+          stroke: '#3b82f6',
+          strokeWidth: 2,
+          width: 0,
+          height: 0,
+          strokeDashArray: [5, 5],
+          selectable: false,
+        });
 
-    const text = new FabricText(label, {
-      left: 105,
-      top: 110,
-      fontSize: 14,
-      fill: '#1e40af',
-      selectable: false,
-    });
+        drawingRectRef.current = rect;
+        canvas.add(rect);
+      };
 
-    canvas.add(rect);
-    canvas.add(text);
+      const handleMouseMove = (e: any) => {
+        if (!isDrawing || !drawingStartPos || !drawingRectRef.current || !e.pointer) return;
 
-    // Group rect and text
-    rect.on('moving', () => {
-      text.set({
-        left: (rect.left || 0) + 5,
-        top: (rect.top || 0) + 10,
-      });
-      canvas.renderAll();
-    });
+        const width = Math.abs(e.pointer.x - drawingStartPos.x);
+        const height = Math.abs(e.pointer.y - drawingStartPos.y);
+        const left = Math.min(drawingStartPos.x, e.pointer.x);
+        const top = Math.min(drawingStartPos.y, e.pointer.y);
 
-    const box: SignatureBox = {
-      x: rect.left || 100,
-      y: rect.top || 100,
-      width,
-      height,
-      type,
-      label,
-      page: currentPage,
-    };
+        drawingRectRef.current.set({ left, top, width, height });
+        canvas.renderAll();
+      };
 
-    setSignatureBoxes(prev => [...prev, box]);
-  };
+      const handleMouseUp = (e: any) => {
+        if (!isDrawing || !drawingStartPos || !drawingRectRef.current || !e.pointer) return;
+
+        const width = Math.abs(e.pointer.x - drawingStartPos.x);
+        const height = Math.abs(e.pointer.y - drawingStartPos.y);
+
+        // Only create if drag is significant (at least 20px)
+        if (width > 20 && height > 20) {
+          const left = Math.min(drawingStartPos.x, e.pointer.x);
+          const top = Math.min(drawingStartPos.y, e.pointer.y);
+
+          // Remove temporary rect
+          canvas.remove(drawingRectRef.current);
+
+          // Create final signature box
+          const label = tool === 'signature' ? 'Sign Here' : tool === 'date' ? 'Date' : 'Text Field';
+
+          const finalRect = new Rect({
+            left,
+            top,
+            fill: 'rgba(59, 130, 246, 0.2)',
+            stroke: '#3b82f6',
+            strokeWidth: 2,
+            width,
+            height,
+            strokeDashArray: [5, 5],
+          });
+
+          const text = new FabricText(label, {
+            left: left + 5,
+            top: top + 10,
+            fontSize: 14,
+            fill: '#1e40af',
+            selectable: false,
+          });
+
+          canvas.add(finalRect);
+          canvas.add(text);
+
+          // Link text to rect movement
+          finalRect.on('moving', () => {
+            text.set({
+              left: (finalRect.left || 0) + 5,
+              top: (finalRect.top || 0) + 10,
+            });
+            canvas.renderAll();
+          });
+
+          const box: SignatureBox = {
+            x: left,
+            y: top,
+            width,
+            height,
+            type: tool as 'signature' | 'date' | 'text',
+            label,
+            page: currentPage,
+          };
+
+          setSignatureBoxes(prev => [...prev, box]);
+          toast({
+            title: 'Field added',
+            description: `${label} field added to page ${currentPage}`,
+          });
+        } else {
+          // Remove temporary rect if drag was too small
+          canvas.remove(drawingRectRef.current);
+        }
+
+        setIsDrawing(false);
+        setDrawingStartPos(null);
+        drawingRectRef.current = null;
+        setTool('select'); // Return to select mode after placing
+      };
+
+      canvas.on('mouse:down', handleMouseDown);
+      canvas.on('mouse:move', handleMouseMove);
+      canvas.on('mouse:up', handleMouseUp);
+
+      return () => {
+        canvas.off('mouse:down', handleMouseDown);
+        canvas.off('mouse:move', handleMouseMove);
+        canvas.off('mouse:up', handleMouseUp);
+      };
+    } else {
+      canvas.defaultCursor = 'default';
+    }
+  }, [tool, canvas, isDrawing, drawingStartPos, currentPage]);
 
   const clearCanvas = () => {
     if (!canvas) return;
@@ -206,10 +286,7 @@ export function PDFSignatureEditor({ documentId, orderId, documentUrl, onClose, 
             <Button
               variant={tool === 'signature' ? 'default' : 'outline'}
               className="w-full justify-start"
-              onClick={() => {
-                setTool('signature');
-                addSignatureBox('signature');
-              }}
+              onClick={() => setTool('signature')}
             >
               <Type className="h-4 w-4 mr-2" />
               Signature
@@ -217,10 +294,7 @@ export function PDFSignatureEditor({ documentId, orderId, documentUrl, onClose, 
             <Button
               variant={tool === 'date' ? 'default' : 'outline'}
               className="w-full justify-start"
-              onClick={() => {
-                setTool('date');
-                addSignatureBox('date');
-              }}
+              onClick={() => setTool('date')}
             >
               <Type className="h-4 w-4 mr-2" />
               Date
@@ -228,10 +302,7 @@ export function PDFSignatureEditor({ documentId, orderId, documentUrl, onClose, 
             <Button
               variant={tool === 'text' ? 'default' : 'outline'}
               className="w-full justify-start"
-              onClick={() => {
-                setTool('text');
-                addSignatureBox('text');
-              }}
+              onClick={() => setTool('text')}
             >
               <Type className="h-4 w-4 mr-2" />
               Text Field
