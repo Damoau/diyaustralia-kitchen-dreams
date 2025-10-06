@@ -32,7 +32,10 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({ orderId }) => 
           *,
           order_items (
             *,
-            cabinet_types (name),
+            cabinet_types (
+              name,
+              product_image_url
+            ),
             door_styles (name),
             colors (name),
             finishes (name)
@@ -272,8 +275,15 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({ orderId }) => 
               {order.order_items.map((item: any, index: number) => {
                 const config = item.configuration || {};
                 return (
-                  <div key={item.id} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-3">
+                <div key={item.id} className="border rounded-lg p-4">
+                    <div className="flex gap-4 items-start mb-3">
+                      {item.cabinet_types?.product_image_url && (
+                        <img 
+                          src={item.cabinet_types.product_image_url} 
+                          alt={item.cabinet_types?.name || 'Cabinet'}
+                          className="w-20 h-20 object-cover rounded border"
+                        />
+                      )}
                       <div className="flex-1">
                         <h4 className="font-semibold text-lg">{item.cabinet_types?.name || 'Cabinet'}</h4>
                       </div>

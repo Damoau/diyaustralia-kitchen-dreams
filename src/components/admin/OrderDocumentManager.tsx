@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Upload, FileText, Send, Loader2 } from 'lucide-react';
+import { Upload, FileText, Send, Loader2, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
 interface OrderDocumentManagerProps {
@@ -25,33 +26,33 @@ export function OrderDocumentManager({ orderId, onDocumentUploaded }: OrderDocum
   const [requiresSignature, setRequiresSignature] = useState(false);
   const { toast } = useToast();
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (!selectedFile) return;
-
-    if (selectedFile.type !== 'application/pdf') {
-      toast({
-        title: 'Invalid file type',
-        description: 'Only PDF files are allowed',
-        variant: 'destructive'
-      });
-      return;
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0) {
+      const selectedFile = acceptedFiles[0];
+      setFile(selectedFile);
+      if (!title) {
+        setTitle(selectedFile.name.replace(/\.[^/.]+$/, ''));
+      }
     }
+  }, [title]);
 
-    if (selectedFile.size > 10 * 1024 * 1024) {
-      toast({
-        title: 'File too large',
-        description: 'Maximum file size is 10MB',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    setFile(selectedFile);
-    if (!title) {
-      setTitle(selectedFile.name.replace('.pdf', ''));
-    }
-  };
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: documentType === 'customer_plan' 
+      ? {
+          'application/pdf': ['.pdf'],
+          'image/jpeg': ['.jpg', '.jpeg'],
+          'image/png': ['.png'],
+          'image/webp': ['.webp'],
+          'application/acad': ['.dwg'],
+          'application/dxf': ['.dxf']
+        }
+      : {
+          'application/pdf': ['.pdf']
+        },
+    maxSize: documentType === 'customer_plan' ? 20 * 1024 * 1024 : 10 * 1024 * 1024,
+    maxFiles: 1
+  });
 
   const handleUpload = async () => {
     if (!file || !title) {
@@ -185,41 +186,84 @@ export function OrderDocumentManager({ orderId, onDocumentUploaded }: OrderDocum
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Upload Drawing Documents
+          Upload Documents
         </CardTitle>
         <CardDescription>
-          Upload PDF drawings for customer approval
+          Upload drawings or customer plans for approval
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="document-type">Document Type</Label>
-          <Select value={documentType} onValueChange={setDocumentType}>
+          <Select value={documentType} onValueChange={(value: any) => {
+            setDocumentType(value);
+            setFile(null); // Reset file when type changes
+          }}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="drawing">Drawing</SelectItem>
+              <SelectItem value="drawing">Technical Drawing</SelectItem>
+              <SelectItem value="customer_plan">Customer Plan</SelectItem>
               <SelectItem value="specification">Specification</SelectItem>
               <SelectItem value="contract">Contract</SelectItem>
               <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
+          {documentType === 'customer_plan' && (
+            <p className="text-xs text-muted-foreground">
+              Supports PDF, images (JPG, PNG, WEBP), and CAD files (DWG, DXF) up to 20MB
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="file-upload">PDF File (Max 10MB)</Label>
-          <Input
-            id="file-upload"
-            type="file"
-            accept="application/pdf"
-            onChange={handleFileSelect}
-            disabled={uploading}
-          />
+          <Label>File Upload</Label>
+          <div
+            {...getRootProps()}
+            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+              isDragActive 
+                ? 'border-primary bg-primary/5' 
+                : 'border-muted-foreground/25 hover:border-primary/50'
+            }`}
+          >
+            <input {...getInputProps()} disabled={uploading} />
+            <Upload className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
+            {isDragActive ? (
+              <p className="text-sm text-muted-foreground">Drop the file here...</p>
+            ) : (
+              <>
+                <p className="text-sm font-medium mb-1">
+                  Drag & drop your file here, or click to browse
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {documentType === 'customer_plan' 
+                    ? 'PDF, Images, or CAD files up to 20MB'
+                    : 'PDF files up to 10MB'}
+                </p>
+              </>
+            )}
+          </div>
           {file && (
-            <Badge variant="secondary" className="mt-2">
-              {file.name} ({(file.size / 1024).toFixed(0)} KB)
-            </Badge>
+            <div className="flex items-center justify-between mt-3 p-3 bg-muted rounded-lg">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">{file.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFile(null)}
+                disabled={uploading}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           )}
         </div>
 

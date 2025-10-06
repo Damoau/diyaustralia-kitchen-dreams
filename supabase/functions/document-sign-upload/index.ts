@@ -11,7 +11,7 @@ interface UploadRequest {
   contentType: string;
   fileSize: number;
   orderId: string;
-  documentType: 'drawing' | 'specification' | 'contract' | 'invoice' | 'other';
+  documentType: 'drawing' | 'specification' | 'contract' | 'invoice' | 'customer_plan' | 'other';
   title: string;
   description?: string;
   requiresSignature?: boolean;
@@ -44,14 +44,35 @@ serve(async (req) => {
     const body: UploadRequest = await req.json();
     const { filename, contentType, fileSize, orderId, documentType, title, description, requiresSignature } = body;
 
-    // Validate file type (PDF only)
-    if (contentType !== 'application/pdf') {
-      throw new Error('Only PDF files are allowed');
+    // Define allowed MIME types based on document type
+    const allowedTypes = documentType === 'customer_plan'
+      ? [
+          'application/pdf',
+          'image/jpeg',
+          'image/png',
+          'image/webp',
+          'application/acad',
+          'application/dxf',
+          'image/vnd.dwg',
+          'application/x-dwg'
+        ]
+      : ['application/pdf'];
+
+    // Validate file type
+    if (!allowedTypes.includes(contentType)) {
+      throw new Error(
+        documentType === 'customer_plan'
+          ? 'Only PDF, images (JPG, PNG, WEBP), and CAD files (DWG, DXF) are allowed for customer plans'
+          : 'Only PDF files are allowed'
+      );
     }
 
-    // Validate file size (max 10MB)
-    if (fileSize > 10 * 1024 * 1024) {
-      throw new Error('File size exceeds 10MB limit');
+    // Validate file size (max 20MB for customer plans, 10MB for others)
+    const maxSize = documentType === 'customer_plan' ? 20 * 1024 * 1024 : 10 * 1024 * 1024;
+    if (fileSize > maxSize) {
+      throw new Error(
+        `File size exceeds ${documentType === 'customer_plan' ? '20MB' : '10MB'} limit`
+      );
     }
 
     console.log("[DOCUMENT-SIGN-UPLOAD] Validations passed, creating document record");

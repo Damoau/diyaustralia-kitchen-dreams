@@ -73,7 +73,10 @@ export function DocumentApprovalDashboard() {
             drawing_approved,
             drawing_approved_by,
             drawing_approved_at,
-            cabinet_types (name),
+            cabinet_types (
+              name,
+              product_image_url
+            ),
             door_styles (name),
             colors (name),
             finishes (name)
@@ -329,6 +332,13 @@ export function DocumentApprovalDashboard() {
                                 onCheckedChange={() => toggleCabinetApproval(item.id, item.drawing_approved)}
                                 className="mt-0.5"
                               />
+                              {item.cabinet_types?.product_image_url && (
+                                <img 
+                                  src={item.cabinet_types.product_image_url} 
+                                  alt={item.cabinet_types?.name || 'Cabinet'}
+                                  className="w-12 h-12 object-cover rounded border flex-shrink-0"
+                                />
+                              )}
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium">
                                   {item.cabinet_types?.name || 'Cabinet'} 
