@@ -67,6 +67,10 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [calculatedShippingCost, setCalculatedShippingCost] = useState<number>(0);
   const [debouncedPostcode, setDebouncedPostcode] = useState<string>('');
+  const [assemblyPostcodeMismatch, setAssemblyPostcodeMismatch] = useState<{
+    hasMismatch: boolean;
+    cartAssemblyPostcodes: string[];
+  }>({ hasMismatch: false, cartAssemblyPostcodes: [] });
 
   // Default delivery options (would typically come from API)
   const baseDeliveryOptions: DeliveryOption[] = [
@@ -191,6 +195,38 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
     }, 300);
     return () => clearTimeout(timer);
   }, [shippingAddress.postcode]);
+
+  // Check for assembly postcode mismatches whenever postcode changes
+  useEffect(() => {
+    if (debouncedPostcode.length === 4 && cart?.items) {
+      const cartAssemblyPostcodes: string[] = [];
+      
+      // Check all cart items for assembly configuration
+      cart.items.forEach((item: any) => {
+        if (item.configuration?.assembly?.enabled && item.configuration?.assembly?.postcode) {
+          cartAssemblyPostcodes.push(item.configuration.assembly.postcode);
+        }
+      });
+
+      // Check if delivery postcode matches any assembly postcodes
+      const hasMismatch = cartAssemblyPostcodes.length > 0 && 
+                          !cartAssemblyPostcodes.includes(debouncedPostcode);
+
+      setAssemblyPostcodeMismatch({
+        hasMismatch,
+        cartAssemblyPostcodes: [...new Set(cartAssemblyPostcodes)] // Remove duplicates
+      });
+
+      if (hasMismatch) {
+        console.warn('⚠️ Assembly postcode mismatch detected:', {
+          deliveryPostcode: debouncedPostcode,
+          assemblyPostcodes: cartAssemblyPostcodes
+        });
+      }
+    } else {
+      setAssemblyPostcodeMismatch({ hasMismatch: false, cartAssemblyPostcodes: [] });
+    }
+  }, [debouncedPostcode, cart?.items]);
 
   // Show delivery options immediately when postcode is valid
   useEffect(() => {
@@ -439,6 +475,31 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
             </div>
           </div>
 
+          {/* Assembly Postcode Mismatch Warning */}
+          {assemblyPostcodeMismatch.hasMismatch && (
+            <Alert variant="destructive" className="mt-4">
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Assembly Postcode Mismatch!</strong>
+                <p className="mt-1">
+                  Your cart contains items with assembly service for postcode(s):{' '}
+                  <strong>{assemblyPostcodeMismatch.cartAssemblyPostcodes.join(', ')}</strong>
+                </p>
+                <p className="mt-1">
+                  Your delivery postcode is <strong>{shippingAddress.postcode}</strong>.
+                  Assembly service must be delivered to the same postcode where it was configured.
+                </p>
+                <p className="mt-2 text-sm">
+                  Please either:
+                  <ul className="list-disc ml-5 mt-1">
+                    <li>Update your delivery postcode to match the assembly postcode, or</li>
+                    <li>Remove assembly service from your cart items and reconfigure them</li>
+                  </ul>
+                </p>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Removed redundant EnhancedShippingCalculator for performance */}
 
           {/* Delivery Options */}
@@ -533,9 +594,45 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
             </Alert>
           )}
 
-          <Button type="submit" className="w-full" disabled={!postcodeChecked || !selectedDelivery}>
+          {/* Assembly Postcode Mismatch Warning */}
+          {assemblyPostcodeMismatch.hasMismatch && (
+            <Alert variant="destructive">
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                <strong>⚠️ Assembly Postcode Mismatch!</strong>
+                <p className="mt-2">
+                  Your cart contains items with assembly service configured for postcode(s):{' '}
+                  <strong>{assemblyPostcodeMismatch.cartAssemblyPostcodes.join(', ')}</strong>
+                </p>
+                <p className="mt-2">
+                  Your delivery postcode is <strong>{shippingAddress.postcode}</strong>.
+                </p>
+                <p className="mt-2 font-medium">
+                  Assembly service must be delivered to the same postcode where it was configured.
+                </p>
+                <div className="mt-3 text-sm">
+                  <p className="font-medium mb-1">To resolve this:</p>
+                  <ul className="list-disc ml-5 space-y-1">
+                    <li>Change your delivery postcode to match: {assemblyPostcodeMismatch.cartAssemblyPostcodes.join(' or ')}</li>
+                    <li>Or remove assembly from your cart items and reconfigure</li>
+                  </ul>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={!postcodeChecked || !selectedDelivery || assemblyPostcodeMismatch.hasMismatch}
+          >
             Continue to Payment
           </Button>
+          {assemblyPostcodeMismatch.hasMismatch && (
+            <p className="text-sm text-destructive text-center -mt-2">
+              Please resolve the assembly postcode mismatch before continuing
+            </p>
+          )}
         </form>
       </CardContent>
     </Card>

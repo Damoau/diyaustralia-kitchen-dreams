@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Mail, Lock, User, Phone, Building } from 'lucide-react';
 import { useCheckout, type IdentifyPayload } from '@/hooks/useCheckout';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CustomerIdentifyProps {
   checkoutId: string;
@@ -36,31 +37,67 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
   const { identifyCustomer, isLoading, validateEmail, validatePhone } = useCheckout();
   const { user } = useAuth();
 
-  // Skip identify step if already signed in
+  // Skip identify step if already signed in and fetch profile data
   React.useEffect(() => {
-    if (user && !hasAutoIdentified) {
-      setHasAutoIdentified(true);
-      console.log('🔐 User already authenticated, auto-proceeding...');
-      
-      // Auto-populate and proceed for signed-in users
-      const payload: IdentifyPayload = {
-        mode: 'guest', // Treat as guest but with auth
-        email: user.email || '',
-        phone: '',
-        first_name: user.user_metadata?.first_name || '',
-        last_name: user.user_metadata?.last_name || '',
-        consents: {
-          terms: true,
-          privacy: true,
-          marketing: false,
-        },
-      };
+    const autoFillForLoggedInUser = async () => {
+      if (user && !hasAutoIdentified) {
+        setHasAutoIdentified(true);
+        console.log('🔐 User already authenticated, fetching profile data...');
+        
+        // Fetch user profile data
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
 
-      identifyCustomer(checkoutId, payload).then((result) => {
-        console.log('✅ Auto-identify complete:', result);
-        onComplete(result);
-      });
-    }
+          // Parse display name into first/last name
+          const displayName = profile?.display_name || '';
+          const nameParts = displayName.split(' ');
+          const firstName = nameParts[0] || user.user_metadata?.first_name || '';
+          const lastName = nameParts.slice(1).join(' ') || user.user_metadata?.last_name || '';
+
+          const payload: IdentifyPayload = {
+            mode: 'guest',
+            email: user.email || '',
+            phone: profile?.phone || user.user_metadata?.phone || '',
+            first_name: firstName,
+            last_name: lastName,
+            company: user.user_metadata?.company || '',
+            abn: user.user_metadata?.abn || '',
+            consents: {
+              terms: true,
+              privacy: true,
+              marketing: false,
+            },
+          };
+
+          console.log('✅ Auto-filling with user data:', payload);
+          await identifyCustomer(checkoutId, payload);
+          onComplete(payload);
+        } catch (error) {
+          console.error('Error fetching profile:', error);
+          // Proceed with basic user data
+          const payload: IdentifyPayload = {
+            mode: 'guest',
+            email: user.email || '',
+            phone: user.user_metadata?.phone || '',
+            first_name: user.user_metadata?.first_name || '',
+            last_name: user.user_metadata?.last_name || '',
+            consents: {
+              terms: true,
+              privacy: true,
+              marketing: false,
+            },
+          };
+          await identifyCustomer(checkoutId, payload);
+          onComplete(payload);
+        }
+      }
+    };
+
+    autoFillForLoggedInUser();
   }, [user, checkoutId, hasAutoIdentified, identifyCustomer, onComplete]);
 
   const handleInputChange = (field: string, value: string | boolean) => {

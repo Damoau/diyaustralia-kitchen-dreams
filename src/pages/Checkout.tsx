@@ -192,7 +192,7 @@ const Checkout = () => {
         
         // For non-Stripe payments, create order
         if (data.paymentMethod !== 'stripe') {
-          console.log('Creating order for payment method:', data.paymentMethod);
+          console.log('Creating order for payment method:', data.paymentMethod, 'paymentType:', data.paymentType);
           
           const { data: orderData, error: orderError } = await supabase.functions.invoke(
             'create-order-from-checkout',
@@ -200,6 +200,7 @@ const Checkout = () => {
               body: {
                 checkoutId,
                 paymentMethod: data.paymentMethod,
+                paymentType: data.paymentType || 'full',
                 paymentReference: null,
               }
             }
