@@ -29,7 +29,7 @@ interface SequenceStep {
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { cart, isLoading: cartLoading, getTotalItems, getTotalPrice } = useCartOptimized();
+  const { cart, isLoading: cartLoading, getTotalItems, getTotalPrice, refreshCart } = useCartOptimized();
   const { startCheckout } = useCheckout();
   
   // Get payment type from URL
@@ -39,6 +39,7 @@ const Checkout = () => {
   
   const [currentStep, setCurrentStep] = useState('identity');
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
+  const [cartId, setCartId] = useState<string | null>(null); // CRITICAL: Store cart ID explicitly
   const [customerData, setCustomerData] = useState<any>(null);
   const [orderSummary, setOrderSummary] = useState({
     subtotal: 0,
@@ -108,6 +109,8 @@ const Checkout = () => {
       }
 
       console.log('✅ CHECKOUT: Cart validated, creating session...');
+      console.log('📌 Saving cart ID for checkout:', cart.id);
+      setCartId(cart.id); // CRITICAL: Store cart ID to prevent loss
 
       try {
         const checkout = await startCheckout(cart.id);
@@ -135,6 +138,10 @@ const Checkout = () => {
     if (stepId === 'identity') {
       console.log('🔐 Identity step complete, storing customer data...');
       setCustomerData(data);
+      
+      // CRITICAL: After authentication, refresh cart to get migrated cart
+      console.log('🔄 Refreshing cart after authentication...');
+      await refreshCart();
       
       // Move to shipping step
       console.log('🚚 Transitioning to shipping step...');
@@ -287,6 +294,45 @@ const Checkout = () => {
     );
   }
 
+  // CRITICAL: Only show empty cart error if we're sure there's no cart
+  // Don't show during step transitions when cart might be reloading
+  if (!cart?.items?.length && !cartLoading && cartId) {
+    console.error('❌ CART LOST during checkout! Cart ID was:', cartId);
+    console.error('❌ Current cart state:', cart);
+    
+    return (
+      <ImpersonationLayout>
+        <SEOTags pageType="static" pageIdentifier="/checkout" />
+        <div className="min-h-screen bg-background">
+          <DynamicHeader />
+          <main className="container mx-auto px-4 py-8 mobile-safe-bottom">
+            <Card className="text-center py-12">
+              <CardContent>
+                <ShoppingCart className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                <h2 className="text-xl font-semibold mb-2">Cart Loading Error</h2>
+                <p className="text-muted-foreground mb-6">
+                  We're having trouble loading your cart. Please try again.
+                </p>
+                <div className="space-y-2">
+                  <Button onClick={() => {
+                    refreshCart();
+                    window.location.reload();
+                  }}>
+                    Reload Page
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate("/cart")}>
+                    Return to Cart
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </main>
+          <Footer />
+        </div>
+      </ImpersonationLayout>
+    );
+  }
+  
   if (!cart?.items?.length) {
     return (
       <ImpersonationLayout>

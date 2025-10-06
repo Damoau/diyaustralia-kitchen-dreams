@@ -170,9 +170,32 @@ export const useCheckout = () => {
         marketing_opt_in: payload.consents.marketing,
       };
 
-      // If authenticated, link user to checkout
+      // If authenticated, link user to checkout AND migrate cart
       if (authResult?.user) {
         updateData.user_id = authResult.user.id;
+        
+        // CRITICAL FIX: Migrate cart to user when they authenticate
+        const { data: checkoutData } = await supabase
+          .from('checkouts')
+          .select('cart_id')
+          .eq('id', checkoutId)
+          .single();
+        
+        if (checkoutData?.cart_id) {
+          console.log('🔄 Migrating cart to authenticated user:', { 
+            cartId: checkoutData.cart_id, 
+            userId: authResult.user.id 
+          });
+          
+          await supabase
+            .from('carts')
+            .update({ 
+              user_id: authResult.user.id,
+              session_id: null,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', checkoutData.cart_id);
+        }
       }
 
       const { data: updatedCheckout, error: updateError } = await supabase

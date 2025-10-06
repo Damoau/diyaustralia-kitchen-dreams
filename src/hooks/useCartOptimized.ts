@@ -80,19 +80,16 @@ export const useCartOptimized = () => {
     queryKey: ['cart', identifier],
     queryFn: async () => {
       const sessionId = getSessionId();
-      const filter = user?.id 
-        ? { user_id: user.id }
-        : { session_id: sessionId };
       
-      console.log('🛒 Cart query:', { 
-        filter, 
+      console.log('🛒 Cart query starting:', { 
         userId: user?.id, 
-        sessionId: !user?.id ? sessionId : 'N/A (authenticated)' 
+        sessionId: sessionId,
+        isAuthenticated: !!user?.id
       });
       
-      // CRITICAL FIX: First try to find cart WITH items (total_amount > 0)
-      // This prevents selecting empty carts that were created during navigation
-      let { data, error } = await supabase
+      // CRITICAL FIX: For authenticated users, check BOTH user_id AND session_id
+      // This handles the case where a cart was created anonymously then user logged in
+      let query = supabase
         .from('carts')
         .select(`
           id,
@@ -138,154 +135,113 @@ export const useCartOptimized = () => {
             )
           )
         `)
-        .match(filter)
         .eq('status', 'active')
-        .gt('total_amount', 0)  // PRIORITY: Carts with items
-        .order('updated_at', { ascending: false })  // Most recently used
-        .limit(1)
-        .maybeSingle();
+        .gt('total_amount', 0)
+        .order('updated_at', { ascending: false })
+        .limit(1);
       
-      // If no cart with items found, fallback to any active cart
-      if (!data && !error) {
-        console.log('⚠️ No cart with items found, checking for empty carts');
-        const fallbackResult = await supabase
-          .from('carts')
-          .select(`
-            id,
-            user_id,
-            session_id,
-            name,
-            total_amount,
-            status,
-            created_at,
-            updated_at,
-            cart_items (
-              id,
-              cart_id,
-              cabinet_type_id,
-              door_style_id,
-              color_id,
-              finish_id,
-              width_mm,
-              height_mm,
-              depth_mm,
-              quantity,
-              unit_price,
-              total_price,
-              notes,
-              configuration,
-              created_at,
-              updated_at,
-              cabinet_types (
-                name,
-                category,
-                product_image_url
-              ),
-              door_styles (
-                name,
-                image_url
-              ),
-              colors (
-                name,
-                hex_code
-              ),
-              finishes (
-                name
-              )
-            )
-          `)
-          .match(filter)
-          .eq('status', 'active')
-          .order('updated_at', { ascending: false })
-          .limit(1)
+      // Apply filter based on auth status
+      if (user?.id) {
+        // For authenticated users: Find cart by user_id OR session_id
+        const { data, error } = await query
+          .or(`user_id.eq.${user.id},session_id.eq.${sessionId}`)
           .maybeSingle();
         
-        data = fallbackResult.data;
-        error = fallbackResult.error;
+        console.log('🛒 Authenticated cart query result:', { 
+          cartId: data?.id, 
+          itemCount: data?.cart_items?.length || 0,
+          totalAmount: data?.total_amount || 0
+        });
+      
+        if (error) throw error;
+        if (data) return data;
+      
+      } else {
+        // For anonymous users: Find cart by session_id only
+        const { data, error } = await query
+          .eq('session_id', sessionId)
+          .maybeSingle();
+        
+        console.log('🛒 Anonymous cart query result:', { 
+          cartId: data?.id, 
+          itemCount: data?.cart_items?.length || 0,
+          totalAmount: data?.total_amount || 0
+        });
+        
+        if (error) throw error;
+        if (data) return data;
       }
       
-      console.log('📦 Cart query result:', { 
-        cartId: data?.id, 
-        itemCount: data?.cart_items?.length || 0,
-        totalAmount: data?.total_amount || 0,
-        error: error?.message 
-      });
-
-      if (error) throw error;
+      // No cart with items found - create new one
+      console.log('🆕 Creating new cart (no cart with items found)');
+      // Create new cart
+      const cartData = user 
+        ? { 
+            user_id: user.id,
+            name: 'My Cabinet Quote',
+            status: 'active',
+            total_amount: 0
+          }
+        : {
+            session_id: sessionId,
+            name: 'My Cabinet Quote', 
+            status: 'active',
+            total_amount: 0
+          };
       
-      if (!data) {
-        console.log('🆕 Creating new cart');
-        // Create new cart
-        const cartData = user 
-          ? { 
-              user_id: user.id,
-              name: 'My Cabinet Quote',
-              status: 'active',
-              total_amount: 0
-            }
-          : {
-              session_id: sessionId,
-              name: 'My Cabinet Quote', 
-              status: 'active',
-              total_amount: 0
-            };
-        
-        console.log('💾 Cart data to insert:', cartData);
+      console.log('💾 Cart data to insert:', cartData);
 
-        const { data: newCart, error: createError } = await supabase
-          .from('carts')
-          .insert(cartData)
-          .select(`
+      const { data: newCart, error: createError } = await supabase
+        .from('carts')
+        .insert(cartData)
+        .select(`
+          id,
+          user_id,
+          session_id,
+          name,
+          total_amount,
+          status,
+          created_at,
+          updated_at,
+          cart_items (
             id,
-            user_id,
-            session_id,
-            name,
-            total_amount,
-            status,
+            cart_id,
+            cabinet_type_id,
+            door_style_id,
+            color_id,
+            finish_id,
+            width_mm,
+            height_mm,
+            depth_mm,
+            quantity,
+            unit_price,
+            total_price,
+            notes,
+            configuration,
             created_at,
             updated_at,
-            cart_items (
-              id,
-              cart_id,
-              cabinet_type_id,
-              door_style_id,
-              color_id,
-              finish_id,
-              width_mm,
-              height_mm,
-              depth_mm,
-              quantity,
-              unit_price,
-              total_price,
-              notes,
-              configuration,
-              created_at,
-              updated_at,
-              cabinet_types (
-                name,
-                category,
-                product_image_url
-              ),
-              door_styles (
-                name,
-                image_url
-              ),
-              colors (
-                name,
-                hex_code
-              ),
-              finishes (
-                name
-              )
+            cabinet_types (
+              name,
+              category,
+              product_image_url
+            ),
+            door_styles (
+              name,
+              image_url
+            ),
+            colors (
+              name,
+              hex_code
+            ),
+            finishes (
+              name
             )
-          `)
-          .single();
+          )
+        `)
+        .single();
 
-        if (createError) throw createError;
-        return newCart;
-      }
-      
-      return data;
+      if (createError) throw createError;
+      return newCart;
     },
     staleTime: 10 * 1000, // 10 seconds - reduced for better checkout reliability
     gcTime: 5 * 60 * 1000, // 5 minutes
