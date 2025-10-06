@@ -202,8 +202,9 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
       const cartAssemblyPostcodes: string[] = [];
       
       // Check all cart items for assembly configuration
+      // Assembly object presence means assembly is enabled
       cart.items.forEach((item: any) => {
-        if (item.configuration?.assembly?.enabled && item.configuration?.assembly?.postcode) {
+        if (item.configuration?.assembly && item.configuration.assembly.postcode) {
           cartAssemblyPostcodes.push(item.configuration.assembly.postcode);
         }
       });
