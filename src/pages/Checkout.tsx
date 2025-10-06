@@ -150,7 +150,7 @@ const Checkout = () => {
     initCheckout();
   }, [cart, cartLoading, startCheckout, navigate]);
 
-  const handleStepComplete = (stepId: string, data?: any) => {
+  const handleStepComplete = async (stepId: string, data?: any) => {
     console.log(`✅ Step ${stepId} completed with data:`, data);
     
     // Store step data and update step status
@@ -209,6 +209,32 @@ const Checkout = () => {
       console.log('💳 Transitioning to payment step...');
       setCurrentStep('payment');
       toast.success('Delivery options saved! Ready for payment.');
+      
+    } else if (stepId === 'payment') {
+      console.log('💳 Payment step complete, processing order...');
+      
+      try {
+        // Mark payment step as completed
+        const updatedSteps = steps.map(step => {
+          if (step.id === 'payment') return { ...step, status: 'completed' as const };
+          return step;
+        });
+        
+        // For bank transfer and quote requests, create order and show confirmation
+        if (data.paymentMethod === 'bank_transfer' || data.paymentMethod === 'quote_request') {
+          toast.success('Order submitted! Redirecting to confirmation...');
+          
+          // TODO: Create order in database here
+          // For now, just redirect to success page
+          setTimeout(() => {
+            navigate('/checkout/success?method=' + data.paymentMethod);
+          }, 1000);
+        }
+        
+      } catch (error) {
+        console.error('Error processing payment:', error);
+        toast.error('Failed to process payment. Please try again.');
+      }
     }
   };
 
