@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Package, Truck, Clock, CheckCircle, AlertCircle, Eye } from 'lucide-react';
+import { Package, Truck, Clock, CheckCircle, AlertCircle, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { OrderDetailView } from './OrderDetailView';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 interface Order {
   id: string;
@@ -28,17 +29,23 @@ export const OrderManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ordersPerPage = 10;
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch orders
-  const { data: orders, isLoading } = useQuery({
-    queryKey: ['admin-orders', statusFilter, searchTerm],
+  // Fetch orders with pagination
+  const { data: ordersData, isLoading } = useQuery({
+    queryKey: ['admin-orders', statusFilter, searchTerm, currentPage],
     queryFn: async () => {
+      const from = (currentPage - 1) * ordersPerPage;
+      const to = from + ordersPerPage - 1;
+
       let query = supabase
         .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*, order_items(count)', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter);
@@ -48,11 +55,14 @@ export const OrderManagement = () => {
         query = query.or(`order_number.ilike.%${searchTerm}%,customer_email.ilike.%${searchTerm}%`);
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data as Order[];
+      return { orders: data as Order[], total: count || 0 };
     },
   });
+
+  const orders = ordersData?.orders || [];
+  const totalPages = Math.ceil((ordersData?.total || 0) / ordersPerPage);
 
   // Update order status mutation
   const updateOrderMutation = useMutation({
@@ -261,6 +271,50 @@ export const OrderManagement = () => {
             <p className="text-muted-foreground">No orders found</p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-8">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </Button>
+              </PaginationItem>
+              
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    onClick={() => setCurrentPage(page)}
+                    isActive={currentPage === page}
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              
+              <PaginationItem>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
       )}
 
       {/* Order Detail Dialog */}

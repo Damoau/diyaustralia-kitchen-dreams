@@ -9,7 +9,6 @@ import { UserRoleProvider } from './UserRoleContext';
 const Production = lazy(() => import('@/pages/admin/Production'));
 const CartsList = lazy(() => import('@/pages/admin/CartsList'));
 const AdminOverview = lazy(() => import('@/components/admin/AdminOverview'));
-const AdminOrders = lazy(() => import('@/components/admin/AdminOrders'));
 const AdminShipping = lazy(() => import('@/components/admin/AdminShipping'));
 const SecurityDashboard = lazy(() => import('@/components/admin/SecurityDashboard'));
 const EnhancedRoleManagement = lazy(() => import('@/components/admin/EnhancedRoleManagement'));
@@ -65,7 +64,7 @@ export const AdminRouter = () => {
             <Route path="sales/cart-activity" element={<CartActivity />} />
             
             {/* Operations */}
-            <Route path="orders" element={<AdminOrders />} />
+            <Route path="orders" element={<Suspense fallback={<PageLoader />}><LazyOrderManagement /></Suspense>} />
             <Route path="document-approvals" element={<Suspense fallback={<PageLoader />}><DocumentApprovals /></Suspense>} />
             <Route path="production" element={<Production />} />
             <Route path="shipping" element={<AdminShipping />} />
