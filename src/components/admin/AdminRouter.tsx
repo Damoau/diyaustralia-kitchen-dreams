@@ -45,6 +45,7 @@ const LazySEOManagement = lazy(() => import('@/pages/admin/SEOManagement'));
 import CartSystemHealth from "@/pages/admin/CartSystemHealth";
 import UserBehaviorAnalytics from "@/pages/admin/UserBehaviorAnalytics";
 const DocumentApprovals = lazy(() => import("@/pages/admin/DocumentApprovals"));
+const AIWorkflowAnalyzer = lazy(() => import("@/pages/admin/AIWorkflowAnalyzer"));
 
 export const AdminRouter = () => {
   return (
@@ -106,6 +107,7 @@ export const AdminRouter = () => {
             {/* System */}
             <Route path="security" element={<SecurityDashboard />} />
             <Route path="ai-assistant" element={<AdminAIAssistant />} />
+            <Route path="ai-analyzer" element={<AIWorkflowAnalyzer />} />
             <Route path="testing" element={<TestingPlaceholder />} />
             <Route path="cart-system-health" element={<CartSystemHealth />} />
             <Route path="user-behavior-analytics" element={<UserBehaviorAnalytics />} />

@@ -35,6 +35,7 @@ import {
   List,
   BarChart3,
   Bot,
+  Brain,
 } from 'lucide-react';
 
 const navigationItems = [
@@ -97,6 +98,7 @@ const navigationItems = [
     items: [
       { title: 'Security', url: 'security', icon: Shield },
       { title: 'AI Assistant', url: 'ai-assistant', icon: Bot },
+      { title: 'AI Workflow Analyzer', url: 'ai-analyzer', icon: Brain },
       { title: 'Testing', url: 'testing', icon: TestTube },
       { title: 'Notifications', url: 'notifications', icon: Bell },
       { title: 'Settings', url: 'settings', icon: Settings },
