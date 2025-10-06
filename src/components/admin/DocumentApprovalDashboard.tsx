@@ -238,6 +238,20 @@ export function DocumentApprovalDashboard() {
   };
 
   const handleSendViaDocuSeal = async (orderId: string, documentId: string) => {
+    // Show instructions for first-time users
+    const proceed = confirm(
+      '⚠️ DOCUSEAL TEMPLATE REQUIRED\n\n' +
+      'Before sending, you need to:\n\n' +
+      '1. Create a template in DocuSeal dashboard (docuseal.co)\n' +
+      '2. Add signature fields to the template\n' +
+      '3. Get the template ID\n' +
+      '4. Add it to your edge function\n\n' +
+      'Without a template, the document will be sent WITHOUT signature fields.\n\n' +
+      'Do you want to continue anyway?'
+    );
+
+    if (!proceed) return;
+
     try {
       const { data: doc } = await supabase
         .from('order_documents')
