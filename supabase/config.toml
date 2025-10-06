@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.geocode-postcode]
 verify_jwt = false
+
+[functions.send-document-reminders]
+verify_jwt = false

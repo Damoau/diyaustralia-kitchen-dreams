@@ -16,9 +16,9 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { checkoutId, paymentReference, paymentMethod } = await req.json();
+    const { checkoutId, paymentReference, paymentMethod, paymentType = 'full' } = await req.json();
 
-    console.log('Creating order from checkout:', { checkoutId, paymentMethod });
+    console.log('Creating order from checkout:', { checkoutId, paymentMethod, paymentType });
 
     // 1. Fetch and validate checkout
     const { data: checkout, error: checkoutError } = await supabase
@@ -90,8 +90,9 @@ serve(async (req) => {
         user_id: checkout.user_id,
         session_id: checkout.session_id,
         status: 'pending',
-        payment_status: paymentMethod === 'stripe' ? 'paid' : 'pending',
+        payment_status: paymentType === 'deposit' ? 'partial' : (paymentMethod === 'stripe' ? 'paid' : 'pending'),
         payment_method: paymentMethod,
+        payment_type: paymentType,
         subtotal,
         gst_amount: gstAmount,
         total_amount: totalAmount,
@@ -102,6 +103,7 @@ serve(async (req) => {
         customer_abn: checkout.customer_abn,
         shipping_method: 'standard',
         target_completion: defaultDueDate,
+        drawings_status: paymentType === 'deposit' ? 'pending_upload' : 'not_required',
         notes: checkout.how_heard ? `How they heard about us: ${checkout.how_heard}` : null,
       })
       .select()
@@ -141,12 +143,14 @@ serve(async (req) => {
 
     // 7. Create payment record
     if (paymentMethod && paymentMethod !== 'quote_request') {
+      const paymentAmount = paymentType === 'deposit' ? totalAmount * 0.20 : totalAmount;
+      
       const { error: paymentError } = await supabase
         .from('payments')
         .insert({
           order_id: order.id,
           checkout_id: checkoutId,
-          amount: paymentMethod === 'bank_transfer' ? totalAmount * 0.20 : totalAmount, // 20% deposit for bank transfer
+          amount: paymentAmount,
           payment_method: paymentMethod,
           payment_status: paymentMethod === 'stripe' ? 'completed' : 'pending',
           external_payment_id: paymentReference,
@@ -158,15 +162,69 @@ serve(async (req) => {
       }
     }
 
-    // 8. Generate payment schedules (20/80 split for bank transfer and quote)
-    if (paymentMethod === 'bank_transfer' || paymentMethod === 'quote_request') {
+    // 8. Generate payment schedules
+    if (paymentType === 'deposit') {
+      // Create 3-stage payment schedule: 20% deposit, 30% progress, 50% final
+      const depositAmount = totalAmount * 0.20;
+      const progressAmount = totalAmount * 0.30;
+      const finalAmount = totalAmount * 0.50;
+
+      const depositDueDate = new Date();
+      depositDueDate.setDate(depositDueDate.getDate() + 7); // 7 days from now
+
+      const paymentSchedules = [
+        {
+          order_id: order.id,
+          schedule_type: 'deposit',
+          percentage: 20,
+          amount: depositAmount,
+          due_date: depositDueDate.toISOString().split('T')[0],
+          trigger_event: 'order_created',
+          requires_document_approval: false,
+          unlocked_at: new Date().toISOString(),
+          status: paymentMethod === 'stripe' ? 'paid' : 'pending'
+        },
+        {
+          order_id: order.id,
+          schedule_type: 'progress',
+          percentage: 30,
+          amount: progressAmount,
+          due_date: null, // Set after drawing approval
+          trigger_event: 'drawings_approved',
+          requires_document_approval: true,
+          unlocked_at: null, // Locked until drawings approved
+          status: 'pending'
+        },
+        {
+          order_id: order.id,
+          schedule_type: 'balance',
+          percentage: 50,
+          amount: finalAmount,
+          due_date: null, // Set before delivery
+          trigger_event: 'ready_for_delivery',
+          requires_document_approval: false,
+          unlocked_at: null, // Locked until production complete
+          status: 'pending'
+        }
+      ];
+
+      const { error: schedulesError } = await supabase
+        .from('payment_schedules')
+        .insert(paymentSchedules);
+
+      if (schedulesError) {
+        console.error('Error creating payment schedules:', schedulesError);
+      } else {
+        console.log('3-stage payment schedule created successfully');
+      }
+    } else if (paymentMethod === 'bank_transfer' || paymentMethod === 'quote_request') {
+      // Legacy: 20/80 split for bank transfer and quote
       try {
         await supabase.rpc('generate_milestone_invoices', {
           p_order_id: order.id
         });
       } catch (error) {
         console.error('Error generating payment schedules:', error);
-        // Non-critical, continue
       }
     }
 

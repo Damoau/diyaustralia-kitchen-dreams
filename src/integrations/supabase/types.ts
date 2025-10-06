@@ -1703,6 +1703,104 @@ export type Database = {
           },
         ]
       }
+      document_annotations: {
+        Row: {
+          annotation_data: Json
+          annotation_type: string
+          created_at: string | null
+          document_id: string
+          id: string
+          page_number: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          annotation_data: Json
+          annotation_type: string
+          created_at?: string | null
+          document_id: string
+          id?: string
+          page_number: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          annotation_data?: Json
+          annotation_type?: string
+          created_at?: string | null
+          document_id?: string
+          id?: string
+          page_number?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_annotations_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "order_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_reminders: {
+        Row: {
+          created_at: string | null
+          days_between_reminders: number | null
+          document_id: string | null
+          id: string
+          max_reminders: number | null
+          next_reminder_at: string | null
+          order_id: string
+          reminder_count: number | null
+          reminder_type: string
+          sent_at: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          days_between_reminders?: number | null
+          document_id?: string | null
+          id?: string
+          max_reminders?: number | null
+          next_reminder_at?: string | null
+          order_id: string
+          reminder_count?: number | null
+          reminder_type: string
+          sent_at: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          days_between_reminders?: number | null
+          document_id?: string | null
+          id?: string
+          max_reminders?: number | null
+          next_reminder_at?: string | null
+          order_id?: string
+          reminder_count?: number | null
+          reminder_type?: string
+          sent_at?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_reminders_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "order_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_reminders_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       door_style_finishes: {
         Row: {
           active: boolean
@@ -2760,6 +2858,99 @@ export type Database = {
           },
         ]
       }
+      order_documents: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string | null
+          description: string | null
+          document_type: string
+          file_id: string | null
+          file_size: number | null
+          first_viewed_at: string | null
+          id: string
+          last_viewed_at: string | null
+          mime_type: string | null
+          order_id: string
+          rejection_reason: string | null
+          requires_signature: boolean | null
+          sent_at: string | null
+          signature_url: string | null
+          status: string
+          storage_url: string
+          title: string
+          updated_at: string | null
+          uploaded_by: string | null
+          version: number
+          view_count: number | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          description?: string | null
+          document_type: string
+          file_id?: string | null
+          file_size?: number | null
+          first_viewed_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          mime_type?: string | null
+          order_id: string
+          rejection_reason?: string | null
+          requires_signature?: boolean | null
+          sent_at?: string | null
+          signature_url?: string | null
+          status?: string
+          storage_url: string
+          title: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+          version?: number
+          view_count?: number | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          description?: string | null
+          document_type?: string
+          file_id?: string | null
+          file_size?: number | null
+          first_viewed_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          mime_type?: string | null
+          order_id?: string
+          rejection_reason?: string | null
+          requires_signature?: boolean | null
+          sent_at?: string | null
+          signature_url?: string | null
+          status?: string
+          storage_url?: string
+          title?: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+          version?: number
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_documents_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_documents_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           cabinet_type_id: string
@@ -2851,11 +3042,15 @@ export type Database = {
         Row: {
           billing_address: Json | null
           created_at: string
+          drawings_approved_at: string | null
+          drawings_approved_by: string | null
+          drawings_status: string | null
           id: string
           notes: string | null
           order_number: string
           payment_method: string | null
           payment_status: string | null
+          payment_type: string | null
           production_status: string | null
           session_id: string | null
           shipping_address: Json | null
@@ -2871,11 +3066,15 @@ export type Database = {
         Insert: {
           billing_address?: Json | null
           created_at?: string
+          drawings_approved_at?: string | null
+          drawings_approved_by?: string | null
+          drawings_status?: string | null
           id?: string
           notes?: string | null
           order_number: string
           payment_method?: string | null
           payment_status?: string | null
+          payment_type?: string | null
           production_status?: string | null
           session_id?: string | null
           shipping_address?: Json | null
@@ -2891,11 +3090,15 @@ export type Database = {
         Update: {
           billing_address?: Json | null
           created_at?: string
+          drawings_approved_at?: string | null
+          drawings_approved_by?: string | null
+          drawings_status?: string | null
           id?: string
           notes?: string | null
           order_number?: string
           payment_method?: string | null
           payment_status?: string | null
+          payment_type?: string | null
           production_status?: string | null
           session_id?: string | null
           shipping_address?: Json | null
@@ -2977,8 +3180,12 @@ export type Database = {
           payment_method: string | null
           payment_reference: string | null
           percentage: number
+          required_document_ids: string[] | null
+          requires_document_approval: boolean | null
           schedule_type: string
           status: string
+          trigger_event: string | null
+          unlocked_at: string | null
           updated_at: string
         }
         Insert: {
@@ -2991,8 +3198,12 @@ export type Database = {
           payment_method?: string | null
           payment_reference?: string | null
           percentage?: number
+          required_document_ids?: string[] | null
+          requires_document_approval?: boolean | null
           schedule_type: string
           status?: string
+          trigger_event?: string | null
+          unlocked_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -3005,8 +3216,12 @@ export type Database = {
           payment_method?: string | null
           payment_reference?: string | null
           percentage?: number
+          required_document_ids?: string[] | null
+          requires_document_approval?: boolean | null
           schedule_type?: string
           status?: string
+          trigger_event?: string | null
+          unlocked_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -4969,6 +5184,10 @@ export type Database = {
       test_quote_requests_security_final: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      track_document_view: {
+        Args: { p_document_id: string }
+        Returns: undefined
       }
     }
     Enums: {
