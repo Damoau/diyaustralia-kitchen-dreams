@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { documentId, orderId, documentUrl, customerEmail, customerName } = await req.json();
+    const { documentId, orderId } = await req.json();
     
     const DOCUSEAL_API_KEY = Deno.env.get("DOCUSEAL_API_KEY");
     if (!DOCUSEAL_API_KEY) {
@@ -24,6 +24,35 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     console.log("Creating DocuSeal submission for document:", documentId);
+
+    // Fetch document and order details
+    const { data: document, error: docError } = await supabase
+      .from("order_documents")
+      .select("*, orders(*, contacts(name, email))")
+      .eq("id", documentId)
+      .single();
+
+    if (docError || !document) {
+      throw new Error("Document not found");
+    }
+
+    // Get signed URL for document
+    const { data: signedUrlData, error: urlError } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(document.storage_url, 3600); // 1 hour expiry
+
+    if (urlError) {
+      throw new Error("Failed to generate document URL");
+    }
+
+    const customerEmail = document.orders?.contacts?.email || document.orders?.customer_email;
+    const customerName = document.orders?.contacts?.name || document.orders?.customer_name || "Customer";
+
+    if (!customerEmail) {
+      throw new Error("Customer email not found");
+    }
+
+    console.log("Creating DocuSeal submission for:", customerEmail);
 
     // Create submission in DocuSeal
     const docusealResponse = await fetch("https://api.docuseal.co/submissions", {
@@ -45,8 +74,8 @@ serve(async (req) => {
         ],
         documents: [
           {
-            name: "Kitchen Drawing",
-            url: documentUrl,
+            name: document.title || "Kitchen Drawing",
+            url: signedUrlData.signedUrl,
           },
         ],
         message: "Please review and sign your kitchen drawings",

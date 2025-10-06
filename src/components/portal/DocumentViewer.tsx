@@ -17,7 +17,6 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { SignatureCapture } from './SignatureCapture';
 import { DocumentComments } from './DocumentComments';
 import { DocuSealViewer } from './DocuSealViewer';
 
@@ -38,7 +37,6 @@ export function DocumentViewer({ orderId, onApproved }: DocumentViewerProps) {
   const [scale, setScale] = useState<number>(1.0);
   const [rotation, setRotation] = useState<number>(0);
   const [loading, setLoading] = useState(true);
-  const [showSignature, setShowSignature] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -132,40 +130,18 @@ export function DocumentViewer({ orderId, onApproved }: DocumentViewerProps) {
     document.body.removeChild(a);
   };
 
-  const handleApprove = () => {
-    if (selectedDoc.requires_signature) {
-      setShowSignature(true);
-    } else {
-      approveDocument();
-    }
-  };
-
-  const approveDocument = async (signedPdfBlob?: Blob) => {
+  const handleApprove = async () => {
     try {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) throw new Error('Not authenticated');
 
-      let signatureUrl = null;
-
-      // Upload signed PDF if provided
-      if (signedPdfBlob) {
-        const signedFileName = `${selectedDoc.order_id}/${selectedDoc.id}_signed.pdf`;
-        const { error: uploadError } = await supabase.storage
-          .from('documents')
-          .upload(signedFileName, signedPdfBlob, { upsert: true });
-
-        if (uploadError) throw uploadError;
-        signatureUrl = signedFileName;
-      }
-
-      // Update document status
+      // Update document status to approved
       const { error } = await supabase
         .from('order_documents')
         .update({
           status: 'approved',
           approved_at: new Date().toISOString(),
           approved_by: user.id,
-          signature_url: signatureUrl
         })
         .eq('id', selectedDoc.id);
 
@@ -176,7 +152,6 @@ export function DocumentViewer({ orderId, onApproved }: DocumentViewerProps) {
         description: 'Thank you for approving this document'
       });
 
-      setShowSignature(false);
       loadDocuments();
       
       if (onApproved) {
@@ -312,16 +287,28 @@ export function DocumentViewer({ orderId, onApproved }: DocumentViewerProps) {
                 </Button>
               </div>
 
-              {/* Approve Button */}
-              {selectedDoc.status !== 'approved' && (
+              {/* Approve Button - Only for non-DocuSeal documents */}
+              {selectedDoc.status !== 'approved' && selectedDoc.signing_method !== 'docuseal' && (
                 <Button
                   size="lg"
                   className="w-full"
                   onClick={handleApprove}
                 >
                   <CheckCircle className="mr-2 h-5 w-5" />
-                  {selectedDoc.requires_signature ? 'Sign & Approve' : 'Approve Document'}
+                  Approve Document
                 </Button>
+              )}
+              
+              {/* DocuSeal Status Badge */}
+              {selectedDoc.signing_method === 'docuseal' && (
+                <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm font-medium text-blue-900">
+                    This document requires signing via DocuSeal
+                  </p>
+                  <p className="text-xs text-blue-700 mt-1">
+                    Check your email for the signature link
+                  </p>
+                </div>
               )}
             </div>
           </CardContent>
@@ -342,21 +329,6 @@ export function DocumentViewer({ orderId, onApproved }: DocumentViewerProps) {
           </CardContent>
         </Card>
       )}
-
-      {/* Signature Dialog */}
-      <Dialog open={showSignature} onOpenChange={setShowSignature}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Sign Document</DialogTitle>
-          </DialogHeader>
-          <SignatureCapture
-            documentId={selectedDoc?.id}
-            pdfUrl={pdfUrl || ''}
-            onSigned={approveDocument}
-            onCancel={() => setShowSignature(false)}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

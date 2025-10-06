@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { ExternalLink, FileSignature, CheckCircle, XCircle, Clock } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { FileSignature, ExternalLink, CheckCircle, Clock, AlertCircle, XCircle, Loader2, Download } from 'lucide-react';
 
 interface DocuSealViewerProps {
   orderId: string;
@@ -16,6 +15,27 @@ export function DocuSealViewer({ orderId }: DocuSealViewerProps) {
 
   useEffect(() => {
     loadDocuments();
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('docuseal-documents')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'order_documents',
+          filter: `order_id=eq.${orderId}`,
+        },
+        () => {
+          loadDocuments();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [orderId]);
 
   const loadDocuments = async () => {
@@ -39,31 +59,71 @@ export function DocuSealViewer({ orderId }: DocuSealViewerProps) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'viewed':
+        return <Clock className="h-4 w-4 text-blue-500" />;
       case 'declined':
-        return <XCircle className="h-5 w-5 text-red-500" />;
+        return <XCircle className="h-4 w-4 text-red-500" />;
       case 'expired':
-        return <XCircle className="h-5 w-5 text-orange-500" />;
+        return <AlertCircle className="h-4 w-4 text-orange-500" />;
       default:
-        return <Clock className="h-5 w-5 text-blue-500" />;
+        return <Clock className="h-4 w-4 text-gray-500" />;
     }
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <Badge className="bg-green-500">Signed</Badge>;
-      case 'declined':
-        return <Badge variant="destructive">Declined</Badge>;
-      case 'expired':
-        return <Badge variant="outline" className="border-orange-500 text-orange-500">Expired</Badge>;
-      default:
-        return <Badge variant="secondary">Pending</Badge>;
+    const variants: Record<string, any> = {
+      completed: 'default',
+      viewed: 'secondary',
+      declined: 'destructive',
+      expired: 'outline',
+      pending: 'outline',
+      sent: 'secondary',
+    };
+
+    return (
+      <Badge variant={variants[status] || 'outline'}>
+        {getStatusIcon(status)}
+        <span className="ml-1 capitalize">{status}</span>
+      </Badge>
+    );
+  };
+
+  const handleViewInDocuSeal = (submissionId: string) => {
+    window.open(`https://docuseal.co/s/${submissionId}`, '_blank');
+  };
+
+  const handleDownloadSigned = async (doc: any) => {
+    if (!doc.signature_url) return;
+
+    try {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .download(doc.signature_url);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${doc.title}_signed.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading signed document:', error);
     }
   };
 
   if (loading) {
-    return <div>Loading documents...</div>;
+    return (
+      <Card>
+        <CardContent className="p-6 flex items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </CardContent>
+      </Card>
+    );
   }
 
   if (documents.length === 0) {
@@ -78,47 +138,76 @@ export function DocuSealViewer({ orderId }: DocuSealViewerProps) {
           E-Signature Documents (DocuSeal)
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
         {documents.map((doc) => (
           <div key={doc.id} className="border rounded-lg p-4 space-y-3">
             <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  {getStatusIcon(doc.docuseal_status)}
-                  <h4 className="font-medium">{doc.title}</h4>
-                  {getStatusBadge(doc.docuseal_status)}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {doc.description}
-                </p>
+              <div className="flex-1">
+                <h4 className="font-medium">{doc.title}</h4>
+                {doc.description && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {doc.description}
+                  </p>
+                )}
               </div>
+              {getStatusBadge(doc.docuseal_status || doc.status)}
             </div>
 
-            <div className="flex items-center justify-between text-sm">
-              <div className="space-y-1">
-                {doc.sent_at && (
-                  <p className="text-muted-foreground">
-                    Sent: {formatDistanceToNow(new Date(doc.sent_at), { addSuffix: true })}
-                  </p>
-                )}
-                {doc.docuseal_completed_at && (
-                  <p className="text-muted-foreground">
-                    Signed: {formatDistanceToNow(new Date(doc.docuseal_completed_at), { addSuffix: true })}
-                  </p>
-                )}
-              </div>
+            <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+              {doc.sent_at && (
+                <div>
+                  <span className="font-medium">Sent:</span>{' '}
+                  {new Date(doc.sent_at).toLocaleDateString()}
+                </div>
+              )}
+              {doc.last_viewed_at && (
+                <div>
+                  <span className="font-medium">Last Viewed:</span>{' '}
+                  {new Date(doc.last_viewed_at).toLocaleDateString()}
+                </div>
+              )}
+              {doc.approved_at && (
+                <div className="col-span-2">
+                  <span className="font-medium">Completed:</span>{' '}
+                  {new Date(doc.approved_at).toLocaleDateString()}
+                </div>
+              )}
+            </div>
 
+            <div className="flex gap-2">
               {doc.docuseal_submission_id && (
                 <Button
-                  variant="outline"
                   size="sm"
-                  onClick={() => window.open(`https://docuseal.co/submissions/${doc.docuseal_submission_id}`, '_blank')}
+                  variant="outline"
+                  onClick={() => handleViewInDocuSeal(doc.docuseal_submission_id)}
+                  className="flex-1"
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
                   View in DocuSeal
                 </Button>
               )}
+              
+              {doc.docuseal_status === 'completed' && doc.signature_url && (
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={() => handleDownloadSigned(doc)}
+                  className="flex-1"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Signed
+                </Button>
+              )}
             </div>
+
+            {doc.docuseal_status === 'pending' && (
+              <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm text-blue-900">
+                <p className="font-medium">Action Required</p>
+                <p className="text-xs mt-1">
+                  Check your email for the DocuSeal signing link, or click "View in DocuSeal" above.
+                </p>
+              </div>
+            )}
           </div>
         ))}
       </CardContent>
