@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { formatDistanceToNow } from 'date-fns';
 import { OrderDetailView } from './OrderDetailView';
 import { OrderDocumentManager } from './OrderDocumentManager';
-import { PDFSignatureEditor } from './PDFSignatureEditor';
+import { SimplePDFSignatureEditor } from './SimplePDFSignatureEditor';
 
 export function DocumentApprovalDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -518,7 +518,7 @@ export function DocumentApprovalDashboard() {
 
       {/* Edit Signatures Dialog */}
       {editSignaturesDocId && editSignaturesDocUrl && uploadDialogOrderId && (
-        <PDFSignatureEditor
+        <SimplePDFSignatureEditor
           documentId={editSignaturesDocId}
           orderId={uploadDialogOrderId}
           documentUrl={editSignaturesDocUrl}

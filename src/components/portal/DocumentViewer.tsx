@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SignatureCapture } from './SignatureCapture';
+import { DocumentComments } from './DocumentComments';
 
 // Configure PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -322,6 +323,18 @@ export function DocumentViewer({ orderId, onApproved }: DocumentViewerProps) {
                 </Button>
               )}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Document Comments Section */}
+      {selectedDoc && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Comments & Change Requests</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DocumentComments documentId={selectedDoc.id} orderId={orderId} />
           </CardContent>
         </Card>
       )}

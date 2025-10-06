@@ -63,19 +63,24 @@ export function DocumentComments({ documentId, orderId }: DocumentCommentsProps)
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('document_comments')
-        .select(`
-          *,
-          profiles:user_id (
-            display_name,
-            email
-          )
-        `)
+        .from('document_comments' as any)
+        .select('*')
         .eq('document_id', documentId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setComments(data || []);
+      
+      // Map data to Comment type
+      const mappedComments: Comment[] = (data || []).map((item: any) => ({
+        id: item.id,
+        document_id: item.document_id,
+        user_id: item.user_id,
+        comment_text: item.comment_text,
+        comment_type: item.comment_type as 'note' | 'change_request' | 'approval',
+        created_at: item.created_at
+      }));
+      
+      setComments(mappedComments);
     } catch (error: any) {
       console.error('Error loading comments:', error);
     } finally {
@@ -98,9 +103,10 @@ export function DocumentComments({ documentId, orderId }: DocumentCommentsProps)
       const { data: userData } = await supabase.auth.getUser();
       
       const { error } = await supabase
-        .from('document_comments')
+        .from('document_comments' as any)
         .insert({
           document_id: documentId,
+          order_id: orderId,
           user_id: userData.user?.id || '',
           comment_text: newComment,
           comment_type: commentType,
