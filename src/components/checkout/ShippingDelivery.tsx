@@ -6,11 +6,11 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Truck, MapPin, Home, Building, Clock, Info, Loader2 } from 'lucide-react';
+import { Truck, MapPin, Clock, Info, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useCartMigration } from "@/hooks/useCartMigration";
-import { supabase } from '@/integrations/supabase/client';
+import { usePostcodeServices } from "@/hooks/usePostcodeServices";
 
 interface ShippingAddress {
   firstName: string;
@@ -44,6 +44,8 @@ interface ShippingDeliveryProps {
 
 export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: ShippingDeliveryProps) => {
   const { cart } = useCartMigration();
+  const { checkPostcodeServices, loading: postcodeLoading } = usePostcodeServices();
+  
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     firstName: customerData?.customer_first_name || '',
     lastName: customerData?.customer_last_name || '',
@@ -139,17 +141,19 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
     setPostcodeChecked(true);
   };
 
-  // Check assembly eligibility in background (only for white glove)
+  // Check assembly eligibility from database (only for white glove)
   const checkAssemblyEligibility = async (postcode: string) => {
     setAssemblyLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('check-assembly-eligibility', {
-        body: { postcode }
-      });
+      // Query postcode_zones table directly - Phase 2 optimization
+      const services = await checkPostcodeServices(postcode);
       
-      if (!error && data) {
-        const assemblyEligible = data.eligible || false;
-        const assemblySurcharges = data.surcharges || { carcass: 0, doors: 0 };
+      if (services) {
+        const assemblyEligible = services.assembly_available || false;
+        const assemblySurcharges = {
+          carcass: services.assembly_carcass_surcharge_pct || 0,
+          doors: services.assembly_doors_surcharge_pct || 0,
+        };
 
         setDeliveryOptions(prev => prev.map(option => {
           if (option.assemblyAvailable) {
