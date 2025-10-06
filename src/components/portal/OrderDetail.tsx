@@ -14,8 +14,11 @@ import {
   Clock,
   CheckCircle,
   Truck,
-  CreditCard
+  CreditCard,
+  FileText,
+  AlertTriangle
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface OrderDetailProps {
   orderId: string;
@@ -207,6 +210,56 @@ export const OrderDetail = ({ orderId }: OrderDetailProps) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Design Drawings Section */}
+          {order.drawings_status && order.drawings_status !== 'not_required' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Design Drawings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {order.drawings_status === 'pending_upload' && (
+                  <Alert>
+                    <Clock className="h-4 w-4" />
+                    <AlertDescription>
+                      Your drawings will be available soon. We'll notify you by email when they're ready for review.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {(order.drawings_status === 'sent' || order.drawings_status === 'under_review') && (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      ⚠️ Action Required: Please review and approve your kitchen drawings to proceed with production.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {order.drawings_status === 'approved' && order.drawings_approved_at && (
+                  <Alert className="border-green-500 bg-green-50">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <AlertDescription>
+                      ✅ Drawings approved on {new Date(order.drawings_approved_at).toLocaleDateString()}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {(order.drawings_status === 'sent' || order.drawings_status === 'under_review') && (
+                  <Button
+                    onClick={() => window.location.href = `/portal/orders/${orderId}/drawings`}
+                    size="lg"
+                    className="w-full"
+                  >
+                    📐 Review Drawings Now
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Order Items */}
           <Card>
             <CardHeader>

@@ -64,6 +64,7 @@ const navigationItems = [
     group: 'Operations',
     items: [
       { title: 'Orders', url: 'orders', icon: Package },
+      { title: 'Document Approvals', url: 'document-approvals', icon: FileText },
       { title: 'Production', url: 'production', icon: Factory },
       { title: 'Shipping', url: 'shipping', icon: Truck },
       { title: 'Assembly', url: 'assembly', icon: Wrench },

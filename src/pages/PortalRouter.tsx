@@ -16,6 +16,7 @@ const AddressBook = lazy(() => import('@/components/portal/AddressBook').then(mo
 const ProfileSettings = lazy(() => import('@/components/portal/ProfileSettings').then(module => ({ default: module.ProfileSettings })));
 const QuoteStatus = lazy(() => import('@/pages/portal/QuoteStatus'));
 const SavedCarts = lazy(() => import('@/components/portal/SavedCarts').then(module => ({ default: module.SavedCarts })));
+const OrderDrawings = lazy(() => import('@/pages/portal/OrderDrawings').then(module => ({ default: module.OrderDrawings })));
 
 export const PortalRouter = () => {
   return (
@@ -32,6 +33,7 @@ export const PortalRouter = () => {
               <Route path="quotes/:quoteId/status" element={<QuoteStatusWrapper />} />
               <Route path="orders" element={<OrdersList />} />
               <Route path="orders/:orderId" element={<OrderDetailWrapper />} />
+              <Route path="orders/:orderId/drawings" element={<OrderDrawings />} />
               <Route path="files" element={<FilesList />} />
               <Route path="messages" element={<PortalMessages />} />
               <Route path="saved-carts" element={<SavedCarts />} />

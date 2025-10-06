@@ -44,6 +44,7 @@ const CartActivity = lazy(() => import('@/pages/admin/CartActivity'));
 const LazySEOManagement = lazy(() => import('@/pages/admin/SEOManagement'));
 import CartSystemHealth from "@/pages/admin/CartSystemHealth";
 import UserBehaviorAnalytics from "@/pages/admin/UserBehaviorAnalytics";
+const DocumentApprovals = lazy(() => import("@/pages/admin/DocumentApprovals"));
 
 export const AdminRouter = () => {
   return (
@@ -64,6 +65,7 @@ export const AdminRouter = () => {
             
             {/* Operations */}
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="document-approvals" element={<Suspense fallback={<PageLoader />}><DocumentApprovals /></Suspense>} />
             <Route path="production" element={<Production />} />
             <Route path="shipping" element={<AdminShipping />} />
             <Route path="assembly" element={<Assembly />} />

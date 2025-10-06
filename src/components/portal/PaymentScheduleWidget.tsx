@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import { Download, AlertCircle, FileText, Clock, CheckCircle2, Calendar } from 'lucide-react';
+import { Download, AlertCircle, FileText, Clock, CheckCircle2, Calendar, Lock, CheckCircle } from 'lucide-react';
 import { PayPalPaymentButton } from '@/components/checkout/PayPalPaymentButton';
 import { InvoiceDetailDialog } from './InvoiceDetailDialog';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +18,9 @@ interface PaymentScheduleItem {
   invoice_url?: string | null;
   schedule_type?: string;
   payment_method?: string;
+  unlocked_at?: string | null;
+  percentage?: number;
+  requires_document_approval?: boolean;
 }
 
 interface PaymentScheduleWidgetProps {
@@ -213,6 +216,94 @@ export const PaymentScheduleWidget = ({ orderId, schedule, onPaymentComplete }: 
               <span>{formatCurrency(remainingAmount)}</span>
             </div>
           </div>
+
+          {/* Payment Milestones Timeline */}
+          {actualSchedule.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="font-semibold">Payment Milestones</h3>
+              <div className="space-y-3">
+                {actualSchedule.map((item, index) => {
+                  const isUnlocked = item.unlocked_at !== null;
+                  const isPaid = item.status === 'paid';
+                  const isLocked = !isUnlocked && !isPaid;
+                  
+                  return (
+                    <div key={item.id} className="relative">
+                      <div 
+                        className={`p-4 border-2 rounded-lg transition-all ${
+                          isPaid ? 'border-green-500 bg-green-50' : 
+                          isUnlocked ? 'border-primary bg-primary/5' : 
+                          'border-gray-300 bg-gray-50 opacity-60'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-2xl">
+                                {index === 0 ? '1️⃣' : index === 1 ? '2️⃣' : '3️⃣'}
+                              </span>
+                              <div>
+                                <p className="font-semibold">
+                                  {item.schedule_type === 'deposit' && 'Initial Deposit'}
+                                  {item.schedule_type === 'progress' && 'Progress Payment'}
+                                  {item.schedule_type === 'balance' && 'Final Payment'}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {item.percentage}% - {formatCurrency(item.amount)}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            {item.requires_document_approval && !isPaid && (
+                              <Badge variant="outline" className="text-xs mt-2">
+                                <FileText className="h-3 w-3 mr-1" />
+                                Requires Drawing Approval
+                              </Badge>
+                            )}
+                          </div>
+
+                          <div className="flex flex-col items-end gap-2">
+                            {isLocked && (
+                              <Badge variant="outline" className="text-xs">
+                                <Lock className="h-3 w-3 mr-1" />
+                                Locked
+                              </Badge>
+                            )}
+                            
+                            {isUnlocked && !isPaid && (
+                              <Badge variant="default" className="text-xs">
+                                Unlocked
+                              </Badge>
+                            )}
+                            
+                            {isPaid && (
+                              <Badge variant="default" className="bg-green-600 text-xs">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Paid
+                              </Badge>
+                            )}
+
+                            {isUnlocked && !isPaid && item.due_date && (
+                              <Button size="sm">
+                                Pay Now
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+
+                        {item.due_date && isUnlocked && (
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Due: {formatDate(item.due_date)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <Separator />
+            </div>
+          )}
 
           {/* Invoices Section */}
           {invoices.length > 0 && (
