@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { formatDistanceToNow } from 'date-fns';
 import { OrderDetailView } from './OrderDetailView';
 import { OrderDocumentManager } from './OrderDocumentManager';
-import { SimplePDFSignatureEditor } from './SimplePDFSignatureEditor';
+
 
 export function DocumentApprovalDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -20,8 +20,6 @@ export function DocumentApprovalDashboard() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [uploadDialogOrderId, setUploadDialogOrderId] = useState<string | null>(null);
   const [uploadDocumentType, setUploadDocumentType] = useState<'drawing' | 'customer_plan'>('drawing');
-  const [editSignaturesDocId, setEditSignaturesDocId] = useState<string | null>(null);
-  const [editSignaturesDocUrl, setEditSignaturesDocUrl] = useState<string | null>(null);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
@@ -209,29 +207,6 @@ export function DocumentApprovalDashboard() {
     setUploadDocumentType(docType);
   };
 
-  const handleEditSignatures = async (documentId: string, orderId: string) => {
-    try {
-      // Construct storage path - typically stored as {order_id}/{document_id}.pdf
-      const storagePath = `${orderId}/${documentId}.pdf`;
-
-      // Get signed URL
-      const { data: signedUrlData, error: urlError } = await supabase.storage
-        .from('documents')
-        .createSignedUrl(storagePath, 3600);
-
-      if (urlError) throw urlError;
-
-      setEditSignaturesDocId(documentId);
-      setEditSignaturesDocUrl(signedUrlData.signedUrl);
-      setUploadDialogOrderId(orderId); // Need this for PDFSignatureEditor
-    } catch (error: any) {
-      toast({
-        title: 'Failed to load document',
-        description: error.message,
-        variant: 'destructive'
-      });
-    }
-  };
 
   const handleDeleteDocument = async (documentId: string, orderId: string) => {
     if (!confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
@@ -444,13 +419,9 @@ export function DocumentApprovalDashboard() {
                               {/* Document uploaded, no signatures (pending status) */}
                               {pendingDocs.length > 0 && pendingDocs[0].status === 'pending' && (
                                 <>
-                                  <DropdownMenuItem onClick={() => handleEditSignatures(pendingDocs[0].id, order.id)}>
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    Add Signature Fields (Custom)
-                                  </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleSendViaDocuSeal(order.id, pendingDocs[0].id)}>
                                     <FileSignature className="h-4 w-4 mr-2" />
-                                    Send via DocuSeal (Legal)
+                                    Send via DocuSeal
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem 
@@ -471,10 +442,6 @@ export function DocumentApprovalDashboard() {
                                   <DropdownMenuItem onClick={() => setSelectedOrderId(order.id)}>
                                     <Eye className="h-4 w-4 mr-2" />
                                     View Document
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleEditSignatures(pendingDocs[0].id, order.id)}>
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    Edit Signatures
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleUploadDocument(order.id, 'drawing')}>
                                     <Upload className="h-4 w-4 mr-2" />
@@ -573,25 +540,6 @@ export function DocumentApprovalDashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Signatures Dialog */}
-      {editSignaturesDocId && editSignaturesDocUrl && uploadDialogOrderId && (
-        <SimplePDFSignatureEditor
-          documentId={editSignaturesDocId}
-          orderId={uploadDialogOrderId}
-          documentUrl={editSignaturesDocUrl}
-          onClose={() => {
-            setEditSignaturesDocId(null);
-            setEditSignaturesDocUrl(null);
-            setUploadDialogOrderId(null);
-          }}
-          onSent={() => {
-            setEditSignaturesDocId(null);
-            setEditSignaturesDocUrl(null);
-            setUploadDialogOrderId(null);
-            loadOrders();
-          }}
-        />
-      )}
     </div>
   );
 }
