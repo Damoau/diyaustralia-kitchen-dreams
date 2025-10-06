@@ -73,17 +73,15 @@ const Checkout = () => {
   ];
 
   useEffect(() => {
+    // Prevent multiple initializations
+    if (checkoutId) {
+      console.log('✅ Checkout already initialized:', checkoutId);
+      return;
+    }
+
     // Initialize checkout when component mounts
     const initCheckout = async () => {
       console.log('🔄 CHECKOUT INIT - cartLoading:', cartLoading);
-      console.log('🛒 CHECKOUT CART:', { 
-        cartId: cart?.id,
-        itemCount: cart?.items?.length || 0,
-        totalAmount: cart?.total_amount || 0,
-        userId: cart?.user_id,
-        sessionId: cart?.session_id,
-        status: cart?.status
-      });
       
       // Wait for cart to finish loading
       if (cartLoading) {
@@ -94,50 +92,29 @@ const Checkout = () => {
       // Validate cart exists and has an ID
       if (!cart || !cart.id) {
         console.error('❌ CHECKOUT ERROR: No cart found after loading');
-        console.error('Cart state:', cart);
         toast.error("No cart found. Please add items to your cart first.");
         navigate('/cart');
         return;
       }
 
-      // Validate cart has items - check both items array and length
+      // Validate cart has items
       const items = cart.items || [];
-      console.log('🔍 CHECKOUT: Cart items validation:', { 
-        hasItems: items.length > 0, 
-        itemsCount: items.length,
-        cartId: cart.id,
-        totalAmount: cart.total_amount,
-        status: cart.status 
-      });
       
       if (items.length === 0) {
         console.error('❌ CHECKOUT ERROR: Cart is empty');
-        console.error('Cart details:', { 
-          cartId: cart.id, 
-          totalAmount: cart.total_amount,
-          status: cart.status,
-          userId: cart.user_id,
-          sessionId: cart.session_id
-        });
         toast.error("Your cart is empty. Please add items to continue.");
         navigate('/cart');
         return;
       }
 
-      console.log('✅ CHECKOUT: Cart validated successfully!', { 
-        cartId: cart.id, 
-        itemsCount: items.length, 
-        totalAmount: cart.total_amount 
-      });
+      console.log('✅ CHECKOUT: Cart validated, creating session...');
 
       try {
-        console.log('🚀 CHECKOUT: Starting checkout session for cart:', cart.id);
         const checkout = await startCheckout(cart.id);
-        console.log('✅ CHECKOUT: Session created:', checkout);
         
         if (checkout && checkout.id) {
           setCheckoutId(checkout.id);
-          console.log('✅ CHECKOUT: ID set:', checkout.id);
+          console.log('✅ CHECKOUT: Session created:', checkout.id);
         } else {
           throw new Error('Failed to create checkout session');
         }
@@ -149,7 +126,7 @@ const Checkout = () => {
     };
 
     initCheckout();
-  }, [cart, cartLoading, startCheckout, navigate]);
+  }, [cart?.id, cartLoading, checkoutId]);
 
   const handleStepComplete = async (stepId: string, data?: any) => {
     console.log(`✅ Step ${stepId} completed with data:`, data);

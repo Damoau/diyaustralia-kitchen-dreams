@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -62,7 +62,7 @@ export const useCheckout = () => {
     windowMinutes: 15,
   });
 
-  const startCheckout = async (cartId: string) => {
+  const startCheckout = useCallback(async (cartId: string) => {
     setIsLoading(true);
     try {
       // Generate session ID for anonymous users
@@ -111,7 +111,7 @@ export const useCheckout = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.id, session?.access_token, trackCheckoutEvent, logEvent, toast]);
 
   const identifyCustomer = async (checkoutId: string, payload: IdentifyPayload) => {
     setIsLoading(true);
