@@ -7,16 +7,21 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Send, Eye, Clock, CheckCircle, AlertTriangle, Upload, ChevronDown, ChevronUp, Edit } from 'lucide-react';
+import { FileText, Send, Eye, Clock, CheckCircle, AlertTriangle, Upload, ChevronDown, ChevronUp, Edit, FileSignature, Trash2, MoreVertical } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { formatDistanceToNow } from 'date-fns';
 import { OrderDetailView } from './OrderDetailView';
 import { OrderDocumentManager } from './OrderDocumentManager';
+import { PDFSignatureEditor } from './PDFSignatureEditor';
 
 export function DocumentApprovalDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [uploadDialogOrderId, setUploadDialogOrderId] = useState<string | null>(null);
+  const [uploadDocumentType, setUploadDocumentType] = useState<'drawing' | 'customer_plan'>('drawing');
+  const [editSignaturesDocId, setEditSignaturesDocId] = useState<string | null>(null);
+  const [editSignaturesDocUrl, setEditSignaturesDocUrl] = useState<string | null>(null);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
@@ -199,6 +204,72 @@ export function DocumentApprovalDashboard() {
     });
   };
 
+  const handleUploadDocument = (orderId: string, docType: 'drawing' | 'customer_plan') => {
+    setUploadDialogOrderId(orderId);
+    setUploadDocumentType(docType);
+  };
+
+  const handleEditSignatures = async (documentId: string, orderId: string) => {
+    try {
+      // Construct storage path - typically stored as {order_id}/{document_id}.pdf
+      const storagePath = `${orderId}/${documentId}.pdf`;
+
+      // Get signed URL
+      const { data: signedUrlData, error: urlError } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(storagePath, 3600);
+
+      if (urlError) throw urlError;
+
+      setEditSignaturesDocId(documentId);
+      setEditSignaturesDocUrl(signedUrlData.signedUrl);
+      setUploadDialogOrderId(orderId); // Need this for PDFSignatureEditor
+    } catch (error: any) {
+      toast({
+        title: 'Failed to load document',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDeleteDocument = async (documentId: string, orderId: string) => {
+    if (!confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      // Archive the document instead of deleting
+      const { error } = await supabase
+        .from('order_documents')
+        .update({ status: 'archived' })
+        .eq('id', documentId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Document archived',
+        description: 'You can now upload a new version'
+      });
+
+      loadOrders();
+    } catch (error: any) {
+      toast({
+        title: 'Failed to delete document',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const getDocuSealButtonVariant = (order: any) => {
+    if (order.drawings_status === 'pending_upload') return 'default';
+    const pendingDocs = order.order_documents?.filter((d: any) => d.status !== 'approved' && d.status !== 'archived') || [];
+    if (pendingDocs.length > 0 && pendingDocs[0].status === 'pending') return 'default';
+    if (order.drawings_status === 'sent' || order.drawings_status === 'under_review') return 'outline';
+    return 'outline';
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -287,46 +358,80 @@ export function DocumentApprovalDashboard() {
                             {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                           </Button>
 
-                          {order.drawings_status === 'pending_upload' ? (
-                            <Button
-                              size="sm"
-                              className="h-7 px-2 text-xs"
-                              onClick={() => setUploadDialogOrderId(order.id)}
-                            >
-                              <Upload className="h-3 w-3 mr-1" />
-                              Upload
-                            </Button>
-                          ) : pendingDocs.length > 0 && pendingDocs[0].status === 'pending' ? (
-                            <Button
-                              size="sm"
-                              className="h-7 px-2 text-xs"
-                              onClick={() => setUploadDialogOrderId(order.id)}
-                            >
-                              <Edit className="h-3 w-3 mr-1" />
-                              Add Signatures
-                            </Button>
-                          ) : (
-                            <>
+                          {/* Unified DocuSeal Dropdown Menu */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
                               <Button
                                 size="sm"
-                                variant="outline"
-                                className="h-7 px-2 text-xs"
-                                onClick={() => setSelectedOrderId(order.id)}
+                                variant={getDocuSealButtonVariant(order)}
+                                className="h-7 px-2 text-xs gap-1"
                               >
-                                <Eye className="h-3 w-3 mr-1" />
-                                View
+                                <FileSignature className="h-3 w-3" />
+                                DocuSeal
+                                <MoreVertical className="h-3 w-3" />
                               </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-7 px-2 text-xs"
-                                onClick={() => sendReminder(order.id)}
-                              >
-                                <Send className="h-3 w-3 mr-1" />
-                                Remind
-                              </Button>
-                            </>
-                          )}
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              {/* No document uploaded or pending_upload status */}
+                              {(order.drawings_status === 'pending_upload' || 
+                                order.order_documents?.length === 0 ||
+                                order.order_documents?.every((d: any) => d.status === 'archived')) && (
+                                <>
+                                  <DropdownMenuItem onClick={() => handleUploadDocument(order.id, 'drawing')}>
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Upload Drawing
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleUploadDocument(order.id, 'customer_plan')}>
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Upload Customer Plan
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+
+                              {/* Document uploaded, no signatures (pending status) */}
+                              {pendingDocs.length > 0 && pendingDocs[0].status === 'pending' && (
+                                <>
+                                  <DropdownMenuItem onClick={() => handleEditSignatures(pendingDocs[0].id, order.id)}>
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Add Signature Fields
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDeleteDocument(pendingDocs[0].id, order.id)}
+                                    className="text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete & Re-upload
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+
+                              {/* Document sent or viewed */}
+                              {(order.drawings_status === 'sent' || order.drawings_status === 'under_review') && 
+                               pendingDocs.length > 0 && 
+                               (pendingDocs[0].status === 'sent' || pendingDocs[0].status === 'viewed') && (
+                                <>
+                                  <DropdownMenuItem onClick={() => setSelectedOrderId(order.id)}>
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View Document
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleEditSignatures(pendingDocs[0].id, order.id)}>
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Edit Signatures
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleUploadDocument(order.id, 'drawing')}>
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Re-upload New Version
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => sendReminder(order.id)}>
+                                    <Send className="h-4 w-4 mr-2" />
+                                    Send Reminder
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
 
@@ -401,6 +506,7 @@ export function DocumentApprovalDashboard() {
           {uploadDialogOrderId && (
             <OrderDocumentManager 
               orderId={uploadDialogOrderId}
+              documentType={uploadDocumentType}
               onDocumentUploaded={() => {
                 loadOrders();
                 setUploadDialogOrderId(null);
@@ -409,6 +515,26 @@ export function DocumentApprovalDashboard() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Edit Signatures Dialog */}
+      {editSignaturesDocId && editSignaturesDocUrl && uploadDialogOrderId && (
+        <PDFSignatureEditor
+          documentId={editSignaturesDocId}
+          orderId={uploadDialogOrderId}
+          documentUrl={editSignaturesDocUrl}
+          onClose={() => {
+            setEditSignaturesDocId(null);
+            setEditSignaturesDocUrl(null);
+            setUploadDialogOrderId(null);
+          }}
+          onSent={() => {
+            setEditSignaturesDocId(null);
+            setEditSignaturesDocUrl(null);
+            setUploadDialogOrderId(null);
+            loadOrders();
+          }}
+        />
+      )}
     </div>
   );
 }

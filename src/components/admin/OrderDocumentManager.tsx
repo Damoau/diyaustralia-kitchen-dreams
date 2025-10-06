@@ -15,13 +15,14 @@ import { PDFSignatureEditor } from './PDFSignatureEditor';
 
 interface OrderDocumentManagerProps {
   orderId: string;
+  documentType?: 'drawing' | 'customer_plan';
   onDocumentUploaded?: () => void;
 }
 
-export function OrderDocumentManager({ orderId, onDocumentUploaded }: OrderDocumentManagerProps) {
+export function OrderDocumentManager({ orderId, documentType: initialDocType, onDocumentUploaded }: OrderDocumentManagerProps) {
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [documentType, setDocumentType] = useState<string>('drawing');
+  const [documentType, setDocumentType] = useState<string>(initialDocType || 'drawing');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [requiresSignature, setRequiresSignature] = useState(false);
