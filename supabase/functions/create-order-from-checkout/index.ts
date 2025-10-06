@@ -82,7 +82,14 @@ serve(async (req) => {
 
     const defaultDueDate = calculateDueDate(4);
 
-    // 5. Create order
+    // 5. Create order with customer info in shipping_address
+    const customerInfo = {
+      name: `${checkout.customer_first_name || ''} ${checkout.customer_last_name || ''}`.trim(),
+      email: checkout.customer_email,
+      phone: checkout.customer_phone,
+      company: checkout.customer_company,
+    };
+
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
@@ -94,15 +101,13 @@ serve(async (req) => {
         payment_method: paymentMethod,
         payment_type: paymentType,
         subtotal,
-        gst_amount: gstAmount,
+        tax_amount: gstAmount,
         total_amount: totalAmount,
-        customer_name: `${checkout.customer_first_name || ''} ${checkout.customer_last_name || ''}`.trim(),
-        customer_email: checkout.customer_email,
-        customer_phone: checkout.customer_phone,
+        shipping_address: customerInfo,
         shipping_method: 'standard',
         target_completion: defaultDueDate,
         drawings_status: paymentType === 'deposit' ? 'pending_upload' : 'not_required',
-        notes: checkout.how_heard ? `How they heard about us: ${checkout.how_heard}${checkout.customer_company ? `\nCompany: ${checkout.customer_company}` : ''}` : (checkout.customer_company ? `Company: ${checkout.customer_company}` : null),
+        notes: checkout.how_heard ? `How they heard about us: ${checkout.how_heard}` : null,
       })
       .select()
       .single();
