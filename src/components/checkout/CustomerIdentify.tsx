@@ -143,10 +143,19 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      // Scroll to first error
+      const firstErrorField = Object.keys(errors)[0];
+      const element = document.getElementById(firstErrorField);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.focus();
+      }
+      return;
+    }
 
     const payload: IdentifyPayload = {
       mode: user ? 'confirm' : activeTab,
@@ -177,214 +186,22 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
   // Logged-in user: Show confirmation form
   if (user) {
     return (
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Confirm Your Details</CardTitle>
-          <p className="text-muted-foreground text-center">
-            Please verify your information before continuing
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* First Name + Last Name side by side */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="first_name">First Name *</Label>
-                <Input
-                  id="first_name"
-                  value={formData.first_name}
-                  onChange={(e) => handleInputChange('first_name', e.target.value)}
-                  placeholder="John"
-                  className={errors.first_name ? 'border-red-500' : ''}
-                />
-                {errors.first_name && <p className="text-sm text-red-500 mt-1">{errors.first_name}</p>}
-              </div>
-              <div>
-                <Label htmlFor="last_name">Last Name *</Label>
-                <Input
-                  id="last_name"
-                  value={formData.last_name}
-                  onChange={(e) => handleInputChange('last_name', e.target.value)}
-                  placeholder="Smith"
-                  className={errors.last_name ? 'border-red-500' : ''}
-                />
-                {errors.last_name && <p className="text-sm text-red-500 mt-1">{errors.last_name}</p>}
-              </div>
-            </div>
-
-            {/* Email full width under names */}
-            <div>
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="your.email@example.com"
-                className={errors.email ? 'border-red-500' : ''}
-              />
-              {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="phone">Phone Number *</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                placeholder="0400 000 000"
-                className={errors.phone ? 'border-red-500' : ''}
-              />
-              {errors.phone && <p className="text-sm text-red-500 mt-1">{errors.phone}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="company">Company (Optional)</Label>
-              <Input
-                id="company"
-                value={formData.company}
-                onChange={(e) => handleInputChange('company', e.target.value)}
-                placeholder="Your Company Name"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="how_heard">How did you hear about us?</Label>
-              <Select value={formData.how_heard} onValueChange={(value) => handleInputChange('how_heard', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Please select..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="search">Google/Search Engine</SelectItem>
-                  <SelectItem value="social">Social Media</SelectItem>
-                  <SelectItem value="referral">Friend/Family Referral</SelectItem>
-                  <SelectItem value="advertisement">Advertisement</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Consents Section */}
-            <div className="space-y-3 pt-4 border-t">
-              <div className="flex items-start space-x-2">
-                <Checkbox
-                  id="accept_terms"
-                  checked={formData.accept_terms}
-                  onCheckedChange={(checked) => handleInputChange('accept_terms', checked)}
-                />
-                <div className="grid gap-1.5 leading-none">
-                  <Label htmlFor="accept_terms" className="text-sm font-normal">
-                    I accept the{' '}
-                    <a href="/terms" target="_blank" className="text-primary hover:underline">
-                      Terms & Conditions
-                    </a>
-                    {' '}*
-                  </Label>
-                </div>
-              </div>
-              {errors.accept_terms && <p className="text-sm text-red-500">{errors.accept_terms}</p>}
-
-              <div className="flex items-start space-x-2">
-                <Checkbox
-                  id="accept_privacy"
-                  checked={formData.accept_privacy}
-                  onCheckedChange={(checked) => handleInputChange('accept_privacy', checked)}
-                />
-                <div className="grid gap-1.5 leading-none">
-                  <Label htmlFor="accept_privacy" className="text-sm font-normal">
-                    I accept the{' '}
-                    <a href="/privacy" target="_blank" className="text-primary hover:underline">
-                      Privacy Policy
-                    </a>
-                    {' '}*
-                  </Label>
-                </div>
-              </div>
-              {errors.accept_privacy && <p className="text-sm text-red-500">{errors.accept_privacy}</p>}
-
-              <div className="flex items-start space-x-2">
-                <Checkbox
-                  id="marketing_opt_in"
-                  checked={formData.marketing_opt_in}
-                  onCheckedChange={(checked) => handleInputChange('marketing_opt_in', checked)}
-                />
-                <div className="grid gap-1.5 leading-none">
-                  <Label htmlFor="marketing_opt_in" className="text-sm font-normal">
-                    I'd like to receive marketing communications and special offers
-                  </Label>
-                </div>
-              </div>
-            </div>
-
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                'Continue to Shipping'
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Not logged-in: Show login/register tabs
-  return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl text-center">Sign In or Create Account</CardTitle>
-        <p className="text-muted-foreground text-center">
-          Sign in to access your saved quotes and order history
-        </p>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'login' | 'register')}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Sign In</TabsTrigger>
-            <TabsTrigger value="register">Create Account</TabsTrigger>
-          </TabsList>
-
-          <form onSubmit={handleSubmit} className="space-y-6 mt-6">
-            <TabsContent value="login" className="space-y-4">
-              <div>
-                <Label htmlFor="login-email">Email *</Label>
-                <Input
-                  id="login-email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="your.email@example.com"
-                  className={errors.email ? 'border-red-500' : ''}
-                />
-                {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
-              </div>
-
-              <div>
-                <Label htmlFor="login-password">Password *</Label>
-                <Input
-                  id="login-password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
-                  placeholder="••••••••"
-                  className={errors.password ? 'border-red-500' : ''}
-                />
-                {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="register" className="space-y-4">
+      <div className="w-full max-w-2xl mx-auto pb-24">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Confirm Your Details</CardTitle>
+            <p className="text-muted-foreground text-center">
+              Please verify your information before continuing
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
               {/* First Name + Last Name side by side */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="register-first-name">First Name *</Label>
+                  <Label htmlFor="first_name">First Name *</Label>
                   <Input
-                    id="register-first-name"
+                    id="first_name"
                     value={formData.first_name}
                     onChange={(e) => handleInputChange('first_name', e.target.value)}
                     placeholder="John"
@@ -393,9 +210,9 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
                   {errors.first_name && <p className="text-sm text-red-500 mt-1">{errors.first_name}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="register-last-name">Last Name *</Label>
+                  <Label htmlFor="last_name">Last Name *</Label>
                   <Input
-                    id="register-last-name"
+                    id="last_name"
                     value={formData.last_name}
                     onChange={(e) => handleInputChange('last_name', e.target.value)}
                     placeholder="Smith"
@@ -407,9 +224,9 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
 
               {/* Email full width under names */}
               <div>
-                <Label htmlFor="register-email">Email *</Label>
+                <Label htmlFor="email">Email *</Label>
                 <Input
-                  id="register-email"
+                  id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
@@ -420,22 +237,9 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
               </div>
 
               <div>
-                <Label htmlFor="register-password">Password *</Label>
+                <Label htmlFor="phone">Phone Number *</Label>
                 <Input
-                  id="register-password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
-                  placeholder="••••••••"
-                  className={errors.password ? 'border-red-500' : ''}
-                />
-                {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
-              </div>
-
-              <div>
-                <Label htmlFor="register-phone">Phone Number *</Label>
-                <Input
-                  id="register-phone"
+                  id="phone"
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
@@ -444,73 +248,302 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
                 />
                 {errors.phone && <p className="text-sm text-red-500 mt-1">{errors.phone}</p>}
               </div>
-            </TabsContent>
 
-            {/* Consents Section - shown for all modes */}
-            <div className="space-y-3 pt-4 border-t">
-              <div className="flex items-start space-x-2">
-                <Checkbox
-                  id="accept_terms"
-                  checked={formData.accept_terms}
-                  onCheckedChange={(checked) => handleInputChange('accept_terms', checked)}
+              <div>
+                <Label htmlFor="company">Company (Optional)</Label>
+                <Input
+                  id="company"
+                  value={formData.company}
+                  onChange={(e) => handleInputChange('company', e.target.value)}
+                  placeholder="Your Company Name"
                 />
-                <div className="grid gap-1.5 leading-none">
-                  <Label htmlFor="accept_terms" className="text-sm font-normal">
-                    I accept the{' '}
-                    <a href="/terms" target="_blank" className="text-primary hover:underline">
-                      Terms & Conditions
-                    </a>
-                    {' '}*
-                  </Label>
-                </div>
               </div>
-              {errors.accept_terms && <p className="text-sm text-red-500">{errors.accept_terms}</p>}
 
-              <div className="flex items-start space-x-2">
-                <Checkbox
-                  id="accept_privacy"
-                  checked={formData.accept_privacy}
-                  onCheckedChange={(checked) => handleInputChange('accept_privacy', checked)}
-                />
-                <div className="grid gap-1.5 leading-none">
-                  <Label htmlFor="accept_privacy" className="text-sm font-normal">
-                    I accept the{' '}
-                    <a href="/privacy" target="_blank" className="text-primary hover:underline">
-                      Privacy Policy
-                    </a>
-                    {' '}*
-                  </Label>
-                </div>
+              <div>
+                <Label htmlFor="how_heard">How did you hear about us?</Label>
+                <Select value={formData.how_heard} onValueChange={(value) => handleInputChange('how_heard', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Please select..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="search">Google/Search Engine</SelectItem>
+                    <SelectItem value="social">Social Media</SelectItem>
+                    <SelectItem value="referral">Friend/Family Referral</SelectItem>
+                    <SelectItem value="advertisement">Advertisement</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              {errors.accept_privacy && <p className="text-sm text-red-500">{errors.accept_privacy}</p>}
 
-              <div className="flex items-start space-x-2">
-                <Checkbox
-                  id="marketing_opt_in"
-                  checked={formData.marketing_opt_in}
-                  onCheckedChange={(checked) => handleInputChange('marketing_opt_in', checked)}
-                />
-                <div className="grid gap-1.5 leading-none">
-                  <Label htmlFor="marketing_opt_in" className="text-sm font-normal">
-                    I'd like to receive marketing communications and special offers
-                  </Label>
+              {/* Consents Section */}
+              <div className="space-y-3 pt-4 border-t">
+                <div className="flex items-start space-x-2">
+                  <Checkbox
+                    id="accept_terms"
+                    checked={formData.accept_terms}
+                    onCheckedChange={(checked) => handleInputChange('accept_terms', checked)}
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <Label htmlFor="accept_terms" className="text-sm font-normal">
+                      I accept the{' '}
+                      <a href="/terms" target="_blank" className="text-primary hover:underline">
+                        Terms & Conditions
+                      </a>
+                      {' '}*
+                    </Label>
+                  </div>
+                </div>
+                {errors.accept_terms && <p className="text-sm text-red-500">{errors.accept_terms}</p>}
+
+                <div className="flex items-start space-x-2">
+                  <Checkbox
+                    id="accept_privacy"
+                    checked={formData.accept_privacy}
+                    onCheckedChange={(checked) => handleInputChange('accept_privacy', checked)}
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <Label htmlFor="accept_privacy" className="text-sm font-normal">
+                      I accept the{' '}
+                      <a href="/privacy" target="_blank" className="text-primary hover:underline">
+                        Privacy Policy
+                      </a>
+                      {' '}*
+                    </Label>
+                  </div>
+                </div>
+                {errors.accept_privacy && <p className="text-sm text-red-500">{errors.accept_privacy}</p>}
+
+                <div className="flex items-start space-x-2">
+                  <Checkbox
+                    id="marketing_opt_in"
+                    checked={formData.marketing_opt_in}
+                    onCheckedChange={(checked) => handleInputChange('marketing_opt_in', checked)}
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <Label htmlFor="marketing_opt_in" className="text-sm font-normal">
+                      I'd like to receive marketing communications and special offers
+                    </Label>
+                  </div>
                 </div>
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+        {/* Sticky button */}
+        <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 z-50">
+          <div className="max-w-2xl mx-auto">
+            <Button 
+              type="button" 
+              onClick={handleSubmit} 
+              className="w-full" 
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Processing...
                 </>
               ) : (
-                activeTab === 'login' ? 'Sign In & Continue' : 'Create Account & Continue'
+                'Continue to Shipping'
               )}
             </Button>
-          </form>
-        </Tabs>
-      </CardContent>
-    </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Not logged-in: Show login/register tabs
+  return (
+    <div className="w-full max-w-2xl mx-auto pb-24">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">Sign In or Create Account</CardTitle>
+          <p className="text-muted-foreground text-center">
+            Sign in to access your saved quotes and order history
+          </p>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'login' | 'register')}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="login">Sign In</TabsTrigger>
+              <TabsTrigger value="register">Create Account</TabsTrigger>
+            </TabsList>
+
+            <div className="space-y-6 mt-6">
+              <TabsContent value="login" className="space-y-4">
+                <div>
+                  <Label htmlFor="login-email">Email *</Label>
+                  <Input
+                    id="login-email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    placeholder="your.email@example.com"
+                    className={errors.email ? 'border-red-500' : ''}
+                  />
+                  {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
+                </div>
+
+                <div>
+                  <Label htmlFor="login-password">Password *</Label>
+                  <Input
+                    id="login-password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    placeholder="••••••••"
+                    className={errors.password ? 'border-red-500' : ''}
+                  />
+                  {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="register" className="space-y-4">
+                {/* First Name + Last Name side by side */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="register-first-name">First Name *</Label>
+                    <Input
+                      id="register-first-name"
+                      value={formData.first_name}
+                      onChange={(e) => handleInputChange('first_name', e.target.value)}
+                      placeholder="John"
+                      className={errors.first_name ? 'border-red-500' : ''}
+                    />
+                    {errors.first_name && <p className="text-sm text-red-500 mt-1">{errors.first_name}</p>}
+                  </div>
+                  <div>
+                    <Label htmlFor="register-last-name">Last Name *</Label>
+                    <Input
+                      id="register-last-name"
+                      value={formData.last_name}
+                      onChange={(e) => handleInputChange('last_name', e.target.value)}
+                      placeholder="Smith"
+                      className={errors.last_name ? 'border-red-500' : ''}
+                    />
+                    {errors.last_name && <p className="text-sm text-red-500 mt-1">{errors.last_name}</p>}
+                  </div>
+                </div>
+
+                {/* Email full width under names */}
+                <div>
+                  <Label htmlFor="register-email">Email *</Label>
+                  <Input
+                    id="register-email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    placeholder="your.email@example.com"
+                    className={errors.email ? 'border-red-500' : ''}
+                  />
+                  {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
+                </div>
+
+                <div>
+                  <Label htmlFor="register-password">Password *</Label>
+                  <Input
+                    id="register-password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    placeholder="••••••••"
+                    className={errors.password ? 'border-red-500' : ''}
+                  />
+                  {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
+                </div>
+
+                <div>
+                  <Label htmlFor="register-phone">Phone Number *</Label>
+                  <Input
+                    id="register-phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    placeholder="0400 000 000"
+                    className={errors.phone ? 'border-red-500' : ''}
+                  />
+                  {errors.phone && <p className="text-sm text-red-500 mt-1">{errors.phone}</p>}
+                </div>
+              </TabsContent>
+
+              {/* Consents Section - shown for all modes */}
+              <div className="space-y-3 pt-4 border-t">
+                <div className="flex items-start space-x-2">
+                  <Checkbox
+                    id="accept_terms"
+                    checked={formData.accept_terms}
+                    onCheckedChange={(checked) => handleInputChange('accept_terms', checked)}
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <Label htmlFor="accept_terms" className="text-sm font-normal">
+                      I accept the{' '}
+                      <a href="/terms" target="_blank" className="text-primary hover:underline">
+                        Terms & Conditions
+                      </a>
+                      {' '}*
+                    </Label>
+                  </div>
+                </div>
+                {errors.accept_terms && <p className="text-sm text-red-500">{errors.accept_terms}</p>}
+
+                <div className="flex items-start space-x-2">
+                  <Checkbox
+                    id="accept_privacy"
+                    checked={formData.accept_privacy}
+                    onCheckedChange={(checked) => handleInputChange('accept_privacy', checked)}
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <Label htmlFor="accept_privacy" className="text-sm font-normal">
+                      I accept the{' '}
+                      <a href="/privacy" target="_blank" className="text-primary hover:underline">
+                        Privacy Policy
+                      </a>
+                      {' '}*
+                    </Label>
+                  </div>
+                </div>
+                {errors.accept_privacy && <p className="text-sm text-red-500">{errors.accept_privacy}</p>}
+
+                <div className="flex items-start space-x-2">
+                  <Checkbox
+                    id="marketing_opt_in"
+                    checked={formData.marketing_opt_in}
+                    onCheckedChange={(checked) => handleInputChange('marketing_opt_in', checked)}
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <Label htmlFor="marketing_opt_in" className="text-sm font-normal">
+                      I'd like to receive marketing communications and special offers
+                    </Label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* Sticky button */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 z-50">
+        <div className="max-w-2xl mx-auto">
+          <Button 
+            type="button"
+            onClick={handleSubmit}
+            className="w-full" 
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              activeTab === 'login' ? 'Sign In & Continue' : 'Create Account & Continue'
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };

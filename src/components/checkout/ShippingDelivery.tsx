@@ -47,15 +47,15 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
   const { checkPostcodeServices, loading: postcodeLoading } = usePostcodeServices();
   
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
-    firstName: customerData?.customer_first_name || '',
-    lastName: customerData?.customer_last_name || '',
+    firstName: customerData?.identity?.first_name || customerData?.customer_first_name || '',
+    lastName: customerData?.identity?.last_name || customerData?.customer_last_name || '',
     company: customerData?.customer_company || '',
     address: '',
     suburb: '',
     state: 'NSW',
     postcode: '',
     country: 'Australia',
-    phone: customerData?.customer_phone || '',
+    phone: customerData?.identity?.phone || customerData?.customer_phone || '',
     instructions: '',
   });
 
@@ -268,12 +268,6 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!shippingAddress.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
-    }
-    if (!shippingAddress.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    }
     if (!shippingAddress.address.trim()) {
       newErrors.address = 'Address is required';
     }
@@ -364,29 +358,6 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
               <span>Delivery Address</span>
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="firstName">First Name *</Label>
-                <Input
-                  id="firstName"
-                  value={shippingAddress.firstName}
-                  onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  className={errors.firstName ? 'border-red-500' : ''}
-                />
-                {errors.firstName && <p className="text-sm text-red-500 mt-1">{errors.firstName}</p>}
-              </div>
-              <div>
-                <Label htmlFor="lastName">Last Name *</Label>
-                <Input
-                  id="lastName"
-                  value={shippingAddress.lastName}
-                  onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  className={errors.lastName ? 'border-red-500' : ''}
-                />
-                {errors.lastName && <p className="text-sm text-red-500 mt-1">{errors.lastName}</p>}
-              </div>
-            </div>
-
             <div>
               <Label htmlFor="company">Company (Optional)</Label>
               <Input
