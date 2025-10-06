@@ -31,9 +31,10 @@ interface PaymentStepProps {
     taxAmount: number;
     finalTotal: number;
   };
+  isProcessing?: boolean;
 }
 
-export const PaymentStep = ({ checkoutId, customerData, onComplete, orderSummary }: PaymentStepProps) => {
+export const PaymentStep = ({ checkoutId, customerData, onComplete, orderSummary, isProcessing = false }: PaymentStepProps) => {
   const [selectedPayment, setSelectedPayment] = useState<string>('');
   const [paymentType, setPaymentType] = useState<'full' | 'deposit'>('deposit');
   const [billingAddress, setBillingAddress] = useState({
@@ -502,8 +503,15 @@ export const PaymentStep = ({ checkoutId, customerData, onComplete, orderSummary
           </div>
 
           {selectedPayment !== 'stripe' && (
-            <Button type="submit" className="w-full">
-              Continue to Review Order
+            <Button type="submit" className="w-full" disabled={isProcessing}>
+              {isProcessing ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Processing Order...
+                </>
+              ) : (
+                'Continue to Review Order'
+              )}
             </Button>
           )}
         </form>

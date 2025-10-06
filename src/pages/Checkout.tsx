@@ -41,6 +41,7 @@ const Checkout = () => {
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
   const [cartId, setCartId] = useState<string | null>(null); // CRITICAL: Store cart ID explicitly
   const [customerData, setCustomerData] = useState<any>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false); // Prevent double submission
   const [orderSummary, setOrderSummary] = useState({
     subtotal: 0,
     deliveryTotal: 0,
@@ -190,6 +191,14 @@ const Checkout = () => {
     } else if (stepId === 'payment') {
       console.log('💳 Payment step complete, processing order...');
       
+      // Prevent double submission
+      if (isProcessingPayment) {
+        console.log('⚠️ Order already being processed, ignoring duplicate request');
+        return;
+      }
+      
+      setIsProcessingPayment(true);
+      
       try {
         // Mark payment step as completed
         const updatedSteps = steps.map(step => {
@@ -226,6 +235,7 @@ const Checkout = () => {
       } catch (error) {
         console.error('Error processing payment:', error);
         toast.error('Failed to create order. Please try again or contact support.');
+        setIsProcessingPayment(false); // Reset on error to allow retry
       }
     }
   };
@@ -266,6 +276,7 @@ const Checkout = () => {
             customerData={customerData}
             orderSummary={orderSummary}
             onComplete={(data) => handleStepComplete('payment', data)}
+            isProcessing={isProcessingPayment}
           />
         );
       default:

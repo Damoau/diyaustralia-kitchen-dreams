@@ -32,6 +32,29 @@ serve(async (req) => {
     }
 
     if (checkout.status === 'converted') {
+      // If checkout already converted, fetch and return existing order
+      const { data: existingOrder, error: existingOrderError } = await supabase
+        .from('orders')
+        .select('id, order_number')
+        .eq('session_id', checkout.session_id)
+        .or(`user_id.eq.${checkout.user_id}`)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (!existingOrderError && existingOrder) {
+        console.log('Checkout already converted, returning existing order:', existingOrder.id);
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            orderId: existingOrder.id, 
+            orderNumber: existingOrder.order_number,
+            message: 'Order already created'
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
       throw new Error('Checkout already converted to order');
     }
 
