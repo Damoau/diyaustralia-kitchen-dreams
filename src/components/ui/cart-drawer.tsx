@@ -388,9 +388,21 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
               </ScrollArea>
 
               <div className="border-t pt-4 space-y-4">
-                <div className="flex justify-between text-lg font-semibold">
-                  <span>Total</span>
-                  <span>{formatCurrency(getTotalPrice())}</span>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Subtotal (ex GST)</span>
+                    <span>{formatCurrency(getTotalPrice() / 1.1)}</span>
+                  </div>
+                  
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>GST (10%)</span>
+                    <span>{formatCurrency((getTotalPrice() / 1.1) * 0.1)}</span>
+                  </div>
+                  
+                  <div className="flex justify-between text-lg font-semibold pt-2 border-t">
+                    <span>Total (inc GST)</span>
+                    <span>{formatCurrency(getTotalPrice())}</span>
+                  </div>
                 </div>
                 
                 {/* Modern 20% Deposit Banner */}
@@ -431,6 +443,16 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                         disabled={isLoading}
                       >
                         Proceed to Checkout
+                      </Button>
+                      
+                      <Button 
+                        onClick={handleCheckout}
+                        variant="secondary"
+                        className="w-full h-12 text-base"
+                        size="lg"
+                        disabled={isLoading}
+                      >
+                        Proceed to Checkout with a 20% Deposit
                       </Button>
                   
                       <Button 

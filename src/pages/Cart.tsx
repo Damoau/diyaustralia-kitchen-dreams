@@ -377,9 +377,14 @@ const Cart = () => {
                     <CardTitle>Order Summary</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex justify-between">
-                      <span>Subtotal ({totalItems} items)</span>
-                      <span>{formatCurrency(totalPrice)}</span>
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Subtotal (ex GST)</span>
+                      <span>{formatCurrency(totalPrice / 1.1)}</span>
+                    </div>
+                    
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>GST (10%)</span>
+                      <span>{formatCurrency((totalPrice / 1.1) * 0.1)}</span>
                     </div>
                     
                     <div className="flex justify-between">
@@ -390,8 +395,13 @@ const Cart = () => {
                     <hr />
                     
                      <div className="flex justify-between font-semibold text-lg">
-                       <span>Total</span>
+                       <span>Total (inc GST)</span>
                        <span>{formatCurrency(totalPrice)}</span>
+                     </div>
+                     
+                     <div className="flex justify-between text-sm text-muted-foreground pt-2 border-t">
+                       <span>20% Deposit</span>
+                       <span>{formatCurrency(totalPrice * 0.2)}</span>
                      </div>
                      
                      {isImpersonating ? (
@@ -404,25 +414,35 @@ const Cart = () => {
                          {isConverting ? "Creating Quote..." : "Create Quote for Customer"}
                        </Button>
                      ) : (
-                       <>
-                         <Button 
-                           onClick={handleRequestQuote}
-                           className="w-full"
-                           size="lg"
-                           disabled={isLoading || isConverting}
-                         >
-                           {isConverting ? "Saving Cart as Quote for later..." : "Save Cart as Quote for later"}
-                         </Button>
-                         
-                         <Button 
-                           variant="outline" 
-                           onClick={handleCheckout}
-                           className="w-full"
-                           disabled={isLoading}
-                         >
-                           Proceed to Checkout
-                         </Button>
-                       </>
+                         <>
+                          <Button 
+                            onClick={handleRequestQuote}
+                            className="w-full"
+                            size="lg"
+                            disabled={isLoading || isConverting}
+                          >
+                            {isConverting ? "Saving Cart as Quote for later..." : "Save Cart as Quote for later"}
+                          </Button>
+                          
+                          <Button 
+                            onClick={handleCheckout}
+                            className="w-full"
+                            size="lg"
+                            disabled={isLoading}
+                          >
+                            Proceed to Checkout
+                          </Button>
+                          
+                          <Button 
+                            variant="secondary"
+                            onClick={handleCheckout}
+                            className="w-full"
+                            size="lg"
+                            disabled={isLoading}
+                          >
+                            Proceed to Checkout with a 20% Deposit
+                          </Button>
+                        </>
                      )}
                     
                     <Button 
