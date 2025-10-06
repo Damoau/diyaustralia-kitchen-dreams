@@ -2,14 +2,19 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Send, Eye, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
+import { FileText, Send, Eye, Clock, CheckCircle, AlertTriangle, Upload } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { OrderDetailView } from './OrderDetailView';
+import { OrderDocumentManager } from './OrderDocumentManager';
 
 export function DocumentApprovalDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [uploadDialogOrderId, setUploadDialogOrderId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -126,6 +131,12 @@ export function DocumentApprovalDashboard() {
     return 'secondary';
   };
 
+  const getDocumentProgress = (order: any) => {
+    const docs = order.order_documents || [];
+    const approved = docs.filter((d: any) => d.status === 'approved').length;
+    return { approved, total: docs.length };
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -162,9 +173,15 @@ export function DocumentApprovalDashboard() {
                   }}>
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <p className="font-semibold">{order.order_number}</p>
+                        <div className="space-y-1 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Button
+                              variant="link"
+                              className="h-auto p-0 font-semibold text-base"
+                              onClick={() => setSelectedOrderId(order.id)}
+                            >
+                              {order.order_number}
+                            </Button>
                             <Badge variant={getStatusColor(order.drawings_status, daysWaiting)}>
                               {order.drawings_status === 'pending_upload' && (
                                 <Clock className="h-3 w-3 mr-1" />
@@ -176,6 +193,9 @@ export function DocumentApprovalDashboard() {
                                 <Eye className="h-3 w-3 mr-1" />
                               )}
                               {order.drawings_status}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {getDocumentProgress(order).approved} / {getDocumentProgress(order).total} docs approved
                             </Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">
@@ -218,15 +238,36 @@ export function DocumentApprovalDashboard() {
                             </div>
                           )}
                           
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => sendReminder(order.id)}
-                            disabled={order.drawings_status === 'pending_upload'}
-                          >
-                            <Send className="h-3 w-3 mr-1" />
-                            Send Reminder
-                          </Button>
+                          <div className="flex gap-2">
+                            {order.drawings_status === 'pending_upload' ? (
+                              <Button
+                                size="sm"
+                                onClick={() => setUploadDialogOrderId(order.id)}
+                              >
+                                <Upload className="h-3 w-3 mr-1" />
+                                Upload
+                              </Button>
+                            ) : (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setSelectedOrderId(order.id)}
+                                >
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  View
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => sendReminder(order.id)}
+                                >
+                                  <Send className="h-3 w-3 mr-1" />
+                                  Remind
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </CardContent>
@@ -237,6 +278,34 @@ export function DocumentApprovalDashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* Order Detail Dialog */}
+      <Dialog open={!!selectedOrderId} onOpenChange={(open) => !open && setSelectedOrderId(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Order Details</DialogTitle>
+          </DialogHeader>
+          {selectedOrderId && <OrderDetailView orderId={selectedOrderId} />}
+        </DialogContent>
+      </Dialog>
+
+      {/* Upload Document Dialog */}
+      <Dialog open={!!uploadDialogOrderId} onOpenChange={(open) => !open && setUploadDialogOrderId(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Upload Documents</DialogTitle>
+          </DialogHeader>
+          {uploadDialogOrderId && (
+            <OrderDocumentManager 
+              orderId={uploadDialogOrderId}
+              onDocumentUploaded={() => {
+                loadOrders();
+                setUploadDialogOrderId(null);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
