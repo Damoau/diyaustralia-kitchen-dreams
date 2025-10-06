@@ -9,8 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Upload, FileText, Send, Loader2, X } from 'lucide-react';
+import { Upload, FileText, Send, Loader2, X, Edit } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { PDFSignatureEditor } from './PDFSignatureEditor';
 
 interface OrderDocumentManagerProps {
   orderId: string;
@@ -24,6 +25,9 @@ export function OrderDocumentManager({ orderId, onDocumentUploaded }: OrderDocum
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [requiresSignature, setRequiresSignature] = useState(false);
+  const [uploadedDocumentId, setUploadedDocumentId] = useState<string | null>(null);
+  const [uploadedDocumentUrl, setUploadedDocumentUrl] = useState<string | null>(null);
+  const [showEditor, setShowEditor] = useState(false);
   const { toast } = useToast();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -100,19 +104,34 @@ export function OrderDocumentManager({ orderId, onDocumentUploaded }: OrderDocum
         throw new Error('Failed to upload file to storage');
       }
 
+      // Get a signed URL for the document (valid for 1 hour)
+      const { data: signedUrlData, error: urlError } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(uploadData.storagePath, 3600);
+
+      if (urlError) throw urlError;
+
+      setUploadedDocumentId(uploadData.documentId);
+      setUploadedDocumentUrl(signedUrlData.signedUrl);
+
       toast({
         title: 'Document uploaded',
-        description: `${title} has been uploaded successfully (v${uploadData.version})`
+        description: `${title} has been uploaded successfully. ${requiresSignature ? 'Now add signature fields.' : ''}`
       });
 
-      // Reset form
-      setFile(null);
-      setTitle('');
-      setDescription('');
-      setRequiresSignature(false);
-      
-      if (onDocumentUploaded) {
-        onDocumentUploaded();
+      // If requires signature, open the editor
+      if (requiresSignature) {
+        setShowEditor(true);
+      } else {
+        // Reset form for non-signature documents
+        setFile(null);
+        setTitle('');
+        setDescription('');
+        setRequiresSignature(false);
+        
+        if (onDocumentUploaded) {
+          onDocumentUploaded();
+        }
       }
     } catch (error: any) {
       console.error('Upload error:', error);
@@ -182,16 +201,17 @@ export function OrderDocumentManager({ orderId, onDocumentUploaded }: OrderDocum
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          Upload Documents
-        </CardTitle>
-        <CardDescription>
-          Upload drawings or customer plans for approval
-        </CardDescription>
-      </CardHeader>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Upload Documents
+          </CardTitle>
+          <CardDescription>
+            Upload drawings or customer plans for approval
+          </CardDescription>
+        </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="document-type">Document Type</Label>
@@ -330,5 +350,36 @@ export function OrderDocumentManager({ orderId, onDocumentUploaded }: OrderDocum
         </div>
       </CardContent>
     </Card>
+
+      {/* PDF Signature Editor */}
+      {showEditor && uploadedDocumentId && uploadedDocumentUrl && (
+        <PDFSignatureEditor
+          documentId={uploadedDocumentId}
+          orderId={orderId}
+          documentUrl={uploadedDocumentUrl}
+          onClose={() => {
+            setShowEditor(false);
+            setFile(null);
+            setTitle('');
+            setDescription('');
+            setRequiresSignature(false);
+            setUploadedDocumentId(null);
+            setUploadedDocumentUrl(null);
+          }}
+          onSent={() => {
+            setShowEditor(false);
+            setFile(null);
+            setTitle('');
+            setDescription('');
+            setRequiresSignature(false);
+            setUploadedDocumentId(null);
+            setUploadedDocumentUrl(null);
+            if (onDocumentUploaded) {
+              onDocumentUploaded();
+            }
+          }}
+        />
+      )}
+    </>
   );
 }
