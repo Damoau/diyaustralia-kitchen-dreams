@@ -49,20 +49,36 @@ export function PDFSignatureEditor({ documentId, orderId, documentUrl, onClose, 
   useEffect(() => {
     if (!canvasRef.current || !pageRef.current) return;
 
-    // Wait a bit for PDF to fully render
-    const timer = setTimeout(() => {
+    const initCanvas = () => {
+      const pdfPage = pageRef.current?.querySelector('.react-pdf__Page');
+      if (!pdfPage) {
+        console.log('PDF page not ready yet');
+        return;
+      }
+
+      const width = pdfPage.clientWidth;
+      const height = pdfPage.clientHeight;
+
+      console.log(`Initializing canvas with size: ${width}x${height}`);
+
       const fabricCanvas = new FabricCanvas(canvasRef.current!, {
-        width: pageRef.current!.offsetWidth,
-        height: pageRef.current!.offsetHeight,
+        width,
+        height,
         selection: true,
+        renderOnAddRemove: true,
       });
 
+      console.log('Canvas created successfully');
       setCanvas(fabricCanvas);
-    }, 100);
+    };
+
+    // Wait for PDF to render
+    const timer = setTimeout(initCanvas, 200);
 
     return () => {
       clearTimeout(timer);
       if (canvas) {
+        console.log('Disposing canvas');
         canvas.dispose();
       }
     };
@@ -383,8 +399,12 @@ export function PDFSignatureEditor({ documentId, orderId, documentUrl, onClose, 
               </Document>
               <canvas
                 ref={canvasRef}
-                className="absolute top-0 left-0 pointer-events-auto"
-                style={{ zIndex: 10 }}
+                className="absolute top-0 left-0"
+                style={{ 
+                  zIndex: 10,
+                  touchAction: 'none',
+                  cursor: tool === 'select' ? 'default' : 'crosshair'
+                }}
               />
             </div>
           </div>
