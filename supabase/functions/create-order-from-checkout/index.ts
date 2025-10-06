@@ -100,7 +100,6 @@ serve(async (req) => {
         customer_email: checkout.customer_email,
         customer_phone: checkout.customer_phone,
         customer_company: checkout.customer_company,
-        customer_abn: checkout.customer_abn,
         shipping_method: 'standard',
         target_completion: defaultDueDate,
         drawings_status: paymentType === 'deposit' ? 'pending_upload' : 'not_required',

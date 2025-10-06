@@ -35,7 +35,7 @@ interface PaymentStepProps {
 
 export const PaymentStep = ({ checkoutId, customerData, onComplete, orderSummary }: PaymentStepProps) => {
   const [selectedPayment, setSelectedPayment] = useState<string>('');
-  const [paymentType, setPaymentType] = useState<'full' | 'deposit'>('full');
+  const [paymentType, setPaymentType] = useState<'full' | 'deposit'>('deposit');
   const [billingAddress, setBillingAddress] = useState({
     firstName: '',
     lastName: '',
