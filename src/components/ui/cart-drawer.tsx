@@ -215,13 +215,13 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
     }
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = (paymentType: 'full' | 'deposit' = 'full') => {
     if (!cart?.items?.length) {
       toast.error("Your cart is empty");
       return;
     }
     setIsOpen(false);
-    navigate("/checkout");
+    navigate(`/checkout?paymentType=${paymentType}`);
   };
 
   const handleViewCart = () => {
@@ -437,7 +437,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                   ) : (
                     <>
                       <Button 
-                        onClick={handleCheckout}
+                        onClick={() => handleCheckout('full')}
                         className="w-full h-12 text-base font-semibold"
                         size="lg"
                         disabled={isLoading}
@@ -446,7 +446,7 @@ export const CartDrawer = ({ children }: CartDrawerProps) => {
                       </Button>
                       
                       <Button 
-                        onClick={handleCheckout}
+                        onClick={() => handleCheckout('deposit')}
                         variant="secondary"
                         className="w-full h-12 text-base"
                         size="lg"

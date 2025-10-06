@@ -109,8 +109,8 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
     }
   }, [cart?.id, convertCartToQuote, invalidateCache]);
 
-  const handleCheckout = useCallback(() => {
-    navigate('/checkout');
+  const handleCheckout = useCallback((paymentType: 'full' | 'deposit' = 'full') => {
+    navigate(`/checkout?paymentType=${paymentType}`);
   }, [navigate]);
 
   const handleViewCart = useCallback(() => {
@@ -286,7 +286,7 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
                   {getTotalPrice() > 0 && (
                     <>
                       <Button 
-                        onClick={handleCheckout}
+                        onClick={() => handleCheckout('full')}
                         className="w-full h-12 text-base font-medium"
                         size="lg"
                       >
@@ -294,7 +294,7 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
                       </Button>
                       
                       <Button 
-                        onClick={handleCheckout}
+                        onClick={() => handleCheckout('deposit')}
                         variant="secondary"
                         className="w-full h-12 text-base"
                         size="lg"

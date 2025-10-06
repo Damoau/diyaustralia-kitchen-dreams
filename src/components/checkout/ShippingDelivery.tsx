@@ -115,28 +115,44 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
     }
   };
 
+  // Cache for postcode checks to avoid repeated API calls
+  const [postcodeCache, setPostcodeCache] = useState<Map<string, any>>(new Map());
+
   const checkPostcodeEligibility = async (postcode: string) => {
     if (!postcode || postcode.length !== 4) return;
 
+    // Check cache first
+    if (postcodeCache.has(postcode)) {
+      const cached = postcodeCache.get(postcode);
+      setDeliveryOptions(cached.options);
+      setPostcodeChecked(true);
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // Check assembly eligibility using the dedicated edge function
-      const { data: assemblyCheck, error: assemblyError } = await supabase.functions.invoke('check-assembly-eligibility', {
-        body: { postcode }
-      });
+      // Simplified delivery rules based on postcode prefix
+      const postcodeNum = parseInt(postcode);
+      const isMetropolitan = (
+        (postcodeNum >= 2000 && postcodeNum <= 2249) || // Sydney
+        (postcodeNum >= 3000 && postcodeNum <= 3211) || // Melbourne
+        (postcodeNum >= 4000 && postcodeNum <= 4179) || // Brisbane
+        (postcodeNum >= 5000 && postcodeNum <= 5199) || // Adelaide
+        (postcodeNum >= 6000 && postcodeNum <= 6199) || // Perth
+        (postcodeNum >= 7000 && postcodeNum <= 7199)    // Hobart
+      );
 
-      if (assemblyError) {
-        console.error('Assembly check error:', assemblyError);
+      // Only check assembly if needed (for white glove)
+      let assemblyCheck = null;
+      try {
+        const { data, error } = await supabase.functions.invoke('check-assembly-eligibility', {
+          body: { postcode }
+        });
+        if (!error) assemblyCheck = data;
+      } catch (error) {
+        console.log('Assembly check skipped:', error);
       }
 
-      // Check delivery zones
-      const { data: postcodeZone } = await supabase
-        .from('postcode_zones')
-        .select('*')
-        .eq('postcode', postcode)
-        .single();
-
-      const isMetropolitan = postcodeZone?.metro || false;
       const assemblyEligible = assemblyCheck?.eligible || false;
       const assemblySurcharges = assemblyCheck?.surcharges || { carcass: 0, doors: 0 };
 
@@ -146,11 +162,10 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
           availableForPostcode: option.id === 'express' ? isMetropolitan : true,
         };
 
-        // Update assembly availability and pricing based on API response
+        // Update assembly availability and pricing
         if (option.assemblyAvailable) {
           updatedOption.assemblyAvailable = assemblyEligible;
           if (assemblyEligible && option.assemblyPrice) {
-            // Apply surcharges if any
             const surchargeAmount = (assemblySurcharges.carcass + assemblySurcharges.doors) / 100 * option.assemblyPrice;
             updatedOption.assemblyPrice = option.assemblyPrice + surchargeAmount;
           }
@@ -159,11 +174,13 @@ export const ShippingDelivery = ({ checkoutId, onComplete, customerData }: Shipp
         return updatedOption;
       });
 
+      // Cache the result
+      setPostcodeCache(prev => new Map(prev).set(postcode, { options: updatedOptions }));
+      
       setDeliveryOptions(updatedOptions);
       setPostcodeChecked(true);
     } catch (error) {
       console.error('Error checking postcode:', error);
-      // Fallback to basic options if API fails
       setDeliveryOptions(baseDeliveryOptions);
       setPostcodeChecked(true);
     } finally {

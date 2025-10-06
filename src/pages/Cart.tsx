@@ -172,13 +172,14 @@ const Cart = () => {
     }
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = (paymentType: 'full' | 'deposit' = 'full') => {
     if (!cart?.items?.length) {
       toast.error("Your cart is empty");
       return;
     }
     
-    navigate("/checkout");
+    // Pass payment type as URL parameter
+    navigate(`/checkout?paymentType=${paymentType}`);
   };
 
   const handleSaveCart = async () => {
@@ -425,7 +426,7 @@ const Cart = () => {
                           </Button>
                           
                           <Button 
-                            onClick={handleCheckout}
+                            onClick={() => handleCheckout('full')}
                             className="w-full"
                             size="lg"
                             disabled={isLoading}
@@ -435,7 +436,7 @@ const Cart = () => {
                           
                           <Button 
                             variant="secondary"
-                            onClick={handleCheckout}
+                            onClick={() => handleCheckout('deposit')}
                             className="w-full"
                             size="lg"
                             disabled={isLoading}

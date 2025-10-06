@@ -31,6 +31,11 @@ const Checkout = () => {
   const { cart, isLoading: cartLoading, getTotalItems, getTotalPrice } = useCartOptimized();
   const { startCheckout } = useCheckout();
   
+  // Get payment type from URL
+  const searchParams = new URLSearchParams(window.location.search);
+  const paymentType = searchParams.get('paymentType') as 'full' | 'deposit' || 'full';
+  const isDepositCheckout = paymentType === 'deposit';
+  
   const [currentStep, setCurrentStep] = useState('identity');
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
   const [customerData, setCustomerData] = useState<any>(null);
@@ -38,7 +43,9 @@ const Checkout = () => {
     subtotal: 0,
     deliveryTotal: 0,
     taxAmount: 0,
-    finalTotal: 0
+    finalTotal: 0,
+    depositAmount: 0,
+    isDeposit: isDepositCheckout
   });
   
   const steps: SequenceStep[] = [
@@ -177,11 +184,16 @@ const Checkout = () => {
       const subtotalExGST = subtotalIncGST / 1.1;
       const deliveryExGST = deliveryTotalIncGST / 1.1;
       
+      // Calculate deposit (20% of total)
+      const depositAmount = isDepositCheckout ? totalIncGST * 0.2 : totalIncGST;
+      
       setOrderSummary({
         subtotal: subtotalExGST,
         deliveryTotal: deliveryExGST,
         taxAmount: taxAmount,
-        finalTotal: totalIncGST
+        finalTotal: totalIncGST,
+        depositAmount: depositAmount,
+        isDeposit: isDepositCheckout
       });
       
       // Update step statuses
@@ -351,39 +363,41 @@ const Checkout = () => {
                   
                   <hr />
                   
-                  <div className="flex justify-between">
-                    <span>Subtotal ({getTotalItems()} items)</span>
-                    <span>{formatCurrency(getTotalPrice())}</span>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Subtotal (ex GST)</span>
+                    <span>{formatCurrency(getTotalPrice() / 1.1)}</span>
                   </div>
                   
-                   {/* Modern 20% Deposit Banner */}
-                   <div className="w-full max-w-md mx-auto my-4">
-                     <div className="bg-gradient-to-r from-primary to-blue-dark text-primary-foreground rounded-xl px-6 py-3 shadow-lg border border-primary/20 backdrop-blur-sm">
-                       <div className="flex items-center gap-3">
-                         <div className="flex flex-col">
-                           <span className="text-sm font-medium opacity-90">20% deposit to get all cabinets started</span>
-                           <span className="text-lg font-bold">
-                             {formatCurrency(getTotalPrice() * 0.2)}
-                           </span>
-                         </div>
-                         <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                           <span className="text-xs font-bold">20%</span>
-                         </div>
-                       </div>
-                     </div>
-                   </div>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>GST (10%)</span>
+                    <span>{formatCurrency((getTotalPrice() / 1.1) * 0.1)}</span>
+                  </div>
                   
                   <div className="flex justify-between">
                     <span>Shipping</span>
-                    <span className="text-muted-foreground">Calculated at checkout</span>
+                    <span className="text-muted-foreground">Calculated in next step</span>
                   </div>
                   
                   <hr />
                   
                   <div className="flex justify-between font-semibold text-lg">
-                    <span>Total</span>
-                    <span>${getTotalPrice().toFixed(2)}</span>
+                    <span>Total (inc GST)</span>
+                    <span>{formatCurrency(getTotalPrice())}</span>
                   </div>
+                  
+                  {isDepositCheckout && (
+                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold">Due Today (20% Deposit)</span>
+                        <span className="text-xl font-bold text-primary">
+                          {formatCurrency(getTotalPrice() * 0.2)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Remaining {formatCurrency(getTotalPrice() * 0.8)} due before delivery
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
