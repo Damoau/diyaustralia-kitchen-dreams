@@ -37,12 +37,12 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
   const { identifyCustomer, isLoading, validateEmail, validatePhone } = useCheckout();
   const { user } = useAuth();
 
-  // Skip identify step if already signed in and fetch profile data
+  // Auto-fill form for logged-in users
   React.useEffect(() => {
-    const autoFillForLoggedInUser = async () => {
+    const autoFillFormData = async () => {
       if (user && !hasAutoIdentified) {
         setHasAutoIdentified(true);
-        console.log('🔐 User already authenticated, fetching profile data...');
+        console.log('🔐 User already authenticated, pre-filling form...');
         
         // Fetch user profile data
         try {
@@ -58,47 +58,40 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
           const firstName = nameParts[0] || user.user_metadata?.first_name || '';
           const lastName = nameParts.slice(1).join(' ') || user.user_metadata?.last_name || '';
 
-          const payload: IdentifyPayload = {
-            mode: 'guest',
+          // Pre-fill form data
+          setFormData({
             email: user.email || '',
+            password: '',
             phone: profile?.phone || user.user_metadata?.phone || '',
             first_name: firstName,
             last_name: lastName,
             company: user.user_metadata?.company || '',
             abn: user.user_metadata?.abn || '',
-            consents: {
-              terms: true,
-              privacy: true,
-              marketing: false,
-            },
-          };
+            how_heard: '',
+            accept_terms: true,
+            accept_privacy: true,
+            marketing_opt_in: false,
+          });
 
-          console.log('✅ Auto-filling with user data:', payload);
-          await identifyCustomer(checkoutId, payload);
-          onComplete(payload);
+          console.log('✅ Form pre-filled with user data');
         } catch (error) {
           console.error('Error fetching profile:', error);
-          // Proceed with basic user data
-          const payload: IdentifyPayload = {
-            mode: 'guest',
+          // Pre-fill with basic user data
+          setFormData(prev => ({
+            ...prev,
             email: user.email || '',
-            phone: user.user_metadata?.phone || '',
             first_name: user.user_metadata?.first_name || '',
             last_name: user.user_metadata?.last_name || '',
-            consents: {
-              terms: true,
-              privacy: true,
-              marketing: false,
-            },
-          };
-          await identifyCustomer(checkoutId, payload);
-          onComplete(payload);
+            phone: user.user_metadata?.phone || '',
+            accept_terms: true,
+            accept_privacy: true,
+          }));
         }
       }
     };
 
-    autoFillForLoggedInUser();
-  }, [user, checkoutId, hasAutoIdentified, identifyCustomer, onComplete]);
+    autoFillFormData();
+  }, [user, hasAutoIdentified]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -180,19 +173,6 @@ export const CustomerIdentify = ({ checkoutId, onComplete }: CustomerIdentifyPro
     }
   };
 
-  // Don't render if user is already signed in (auto-processing)
-  if (user) {
-    return (
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center space-x-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Processing your information...</span>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
