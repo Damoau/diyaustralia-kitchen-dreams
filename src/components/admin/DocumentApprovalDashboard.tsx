@@ -43,8 +43,7 @@ export function DocumentApprovalDashboard() {
         .select(`
           id,
           order_number,
-          customer_name,
-          customer_email,
+          shipping_address,
           drawings_status,
           drawings_approved_at,
           created_at,
@@ -62,8 +61,11 @@ export function DocumentApprovalDashboard() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      
+      console.log('Document approvals loaded:', data?.length || 0, 'orders');
       setOrders(data || []);
     } catch (error: any) {
+      console.error('Error loading document approvals:', error);
       toast({
         title: 'Error loading orders',
         description: error.message,
@@ -177,7 +179,7 @@ export function DocumentApprovalDashboard() {
                             </Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            {order.customer_name} • {order.customer_email}
+                            {order.shipping_address?.name} • {order.shipping_address?.email}
                           </p>
                           
                           {pendingDocs.length > 0 && (
