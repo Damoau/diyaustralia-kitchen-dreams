@@ -19,6 +19,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SignatureCapture } from './SignatureCapture';
 import { DocumentComments } from './DocumentComments';
+import { DocuSealViewer } from './DocuSealViewer';
 
 // Configure PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -326,6 +327,9 @@ export function DocumentViewer({ orderId, onApproved }: DocumentViewerProps) {
           </CardContent>
         </Card>
       )}
+
+      {/* DocuSeal Documents */}
+      <DocuSealViewer orderId={orderId} />
 
       {/* Document Comments Section */}
       {selectedDoc && (

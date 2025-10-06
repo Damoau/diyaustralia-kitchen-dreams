@@ -262,6 +262,59 @@ export function DocumentApprovalDashboard() {
     }
   };
 
+  const handleSendViaDocuSeal = async (orderId: string, documentId: string) => {
+    try {
+      const { data: doc } = await supabase
+        .from('order_documents')
+        .select('storage_url, title')
+        .eq('id', documentId)
+        .single();
+
+      const { data: order } = await supabase
+        .from('orders')
+        .select('*, contacts!inner(*)')
+        .eq('id', orderId)
+        .single();
+
+      if (!doc || !order) throw new Error('Document or order not found');
+
+      const contacts = order.contacts as any;
+
+      // Get signed URL
+      const { data: signedUrl } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(doc.storage_url, 604800); // 7 days
+
+      if (!signedUrl) throw new Error('Failed to create signed URL');
+
+      // Create DocuSeal submission
+      const { data, error } = await supabase.functions.invoke('docuseal-create-submission', {
+        body: {
+          documentId,
+          orderId,
+          documentUrl: signedUrl.signedUrl,
+          customerEmail: contacts?.email || 'customer@example.com',
+          customerName: contacts?.name || 'Customer'
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Sent via DocuSeal',
+        description: 'Customer will receive an email to sign the document'
+      });
+
+      loadOrders();
+    } catch (error: any) {
+      toast({
+        title: 'Failed to send via DocuSeal',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  };
+
   const getDocuSealButtonVariant = (order: any) => {
     if (order.drawings_status === 'pending_upload') return 'default';
     const pendingDocs = order.order_documents?.filter((d: any) => d.status !== 'approved' && d.status !== 'archived') || [];
@@ -393,7 +446,11 @@ export function DocumentApprovalDashboard() {
                                 <>
                                   <DropdownMenuItem onClick={() => handleEditSignatures(pendingDocs[0].id, order.id)}>
                                     <Edit className="h-4 w-4 mr-2" />
-                                    Add Signature Fields
+                                    Add Signature Fields (Custom)
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleSendViaDocuSeal(order.id, pendingDocs[0].id)}>
+                                    <FileSignature className="h-4 w-4 mr-2" />
+                                    Send via DocuSeal (Legal)
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem 

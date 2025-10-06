@@ -2913,6 +2913,10 @@ export type Database = {
           created_at: string | null
           description: string | null
           document_type: string
+          docuseal_completed_at: string | null
+          docuseal_status: string | null
+          docuseal_submission_id: string | null
+          docuseal_template_id: string | null
           file_id: string | null
           file_size: number | null
           first_viewed_at: string | null
@@ -2924,6 +2928,7 @@ export type Database = {
           requires_signature: boolean | null
           sent_at: string | null
           signature_url: string | null
+          signing_method: string | null
           status: string
           storage_url: string
           title: string
@@ -2938,6 +2943,10 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           document_type: string
+          docuseal_completed_at?: string | null
+          docuseal_status?: string | null
+          docuseal_submission_id?: string | null
+          docuseal_template_id?: string | null
           file_id?: string | null
           file_size?: number | null
           first_viewed_at?: string | null
@@ -2949,6 +2958,7 @@ export type Database = {
           requires_signature?: boolean | null
           sent_at?: string | null
           signature_url?: string | null
+          signing_method?: string | null
           status?: string
           storage_url: string
           title: string
@@ -2963,6 +2973,10 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           document_type?: string
+          docuseal_completed_at?: string | null
+          docuseal_status?: string | null
+          docuseal_submission_id?: string | null
+          docuseal_template_id?: string | null
           file_id?: string | null
           file_size?: number | null
           first_viewed_at?: string | null
@@ -2974,6 +2988,7 @@ export type Database = {
           requires_signature?: boolean | null
           sent_at?: string | null
           signature_url?: string | null
+          signing_method?: string | null
           status?: string
           storage_url?: string
           title?: string
