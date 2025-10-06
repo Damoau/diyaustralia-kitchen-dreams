@@ -380,3 +380,51 @@ All colors MUST be HSL.
     z-index: -1;
   }
 }
+
+/* Print Styles for A4 Paper */
+@media print {
+  @page {
+    size: A4;
+    margin: 20mm;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print\\:hidden {
+    display: none !important;
+  }
+
+  /* Prevent page breaks inside cards */
+  .print\\:break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Ensure cards print with borders */
+  [class*="border"] {
+    border: 1px solid #e5e7eb !important;
+  }
+
+  /* Remove shadows in print */
+  * {
+    box-shadow: none !important;
+  }
+
+  /* Optimize spacing for print */
+  .space-y-6 > * + * {
+    margin-top: 1rem !important;
+  }
+
+  /* Hide navigation and non-essential elements */
+  nav,
+  header:not(.print\\:block),
+  footer:not(.print\\:block),
+  button:not(.print\\:inline-block),
+  [role="navigation"],
+  [role="banner"] {
+    display: none !important;
+  }
+}

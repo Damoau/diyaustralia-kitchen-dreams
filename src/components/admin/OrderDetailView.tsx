@@ -1,20 +1,31 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Package, User, MapPin, CreditCard, Calendar, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Package, User, MapPin, CreditCard, Calendar, FileText, Printer } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useReactToPrint } from 'react-to-print';
 
 interface OrderDetailViewProps {
   orderId: string;
 }
 
 export const OrderDetailView: React.FC<OrderDetailViewProps> = ({ orderId }) => {
-  const { data: order, isLoading } = useQuery({
+  const printRef = useRef<HTMLDivElement>(null);
+  
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Order-${orderId}`,
+  });
+
+  const { data: order, isLoading, error: queryError } = useQuery({
     queryKey: ['order-detail', orderId],
     queryFn: async () => {
+      console.log('Fetching order details for:', orderId);
+      
       const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -25,13 +36,17 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({ orderId }) => 
             door_styles (name),
             colors (name),
             finishes (name)
-          ),
-          payments (*)
+          )
         `)
         .eq('id', orderId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching order:', error);
+        throw error;
+      }
+      
+      console.log('Order data fetched:', data);
       return data;
     },
   });
@@ -51,10 +66,16 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({ orderId }) => 
       <Card>
         <CardContent className="text-center py-8">
           <p className="text-muted-foreground">Order not found</p>
+          {queryError && <p className="text-sm text-red-500 mt-2">{queryError.message}</p>}
         </CardContent>
       </Card>
     );
   }
+
+  // Parse shipping address from JSONB
+  const shippingAddress = order.shipping_address as any;
+  const billingAddress = order.billing_address as any;
+  const orderData = order as any; // Type assertion for customer fields
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -70,8 +91,18 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({ orderId }) => 
 
   return (
     <div className="space-y-6">
-      {/* Order Header */}
-      <Card>
+      {/* Print Button */}
+      <div className="flex justify-end print:hidden">
+        <Button onClick={handlePrint} variant="outline" className="gap-2">
+          <Printer className="h-4 w-4" />
+          Print Order
+        </Button>
+      </div>
+
+      {/* Printable Content */}
+      <div ref={printRef} className="space-y-6">
+        {/* Order Header */}
+        <Card>
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
@@ -107,35 +138,87 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({ orderId }) => 
               Customer Information
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-3">
             <div>
               <p className="text-sm text-muted-foreground">Name</p>
-              <p className="font-medium">{(order as any).customer_name || 'N/A'}</p>
+              <p className="font-medium">{orderData.customer_name || 'N/A'}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Email</p>
-              <p className="font-medium">{(order as any).customer_email}</p>
+              <p className="font-medium">{orderData.customer_email || 'N/A'}</p>
             </div>
-            {(order as any).customer_phone && (
+            {orderData.customer_phone && (
               <div>
                 <p className="text-sm text-muted-foreground">Phone</p>
-                <p className="font-medium">{(order as any).customer_phone}</p>
+                <p className="font-medium">{orderData.customer_phone}</p>
               </div>
             )}
-            {(order as any).customer_company && (
+            {orderData.customer_company && (
               <div>
                 <p className="text-sm text-muted-foreground">Company</p>
-                <p className="font-medium">{(order as any).customer_company}</p>
+                <p className="font-medium">{orderData.customer_company}</p>
               </div>
             )}
-            {(order as any).customer_abn && (
+            {orderData.customer_abn && (
               <div>
                 <p className="text-sm text-muted-foreground">ABN</p>
-                <p className="font-medium">{(order as any).customer_abn}</p>
+                <p className="font-medium">{orderData.customer_abn}</p>
               </div>
             )}
           </CardContent>
         </Card>
+
+        {/* Shipping Address */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              Shipping Address
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            {shippingAddress ? (
+              <>
+                {shippingAddress.street && <p>{shippingAddress.street}</p>}
+                {shippingAddress.suburb && <p>{shippingAddress.suburb}</p>}
+                {shippingAddress.city && <p>{shippingAddress.city}</p>}
+                {(shippingAddress.state || shippingAddress.postcode) && (
+                  <p>
+                    {shippingAddress.state} {shippingAddress.postcode}
+                  </p>
+                )}
+                {shippingAddress.country && <p>{shippingAddress.country}</p>}
+              </>
+            ) : (
+              <p className="text-muted-foreground">No shipping address</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Billing Address */}
+        {billingAddress && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Billing Address
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              {billingAddress.street && <p>{billingAddress.street}</p>}
+              {billingAddress.suburb && <p>{billingAddress.suburb}</p>}
+              {billingAddress.city && <p>{billingAddress.city}</p>}
+              {(billingAddress.state || billingAddress.postcode) && (
+                <p>
+                  {billingAddress.state} {billingAddress.postcode}
+                </p>
+              )}
+              {billingAddress.country && <p>{billingAddress.country}</p>}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Payment Information */}
         <Card>
@@ -178,34 +261,104 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({ orderId }) => 
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Order Items
+            Order Items ({order.order_items?.length || 0})
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {order.order_items?.map((item: any, index: number) => (
-              <div key={item.id} className="border rounded-lg p-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h4 className="font-medium">{item.cabinet_types?.name || 'Cabinet'}</h4>
-                    <div className="text-sm text-muted-foreground space-y-1 mt-2">
-                      <p>Dimensions: {item.width_mm}W × {item.height_mm}H × {item.depth_mm}D mm</p>
-                      {item.door_styles?.name && <p>Door Style: {item.door_styles.name}</p>}
-                      {item.colors?.name && <p>Color: {item.colors.name}</p>}
-                      {item.finishes?.name && <p>Finish: {item.finishes.name}</p>}
-                      <p>Quantity: {item.quantity}</p>
+          {!order.order_items || order.order_items.length === 0 ? (
+            <p className="text-muted-foreground text-center py-4">No items in this order</p>
+          ) : (
+            <div className="space-y-4">
+              {order.order_items.map((item: any, index: number) => {
+                const config = item.configuration || {};
+                return (
+                  <div key={item.id} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-lg">{item.cabinet_types?.name || 'Cabinet'}</h4>
+                        <p className="text-sm text-muted-foreground">{item.cabinet_types?.description}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-lg">${item.total_price?.toFixed(2) || '0.00'}</p>
+                        <p className="text-sm text-muted-foreground">
+                          ${item.unit_price?.toFixed(2) || '0.00'} each
+                        </p>
+                        <p className="text-sm font-medium mt-1">Qty: {item.quantity}</p>
+                      </div>
                     </div>
+                    
+                    <Separator className="my-3" />
+                    
+                    {/* Specifications */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Dimensions</p>
+                        <p className="font-medium">
+                          {item.width_mm}W × {item.height_mm}H × {item.depth_mm}D mm
+                        </p>
+                      </div>
+                      
+                      {item.door_styles?.name && (
+                        <div>
+                          <p className="text-muted-foreground">Door Style</p>
+                          <p className="font-medium">{item.door_styles.name}</p>
+                        </div>
+                      )}
+                      
+                      {item.colors?.name && (
+                        <div>
+                          <p className="text-muted-foreground">Color</p>
+                          <p className="font-medium">{item.colors.name}</p>
+                        </div>
+                      )}
+                      
+                      {item.finishes?.name && (
+                        <div>
+                          <p className="text-muted-foreground">Finish</p>
+                          <p className="font-medium">{item.finishes.name}</p>
+                        </div>
+                      )}
+                      
+                      {/* Additional configuration options */}
+                      {config.hinge_type && (
+                        <div>
+                          <p className="text-muted-foreground">Hinge Type</p>
+                          <p className="font-medium">{config.hinge_type}</p>
+                        </div>
+                      )}
+                      
+                      {config.handle_type && (
+                        <div>
+                          <p className="text-muted-foreground">Handle Type</p>
+                          <p className="font-medium">{config.handle_type}</p>
+                        </div>
+                      )}
+                      
+                      {config.drawer_system && (
+                        <div>
+                          <p className="text-muted-foreground">Drawer System</p>
+                          <p className="font-medium">{config.drawer_system}</p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Inside Notes */}
+                    {(config.notes || config.internal_notes || item.notes) && (
+                      <>
+                        <Separator className="my-3" />
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1">Notes:</p>
+                          <p className="text-sm bg-muted p-2 rounded whitespace-pre-wrap">
+                            {config.notes || config.internal_notes || item.notes}
+                          </p>
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium">${item.total_price?.toFixed(2) || '0.00'}</p>
-                    <p className="text-sm text-muted-foreground">
-                      ${item.unit_price?.toFixed(2) || '0.00'} each
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -226,20 +379,36 @@ export const OrderDetailView: React.FC<OrderDetailViewProps> = ({ orderId }) => 
         </Card>
       )}
 
-      {/* Notes */}
-      {order.notes && (
+      {/* Order Notes */}
+      {(order.notes || orderData.customer_notes) && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Notes
+              Order Notes
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{order.notes}</p>
+          <CardContent className="space-y-3">
+            {order.notes && (
+              <div>
+                <p className="text-sm font-medium mb-1">Internal Notes:</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap bg-muted p-3 rounded">
+                  {order.notes}
+                </p>
+              </div>
+            )}
+            {orderData.customer_notes && (
+              <div>
+                <p className="text-sm font-medium mb-1">Customer Notes:</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap bg-muted p-3 rounded">
+                  {orderData.customer_notes}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 };
