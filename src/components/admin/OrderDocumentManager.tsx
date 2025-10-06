@@ -203,17 +203,19 @@ export function OrderDocumentManager({ orderId, documentType: initialDocType, on
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Upload Documents
-          </CardTitle>
-          <CardDescription>
-            Upload drawings or customer plans for approval
-          </CardDescription>
-        </CardHeader>
-      <CardContent className="space-y-4">
+      {/* Hide upload form when signature editor is open */}
+      {!showEditor && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Upload Documents
+            </CardTitle>
+            <CardDescription>
+              Upload drawings or customer plans for approval
+            </CardDescription>
+          </CardHeader>
+        <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="document-type">Document Type</Label>
           <Select value={documentType} onValueChange={(value: any) => {
@@ -351,6 +353,7 @@ export function OrderDocumentManager({ orderId, documentType: initialDocType, on
         </div>
       </CardContent>
     </Card>
+      )}
 
       {/* PDF Signature Editor */}
       {showEditor && uploadedDocumentId && uploadedDocumentUrl && (
