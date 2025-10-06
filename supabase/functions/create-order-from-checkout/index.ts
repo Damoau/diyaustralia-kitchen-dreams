@@ -99,11 +99,10 @@ serve(async (req) => {
         customer_name: `${checkout.customer_first_name || ''} ${checkout.customer_last_name || ''}`.trim(),
         customer_email: checkout.customer_email,
         customer_phone: checkout.customer_phone,
-        customer_company: checkout.customer_company,
         shipping_method: 'standard',
         target_completion: defaultDueDate,
         drawings_status: paymentType === 'deposit' ? 'pending_upload' : 'not_required',
-        notes: checkout.how_heard ? `How they heard about us: ${checkout.how_heard}` : null,
+        notes: checkout.how_heard ? `How they heard about us: ${checkout.how_heard}${checkout.customer_company ? `\nCompany: ${checkout.customer_company}` : ''}` : (checkout.customer_company ? `Company: ${checkout.customer_company}` : null),
       })
       .select()
       .single();
