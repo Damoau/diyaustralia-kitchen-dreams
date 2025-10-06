@@ -2959,6 +2959,9 @@ export type Database = {
           created_at: string
           depth_mm: number
           door_style_id: string | null
+          drawing_approved: boolean | null
+          drawing_approved_at: string | null
+          drawing_approved_by: string | null
           finish_id: string | null
           height_mm: number
           id: string
@@ -2975,6 +2978,9 @@ export type Database = {
           created_at?: string
           depth_mm: number
           door_style_id?: string | null
+          drawing_approved?: boolean | null
+          drawing_approved_at?: string | null
+          drawing_approved_by?: string | null
           finish_id?: string | null
           height_mm: number
           id?: string
@@ -2991,6 +2997,9 @@ export type Database = {
           created_at?: string
           depth_mm?: number
           door_style_id?: string | null
+          drawing_approved?: boolean | null
+          drawing_approved_at?: string | null
+          drawing_approved_by?: string | null
           finish_id?: string | null
           height_mm?: number
           id?: string
@@ -5005,6 +5014,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_cabinet_drawing: {
+        Args: { p_approved: boolean; p_order_item_id: string }
+        Returns: undefined
+      }
       attach_file_to_scope: {
         Args: { p_file_id: string; p_scope: string; p_scope_id: string }
         Returns: undefined

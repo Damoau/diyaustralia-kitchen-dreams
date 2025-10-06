@@ -3,9 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Send, Eye, Clock, CheckCircle, AlertTriangle, Upload } from 'lucide-react';
+import { FileText, Send, Eye, Clock, CheckCircle, AlertTriangle, Upload, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { OrderDetailView } from './OrderDetailView';
 import { OrderDocumentManager } from './OrderDocumentManager';
@@ -15,6 +17,7 @@ export function DocumentApprovalDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [uploadDialogOrderId, setUploadDialogOrderId] = useState<string | null>(null);
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   useEffect(() => {
@@ -60,6 +63,20 @@ export function DocumentApprovalDashboard() {
             last_viewed_at,
             view_count,
             approved_at
+          ),
+          order_items (
+            id,
+            quantity,
+            width_mm,
+            height_mm,
+            depth_mm,
+            drawing_approved,
+            drawing_approved_by,
+            drawing_approved_at,
+            cabinet_types (name),
+            door_styles (name),
+            colors (name),
+            finishes (name)
           )
         `)
         .in('drawings_status', ['pending_upload', 'sent', 'under_review'])
@@ -137,33 +154,77 @@ export function DocumentApprovalDashboard() {
     return { approved, total: docs.length };
   };
 
+  const getCabinetProgress = (order: any) => {
+    const items = order.order_items || [];
+    const approved = items.filter((item: any) => item.drawing_approved).length;
+    return { approved, total: items.length };
+  };
+
+  const toggleCabinetApproval = async (itemId: string, currentlyApproved: boolean) => {
+    try {
+      const { error } = await supabase.rpc('approve_cabinet_drawing', {
+        p_order_item_id: itemId,
+        p_approved: !currentlyApproved
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: currentlyApproved ? 'Cabinet unapproved' : 'Cabinet approved',
+        description: 'Drawing approval status updated'
+      });
+
+      loadOrders();
+    } catch (error: any) {
+      toast({
+        title: 'Error updating approval',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const toggleOrderExpanded = (orderId: string) => {
+    setExpandedOrders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
+      }
+      return newSet;
+    });
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <FileText className="h-4 w-4" />
             Document Approval Dashboard
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm">
             Track customer drawing approvals and send reminders
           </CardDescription>
         </CardHeader>
         <CardContent>
           {orders.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
+            <p className="text-center text-muted-foreground py-6 text-sm">
               No orders awaiting document approval
             </p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-2">
               {orders.map((order) => {
                 const pendingDocs = order.order_documents?.filter((d: any) => d.status !== 'approved') || [];
                 const firstSentDoc = order.order_documents?.find((d: any) => d.sent_at);
                 const daysWaiting = firstSentDoc ? getDaysWaiting(firstSentDoc.sent_at) : 0;
+                const cabinetProgress = getCabinetProgress(order);
+                const isExpanded = expandedOrders.has(order.id);
                 
                 return (
                   <Card key={order.id} className="border-l-4" style={{
@@ -171,105 +232,128 @@ export function DocumentApprovalDashboard() {
                                      daysWaiting > 3 ? 'hsl(var(--warning))' : 
                                      'hsl(var(--muted))'
                   }}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1 flex-1">
+                    <CardContent className="p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-1 flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <Button
                               variant="link"
-                              className="h-auto p-0 font-semibold text-base"
+                              className="h-auto p-0 font-semibold text-sm"
                               onClick={() => setSelectedOrderId(order.id)}
                             >
                               {order.order_number}
                             </Button>
-                            <Badge variant={getStatusColor(order.drawings_status, daysWaiting)}>
-                              {order.drawings_status === 'pending_upload' && (
-                                <Clock className="h-3 w-3 mr-1" />
-                              )}
-                              {order.drawings_status === 'sent' && (
-                                <Send className="h-3 w-3 mr-1" />
-                              )}
-                              {order.drawings_status === 'under_review' && (
-                                <Eye className="h-3 w-3 mr-1" />
-                              )}
+                            <Badge variant={getStatusColor(order.drawings_status, daysWaiting)} className="text-xs py-0">
+                              {order.drawings_status === 'pending_upload' && <Clock className="h-3 w-3 mr-1" />}
+                              {order.drawings_status === 'sent' && <Send className="h-3 w-3 mr-1" />}
+                              {order.drawings_status === 'under_review' && <Eye className="h-3 w-3 mr-1" />}
                               {order.drawings_status}
                             </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              {getDocumentProgress(order).approved} / {getDocumentProgress(order).total} docs approved
+                            <Badge variant="outline" className="text-xs py-0">
+                              {getDocumentProgress(order).approved}/{getDocumentProgress(order).total} docs
+                            </Badge>
+                            <Badge variant="outline" className="text-xs py-0">
+                              {cabinetProgress.approved}/{cabinetProgress.total} cabinets ✓
                             </Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-xs text-muted-foreground truncate">
                             {order.shipping_address?.name} • {order.shipping_address?.email}
                           </p>
-                          
-                          {pendingDocs.length > 0 && (
-                            <div className="mt-2 space-y-1">
-                              {pendingDocs.map((doc: any) => (
-                                <div key={doc.id} className="flex items-center gap-2 text-sm">
-                                  <FileText className="h-3 w-3" />
-                                  <span>{doc.title}</span>
-                                  {doc.status === 'viewed' && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      {doc.view_count} views
-                                    </Badge>
-                                  )}
-                                  {doc.last_viewed_at && (
-                                    <span className="text-muted-foreground text-xs">
-                                      Last viewed {formatDistanceToNow(new Date(doc.last_viewed_at), { addSuffix: true })}
-                                    </span>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          )}
                         </div>
 
-                        <div className="flex flex-col items-end gap-2">
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           {daysWaiting > 0 && (
-                            <div className="flex items-center gap-1 text-sm">
+                            <div className="flex items-center gap-1 text-xs">
                               {daysWaiting > 7 ? (
-                                <AlertTriangle className="h-4 w-4 text-destructive" />
+                                <AlertTriangle className="h-3 w-3 text-destructive" />
                               ) : (
-                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <Clock className="h-3 w-3 text-muted-foreground" />
                               )}
                               <span className={daysWaiting > 7 ? 'text-destructive font-semibold' : 'text-muted-foreground'}>
-                                {daysWaiting} days waiting
+                                {daysWaiting}d
                               </span>
                             </div>
                           )}
                           
-                          <div className="flex gap-2">
-                            {order.drawings_status === 'pending_upload' ? (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 w-7 p-0"
+                            onClick={() => toggleOrderExpanded(order.id)}
+                          >
+                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          </Button>
+
+                          {order.drawings_status === 'pending_upload' ? (
+                            <Button
+                              size="sm"
+                              className="h-7 px-2 text-xs"
+                              onClick={() => setUploadDialogOrderId(order.id)}
+                            >
+                              <Upload className="h-3 w-3 mr-1" />
+                              Upload
+                            </Button>
+                          ) : (
+                            <>
                               <Button
                                 size="sm"
-                                onClick={() => setUploadDialogOrderId(order.id)}
+                                variant="outline"
+                                className="h-7 px-2 text-xs"
+                                onClick={() => setSelectedOrderId(order.id)}
                               >
-                                <Upload className="h-3 w-3 mr-1" />
-                                Upload
+                                <Eye className="h-3 w-3 mr-1" />
+                                View
                               </Button>
-                            ) : (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setSelectedOrderId(order.id)}
-                                >
-                                  <Eye className="h-3 w-3 mr-1" />
-                                  View
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => sendReminder(order.id)}
-                                >
-                                  <Send className="h-3 w-3 mr-1" />
-                                  Remind
-                                </Button>
-                              </>
-                            )}
-                          </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 px-2 text-xs"
+                                onClick={() => sendReminder(order.id)}
+                              >
+                                <Send className="h-3 w-3 mr-1" />
+                                Remind
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </div>
+
+                      {/* Expandable Cabinet List */}
+                      {isExpanded && (
+                        <div className="mt-3 pt-3 border-t space-y-2">
+                          <p className="text-xs font-medium text-muted-foreground mb-2">Cabinet Approvals:</p>
+                          {order.order_items?.map((item: any) => (
+                            <div key={item.id} className="flex items-start gap-2 text-xs p-2 bg-muted/50 rounded">
+                              <Checkbox
+                                checked={item.drawing_approved}
+                                onCheckedChange={() => toggleCabinetApproval(item.id, item.drawing_approved)}
+                                className="mt-0.5"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium">
+                                  {item.cabinet_types?.name || 'Cabinet'} 
+                                  {item.quantity > 1 && ` (×${item.quantity})`}
+                                </p>
+                                <p className="text-muted-foreground">
+                                  {item.width_mm}W × {item.height_mm}H × {item.depth_mm}D mm
+                                </p>
+                                {(item.door_styles?.name || item.colors?.name) && (
+                                  <p className="text-muted-foreground">
+                                    {item.door_styles?.name}
+                                    {item.door_styles?.name && item.colors?.name && ' • '}
+                                    {item.colors?.name}
+                                  </p>
+                                )}
+                                {item.drawing_approved_at && (
+                                  <p className="text-muted-foreground italic mt-1">
+                                    ✓ Approved {formatDistanceToNow(new Date(item.drawing_approved_at), { addSuffix: true })}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 );
