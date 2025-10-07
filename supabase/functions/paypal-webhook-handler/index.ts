@@ -4,7 +4,7 @@ import { timingSafeEqual } from "https://deno.land/std@0.208.0/crypto/timing_saf
 import { createHmac } from "node:crypto";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "https://ebf0769f-8814-47f0-bfb6-515c0f9cba2c.lovableproject.com",
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, paypal-transmission-id, paypal-cert-id, paypal-auth-algo, paypal-transmission-sig",
 };
 
