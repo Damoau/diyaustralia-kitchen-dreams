@@ -114,7 +114,7 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           last_active_at: string | null
           session_token: string
           two_fa_verified: boolean | null
@@ -125,7 +125,7 @@ export type Database = {
           created_at?: string
           expires_at: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           last_active_at?: string | null
           session_token: string
           two_fa_verified?: boolean | null
@@ -136,7 +136,7 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           last_active_at?: string | null
           session_token?: string
           two_fa_verified?: boolean | null
@@ -266,7 +266,7 @@ export type Database = {
           before_data: Json | null
           created_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           new_values: Json | null
           old_values: Json | null
@@ -283,7 +283,7 @@ export type Database = {
           before_data?: Json | null
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           new_values?: Json | null
           old_values?: Json | null
@@ -300,7 +300,7 @@ export type Database = {
           before_data?: Json | null
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           new_values?: Json | null
           old_values?: Json | null
@@ -1345,7 +1345,13 @@ export type Database = {
           hex_code: string | null
           id: string
           image_url: string | null
+          minimum_order_amount: number | null
+          minimum_order_message: string | null
           name: string
+          service_fee_tier1_amount: number | null
+          service_fee_tier1_max: number | null
+          service_fee_tier2_amount: number | null
+          service_fee_tier2_max: number | null
           sort_order: number | null
           surcharge_rate_per_sqm: number
         }
@@ -1356,7 +1362,13 @@ export type Database = {
           hex_code?: string | null
           id?: string
           image_url?: string | null
+          minimum_order_amount?: number | null
+          minimum_order_message?: string | null
           name: string
+          service_fee_tier1_amount?: number | null
+          service_fee_tier1_max?: number | null
+          service_fee_tier2_amount?: number | null
+          service_fee_tier2_max?: number | null
           sort_order?: number | null
           surcharge_rate_per_sqm?: number
         }
@@ -1367,7 +1379,13 @@ export type Database = {
           hex_code?: string | null
           id?: string
           image_url?: string | null
+          minimum_order_amount?: number | null
+          minimum_order_message?: string | null
           name?: string
+          service_fee_tier1_amount?: number | null
+          service_fee_tier1_max?: number | null
+          service_fee_tier2_amount?: number | null
+          service_fee_tier2_max?: number | null
           sort_order?: number | null
           surcharge_rate_per_sqm?: number
         }
@@ -4750,7 +4768,7 @@ export type Database = {
           device_type: string | null
           ended_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           pages_visited: string[] | null
           referrer: string | null
           session_duration_ms: number | null
@@ -4767,7 +4785,7 @@ export type Database = {
           device_type?: string | null
           ended_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           pages_visited?: string[] | null
           referrer?: string | null
           session_duration_ms?: number | null
@@ -4784,7 +4802,7 @@ export type Database = {
           device_type?: string | null
           ended_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           pages_visited?: string[] | null
           referrer?: string | null
           session_duration_ms?: number | null
@@ -5044,10 +5062,7 @@ export type Database = {
         Args: { p_file_id: string; p_scope: string; p_scope_id: string }
         Returns: undefined
       }
-      auto_archive_old_carts: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      auto_archive_old_carts: { Args: never; Returns: number }
       calculate_gst_amount: {
         Args: { amount_ex_gst: number; tax_rate?: number }
         Returns: number
@@ -5079,10 +5094,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      cleanup_old_anonymous_data: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_old_anonymous_data: { Args: never; Returns: undefined }
       create_simulation_report: {
         Args: {
           p_avg_duration: number
@@ -5096,10 +5108,7 @@ export type Database = {
         }
         Returns: string
       }
-      end_user_session: {
-        Args: { p_session_id: string }
-        Returns: undefined
-      }
+      end_user_session: { Args: { p_session_id: string }; Returns: undefined }
       enhanced_cart_consolidation: {
         Args: { p_session_id?: string; p_user_id?: string }
         Returns: {
@@ -5108,10 +5117,7 @@ export type Database = {
           details: string
         }[]
       }
-      generate_invoice_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_invoice_number: { Args: never; Returns: string }
       generate_milestone_invoices: {
         Args: { p_order_id: string }
         Returns: {
@@ -5121,14 +5127,8 @@ export type Database = {
           percentage: number
         }[]
       }
-      generate_order_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_quote_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_order_number: { Args: never; Returns: string }
+      generate_quote_number: { Args: never; Returns: string }
       get_primary_cart: {
         Args: { p_session_id?: string; p_user_id?: string }
         Returns: {
@@ -5208,18 +5208,12 @@ export type Database = {
         }
         Returns: undefined
       }
-      set_primary_cart: {
-        Args: { p_cart_id: string }
-        Returns: undefined
-      }
+      set_primary_cart: { Args: { p_cart_id: string }; Returns: undefined }
       setup_door_hinge_options: {
         Args: { p_cabinet_type_id: string; p_door_count: number }
         Returns: undefined
       }
-      test_quote_requests_security_final: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      test_quote_requests_security_final: { Args: never; Returns: string }
       track_document_view: {
         Args: { p_document_id: string }
         Returns: undefined

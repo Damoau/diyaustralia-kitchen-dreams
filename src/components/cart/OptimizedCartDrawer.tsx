@@ -18,6 +18,8 @@ import { CartConsolidationButton } from "./CartConsolidationButton";
 import { formatCurrency } from "@/lib/formatPrice";
 import { toast } from "sonner";
 import { EnhancedCartItem } from "./EnhancedCartItem";
+import { useColorServiceFees } from "@/hooks/useColorServiceFees";
+import { ColorServiceFeeAlert } from "./ColorServiceFeeAlert";
 
 interface OptimizedCartDrawerProps {
   children: React.ReactNode;
@@ -32,6 +34,12 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
   const navigate = useNavigate();
 
   const itemCount = getTotalItems();
+  
+  // Calculate service fees for colors not meeting minimums
+  const cartItemsWithColors = cart?.items?.filter(item => item.color_id) || [];
+  const { data: serviceFeeData } = useColorServiceFees(cartItemsWithColors as any);
+  const totalServiceFees = serviceFeeData?.totalServiceFees || 0;
+  const finalTotal = getTotalPrice() + totalServiceFees;
   
   const handleNavigateToProduct = (item: any) => {
     console.log('Navigate to product:', item);
@@ -244,34 +252,49 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
               </ScrollArea>
 
               <div className="border-t pt-4 space-y-4">
+                {/* Service Fee Alerts */}
+                {serviceFeeData?.fees && serviceFeeData.fees.length > 0 && (
+                  <ColorServiceFeeAlert 
+                    fees={serviceFeeData.fees} 
+                    totalServiceFees={totalServiceFees}
+                  />
+                )}
+
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Subtotal (ex GST):</span>
                     <span>{formatCurrency(getTotalPrice() / 1.1)}</span>
                   </div>
                   
+                  {totalServiceFees > 0 && (
+                    <div className="flex justify-between text-sm text-amber-600 dark:text-amber-400">
+                      <span>Service Fees:</span>
+                      <span>{formatCurrency(totalServiceFees)}</span>
+                    </div>
+                  )}
+                  
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>GST (10%):</span>
-                    <span>{formatCurrency((getTotalPrice() / 1.1) * 0.1)}</span>
+                    <span>{formatCurrency((finalTotal / 1.1) * 0.1)}</span>
                   </div>
                   
                   <div className="flex justify-between items-center font-semibold text-lg pt-2 border-t">
                     <span>Total (inc GST):</span>
                     <span className="text-primary">
-                      {formatCurrency(getTotalPrice())}
+                      {formatCurrency(finalTotal)}
                     </span>
                   </div>
                 </div>
 
                 {/* Modern 20% Deposit Banner */}
-                {getTotalPrice() > 0 && (
+                {finalTotal > 0 && (
                   <div className="w-full max-w-md mx-auto">
                     <div className="bg-gradient-to-r from-primary to-blue-dark text-primary-foreground rounded-xl px-6 py-3 shadow-lg border border-primary/20 backdrop-blur-sm">
                       <div className="flex items-center gap-3">
                         <div className="flex flex-col">
                           <span className="text-sm font-medium opacity-90">20% deposit to get all cabinets started</span>
                           <span className="text-lg font-bold">
-                            {formatCurrency(getTotalPrice() * 0.2)}
+                            {formatCurrency(finalTotal * 0.2)}
                           </span>
                         </div>
                         <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
@@ -283,7 +306,7 @@ const OptimizedCartDrawer = memo(({ children }: OptimizedCartDrawerProps) => {
                 )}
 
                 <div className="space-y-3">
-                  {getTotalPrice() > 0 && (
+                  {finalTotal > 0 && (
                     <>
                       <Button 
                         onClick={() => handleCheckout('full')}

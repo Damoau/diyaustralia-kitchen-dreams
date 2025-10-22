@@ -19,6 +19,8 @@ import { QuoteSelectionDialog } from "@/components/cart/QuoteSelectionDialog";
 import { CartStatusIndicator } from "@/components/cart/CartStatusIndicator";
 import { formatCurrency } from "@/lib/formatPrice";
 import { SEOTags } from "@/components/SEOTags";
+import { useColorServiceFees } from "@/hooks/useColorServiceFees";
+import { ColorServiceFeeAlert } from "@/components/cart/ColorServiceFeeAlert";
 
 interface CartItem {
   id: string;
@@ -41,6 +43,12 @@ const Cart = () => {
   const { convertCartToQuote, isLoading: isConverting } = useCartToQuote();
   const { isImpersonating, impersonatedCustomerEmail } = useAdminImpersonation();
   const { user } = useAuth();
+
+  // Calculate service fees for colors not meeting minimums
+  const cartItemsWithColors = cart?.items?.filter(item => item.color_id) || [];
+  const { data: serviceFeeData } = useColorServiceFees(cartItemsWithColors as any);
+  const totalServiceFees = serviceFeeData?.totalServiceFees || 0;
+  const finalTotal = totalPrice + totalServiceFees;
 
   const toggleNotes = (itemId: string) => {
     const newExpanded = new Set(expandedNotes);
@@ -378,14 +386,29 @@ const Cart = () => {
                     <CardTitle>Order Summary</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {/* Service Fee Alerts */}
+                    {serviceFeeData?.fees && serviceFeeData.fees.length > 0 && (
+                      <ColorServiceFeeAlert 
+                        fees={serviceFeeData.fees} 
+                        totalServiceFees={totalServiceFees}
+                      />
+                    )}
+
                     <div className="flex justify-between text-muted-foreground">
                       <span>Subtotal (ex GST)</span>
                       <span>{formatCurrency(totalPrice / 1.1)}</span>
                     </div>
                     
+                    {totalServiceFees > 0 && (
+                      <div className="flex justify-between text-amber-600 dark:text-amber-400">
+                        <span>Service Fees</span>
+                        <span>{formatCurrency(totalServiceFees)}</span>
+                      </div>
+                    )}
+                    
                     <div className="flex justify-between text-muted-foreground">
                       <span>GST (10%)</span>
-                      <span>{formatCurrency((totalPrice / 1.1) * 0.1)}</span>
+                      <span>{formatCurrency((finalTotal / 1.1) * 0.1)}</span>
                     </div>
                     
                     <div className="flex justify-between">
@@ -397,12 +420,12 @@ const Cart = () => {
                     
                      <div className="flex justify-between font-semibold text-lg">
                        <span>Total (inc GST)</span>
-                       <span>{formatCurrency(totalPrice)}</span>
+                       <span>{formatCurrency(finalTotal)}</span>
                      </div>
                      
                      <div className="flex justify-between text-sm text-muted-foreground pt-2 border-t">
                        <span>20% Deposit</span>
-                       <span>{formatCurrency(totalPrice * 0.2)}</span>
+                       <span>{formatCurrency(finalTotal * 0.2)}</span>
                      </div>
                      
                      {isImpersonating ? (
