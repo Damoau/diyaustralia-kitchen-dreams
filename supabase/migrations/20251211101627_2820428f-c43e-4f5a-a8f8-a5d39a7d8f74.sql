@@ -1,0 +1,1 @@
+DELETE FROM cabinet_types WHERE id = '9cd23055-a76d-4739-a221-f7db00bc9d87';
