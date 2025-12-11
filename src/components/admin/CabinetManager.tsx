@@ -89,13 +89,13 @@ const CabinetManager: React.FC = () => {
     },
   });
 
-  // Fetch cabinet types with room category join via unified_categories
+  // Fetch cabinet types
   const { data: cabinetTypes, isLoading: loadingTypes } = useQuery({
     queryKey: ['admin-cabinet-types'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('cabinet_types')
-        .select('*, room_categories:unified_categories!cabinet_types_room_category_id_fkey(name)')
+        .select('*')
         .order('category', { ascending: true })
         .order('display_order', { ascending: true });
       
@@ -184,11 +184,12 @@ const CabinetManager: React.FC = () => {
       label: 'Name',
     },
     {
-      key: 'room_categories' as keyof CabinetType,
+      key: 'room_category_id' as keyof CabinetType,
       label: 'Room',
-      render: (value: any) => (
-        value?.name ? <Badge variant="outline">{value.name}</Badge> : '-'
-      ),
+      render: (value: string) => {
+        const room = roomCategories?.find(r => r.id === value);
+        return room?.display_name ? <Badge variant="outline">{room.display_name}</Badge> : '-';
+      },
     },
     {
       key: 'category' as keyof CabinetType,
