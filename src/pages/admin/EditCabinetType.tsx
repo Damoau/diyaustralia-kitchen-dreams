@@ -1333,26 +1333,17 @@ export default function EditCabinetType() {
             </TabsContent>
 
             <TabsContent value="hardware" className="space-y-6 m-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Cog className="h-5 w-5" />
-                    Hardware Requirements
-                  </CardTitle>
-                  <CardDescription>
-                    Configure the hardware needed for this cabinet type (hinges, runners, etc.) used for pricing calculations
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {id !== 'new' ? (
-                    <CabinetHardwareSetup cabinetTypeId={id} />
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
+              {id !== 'new' ? (
+                <CabinetHardwareSetup cabinetTypeId={id} />
+              ) : (
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-8">
+                    <p className="text-muted-foreground">
                       Save the cabinet type first to configure hardware requirements.
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
 
           </ScrollArea>
